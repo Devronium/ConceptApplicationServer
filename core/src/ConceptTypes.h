@@ -136,6 +136,9 @@ typedef void (*DESTROY_PROTO_DATA)(void *data, void *handler);
 #define INVOKE_GET_KEYS                       0x59
 #define INVOKE_CREATE_INDEPENDENT_WORKER      0x5A
 #define INVOKE_WORKER_ERRORS                  0x5B
+#define INVOKE_MALLOC                         0x5D
+#define INVOKE_REALLOC                        0x5E
+#define INVOKE_FREE                           0x5F
 #define INVOKE_PROFILE_MEMORY                 0x60
 #define INVOKE_CREATE_WORKER                  0x61
 #define INVOKE_FREE_WORKER                    0x62
@@ -714,28 +717,28 @@ public:
 
 class ConstantsListEmulation {
 private:
-    HashTable map;
+    struct HashTable map;
 public:
     ConstantsListEmulation() {
+        HashTable_init(&map);
     }
 
     int Count() {
-        return map.size();
+        return HashTable_size(&map);
     }
 
     INTEGER Serialize(FILE *out) {
-        INTEGER constant_list = map.size();
+        INTEGER constant_list = HashTable_size(&map);
         INTEGER temp = 0;
-        HashTableIterator a = map.begin();
-        for (HashTableIterator it = map.begin(); it != map.end(); ++it) {
-            VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)map.val(it);
+        for (HashTableIterator it = HashTable_begin(&map); it != HashTable_end(&map); ++it) {
+            VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)HashTable_val(&map, it);
             if ((VD) && (!VD->USED) && (!VD->BY_REF))
                 temp++;
         }
         concept_fwrite_int(&temp, sizeof(temp), 1, out);
         if (temp) {
-            for (HashTableIterator it = map.begin(); it != map.end(); ++it) {
-                VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)map.val(it);
+            for (HashTableIterator it = HashTable_begin(&map); it != HashTable_end(&map); ++it) {
+                VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)HashTable_val(&map, it);
                 if ((VD) && (!VD->USED) && (!VD->BY_REF)) {
                     VD->name.Serialize(out, SERIALIZE_8BIT_LENGTH);
                     VD->value.Serialize(out, SERIALIZE_16BIT_LENGTH);
@@ -750,17 +753,17 @@ public:
         if (VD) {
             const char *name = VD->name.c_str();
             int len = VD->name.Length();
-            VariableDESCRIPTOR *VD2 = (VariableDESCRIPTOR *)map[name];
+            VariableDESCRIPTOR *VD2 = (VariableDESCRIPTOR *)HashTable_find(&map, name);
             if (VD2)
                 delete VD2;
-            map.add(name, (intptr_t)VD, len);
+            HashTable_add(&map, name, (intptr_t)VD, len);
         }
     }
 
     void Delete(const char *varname) {
         if ((!varname) || (!varname[0]))
             return;
-        VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)map.erase(varname);
+        VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)HashTable_erase(&map, varname);
         if (VD)
             delete VD;
     }
@@ -769,17 +772,17 @@ public:
         if ((!varname) || (!varname[0]))
             return NULL;
 
-        return (void *)map.find(varname);
+        return (void *)HashTable_find(&map, varname);
     }
 
     ~ConstantsListEmulation() {
-        HashTableIterator a = map.begin();
-        for(HashTableIterator it = map.begin(); it != map.end(); ++it) {
-            VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)map.val(it);
+        for (HashTableIterator it = HashTable_begin(&map); it != HashTable_end(&map); ++it) {
+            VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)HashTable_val(&map, it);
             if (VD)
                 delete VD;
         }
-        map.clear();
+        HashTable_clear(&map);
+        HashTable_deinit(&map);
     }
 };
 

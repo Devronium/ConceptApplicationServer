@@ -79,7 +79,8 @@ ssize_t sock_fd_read(int sock, int *fd) {
 
 #ifdef CACHE_MEMBERS
     #include "HashTable.h"
-static HashTable FunctionMap;
+
+    static HashTable FunctionMap;
 #endif
 
 INTEGER ImportModule(AnsiString& MODULE_MASK, AnsiList *Errors, INTEGER line, AnsiString FILENAME, AnsiList *TARGET, PIFAlizator *Sender, INTEGER _NO_ERROR_REPORT) {
@@ -1278,8 +1279,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 semp(PIFAlizator::WorkerLock);
                 pif->ClassList->Add(CC, DATA_CLASS_CODE);
 #ifdef CACHED_CLASSES
-                HASH_TYPE key = hash_func(CC->NAME.c_str(), CC->NAME.Length());
-                pif->CachedClasses[key] = pif->ClassList.Count();
+                HashTable_add(&pif->CachedClasses, CC->NAME.c_str(), pif->ClassList->Count(), CC->NAME.Length());
 #endif
                 pif->SyncClassList();
                 if (pif->parentPIF)
@@ -2421,6 +2421,55 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
             }
             break;
 
+        case INVOKE_MALLOC:
+            {
+                PIFAlizator *pif = va_arg(ap, PIFAlizator *);
+                if (!pif)
+                    return INVALID_INVOKE_PARAMETER;
+                INTEGER size = va_arg(ap, INTEGER);
+                void **str = va_arg(ap, void **);
+                *str = 0;
+                if (size > 0) {
+                    *str = malloc(size);
+                    if (*str)
+                        MemoryTable_add(&pif->LibraryAllocations, *str, size);
+                    else
+                        result = CANNOT_INVOKE_IN_THIS_CASE;
+                }
+            }
+            break;
+
+        case INVOKE_REALLOC:
+            {
+                PIFAlizator *pif = va_arg(ap, PIFAlizator *);
+                if (!pif)
+                    return INVALID_INVOKE_PARAMETER;
+                INTEGER size = va_arg(ap, INTEGER);
+                void **str = va_arg(ap, void **);
+                MemoryTable_erase(&pif->LibraryAllocations, *str);
+                if (size > 0) {
+                    *str = realloc(*str, size);
+                    if (*str)
+                        MemoryTable_add(&pif->LibraryAllocations, *str, size);
+                } else
+                if (*str)
+                    free(*str);
+            }
+            break;
+
+        case INVOKE_FREE:
+            {
+                PIFAlizator *pif = va_arg(ap, PIFAlizator *);
+                if (!pif)
+                    return INVALID_INVOKE_PARAMETER;
+                void *str = va_arg(ap, void *);
+                if (str) {
+                    MemoryTable_erase(&pif->LibraryAllocations, str);
+                    free(str);
+                }
+            }
+            break;
+
         default:
             va_end(ap);
             return CANNOT_INVOKE_INTERFACE;
@@ -2431,7 +2480,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 
 SYS_INT LinkFunction(void *PIF, const char *FUNCTION_NAME, AnsiList *TARGET, void **CACHED_hDLL) {
 #ifdef CACHE_MEMBERS
-    SYS_INT val = FunctionMap[FUNCTION_NAME];
+    SYS_INT val = HashTable_find(&FunctionMap, FUNCTION_NAME);
     if (val)
         return val;
 #endif
@@ -2455,7 +2504,7 @@ SYS_INT LinkFunction(void *PIF, const char *FUNCTION_NAME, AnsiList *TARGET, voi
         }
 
         if (_PROC_ADR) {
-            FunctionMap.add(FUNCTION_NAME, (SYS_INT)_PROC_ADR);
+            HashTable_add(&FunctionMap, FUNCTION_NAME, (SYS_INT)_PROC_ADR, -1);
             return (SYS_INT)_PROC_ADR;
         }
     }
@@ -2477,7 +2526,7 @@ SYS_INT LinkFunction(void *PIF, const char *FUNCTION_NAME, AnsiList *TARGET, voi
         if (_PROC_ADR) {
             *CACHED_hDLL = hDLL;
 #ifdef CACHE_MEMBERS
-            FunctionMap.add(FUNCTION_NAME, (SYS_INT)_PROC_ADR);
+            HashTable_add(&FunctionMap, FUNCTION_NAME, (SYS_INT)_PROC_ADR, -1);
 #endif
             return (SYS_INT)_PROC_ADR;
         }
@@ -2486,14 +2535,14 @@ SYS_INT LinkFunction(void *PIF, const char *FUNCTION_NAME, AnsiList *TARGET, voi
     SYS_INT BUILTIN_ID = (SYS_INT)BUILTINADDR(PIF, FUNCTION_NAME, &is_private);
 #ifdef CACHE_MEMBERS
     if ((BUILTIN_ID) && (!is_private))
-         FunctionMap.add(FUNCTION_NAME, BUILTIN_ID);
+         HashTable_add(&FunctionMap, FUNCTION_NAME, BUILTIN_ID, -1);
 #endif
     return BUILTIN_ID;
 }
 
 void DoneLinking() {
 #ifdef CACHE_MEMBERS
-    FunctionMap.clear();
+    HashTable_clear(&FunctionMap);
+    HashTable_deinit(&FunctionMap);
 #endif
 }
-

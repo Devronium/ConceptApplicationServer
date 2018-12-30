@@ -81,4 +81,3 @@ int Optimizer_ComputeSharedSize(concept_FILE *in, int version = 1);
 void Optimizer_GenerateIntermediateCode(struct Optimizer *self, PIFAlizator *P);
 
 #endif // __OPTIMIZER_H
-

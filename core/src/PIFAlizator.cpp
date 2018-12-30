@@ -26,13 +26,13 @@ POOLED_IMPLEMENTATION(PIFAlizator)
 
 #define AddGeneralMember(MNAME)    GeneralMembers->Add(MNAME)
 
-int PIFAlizator::argc = 0;
-char **PIFAlizator::argv = 0;
-int            PIFAlizator::refSOCKET            = -1;
-CHECK_POINT    PIFAlizator::CheckPoint           = 0;
-SECURE_MESSAGE SimpleStream::send_secure_message = 0;
-HHSEM          PIFAlizator::WorkerLock;
-char           PIFAlizator::WorkerLockInitialized= 0;
+int             PIFAlizator::argc = 0;
+char            **PIFAlizator::argv = 0;
+int             PIFAlizator::refSOCKET            = -1;
+CHECK_POINT     PIFAlizator::CheckPoint           = 0;
+SECURE_MESSAGE  SimpleStream::send_secure_message = 0;
+HHSEM           PIFAlizator::WorkerLock;
+char            PIFAlizator::WorkerLockInitialized= 0;
 
 void PIFAlizator::Shutdown() {
     if (PIFAlizator::WorkerLockInitialized) {
@@ -186,6 +186,9 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
 #ifdef USE_MEMORY_SPACE
     FAST_MSPACE_CREATE(this->memory);
 #endif
+#ifdef CACHED_CLASSES
+    HashTable_init(&this->CachedClasses);
+#endif
     if (sibling) {
         this->parentPIF = sibling;
         this->ClassList = sibling->ClassList;
@@ -308,6 +311,11 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     this->in_gc              = 0;
     this->TSClassCount       = 0;
     this->Workers            = 0;
+
+#ifdef DEBUGGER_VAR_NAMES
+    HashTable_init(&this->DebugVarNames);
+#endif
+    MemoryTable_init(&this->LibraryAllocations);
     semv(WorkerLock);
 }
 
@@ -335,6 +343,12 @@ void PIFAlizator::Clear() {
 }
 
 PIFAlizator::~PIFAlizator(void) {
+#ifdef CACHED_CLASSES
+    HashTable_deinit(&this->CachedClasses);
+#endif
+#ifdef DEBUGGER_VAR_NAMES
+    HashTable_deinit(&this->DebugVarNames);
+#endif
     if (Helper) {
         delete_OptimizerHelper((struct OptimizerHelper *)Helper);
         Helper = NULL;
@@ -423,6 +437,15 @@ PIFAlizator::~PIFAlizator(void) {
     free(StaticClassList);
     StaticClassList = NULL;
     BUILTINDONE();
+
+    for (MemoryTableIterator it = MemoryTable_begin(&this->LibraryAllocations); it != MemoryTable_end(&this->LibraryAllocations); ++it) {
+        void *ptr = MemoryTable_key(&this->LibraryAllocations, it);
+        if (ptr) {
+            fprintf(stderr, "WARNING: %i bytes at address %X allocate in static library was not freed\n", (int)MemoryTable_val(&this->LibraryAllocations, it), ptr);
+            free(ptr);
+        }
+    }
+    MemoryTable_deinit(&this->LibraryAllocations);
 #ifdef USE_MEMORY_SPACE
     FAST_MSPACE_DESTROY(this->memory);
 #endif
@@ -519,9 +542,9 @@ INTEGER PIFAlizator::AddUndefinedClass(AnsiString& member, TinyString& _CLASS, c
     }
 
 #ifdef CACHED_VARIABLES
-INTEGER PIFAlizator::VariableIsDescribed(AnsiString& S, DoubleList *VDList, HashTable *CachedVariables, char is_hased) {
+INTEGER PIFAlizator::VariableIsDescribed(AnsiString& S, DoubleList *VDList, struct HashTable *CachedVariables, char is_hased) {
     if (is_hased) {
-        unsigned int res  = CachedVariables->find(S.c_str());
+        unsigned int res  = HashTable_find(CachedVariables, S.c_str());
         if (res) {
             if (is_hased == -1)
                 return res;
@@ -589,11 +612,10 @@ INTEGER PIFAlizator::ListContains(const char *S, AnsiList *VDList) {
 
 SYS_INT PIFAlizator::ClassExists(const char *name, char by_addr, int *index) {
 #ifdef CACHED_CLASSES
-    HASH_TYPE    key = hash_func(name);
-    unsigned int pos = CachedClasses[key];
+    unsigned int pos = HashTable_find(&CachedClasses, name);
     if ((pos) && (by_addr)) {
         *index = (int)pos;
-        return (SYS_INT)ClassList [pos - 1];
+        return (SYS_INT)ClassList->Item(pos - 1);
     }
     return pos;
 #endif
@@ -869,8 +891,9 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
     }
     DoubleList            *PIFList = CM->CDATA->PIF_DATA;
     DoubleList            *VDList  = CM->CDATA->VariableDescriptors;
-    //std::map<double, int> NumberConstantMap;
-    HashTable NumberConstantMap;
+
+    struct HashTable NumberConstantMap;
+    HashTable_init(&NumberConstantMap);
 
     VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
     VD->name   = (char *)THIS_CLASS;
@@ -882,8 +905,10 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 
     VDList->Add(VD, DATA_VAR_DESCRIPTOR);
 #ifdef CACHED_VARIABLES
-    HashTable CachedVariables;
-    CachedVariables.add(THIS_CLASS, 1);
+    struct HashTable CachedVariables;
+    HashTable_init(&CachedVariables);
+
+    HashTable_add(&CachedVariables, THIS_CLASS, 1, -1);
 #endif
 
     if (!is_inline) {
@@ -1092,7 +1117,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 
                 VDList->Add(VDPARAM, DATA_VAR_DESCRIPTOR);
 #ifdef CACHED_VARIABLES
-                CachedVariables.add(sPARSE.c_str(), VDList->Count(), sPARSE.Length());
+                HashTable_add(&CachedVariables, sPARSE.c_str(), VDList->Count(), sPARSE.Length());
 #endif
                 WANT_PARAM = 0;
             } else {
@@ -1102,8 +1127,9 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                         BEGIN_END_LEVEL++;
                     }
                     if (_ID == KEY_END) {
+                        HashTable_deinit(&NumberConstantMap);
 #ifdef CACHED_VARIABLES
-                        CachedVariables.clear();
+                        HashTable_deinit(&CachedVariables);
 #endif
                         return ref_id;
                     }
@@ -1249,7 +1275,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 VDList->Add(VD, DATA_VAR_DESCRIPTOR);
                 _ID = VDList->Count();
 #ifdef CACHED_VARIABLES
-                CachedVariables.add(sPARSE.c_str(), _ID, sPARSE.Length());
+                HashTable_add(&CachedVariables, sPARSE.c_str(), _ID, sPARSE.Length());
 #endif
             }
             IS_ARRAY = 0;
@@ -1266,7 +1292,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
         if (TYPE == TYPE_NUMBER) {
             // double val = sPARSE.ToFloat();
             AnsiString key(sPARSE.ToFloat());
-            int    pos = (int)NumberConstantMap[key.c_str()];
+            int    pos = (int)HashTable_find(&NumberConstantMap, key.c_str());
             if (pos > 0) {
                 _ID = pos;
             } else {
@@ -1279,13 +1305,13 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 
                 VDList->Add(VD, DATA_VAR_DESCRIPTOR);
                 _ID = VDList->Count();
-                NumberConstantMap.add(key.c_str(), _ID);
+                HashTable_add(&NumberConstantMap, key.c_str(), _ID, -1);
             }
             TYPE        = TYPE_VARIABLE;
             IS_CONSTANT = 1;
         } else
         if (TYPE == TYPE_STRING) {
-            int    pos = (int)NumberConstantMap[sPARSE.c_str()];
+            int pos = (int)HashTable_find(&NumberConstantMap, sPARSE.c_str());
             if (pos > 0) {
                 _ID = pos;
             } else {
@@ -1309,7 +1335,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 VDList->Add(VD, DATA_VAR_DESCRIPTOR);
                 _ID = VDList->Count();
                 if (sPARSE.Length() < 0x100)
-                    NumberConstantMap.add(sPARSE.c_str(), _ID, sPARSE.Length());
+                    HashTable_add(&NumberConstantMap, sPARSE.c_str(), _ID, sPARSE.Length());
             }
             TYPE        = TYPE_VARIABLE;
             IS_CONSTANT = 1;
@@ -1352,8 +1378,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 ClassList->Add(CC1, DATA_CLASS_CODE);
                 _ID = ClassList->Count();
 #ifdef CACHED_CLASSES
-                HASH_TYPE key = hash_func(CC1->NAME.c_str(), CC1->NAME.Length());
-                CachedClasses[key] = _ID;
+                HashTable_add(&this->CachedClasses, CC1->NAME.c_str(), _ID, CC1->NAME.Length());
 #endif
                 AddUndefinedClass(regexpClass, CC->NAME, CM->NAME, on_line ? on_line : P->LastLine());
             }
@@ -1548,6 +1573,10 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
         if (TYPE == TYPE_KEYWORD) {
             if (((_ID >= KEY_CLASS) && (_ID <= KEY_IMPORT)) || ((_ID >= KEY_OPERATOR) && (_ID <= KEY_STATIC))) {
                 Errors.Add(new AnsiException(ERR1270, on_line ? on_line : P->LastLine(), 1270, sPARSE, FileName, CM->NAME), DATA_EXCEPTION);
+                HashTable_deinit(&NumberConstantMap);
+#ifdef CACHED_VARIABLES
+                HashTable_deinit(&CachedVariables);
+#endif
                 return ref_id;
             } else
             if (_ID == KEY_SUPER) {
@@ -1622,8 +1651,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 ClassList->Add(CC1, DATA_CLASS_CODE);
                 _ID = ClassList->Count();
 #ifdef CACHED_CLASSES
-                HASH_TYPE key = hash_func(CC1->NAME.c_str(), CC1->NAME.Length());
-                CachedClasses[key] = _ID;
+                HashTable_add(&this->CachedClasses, CC1->NAME.c_str(), _ID, CC1->NAME.Length());
 #endif
                 AddUndefinedClass(sPARSE, CC->NAME, CM->NAME, on_line ? on_line : P->LastLine());
             }
@@ -1833,7 +1861,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 VDList->Add(VD, DATA_VAR_DESCRIPTOR);
                 _ID = VDList->Count();
 #ifdef CACHED_VARIABLES
-                CachedVariables.add(sPARSE.c_str(), _ID, sPARSE.Length());
+                HashTable_add(&CachedVariables, sPARSE.c_str(), _ID, sPARSE.Length());
 #endif
                 IS_ARRAY = 0;
             } else {
@@ -1854,8 +1882,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                         _ID = ClassList->Count();
                         AddUndefinedClass(sPARSE, CC->NAME, CM->NAME, on_line ? on_line : P->LastLine());
 #ifdef CACHED_CLASSES
-                        HASH_TYPE key = hash_func(sPARSE.c_str(), sPARSE.Length());
-                        CachedClasses[key] = _ID;
+                        HashTable_add(&this->CachedClasses, sPARSE.c_str(), _ID, sPARSE.Length());
 #endif
                     }
                 } else {
@@ -1964,6 +1991,10 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             }
         }
     }
+    HashTable_deinit(&NumberConstantMap);
+#ifdef CACHED_VARIABLES
+    HashTable_deinit(&CachedVariables);
+#endif
     return ref_id;
 }
 
@@ -2252,8 +2283,7 @@ INTEGER PIFAlizator::BuildClass(AnsiParser *P, INTEGER on_line) {
         if (!ALREADY_DEFINED) {
             ClassList->Add(CC, DATA_CLASS_CODE);
 #ifdef CACHED_CLASSES
-            HASH_TYPE key = hash_func(sPARSE.c_str(), sPARSE.Length());
-            CachedClasses[key] = ClassList->Count();
+            HashTable_add(&this->CachedClasses, sPARSE.c_str(), this->ClassList->Count(), sPARSE.Length());
 #endif
         }
     } else {
@@ -3209,8 +3239,7 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
             ClassList->Add(CC, DATA_CLASS_CODE);
             CC->Unserialize(this, in, ClassList, is_lib, Classes, Members_Relocation, version);
 #ifdef CACHED_CLASSES
-            HASH_TYPE key = hash_func(CC->NAME.c_str(), CC->NAME.Length());
-            CachedClasses[key] = ClassList->Count();
+            HashTable_add(&this->CachedClasses, CC->NAME.c_str(), this->ClassList->Count(), CC->NAME.Length());
 #endif
         }
 
@@ -3578,7 +3607,7 @@ INTEGER PIFAlizator::FindVariableByName(void *key, const char *name) {
         len = 0x100;
     memcpy(buf + sizeof(void *) * 2, name, len);
     buf[sizeof(void *) * 2 + len] = 0;
-    return DebugVarNames[buf] - 1;
+    return HashTable_find(&DebugVarNames, buf) - 1;
 #else
     return -1;
 #endif
@@ -3598,7 +3627,7 @@ void PIFAlizator::RegisterVariableName(void *key, const char *name, INTEGER val)
         len = 0x100;
     memcpy(buf + sizeof(void *) * 2, name, len);
     buf[sizeof(void *) * 2 + len] = 0;
-    DebugVarNames.add(buf, val + 1);
+    HashTable_add(&DebugVarNames, buf, val + 1, -1);
 #endif
 }
 

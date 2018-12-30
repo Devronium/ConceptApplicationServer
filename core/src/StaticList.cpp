@@ -15,6 +15,9 @@ StaticList::StaticList() {
     allocated     = 0;
     DataOffset    = 0;
     pooled_marker = 0;
+#ifdef CACHED_LIST
+    HashTable_init(&this->CachedElements);
+#endif
 }
 
 int StaticList::EnsureSpace() {
@@ -83,7 +86,7 @@ void StaticList::Add(const char *str, int len) {
 
 #ifdef CACHED_LIST
         if (UseMap)
-            CachedElements.add(str, count);
+            HashTable_add(&CachedElements, str, count, -1);
 #endif
     }
 }
@@ -101,7 +104,7 @@ int StaticList::ContainsString(const char *str) {
         return 0;
 #ifdef CACHED_LIST
     if (UseMap) {
-        int       pos = CachedElements[str];
+        int pos = HashTable_find(&CachedElements, str);
         if (pos) {
             char *item = this->Item(pos - 1);
             if ((item) && (!strcmp(item, str)))
@@ -133,7 +136,7 @@ void StaticList::Clear() {
     if (count) {
 #ifdef CACHED_LIST
         if (UseMap)
-            CachedElements.clear();
+            HashTable_clear(&CachedElements);
 #endif
         STATIC_GET(data)
         for (int i = pooled_marker; i < count; i++) {
@@ -154,4 +157,7 @@ int StaticList::Count() {
 
 StaticList::~StaticList(void) {
     this->Clear();
+#ifdef CACHED_LIST
+    HashTable_deinit(&this->CachedElements);
+#endif
 }

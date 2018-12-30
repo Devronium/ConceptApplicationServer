@@ -23,7 +23,7 @@ public:
     int EnsureSpace();
 
 #ifdef CACHED_LIST
-    HashTable CachedElements;
+    struct HashTable CachedElements;
 #endif
 public:
 #ifdef CACHED_LIST
