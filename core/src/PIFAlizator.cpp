@@ -802,6 +802,8 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
     SYS_INT             _ID             = -1;
     INTEGER             PREC_TYPE       = -1;
     SYS_INT             PREC_ID         = -1;
+    INTEGER             PREC_2_TYPE     = -1;
+    SYS_INT             PREC_2_ID       = -1;
     AnsiString          sPARSE;
     AnsiString          cachedMember;
     AnsiString          cached;
@@ -810,6 +812,9 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
     ClassMember         *CM              = 0;
     char                IN_VAR_STATAMENT = 0;
     INTEGER             inline_count     = 0;
+
+    struct MemoryTable  SelectorCacheList;
+    MemoryTable_init(&SelectorCacheList);
 
     int ref_id = 0;
 
@@ -1131,6 +1136,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 #ifdef CACHED_VARIABLES
                         HashTable_deinit(&CachedVariables);
 #endif
+                        MemoryTable_deinit(&SelectorCacheList);
                         return ref_id;
                     }
                     ATOMIC_LEVEL = 0;
@@ -1155,6 +1161,9 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
     TYPE = -1;
     _ID  = 0;
     do {
+        PREC_2_TYPE = PREC_TYPE;
+        PREC_2_ID   = PREC_ID;
+
         PREC_TYPE = TYPE;
         PREC_ID   = _ID;
 
@@ -1577,6 +1586,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 #ifdef CACHED_VARIABLES
                 HashTable_deinit(&CachedVariables);
 #endif
+                MemoryTable_deinit(&SelectorCacheList);
                 return ref_id;
             } else
             if (_ID == KEY_SUPER) {
@@ -1976,6 +1986,30 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                     IN_VAR_STATAMENT = 0;
                 }
             }
+            if ((_ID) && (TYPE == TYPE_METHOD) && (PREC_TYPE == TYPE_OPERATOR) && (PREC_ID == KEY_SEL) && ((PREC_2_TYPE == TYPE_VARIABLE) || (PREC_2_TYPE == TYPE_METHOD)) && (PREC_2_ID >= 1)) {
+#if __SIZEOF_POINTER__ != 8
+                if ((_ID < 0x7FFF) && (PREC_2_ID < 0x7FFF)) {
+#endif
+                    if (cached.Length())
+                        P->NextAtom(cached);    
+                    if (cached != "(") {
+#if __SIZEOF_POINTER__ == 8
+                        uintptr_t key = ((uintptr_t)_ID << 32) | (PREC_2_ID);
+#else
+                        uintptr_t key = (_ID << 16) | (PREC_2_ID);
+#endif
+                        AnalizerElement *AE_OLD = (AnalizerElement *)MemoryTable_find(&SelectorCacheList, (void *)(intptr_t)key);
+                        if (AE_OLD) {
+                            // notify usage
+                            AE->_INFO_OPTIMIZED = 2;
+                            AE_OLD->_INFO_OPTIMIZED = 2;
+                        } else
+                            MemoryTable_add(&SelectorCacheList, (void *)(intptr_t)key, (intptr_t)AE);
+                    }
+#if __SIZEOF_POINTER__ != 8
+                }
+#endif
+            }
         } else {
             IN_VAR_STATAMENT = 1;
         }
@@ -1995,6 +2029,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 #ifdef CACHED_VARIABLES
     HashTable_deinit(&CachedVariables);
 #endif
+    MemoryTable_deinit(&SelectorCacheList);
     return ref_id;
 }
 

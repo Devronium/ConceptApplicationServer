@@ -101,41 +101,228 @@ public:
     }
 };
 
+struct TempVariableManagerVars {
+    INTEGER *vars;
+    INTEGER var_len;
+};
+
+struct TempVariableLevelManagerVars {
+    unsigned char *vars;
+    INTEGER var_len;
+};
+
+class TempVariableLevelManager {
+protected:
+    TempVariableLevelManagerVars *left_vars;
+    INTEGER left_var_len;
+public:
+    TempVariableLevelManager *parent;
+
+    TempVariableLevelManager() {
+        left_vars = NULL;
+        left_var_len = 0;
+        parent = NULL;
+    }
+
+    int is_defined(int left_id, int right_id) {
+        if ((left_id <= 0) || (right_id <= 0))
+            return 0;
+
+        if (left_id <= left_var_len) {
+            TempVariableLevelManagerVars *vars = &left_vars[left_id - 1];
+            if ((right_id <= vars->var_len) && (vars->vars[right_id - 1]))
+                return 1;
+        }
+
+        return 0;
+    }
+
+    int undefine(int left_id, int right_id) {
+        if ((left_id <= 0) || (right_id <= 0))
+            return 0;
+
+        if (left_id <= left_var_len) {
+            TempVariableLevelManagerVars *vars = &left_vars[left_id - 1];
+            if ((right_id <= vars->var_len) && (vars->vars[right_id - 1])) {
+                vars->vars[right_id - 1] = 0;
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+
+    int cache(int left_id, int right_id) {
+        if ((left_id <= 0) || (right_id <= 0))
+            return 0;
+
+        int old_var_len;
+        int target_left = left_id - 1;
+
+        if (left_id <= left_var_len) {
+            TempVariableLevelManagerVars *vars = &left_vars[left_id - 1];
+            if (right_id <= vars->var_len) {
+                vars->vars[right_id - 1] = 1;
+                return 1;
+            }
+
+            right_id ++;
+            old_var_len = vars->var_len;
+            vars->var_len = (right_id / 32 + 1) * 32;
+            vars->vars = (unsigned char *)realloc(vars->vars, sizeof(unsigned char) * vars->var_len);
+
+            for (int i = old_var_len; i < vars->var_len; i++)
+                vars->vars[i] = 0;
+
+            vars->vars[right_id - 1] = 1;
+            return 0;
+        }
+
+        left_id ++;
+        right_id ++;
+
+        old_var_len = left_var_len;
+        left_var_len = (left_id / 32 + 1) * 32;
+        left_vars = (TempVariableLevelManagerVars *)realloc(left_vars, sizeof(TempVariableLevelManagerVars) * left_var_len);
+        for (int i = old_var_len; i < left_var_len; i++) {
+            if (i == target_left) {
+                left_vars[i].var_len = (right_id / 32 + 1) * 32;
+                left_vars[i].vars = (unsigned char *)malloc(sizeof(unsigned char) * left_vars[i].var_len);
+                memset(left_vars[i].vars, 0, sizeof(unsigned char) * left_vars[i].var_len);
+
+                left_vars[i].vars[right_id - 2] = 1;
+            } else {
+                left_vars[i].vars = 0;
+                left_vars[i].var_len = 0;
+            }
+        }
+        return 1;
+    }
+
+    void reset() {
+        if (left_vars) {
+            for (int i = 0; i < left_var_len; i++)
+                free(left_vars[i].vars);
+            free(left_vars);
+            left_vars = NULL;
+            left_var_len = 0;
+        }
+    }
+
+
+    ~TempVariableLevelManager() {
+        this->reset();
+    }
+};
+
 class TempVariableManager {
 protected:
     TempVariableManagerBase pool1;
     TempVariableManagerBase pool2;
-    INTEGER *vars;
-    INTEGER var_len;
+    TempVariableManagerVars *left_vars;
+    INTEGER left_var_len;
+    TempVariableLevelManager *level_manager;
 public:
     TempVariableManager(DoubleList *vlist) : pool1(vlist), pool2(vlist) {
-        vars = NULL;
-        var_len = 0;
+        left_vars = NULL;
+        left_var_len = 0;
+        level_manager = NULL;
     }
 
-    int cached_selector(int id) {
-        if (id < 0)
+    void push_level(TempVariableLevelManager *level) {
+        if (level) {
+            level->parent = level_manager;
+            level_manager = level;
+        }
+    }
+
+    void pop_level() {
+        if (level_manager)
+            level_manager = level_manager->parent;
+    }
+
+    int cached_selector(int left_id, int right_id) {
+        if ((left_id <= 0) || (right_id <= 0))
             return 0;
 
-        if (id < var_len)
-            return vars[id - 1];
+        int old_var_len;
+        int target_left = left_id - 1;
 
-        id++;
-        int old_var_len = var_len;
-        var_len = (id / 32 + 1) * 32;
-        vars = (INTEGER *)realloc(vars, sizeof(INTEGER) * var_len);
-        for (int i = old_var_len; i < var_len; i++)
-            vars[i] = 0;
+        if (left_id <= left_var_len) {
+            TempVariableManagerVars *vars = &left_vars[left_id - 1];
+            if (right_id <= vars->var_len)
+                return vars->vars[right_id - 1];
+
+            right_id ++;
+            old_var_len = vars->var_len;
+            vars->var_len = (right_id / 32 + 1) * 32;
+            vars->vars = (INTEGER *)realloc(vars->vars, sizeof(INTEGER) * vars->var_len);
+
+            for (int i = old_var_len; i < vars->var_len; i++)
+                vars->vars[i] = 0;
+
+            return 0;
+        }
+
+        left_id ++;
+        right_id ++;
+
+        old_var_len = left_var_len;
+        left_var_len = (left_id / 32 + 1) * 32;
+        left_vars = (TempVariableManagerVars *)realloc(left_vars, sizeof(TempVariableManagerVars) * left_var_len);
+        for (int i = old_var_len; i < left_var_len; i++) {
+            if (i == target_left) {
+                left_vars[i].var_len = (right_id / 32 + 1) * 32;
+                left_vars[i].vars = (INTEGER *)malloc(sizeof(INTEGER) * left_vars[i].var_len);
+                memset(left_vars[i].vars, 0, sizeof(INTEGER) * left_vars[i].var_len);
+            } else {
+                left_vars[i].vars = 0;
+                left_vars[i].var_len = 0;
+            }
+        }
         return 0;
     }
 
-    void cache(int id, int val) {
-        vars[id - 1] = val;
+    int is_accesible(int left_id, int right_id) {
+        TempVariableLevelManager *level = this->level_manager;
+        while (level) {
+            if (level->is_defined(left_id, right_id))
+                return 1;
+            level = level->parent;
+        }
+        return 0;
+    }
+
+    void make_accesible(int left_id, int right_id) {
+        if (this->level_manager)
+            this->level_manager->cache(left_id, right_id);
+    }
+
+    void reset_level() {
+        if (this->level_manager)
+            this->level_manager->reset();
+    }
+
+    int make_inaccesible(int left_id, int right_id) {
+        TempVariableLevelManager *level = this->level_manager;
+        while (level) {
+            level->undefine(left_id, right_id);
+            level = level->parent;
+        }
+        return 0;
+    }
+
+    void cache(int left_id, int right_id, int val) {
+        this->left_vars[left_id - 1].vars[right_id - 1] = val;
+        this->make_accesible(left_id, right_id);
     }
 
     ~TempVariableManager() {
-        if (vars)
-            free(vars);
+        if (left_vars) {
+            for (int i = 0; i < left_var_len; i++)
+                free(left_vars[i].vars);
+            free(left_vars);
+        }
     }
 
     void Reset() {
@@ -1006,6 +1193,13 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
                 continue;
             }
 
+            // or, and and null comparator are evaluated partially
+            // this is important because the optimizer will consider that a variable is accesible and set
+            // but in a condition like (1) || (this.member), this.member will never be evaluated and
+            // subsequent calls to this.member will return null
+            if ((AE_ID == KEY_BOR) || (AE_ID == KEY_BAN) || (AE_ID == KEY_CND_NULL))
+                TVM->reset_level();
+
             int tmp_index;
             int idx = FIRST_OPERATOR - 1;
             if ((AE_ID == KEY_SEL) || (AE_ID == KEY_DLL_CALL) || (AE_ID == KEY_INDEX_OPEN)) {
@@ -1019,6 +1213,8 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
             if (((AE_ID == KEY_SEL) || (AE_ID == KEY_DLL_CALL)) && (Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST)) {
                 tmp_index = TVM->GetVar();
             } else
+            /*
+            // broken by last optimizations
             if ((AE_ID == KEY_SEL) && (LAST_OP) && (LAST_OP->Operator.ID == KEY_SEL) && (LAST_OP->Result_ID == Left->ID) && 
                 (LAST_OP->Result_ID > helper->LOCAL_VARIABLES) && (LAST_OP->OperandReserved.TYPE != TYPE_PARAM_LIST) &&
                 ((!Parameter) || ((Parameter->TYPE != TYPE_OPERATOR) || 
@@ -1027,13 +1223,12 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
                 // ensure that next is not an assignment (crashes with set/properties)
                 tmp_index = LAST_OP->Result_ID;
             } else
-            if ((AE_ID == KEY_SEL) &&
-                ((!Parameter) || ((Parameter->TYPE != TYPE_OPERATOR) || 
-                ((Parameter->TYPE != TYPE_PARAM_LIST) && (Parameter->ID != KEY_ASG) && (Parameter->ID != KEY_BY_REF))))) {
+            */
+            if ((AE_ID == KEY_SEL) && (Right) && (Right->ID > 0) && (Right->_INFO_OPTIMIZED != 2) && ((!Parameter) || ((Parameter->TYPE != TYPE_OPERATOR) ||  ((Parameter->TYPE != TYPE_PARAM_LIST) && (Parameter->ID != KEY_ASG) && (Parameter->ID != KEY_BY_REF))))) {
                 tmp_index = TVM->GetVar2();
             } else
-            if ((AE_ID == KEY_SEL) && (Left) && (Left->ID == 1) && ((!Parameter) || (Parameter->TYPE != TYPE_PARAM_LIST))) {
-                tmp_index = TVM->cached_selector(Right->ID);
+            if ((AE_ID == KEY_SEL) && (Left) && (Left->ID >= 1) && (Right) && (Right->ID > 0) && (Right->_INFO_OPTIMIZED == 2) && ((!Parameter) || (Parameter->TYPE != TYPE_PARAM_LIST))) {
+                tmp_index = TVM->cached_selector(Left->ID, Right->ID);
                 if (!tmp_index) {
                     VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
                     VD->BY_REF = 0;
@@ -1045,7 +1240,58 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
                     //}
                     helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
                     tmp_index = helper->VDList->Count();
-                    TVM->cache(Right->ID, tmp_index);
+                    TVM->cache(Left->ID, Right->ID, tmp_index);
+                } else {
+                    int not_assignment = 1;
+                    if ((Parameter) && (Parameter->TYPE == TYPE_OPERATOR)) {
+                        switch (Parameter->ID) {
+                            case KEY_ASG:
+                            case KEY_BY_REF:
+                            case KEY_INC:
+                            case KEY_DEC:
+                            case KEY_ADI:
+                            case KEY_ADV:
+                            case KEY_ARE:
+                            case KEY_AMU:
+                            case KEY_AAN:
+                            case KEY_AXO:
+                            case KEY_AOR:
+                            case KEY_ASL:
+                            case KEY_ASR:
+                                not_assignment = 0;
+                                TVM->make_inaccesible(Left->ID, Right->ID);
+                                break;
+                        }
+                    }
+                    if ((not_assignment) && (LAST_OP) && (LAST_OP->Operator.TYPE == TYPE_OPERATOR)) {
+                        switch (LAST_OP->Operator.ID) {
+                            case KEY_INC_LEFT:
+                            case KEY_DEC_LEFT:
+                                not_assignment = 0;
+                                TVM->make_inaccesible(Left->ID, Right->ID);
+                                break;
+                        }
+                    }
+                    if (not_assignment) {
+                        if (TVM->is_accesible(Left->ID, Right->ID)) {
+                            // already accessed
+                            helper->PIFList->Delete(idx);
+                            helper->PIFList->Delete(idx);
+                            helper->PIFList->Delete(idx);
+
+                            AnalizerElement *newAE = new AnalizerElement;
+                            newAE->ID               = tmp_index;
+                            newAE->TYPE             = TYPE_VARIABLE;
+                            newAE->_DEBUG_INFO_LINE = AE->_DEBUG_INFO_LINE;
+                            newAE->_INFO_OPTIMIZED  = 1;
+                            newAE->_HASH_DATA       = 0;
+
+                            helper->PIFList->Insert(newAE, idx, DATA_ANALIZER_ELEMENT);
+                            helper->PIF_POSITION -= 2;
+                            continue;
+                        } else
+                            TVM->make_accesible(Left->ID, Right->ID);
+                    }
                 }
             } else {
 nooptimizations:
@@ -1402,7 +1648,12 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
             OE->Result_ID = 0;
             helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
 
-            Optimizer_OptimizeAny(self, helper, TVM);
+            {
+                TempVariableLevelManager level;
+                TVM->push_level(&level);
+                Optimizer_OptimizeAny(self, helper, TVM);
+                TVM->pop_level();
+            }
 
             OE->OperandReserved.ID   = helper->OptimizedPIF->Count();
             OE->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
@@ -1428,7 +1679,10 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
                 if ((!AE) || ((AE->TYPE == TYPE_KEYWORD) && (AE->ID == KEY_END)))
                     helper->PIFOwner->Errors.Add(new AnsiException(ERR531, AE->_DEBUG_INFO_LINE, 531, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
 
+                TempVariableLevelManager level;
+                TVM->push_level(&level);
                 Optimizer_OptimizeAny(self, helper, TVM);
+                TVM->pop_level();
                 OEgoto->OperandReserved.ID = helper->OptimizedPIF->Count();
             }
             break;
@@ -1531,6 +1785,7 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
 
             helper->CATCH_ELEMENT = helper->OptimizedPIF->Count();
 
+            // try statement always gets executed, no need to push/pop
             Optimizer_OptimizeAny(self, helper, TVM);
 
             tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
@@ -1567,8 +1822,12 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
             OE->OperandReserved.ID   = STATAMENT_POS;
             OE->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
 
-            Optimizer_OptimizeAny(self, helper, TVM);
-
+            {
+                TempVariableLevelManager level;
+                TVM->push_level(&level);
+                Optimizer_OptimizeAny(self, helper, TVM);
+                TVM->pop_level();
+            }
             OE = new OptimizedElement;
             OE->Operator._DEBUG_INFO_LINE = Line;
             OE->Operator.TYPE = TYPE_OPTIMIZED_KEYWORD;
@@ -1606,6 +1865,7 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
             helper->has_loops = 1;
             helper->CONTINUE_Elements = new AnsiList(0);
             helper->BREAK_Elements    = new AnsiList(0);
+            // no need to push/pop level, do statements are executed at least once
             Optimizer_OptimizeAny(self, helper, TVM);
 
             OE = new OptimizedElement;
@@ -1702,7 +1962,13 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
 
             helper->CONTINUE_Elements = new AnsiList(0);
             helper->BREAK_Elements    = new AnsiList(0);
-            Optimizer_OptimizeAny(self, helper, TVM);
+
+            {
+                TempVariableLevelManager level;
+                TVM->push_level(&level);
+                Optimizer_OptimizeAny(self, helper, TVM);
+                TVM->pop_level();
+            }
 
             NOT_TRUE_POSITION        = helper->OptimizedPIF->Count() + 1;
             OE->OperandReserved.ID   = NOT_TRUE_POSITION;
@@ -1771,7 +2037,13 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
 
             helper->CONTINUE_Elements = new AnsiList(0);
             helper->BREAK_Elements    = new AnsiList(0);
-            Optimizer_OptimizeAny(self, helper, TVM);
+
+            {
+                TempVariableLevelManager level;
+                TVM->push_level(&level);
+                Optimizer_OptimizeAny(self, helper, TVM);
+                TVM->pop_level();
+            }
             // =================== v2 ====================//
             ITER_POS = helper->OptimizedPIF->Count();
             if (TEMP_OptimizedPIF) {
@@ -1912,19 +2184,24 @@ INTEGER Optimizer_OptimizeSwitch(struct Optimizer *self, struct OptimizerHelper 
                     OEgoto->OperandReserved.ID = helper->OptimizedPIF->Count();
                 }
 
-                while (true) {
-                    tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
-                    if (!tempAE) {
-                        break;
-                    }
+                {
+                    TempVariableLevelManager level;
+                    TVM->push_level(&level);
+                    while (true) {
+                        tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
+                        if (!tempAE) {
+                            break;
+                        }
 
-                    if ((tempAE->TYPE == TYPE_KEYWORD) &&
-                        ((tempAE->ID == KEY_CASE) ||
-                         (tempAE->ID == KEY_DEFAULT) ||
-                         (tempAE->ID == KEY_END))) {
-                        break;
+                        if ((tempAE->TYPE == TYPE_KEYWORD) &&
+                            ((tempAE->ID == KEY_CASE) ||
+                             (tempAE->ID == KEY_DEFAULT) ||
+                             (tempAE->ID == KEY_END))) {
+                            break;
+                        }
+                        Optimizer_OptimizeAny(self, helper, TVM);
                     }
-                    Optimizer_OptimizeAny(self, helper, TVM);
+                    TVM->pop_level();
                 }
                 OE->OperandReserved.ID   = helper->OptimizedPIF->Count();
                 OE->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
@@ -1941,19 +2218,24 @@ INTEGER Optimizer_OptimizeSwitch(struct Optimizer *self, struct OptimizerHelper 
                 }
                 helper->PIFList->Delete(helper->PIF_POSITION);
 
-                while (true) {
-                    tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
-                    if (!tempAE) {
-                        break;
-                    }
+                {
+                    TempVariableLevelManager level;
+                    TVM->push_level(&level);
+                    while (true) {
+                        tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
+                        if (!tempAE) {
+                            break;
+                        }
 
-                    if ((tempAE->TYPE == TYPE_KEYWORD) &&
-                        ((tempAE->ID == KEY_CASE) ||
-                         (tempAE->ID == KEY_DEFAULT) ||
-                         (tempAE->ID == KEY_END))) {
-                        break;
+                        if ((tempAE->TYPE == TYPE_KEYWORD) &&
+                            ((tempAE->ID == KEY_CASE) ||
+                             (tempAE->ID == KEY_DEFAULT) ||
+                             (tempAE->ID == KEY_END))) {
+                            break;
+                        }
+                        Optimizer_OptimizeAny(self, helper, TVM);
                     }
-                    Optimizer_OptimizeAny(self, helper, TVM);
+                    TVM->pop_level();
                 }
                 prec_is_case = false;
                 break;
@@ -2070,6 +2352,10 @@ int Optimizer_CanInline(struct Optimizer *self, ClassMember *owner, const char *
 int Optimizer_Optimize(struct Optimizer *self, PIFAlizator *P) {
     OptimizerHelper *helper = Optimizer_GetHelper(P);
     TempVariableManager TVM(helper->VDList);
+
+    TempVariableLevelManager level;
+    TVM.push_level(&level);
+
     if (helper->PIFList->Count() == 1) {
         helper->NO_WARNING_EMPTY = 1;
     }
@@ -2082,6 +2368,8 @@ int Optimizer_Optimize(struct Optimizer *self, PIFAlizator *P) {
 
     if (helper->PIFOwner->PROFILE_DRIVEN)
         Optimizer_AddProfilerCode(helper, 1);
+
+    TVM.pop_level();
 
     Optimizer_OptimizePass2(helper);
     return 0;

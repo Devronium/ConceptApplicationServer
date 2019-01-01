@@ -813,7 +813,15 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
             case 3:
                 IS_PROPERTY = i + 1;
                 if ((next_is_asg) && (PROPERTIES)) {
-                    VariableDATA *IMAGE = (VariableDATA *)VAR_ALLOC(PIF);
+                    VariableDATA *IMAGE;
+                    
+                    if (result_id > 0)  {
+                        IMAGE = SenderCTX[result_id];
+                        CLASS_CHECK_NO_RESET(IMAGE, PREV);
+                    } else {
+                        IMAGE = (VariableDATA *)VAR_ALLOC(PIF);
+                        IMAGE->LINKS = 0;
+                    }
 
                     if (!(*PROPERTIES)) {
                         *PROPERTIES = (VariableDATAPROPERTY *)FAST_MALLOC(PIF, sizeof(VariableDATAPROPERTY) * dataLen);
@@ -823,7 +831,6 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     (*PROPERTIES)[result_id].IS_PROPERTY_RESULT = i + 1;
                     IMAGE->IS_PROPERTY_RESULT = 1;
 
-                    IMAGE->LINKS       = 0;
                     IMAGE->NUMBER_DATA = 0;
                     IMAGE->TYPE        = VARIABLE_NUMBER;
                     return IMAGE;
