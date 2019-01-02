@@ -1294,16 +1294,16 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
                     if (not_assignment) {
                         if (TVM->is_accesible(Left->ID, Right->ID)) {
                             // already accessed
-                            helper->PIFList->Delete(idx);
-                            helper->PIFList->Delete(idx);
-                            helper->PIFList->Delete(idx);
-
                             AnalizerElement *newAE = new AnalizerElement;
                             newAE->ID               = tmp_index;
                             newAE->TYPE             = TYPE_VARIABLE;
                             newAE->_DEBUG_INFO_LINE = AE->_DEBUG_INFO_LINE;
                             newAE->_INFO_OPTIMIZED  = 1;
                             newAE->_HASH_DATA       = 0;
+
+                            helper->PIFList->Delete(idx);
+                            helper->PIFList->Delete(idx);
+                            helper->PIFList->Delete(idx);
 
                             helper->PIFList->Insert(newAE, idx, DATA_ANALIZER_ELEMENT);
                             helper->PIF_POSITION -= 2;
