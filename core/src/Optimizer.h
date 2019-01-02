@@ -23,7 +23,7 @@ struct OptimizerHelper {
     AnsiList *CONTINUE_Elements;
     AnsiList *BREAK_Elements;
     const char *_DEBUG_INFO_FILENAME;
-    const char *_MEMBER;
+    const ClassMember *_MEMBER;
     INTEGER LAST_DEBUG_TRAP;
     INTEGER PIF_POSITION;
     INTEGER CATCH_ELEMENT;
@@ -46,9 +46,9 @@ struct Optimizer {
     RuntimeOptimizedElement *CODE;
     INTEGER codeCount;
     RuntimeVariableDESCRIPTOR *DATA;
-    INTEGER              dataCount;
-    ParamList            *PARAMS;
-    INTEGER              paramCount;
+    INTEGER dataCount;
+    ParamList *PARAMS;
+    INTEGER paramCount;
 };
 
 INTEGER Optimizer_OptimizeSwitch(struct Optimizer *self, struct OptimizerHelper *helper, TempVariableManager *TVM);
@@ -67,7 +67,7 @@ void Optimizer_AddProfilerCode(struct OptimizerHelper *helper, int code);
 void Optimizer_RemoveCode(struct OptimizerHelper *helper, INTEGER index);
 void Optimizer_OptimizePass2(struct OptimizerHelper *helper);
 OptimizerHelper *Optimizer_GetHelper(PIFAlizator *P);
-struct Optimizer *new_Optimizer(PIFAlizator *P, DoubleList *_PIFList, DoubleList *_VDList, const char *Filename, ClassCode *cls, const char *member, bool is_unserialized = false);
+struct Optimizer *new_Optimizer(PIFAlizator *P, DoubleList *_PIFList, DoubleList *_VDList, const char *Filename, ClassCode *cls, const ClassMember *member, bool is_unserialized = false);
 int Optimizer_Optimize(struct Optimizer *self, PIFAlizator *P);
 int Optimizer_CanInline(struct Optimizer *self, ClassMember *owner, const char **remotename);
 #ifdef PRINT_DEBUG_INFO

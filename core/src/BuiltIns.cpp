@@ -413,7 +413,7 @@ CONCEPT_FUNCTION_IMPL(bytecode, 1)
 END_IMPL
 
 CONCEPT_FUNCTION_IMPL(bytedata, 1)
-    T_DELEGATE(bytecode, 0)
+    T_DELEGATE(bytedata, 0)
     CREATE_ARRAY(RESULT);
     VariableDATA *VD = PARAMETER(0);
     const ClassCode *CC = ((struct CompiledClass *)delegate_Class(VD->CLASS_DATA))->_Class;

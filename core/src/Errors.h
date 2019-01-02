@@ -82,6 +82,7 @@
 #define ERR760      "Can't use an assignment operator on a constant"
 #define ERR761      "Can't increment a constant"
 #define ERR762      "Can't decrement a constant"
+#define ERR763      "Can't assign a value to 'this'"
 #define ERR770      "Invalid syntax in parameter list declaration"
 #define ERR780      "Invalid operator in parameter list declaration"
 #define ERR790      "Parameter definition expected"

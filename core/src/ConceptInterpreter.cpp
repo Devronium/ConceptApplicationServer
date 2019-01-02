@@ -21,7 +21,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
     if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                             \
         CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                          \
         WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
-        CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);            \
+        CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID, LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);            \
         if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
             if (ConceptInterpreter_Catch(THISREF, THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {                                                                                                                                   \
                 FAST_FREE(PIF, PROPERTIES);                                                                                                                                                                                                                                                                     \
@@ -36,7 +36,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
     if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                             \
         CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                          \
         WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
-        CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);       \
+        CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->OperandLeft_ID, LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);       \
         if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
             if (ConceptInterpreter_Catch(THISREF, THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {                                                                                                                                   \
                 FAST_FREE(PIF, PROPERTIES);                                                                                                                                                                                                                                                                     \
@@ -51,7 +51,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
     if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                             \
         CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                          \
         WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
-        CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);       \
+        CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->OperandLeft_ID, LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);       \
         if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
             if (ConceptInterpreter_Catch(THISREF, THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {                                                                                                                                   \
                 FAST_FREE(PIF, PROPERTIES);                                                                                                                                                                                                                                                                     \
@@ -66,7 +66,22 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
     if ((PROPERTIES) && (PROPERTIES [tempOE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                         \
         CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [tempOE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                      \
         WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
-        CCTEMP->_Class->SetProperty(PIF, PROPERTIES [tempOE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [tempOE->OperandLeft_ID - 1].CALL_SET), tempOE, CCTEMP->_Class->CLSID == ClassID, tempOE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE); \
+        CCTEMP->_Class->SetProperty(PIF, PROPERTIES [tempOE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [tempOE->OperandLeft_ID - 1].CALL_SET), tempOE, CCTEMP->_Class->CLSID == ClassID, tempOE->OperandLeft_ID, LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE); \
+        if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
+            if (ConceptInterpreter_Catch(THISREF, THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {                                                                                                                                   \
+                FAST_FREE(PIF, PROPERTIES);                                                                                                                                                                                                                                                                     \
+                PROPERTIES = 0;                                                                                                                                                                                                                                                                                 \
+                WRITE_UNLOCK                                                                                                                                                                                                                                                                                    \
+                return 0;                                                                                                                                                                                                                                                                                       \
+            }                                                                                                                                                                                                                                                                                                   \
+        }                                                                                                                                                                                                                                                                                                       \
+    }
+//---------------------------------------------------------
+#define PROPERTY_CODE_VAR(THISREF, PROPERTIES, VAR_ID)                                                                                                                                                                                                                                                          \
+    if ((PROPERTIES) && (PROPERTIES [VAR_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                                         \
+        CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [VAR_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                                      \
+        WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
+        CCTEMP->_Class->SetProperty(PIF, PROPERTIES [VAR_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [VAR_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, VAR_ID, LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);                                            \
         if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
             if (ConceptInterpreter_Catch(THISREF, THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {                                                                                                                                   \
                 FAST_FREE(PIF, PROPERTIES);                                                                                                                                                                                                                                                                     \
@@ -3194,6 +3209,12 @@ nothrow:
 
                     case KEY_NEW:
                         //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                        if ((OE->OperandRight_ID > 0) && (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_CLASS) && ((!TARGET_THREAD->PROPERTIES) || (!TARGET_THREAD->PROPERTIES[OE->OperandRight_ID - 1].IS_PROPERTY_RESULT))) {
+                            // skip next instruction (is asg)
+                            INSTRUCTION_POINTER++;
+                            RESULT = LOCAL_CONTEXT [OE->OperandRight_ID - 1];
+                        } else
+                            RESULT = LOCAL_CONTEXT [OE->Result_ID - 1];
                         CLASS_CHECK(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
                         if (OE->OperandLeft_ID == STATIC_CLASS_ARRAY) {
                             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_NUMBER;
@@ -3220,6 +3241,7 @@ nothrow:
                                 DECLARE_PATH(VARIABLE_CLASS);
                             }
                         }
+                        PROPERTY_CODE_VAR(THIS_REF, TARGET_THREAD->PROPERTIES, OE->Result_ID);
                         continue;
 
                     case KEY_DLL_CALL:
@@ -5585,7 +5607,7 @@ nothrow:
 
             case KEY_NEW:
                 //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                if ((OE->OperandRight_ID > 0) && (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_CLASS) && (!PROPERTIES)) {
+                if ((OE->OperandRight_ID > 0) && (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_CLASS) && ((!PROPERTIES) || (!PROPERTIES[OE->OperandRight_ID - 1].IS_PROPERTY_RESULT))) {
                     // skip next instruction (is asg)
                     INSTRUCTION_POINTER++;
                     RESULT = LOCAL_CONTEXT [OE->OperandRight_ID - 1];
@@ -5617,6 +5639,7 @@ nothrow:
                         DECLARE_PATH(VARIABLE_CLASS);
                     }
                 }
+                PROPERTY_CODE_VAR(self, PROPERTIES, OE->Result_ID);
                 continue;
         }
 

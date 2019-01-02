@@ -7,7 +7,7 @@
 POOLED_IMPLEMENTATION(ExecutableMember)
 POOLED_IMPLEMENTATION(ClassMember)
 
-ClassMember::ClassMember(void *DefinedIn, const char *name,  char is_data_only, char _not_binary, char is_unserialize) {
+ClassMember::ClassMember(void *DefinedIn, const char *name, char is_data_only, char _not_binary, char is_unserialize) {
     NAME   = name;
     ACCESS = ACCESS_PUBLIC;
 

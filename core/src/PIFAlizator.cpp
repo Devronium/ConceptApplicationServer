@@ -165,6 +165,7 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     USE_EXC                 = DEFAULT_USE_EXCEPTIONS;
     USE_IMPLICIT            = DEFAULT_USE_IMPLICIT;
     STRICT_MODE             = DEFAULT_STRICT_MODE;
+    ASG_OVERLOADED          = 0;
     INCLUDE_LEVEL           = 0;
     this->StaticLinks       = 0;
     this->StaticLinksCount  = 0;
@@ -213,6 +214,8 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
         if (!LIB_DIR.Length())
             this->IMPORT_DIR = sibling->IMPORT_DIR;
         this->SyncClassList();
+        if (sibling->ASG_OVERLOADED)
+            ASG_OVERLOADED = 1;
     } else {
         parentPIF = NULL;
         ClassList = new AnsiList();
@@ -1992,7 +1995,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 #endif
                     if (cached.Length())
                         P->NextAtom(cached);    
-                    if (cached != "(") {
+                    if (cached != P_OPEN) {
 #if __SIZEOF_POINTER__ == 8
                         uintptr_t key = ((uintptr_t)_ID << 32) | (PREC_2_ID);
 #else
@@ -3307,7 +3310,7 @@ void PIFAlizator::OptimizeMember(ClassMember *CM) {
     void *old_helper = this->Helper;
     this->Helper = NULL;
 
-    CM->OPTIMIZER = new_Optimizer(this, CM->CDATA->PIF_DATA, CM->CDATA->VariableDescriptors, CC->_DEBUG_INFO_FILENAME.c_str(), CC, CM->NAME);
+    CM->OPTIMIZER = new_Optimizer(this, CM->CDATA->PIF_DATA, CM->CDATA->VariableDescriptors, CC->_DEBUG_INFO_FILENAME.c_str(), CC, CM);
 
     OptimizerHelper *helper = Optimizer_GetHelper(this);
     helper->ParameterList = new AnsiList();
@@ -3351,7 +3354,7 @@ void PIFAlizator::Optimize(int start, char use_compiled_code, char use_lock) {
 
                 INTEGER LOCAL_CLASSID = ((ClassCode *)CM->Defined_In)->CLSID;
                 if ((CM->IS_FUNCTION == 1) && (CM->Defined_In == CC) && (!CM->OPTIMIZER)) {
-                    CM->OPTIMIZER = new_Optimizer(this, CM->CDATA->PIF_DATA, CM->CDATA->VariableDescriptors, ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME.c_str(), CC, CM->NAME);
+                    CM->OPTIMIZER = new_Optimizer(this, CM->CDATA->PIF_DATA, CM->CDATA->VariableDescriptors, ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME.c_str(), CC, CM);
                     OptimizerHelper *helper = Optimizer_GetHelper(this);
                     helper->ParameterList = new AnsiList();
                     helper->OptimizedPIF = new AnsiList();

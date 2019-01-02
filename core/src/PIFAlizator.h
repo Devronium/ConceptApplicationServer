@@ -295,10 +295,12 @@ public:
     char         USE_EXC;
     char         USE_IMPLICIT;
     char         STRICT_MODE;
+
     char         *PROFILE_DRIVEN;
     unsigned int PROFILE_DRIVEN_ID;
     int          INCLUDE_LEVEL;
 
+    char         ASG_OVERLOADED;
     char         enable_private;
     INTEGER Warning(const char *WRN, int line, int wrn_code, const char *extra, const char *filename = 0, const char *class_name = 0, const char *member_name = 0);
     INTEGER Warning3(const char *WRN, int line, int wrn_code, const char *extra1, const char *extra2, const char *extra3, const char *filename = 0, const char *class_name = 0, const char *member_name = 0);

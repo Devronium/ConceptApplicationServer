@@ -170,11 +170,14 @@ ClassMember *ClassCode::AddMember(PIFAlizator *PIF, const char *name, INTEGER li
             break;
         }
     }
-    ClassMember *CM = new ClassMember(this, name,  data_only);
+    ClassMember *CM = new ClassMember(this, name, data_only);
     ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME = FileName;
     CM->_DEBUG_STARTLINE = line;
     Members->Add(CM, DATA_CLASS_MEMBER);
     CM->ACCESS = ACCESS;
+
+    if ((!PIF->ASG_OVERLOADED) && (name) && (!strcmp(name, ASG)))
+        PIF->ASG_OVERLOADED = 1;
     return CM;
 }
 
@@ -1277,12 +1280,13 @@ int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassLi
             return -1;
         }
         if (is_defined_in_this_class) {
-            ClassMember *CM = new ClassMember(this, PIF->GeneralMembers->Item(index),  true, false, true);
+            ClassMember *CM = new ClassMember(this, PIF->GeneralMembers->Item(index), true, false, true);
             if (is_lib)
                 Members->Add(CM, DATA_CLASS_MEMBER);
             if (!is_lib) {
                 pMEMBERS [jj] = CM;
             }
+
             CM->Unserialize(in, ClassList, is_lib, Relocation, ClassNames);
             CM->Defined_In = this;
 
@@ -1294,7 +1298,9 @@ int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassLi
             }
 
             if (CM->IS_FUNCTION == 1) {
-                CM->OPTIMIZER = new_Optimizer(PIF, &PIF->PIF, &PIF->VariableDescriptors, ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME, this, CM->NAME, true);
+                if ((CM->IS_OPERATOR) && (!PIF->ASG_OVERLOADED) && (CM->NAME) && (!strcmp(CM->NAME, ASG)))
+                    PIF->ASG_OVERLOADED = 1;
+                CM->OPTIMIZER = new_Optimizer(PIF, &PIF->PIF, &PIF->VariableDescriptors, ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME, this, CM, true);
                 Optimizer_Unserialize((struct Optimizer *)CM->OPTIMIZER, PIF, in, PIF->ModuleList, is_lib, ClassNames, Relocation, version);
             } else {
                 CM->OPTIMIZER = 0;
