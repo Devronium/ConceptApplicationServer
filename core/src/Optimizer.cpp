@@ -209,6 +209,13 @@ public:
         }
     }
 
+    void reset_variable(int left) {
+        if ((left > 0) && (left <= left_var_len)) {
+            free(left_vars[left - 1].vars);
+            left_vars[left - 1].vars = 0;
+            left_vars[left - 1].var_len = 0;
+        }
+    }
 
     ~TempVariableLevelManager() {
         this->reset();
@@ -301,6 +308,14 @@ public:
     void reset_level() {
         if (this->level_manager)
             this->level_manager->reset();
+    }
+
+    void reset_variable(int left_id) {
+        TempVariableLevelManager *level = this->level_manager;
+        while (level) {
+            level->reset_variable(left_id);
+            level = level->parent;
+        }
     }
 
     int make_inaccesible(int left_id, int right_id) {
@@ -490,7 +505,7 @@ bool Optimizer_TryCheckParameters(OptimizerHelper *helper, OptimizedElement *OE,
     return true;
 }
 
-void Optimizer_BuildParameterList(struct Optimizer *self, struct OptimizerHelper *helper, INTEGER START_POS, AnalizerElement *METHOD) {
+void Optimizer_BuildParameterList(struct Optimizer *self, struct OptimizerHelper *helper, INTEGER START_POS, AnalizerElement *METHOD, TempVariableManager *TVM) {
     AnalizerElement *AE = 0;
     AnsiList *LocalParamList = new AnsiList(false);
 
@@ -537,6 +552,7 @@ void Optimizer_BuildParameterList(struct Optimizer *self, struct OptimizerHelper
             }
             //============================================//
             LocalParamList->Add((void *)AE->ID, DATA_32_BIT);
+            TVM->reset_variable(AE->ID);
         } else {
             helper->PIFOwner->Errors.Add(new AnsiException(ERR200, AE->_DEBUG_INFO_LINE, 200, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
         }
@@ -1199,6 +1215,9 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
             // subsequent calls to this.member will return null
             if ((AE_ID == KEY_BOR) || (AE_ID == KEY_BAN) || (AE_ID == KEY_CND_NULL))
                 TVM->reset_level();
+            else
+            if (((AE_ID == KEY_ASG) || (AE_ID == KEY_BY_REF)) && (Left))
+                TVM->reset_variable(Left->ID);
 
             int tmp_index;
             int idx = FIRST_OPERATOR - 1;
@@ -1460,7 +1479,7 @@ nooptimizations:
     }
 
     if (IS_PARAM_LIST) {
-        Optimizer_BuildParameterList(self, helper, START_POSITION, PREC_METHOD);
+        Optimizer_BuildParameterList(self, helper, START_POSITION, PREC_METHOD, TVM);
         return TYPE_PARAM_LIST;
     }
 

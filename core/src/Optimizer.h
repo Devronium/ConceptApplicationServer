@@ -61,7 +61,7 @@ INTEGER Optimizer_GetFirstOperator(struct Optimizer *self, DoubleList *LST, INTE
 INTEGER Optimizer_Check(struct Optimizer *self, struct OptimizerHelper *helper, AnalizerElement *Target, AnalizerElement *AE);
 INTEGER Optimizer_Require(struct Optimizer *self, struct OptimizerHelper *helper, AnalizerElement *Element);
 
-void Optimizer_BuildParameterList(struct Optimizer *self, struct OptimizerHelper *helper, INTEGER START_POS, AnalizerElement *METHOD);
+void Optimizer_BuildParameterList(struct Optimizer *self, struct OptimizerHelper *helper, INTEGER START_POS, AnalizerElement *METHOD, TempVariableManager *TVM);
 bool Optimizer_TryCheckParameters(struct OptimizerHelper *helper, OptimizedElement *OE, int p_count, int *minp, int *maxp, ClassMember **target_CM = 0, ClassCode *owner_CC = 0);
 void Optimizer_AddProfilerCode(struct OptimizerHelper *helper, int code);
 void Optimizer_RemoveCode(struct OptimizerHelper *helper, INTEGER index);
