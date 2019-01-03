@@ -422,7 +422,7 @@ PIFAlizator::~PIFAlizator(void) {
     semdel(InternalLock);
     semdel(AllocLock)
 #endif
-    semdel(DelegateLock);
+    semdel(this->DelegateLock);
 
     VARPool *POOL = this->POOL;
     VARPool *NEXT;
