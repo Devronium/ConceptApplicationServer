@@ -110,7 +110,8 @@ void HashTable_clear(struct HashTable *self) {
     if (!self->htable)
         return;
 
-    for (khint_t k = kh_begin(self->htable); k != kh_end(self->htable); ++k) {
+    khint_t k;
+    for (k = kh_begin(self->htable); k != kh_end(self->htable); ++k) {
         if (kh_exist(self->htable, k))
             free((char*)kh_key(self->htable, k));
     }

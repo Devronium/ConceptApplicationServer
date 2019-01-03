@@ -462,6 +462,7 @@ void delete_OptimizerHelper(struct OptimizerHelper *self) {
         delete self->ParameterList;
     if (self->OptimizedPIF)
         delete self->OptimizedPIF;
+    free(self);
 }
 
 struct OptimizerHelper *Optimizer_GetHelper(PIFAlizator *P) {
@@ -2606,6 +2607,7 @@ void delete_Optimizer(struct Optimizer *self) {
     if (self->INTERPRETER) {
         delete_ConceptInterpreter((struct ConceptInterpreter *)self->INTERPRETER);
     }
+    free(self);
 }
 
 void Optimizer_GenerateIntermediateCode(struct Optimizer *self, PIFAlizator *P) {
@@ -2621,7 +2623,7 @@ void Optimizer_GenerateIntermediateCode(struct Optimizer *self, PIFAlizator *P) 
 #ifdef _WIN32
         self->CODE = (RuntimeOptimizedElement *)_aligned_malloc(sizeof(RuntimeOptimizedElement) * self->codeCount, sizeof(void *) * 2);
 #else
-        if (!posix_memalign((void **)&CODE, sizeof(void *) * 2, sizeof(RuntimeOptimizedElement) * self->codeCount))
+        if (!posix_memalign((void **)&self->CODE, sizeof(void *) * 2, sizeof(RuntimeOptimizedElement) * self->codeCount))
 #endif
         memset(self->CODE, 0, sizeof(RuntimeOptimizedElement) * self->codeCount);
 #endif

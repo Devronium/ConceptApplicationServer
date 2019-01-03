@@ -710,9 +710,9 @@ VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, struct Com
 
         STACK(PREV, OE ? OE->Operator_DEBUG_INFO_LINE : 0)
 #ifdef SIMPLE_MULTI_THREADING
-        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV, (result_id > 0) ? SenderCTX[result_id] : NULL, NULL, 0, 0, thread_lock);
+        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV, (result_id > 0) ? SenderCTX[result_id] : NULL, 0, 0, 0, thread_lock);
 #else
-        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV, (result_id > 0) ? SenderCTX[result_id] : NULL, NULL, 0);
+        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV, (result_id > 0) ? SenderCTX[result_id] : NULL, 0, 0);
 #endif
         UNSTACK;
 
