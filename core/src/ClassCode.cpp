@@ -516,7 +516,7 @@ void ClassCode::SetRelocation(INTEGER mid, INTEGER index) {
 
 CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, const RuntimeOptimizedElement *OE, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static) const {
     static const ParamList dummy = { 0, 0 };
-    CompiledClass    *res  = new_CompiledClass(PIF, this);
+    CompiledClass *res  = new_CompiledClass(PIF, this);
 
     Owner->CLASS_DATA = res;
 
@@ -549,7 +549,7 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
             PIF->RootInstance = res;
         VariableDATA *THROW_DATA = 0;
         STACK(PREV, OE ? OE->Operator_DEBUG_INFO_LINE : 0)
-        VariableDATA * RESULT = CM->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, THROW_DATA, PREV, NULL, 0, is_static);
+        VariableDATA * RESULT = CM->Execute(PIF, this->CLSID, (CompiledClass *)Owner->CLASS_DATA, FORMAL_PARAM, SenderCTX, THROW_DATA, PREV, NULL, 0, is_static);
         UNSTACK;
         if (RESULT) {
             if (is_static) {
@@ -601,7 +601,7 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
     return res;
 }
 
-void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV) const {
+void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, struct CompiledClass *Owner, const RuntimeOptimizedElement *OE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV) const {
     int relocation = this->Relocation(i);
     *LOCAL_THROW = NULL;
     ClassMember *pMEMBER_i = relocation ? pMEMBERS [relocation - 1] : 0;
@@ -696,7 +696,7 @@ const TinyString *ClassCode::GetFilename(PIFAlizator *PIF, INTEGER LOCAL_CLSID, 
     return NULL;
 }
 
-VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV THREAD_CREATION_LOCKS) const {
+VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, struct CompiledClass *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV, int result_id THREAD_CREATION_LOCKS) const {
     VariableDATA         *RESULT;
     ClassMember *pMEMBER_i = i ? pMEMBERS [i - 1] : 0;
     *LOCAL_THROW = NULL;
@@ -710,9 +710,9 @@ VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDA
 
         STACK(PREV, OE ? OE->Operator_DEBUG_INFO_LINE : 0)
 #ifdef SIMPLE_MULTI_THREADING
-        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV, NULL, 0, 0, thread_lock);
+        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV, (result_id > 0) ? SenderCTX[result_id] : NULL, NULL, 0, 0, thread_lock);
 #else
-        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV, NULL, 0);
+        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV, (result_id > 0) ? SenderCTX[result_id] : NULL, NULL, 0);
 #endif
         UNSTACK;
 
@@ -744,7 +744,7 @@ void ClassCode::BuildParameterError(PIFAlizator *PIF, int line, int FORMAL_PARAM
         PIF->Errors.Add(Exc, DATA_EXCEPTION);
 }
 
-VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV, char next_is_asg, VariableDATAPROPERTY **PROPERTIES, int dataLen, int result_id, int relocation) const {
+VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, struct CompiledClass *Owner, const RuntimeOptimizedElement *OE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV, char next_is_asg, VariableDATAPROPERTY **PROPERTIES, int dataLen, int result_id, int relocation) const {
     INTEGER      IS_PROPERTY = 0;
     VariableDATA *RESULT;
     struct CompiledClass *CLASS_DATA;
@@ -790,7 +790,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     deleg->IS_PROPERTY_RESULT = 0;
                     deleg->LINKS         = 0;
                     CC_WRITE_LOCK(PIF)
-                    deleg->CLASS_DATA    = new_Delegate(Owner->CLASS_DATA, relocation);
+                    deleg->CLASS_DATA    = new_Delegate(Owner, relocation);
                     CC_WRITE_UNLOCK(PIF)
                     deleg->TYPE          = VARIABLE_DELEGATE;
                     return deleg;
@@ -871,26 +871,23 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                         CC_WRITE_LOCK(PIF)
                         CLASS_DATA->LINKS++;
                         CC_WRITE_UNLOCK(PIF)
-                        VariableDATA * lOwner = 0;
-
-                        lOwner = (VariableDATA *)VAR_ALLOC(PIF);
-                        lOwner->CLASS_DATA         = CLASS_DATA;
-                        lOwner->IS_PROPERTY_RESULT = 0;
-                        lOwner->LINKS = 1;
-                        lOwner->TYPE = VARIABLE_CLASS;
 
                         RESULT = CLASS_DATA->_Class->ExecuteDelegate(PIF,
                                                                     (INTEGER)delegate_Member(RESULT->CLASS_DATA),
-                                                                    lOwner,
+                                                                    CLASS_DATA,
                                                                     OE,
                                                                     FORMAL_PARAM,
                                                                     SenderCTX,
                                                                     CLSID,
                                                                     LOCAL_CLSID,
                                                                     LOCAL_THROW,
-                                                                    PREV
-                                                                    );
-                        FREE_VARIABLE(lOwner, PREV);
+                                                                    PREV,
+                                                                    result_id);
+
+                        CC_WRITE_LOCK(PIF)
+                        CLASS_DATA->LINKS--;
+                        CC_WRITE_UNLOCK(PIF)
+
                         if (*LOCAL_THROW) {
                             if (RESULT) {
                                 FREE_VARIABLE(RESULT, PREV);
@@ -969,32 +966,29 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
             default:
                 relocation2 = this->RELOCATIONS2 [relocation - 1];
                 CC_WRITE_LOCK(PIF)
-                RESULT = ((struct CompiledClass *)Owner->CLASS_DATA)->_CONTEXT [relocation2 - 1];
+                RESULT = Owner->_CONTEXT [relocation2 - 1];
                 if (!RESULT) {
-                    RESULT = CompiledClass_CreateVariable((struct CompiledClass *)Owner->CLASS_DATA, relocation2 - 1, pMEMBER_i);
+                    RESULT = CompiledClass_CreateVariable(Owner, relocation2 - 1, pMEMBER_i);
                 } else
                 if ((RESULT->TYPE == VARIABLE_DELEGATE) && (FORMAL_PARAM) && (!property)) {
                     CLASS_DATA = (struct CompiledClass *)delegate_Class(RESULT->CLASS_DATA);
-                    CLASS_DATA->LINKS++;
+                    CLASS_DATA->LINKS ++;
                     CC_WRITE_UNLOCK(PIF)
-                    VariableDATA * lOwner = 0;
-                    lOwner = (VariableDATA *)VAR_ALLOC(PIF);
-                    lOwner->CLASS_DATA         = CLASS_DATA;
-                    lOwner->IS_PROPERTY_RESULT = 0;
-                    lOwner->LINKS = 1;
-                    lOwner->TYPE = VARIABLE_CLASS;
 
                     RESULT = CLASS_DATA->_Class->ExecuteDelegate(PIF,
                                                                 (INTEGER)delegate_Member(RESULT->CLASS_DATA),
-                                                                lOwner,
+                                                                CLASS_DATA,
                                                                 OE,
                                                                 FORMAL_PARAM,
                                                                 SenderCTX,
                                                                 CLSID,
                                                                 LOCAL_CLSID,
                                                                 LOCAL_THROW,
-                                                                PREV);
-                    FREE_VARIABLE(lOwner, PREV);
+                                                                PREV,
+                                                                result_id);
+                    CC_WRITE_LOCK(PIF)
+                    CLASS_DATA->LINKS --;
+                    CC_WRITE_UNLOCK(PIF)
                     if (*LOCAL_THROW) {
                         if (RESULT) {
                             FREE_VARIABLE(RESULT, PREV);

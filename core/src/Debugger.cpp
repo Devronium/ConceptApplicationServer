@@ -32,12 +32,7 @@ VariableDATA *GetClassMember(void *CLASS_PTR, const char *class_member_name) {
                     PLIST.COUNT = 0;
 
                     PIFAlizator  *PIF   = GET_PIF(((struct CompiledClass *)CLASS_PTR));
-                    VariableDATA *Owner = (VariableDATA *)VAR_ALLOC(PIF);
-                    Owner->CLASS_DATA         = CLASS_PTR;
-                    Owner->IS_PROPERTY_RESULT = 0;
-                    Owner->LINKS = 1;
-                    Owner->TYPE = VARIABLE_CLASS;
-                    ((struct CompiledClass *)CLASS_PTR)->LINKS++;
+                    ((struct CompiledClass *)CLASS_PTR)->LINKS ++;
 
                     RuntimeOptimizedElement OE;
                     OE.Operator_DEBUG_INFO_LINE = 0;
@@ -47,7 +42,7 @@ VariableDATA *GetClassMember(void *CLASS_PTR, const char *class_member_name) {
                     VariableDATA *THROW_DATA;
                     VariableDATA *VarDATA = CCode->ExecuteMember(PIF,
                                                                     index,
-                                                                    Owner,
+                                                                    (struct CompiledClass *)CLASS_PTR,
                                                                     &OE,
                                                                     true,
                                                                     CM->IS_FUNCTION == 3 ? 0 : &PLIST,
@@ -58,7 +53,7 @@ VariableDATA *GetClassMember(void *CLASS_PTR, const char *class_member_name) {
                                                                     &THROW_DATA,
                                                                     NULL
                                                                     );
-                    FREE_VARIABLE(Owner, NULL);
+                    ((struct CompiledClass *)CLASS_PTR)->LINKS --;
                     ADD_VAR(VarDATA);
                     if (THROW_DATA) {
                         FREE_VARIABLE(THROW_DATA, NULL);

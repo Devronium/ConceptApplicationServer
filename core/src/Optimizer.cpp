@@ -231,12 +231,16 @@ protected:
     TempVariableLevelManager *level_manager;
     INTEGER *asg_vars;
     INTEGER asg_var_len;
+    unsigned char *temp_vars;
+    INTEGER temp_var_len;
 public:
     TempVariableManager(DoubleList *vlist) : pool1(vlist), pool2(vlist) {
         left_vars = NULL;
         left_var_len = 0;
         asg_vars = NULL;
         asg_var_len = 0;
+        temp_vars = NULL;
+        temp_var_len = 0;
         level_manager = NULL;
     }
 
@@ -265,6 +269,33 @@ public:
             return -1;
 
         return asg_vars[var_id - 1];
+    }
+
+    void reserve(int var_id) {
+        if (var_id <= 0)
+            return;
+
+        if (var_id > temp_var_len) {
+            int old_var_len = temp_var_len;
+            temp_var_len = ((var_id + 1) / 32 + 1) * 32;
+            temp_vars = (unsigned char *)realloc(temp_vars, sizeof(unsigned char) * temp_var_len);
+
+            if (!temp_vars)
+                return;
+
+            for (int i = old_var_len; i < temp_var_len; i++)
+                temp_vars[i] = 0;
+        }
+
+        if (temp_vars)
+            temp_vars[var_id - 1] = 1;
+    }
+
+    int is_reserved(int var_id) {
+        if ((var_id <= 0) || (var_id > temp_var_len))
+            return -1;
+
+        return temp_vars[var_id - 1];
     }
 
     void push_level(TempVariableLevelManager *level) {
@@ -371,6 +402,8 @@ public:
         }
         if (asg_vars)
             free(asg_vars);
+        if (temp_vars)
+            free(temp_vars);
     }
 
     void Reset() {
@@ -379,11 +412,15 @@ public:
     }
 
     int GetVar() {
-        return pool1.GetVar();
+        int var_id = pool1.GetVar();
+        this->reserve(var_id);
+        return var_id;
     }
 
     int GetVar2() {
-        return pool2.GetVar();
+        int var_id = pool2.GetVar();
+        this->reserve(var_id);
+        return var_id;
     }
 };
 
@@ -1269,6 +1306,8 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
 
             if (((AE_ID == KEY_SEL) || (AE_ID == KEY_DLL_CALL)) && (Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST)) {
                 tmp_index = TVM->GetVar();
+                // if (AE_ID == KEY_DLL_CALL)
+                //     TVM->reset_level();
             } else
             if ((AE_ID == KEY_SEL) && (LAST_OP) && (LAST_OP->Operator.ID == KEY_SEL) && (LAST_OP->Result_ID == Left->ID) && 
                 (LAST_OP->Result_ID > helper->LOCAL_VARIABLES) && (LAST_OP->OperandReserved.TYPE != TYPE_PARAM_LIST) &&
@@ -1297,7 +1336,8 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
                     helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
                     tmp_index = helper->VDList->Count();
                     TVM->cache(Left->ID, Right->ID, tmp_index);
-                } else {
+                } else
+                if (!TVM->is_reserved(Left->ID)) {
                     int not_assignment = 1;
                     if ((Parameter) && (Parameter->TYPE == TYPE_OPERATOR)) {
                         switch (Parameter->ID) {

@@ -271,12 +271,7 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                     OE.OperandRight_ID = 0;
 
                     PIFAlizator  *PIF   = GET_PIF(((struct CompiledClass *)CLASS_PTR));
-                    VariableDATA *Owner = (VariableDATA *)VAR_ALLOC(PIF);
-                    Owner->CLASS_DATA         = CLASS_PTR;
-                    Owner->IS_PROPERTY_RESULT = 0;
-                    Owner->LINKS = 1;
-                    Owner->TYPE  = VARIABLE_CLASS;
-                    ((struct CompiledClass *)CLASS_PTR)->LINKS++;
+                    ((struct CompiledClass *)CLASS_PTR)->LINKS ++;
                     SCStack *STACK_TRACE = NULL;
 #ifndef SIMPLE_MULTI_THREADING
                     if (PIF) {
@@ -291,7 +286,7 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                     VariableDATA *THROW_DATA;
                     VariableDATA *VarDATA = CCode->ExecuteMember(PIF,
                                                                     index,
-                                                                    Owner,
+                                                                    (struct CompiledClass *)CLASS_PTR,
                                                                     &OE,
                                                                     true,
                                                                     CM->IS_FUNCTION == 3 ? 0 : &PLIST,
@@ -302,6 +297,7 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                                                                     &THROW_DATA,
                                                                     STACK_TRACE
                                                                     );
+                    ((struct CompiledClass *)CLASS_PTR)->LINKS --;
                     int result = -1;
                     if (VarDATA) {
                         if (!VarDATA->LINKS)
@@ -309,7 +305,6 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                         result = GetVariable(VarDATA, TYPE, STRING_VALUE, NUMBER_VALUE);
                         FREE_VARIABLE(VarDATA, STACK_TRACE);
                     }
-                    FREE_VARIABLE(Owner, STACK_TRACE);
                     if (THROW_DATA)
                         return -1;
                     return result;
@@ -396,12 +391,7 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
                     } else
                         Parameter->NUMBER_DATA = NUMBER_VALUE;
 
-                    VariableDATA *Owner = (VariableDATA *)VAR_ALLOC(PIF);
-                    Owner->CLASS_DATA         = CLASS_PTR;
-                    Owner->IS_PROPERTY_RESULT = 0;
-                    Owner->LINKS = 1;
-                    Owner->TYPE  = VARIABLE_CLASS;
-                    ((struct CompiledClass *)CLASS_PTR)->LINKS++;
+                    ((struct CompiledClass *)CLASS_PTR)->LINKS ++;
 
                     RuntimeOptimizedElement OE;
                     OE.Operator_DEBUG_INFO_LINE = 0;
@@ -411,7 +401,7 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
                     VariableDATA *THROW_DATA;
                     CCode->SetProperty(PIF,
                                         index,
-                                        Owner,
+                                        (struct CompiledClass *)CLASS_PTR,
                                         &OE,
                                         true,
                                         1,
@@ -421,7 +411,7 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
                                         &THROW_DATA,
                                         NULL);
 
-                    FREE_VARIABLE(Owner, NULL);
+                    ((struct CompiledClass *)CLASS_PTR)->LINKS --;
                     FREE_VARIABLE(Parameter, NULL);
                     if (THROW_DATA) {
                         FREE_VARIABLE(THROW_DATA, NULL);
@@ -1069,16 +1059,10 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         }
                     }
                     VariableDATA *RESULT = target;
-                    VariableDATA *lOwner = 0;
-
                     CompiledClass *CLASS_DATA = (CompiledClass *)delegate_Class(RESULT->CLASS_DATA);
-                    lOwner = (VariableDATA *)VAR_ALLOC(PIF);
-                    lOwner->CLASS_DATA = CLASS_DATA;
-                    lOwner->IS_PROPERTY_RESULT = 0;
-                    lOwner->LINKS = 1;
-                    lOwner->TYPE = VARIABLE_CLASS;
 
-                    CLASS_DATA->LINKS++;
+
+                    CLASS_DATA->LINKS ++;
 
                     SCStack *STACK_TRACE = NULL;
 #ifndef SIMPLE_MULTI_THREADING
@@ -1093,7 +1077,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 #endif
                     *SENDER_RESULT = CLASS_DATA->_Class->ExecuteDelegate(PIF,
                                                                         (INTEGER)delegate_Member(RESULT->CLASS_DATA),
-                                                                        lOwner,
+                                                                        CLASS_DATA,
                                                                         0,
                                                                         &FORMAL_PARAM,
                                                                         CTX,
@@ -1105,7 +1089,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 #else
                                                                         STACK_TRACE);
 #endif
-                    FREE_VARIABLE(lOwner, STACK_TRACE);
+                    CLASS_DATA->LINKS --;
                     if (*SENDER_RESULT)
                         (*SENDER_RESULT)->LINKS++;
 #ifdef SIMPLE_MULTI_THREADING
@@ -1347,7 +1331,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
         case INVOKE_GET_SERIAL_CLASS_NO_DEFAULTS:
         case INVOKE_GET_SERIAL_CLASS:
             {
-                CompiledClass *CC             = va_arg(ap, CompiledClass *);
+                CompiledClass *CC             = va_arg(ap, struct CompiledClass *);
                 int           max_members     = va_arg(ap, int);
                 char          **class_name    = va_arg(ap, char **);
                 char          **pmembers      = va_arg(ap, char **);
@@ -1370,7 +1354,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 
         case INVOKE_GET_MEMBER_FROM_ID:
             {
-                CompiledClass *CC       = va_arg(ap, CompiledClass *);
+                CompiledClass *CC       = va_arg(ap, struct CompiledClass *);
                 intptr_t      member_id = va_arg(ap, intptr_t);
                 char          **member  = va_arg(ap, char **);
                 if ((!CC) || (member_id < 0)) {
@@ -1390,7 +1374,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 
         case INVOKE_GET_RELOC_MEMBER_FROM_ID:
             {
-                CompiledClass *CC       = va_arg(ap, CompiledClass *);
+                CompiledClass *CC       = va_arg(ap, struct CompiledClass *);
                 intptr_t      member_id = va_arg(ap, intptr_t);
                 char          **member  = va_arg(ap, char **);
                 if ((!CC) || (member_id < 0)) {
@@ -1409,7 +1393,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 
         case INVOKE_HAS_MEMBER:
             {
-                CompiledClass *CC     = va_arg(ap, CompiledClass *);
+                CompiledClass *CC     = va_arg(ap, struct CompiledClass *);
                 char          *member = va_arg(ap, char *);
                 if (!CC) {
                     result = CANNOT_INVOKE_INTERFACE;

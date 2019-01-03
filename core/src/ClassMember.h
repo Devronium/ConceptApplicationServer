@@ -8,11 +8,13 @@
 #include "ConceptPools.h"
 #include "DoubleList.h"
 
+
 #include <stdio.h>
 
 #define ENOUGH_PARAMETERS(__CM, __FORMAL_PARAM)    ((__FORMAL_PARAM->COUNT >= __CM->MUST_PARAMETERS_COUNT) && (__FORMAL_PARAM->COUNT <= __CM->PARAMETERS_COUNT)) ? 1 : 0
 
 class ClassCode;
+struct CompiledClass;
 
 class CompilerData {
 public:
@@ -59,9 +61,9 @@ public:
     ClassMember(void *DefinedIn, const char *name, char is_data_only, char _not_binary = 1, char is_unserialize = false);
     ~ClassMember(void);
 #ifdef SIMPLE_MULTI_THREADING
-    VariableDATA *Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, VariableDATA *Owner, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, char is_main = 0, INTEGER *thread_lock = NULL);
+    VariableDATA *Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct CompiledClass *Owner, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, char is_main = 0, INTEGER *thread_lock = NULL);
 #else
-    VariableDATA *Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, VariableDATA *Owner, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, char is_main = 0);
+    VariableDATA *Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct CompiledClass *Owner, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, char is_main = 0);
 #endif
     void EnsureVD();
 

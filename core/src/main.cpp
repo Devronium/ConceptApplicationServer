@@ -751,7 +751,7 @@ int MarkRecursive(void *PIF, struct Array *arr, signed char reach_id_flag, signe
     return res;
 }
 
-int ClearRecursive(void *PIF, CompiledClass *CC, int CLSID, signed char reach_id_flag, signed char forced_flag) {
+int ClearRecursive(void *PIF, struct CompiledClass *CC, int CLSID, signed char reach_id_flag, signed char forced_flag) {
     const ClassCode *base = CC->_Class;
     CC->reachable = (CC->reachable & 0x1C) | reach_id_flag;
     int       res   = 1;

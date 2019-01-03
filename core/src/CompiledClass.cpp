@@ -201,27 +201,17 @@ VariableDATA **CompiledClass_GetContext(const struct CompiledClass *self) {
 }
 
 int CompiledClass_Destroy(struct CompiledClass *self, PIFAlizator *PIF, SCStack *STACK_TRACE) {
-    VariableDATA *OWNER = (VariableDATA *)VAR_ALLOC(PIF);
-
-    OWNER->TYPE       = VARIABLE_CLASS;
-    OWNER->LINKS      = 1;
-    OWNER->CLASS_DATA = self;
-    OWNER->IS_PROPERTY_RESULT = 0;
     self->LINKS++;
     VariableDATA *THROW_DATA = 0;
 
     STACK(STACK_TRACE, self->_Class->DESTRUCTOR_MEMBER->_DEBUG_STARTLINE)
-    VariableDATA * RESULT = self->_Class->DESTRUCTOR_MEMBER->Execute(PIF, self->_Class->CLSID, OWNER, 0, self->_CONTEXT, THROW_DATA, STACK_TRACE, NULL, 0);
+    VariableDATA * RESULT = self->_Class->DESTRUCTOR_MEMBER->Execute(PIF, self->_Class->CLSID, self, 0, self->_CONTEXT, THROW_DATA, STACK_TRACE, NULL, 0);
     UNSTACK;
     if (RESULT) {
         FREE_VARIABLE(RESULT, STACK_TRACE);
     }
 
     // avoid double deleting of the class !!!
-    OWNER->TYPE       = VARIABLE_NUMBER;
-    OWNER->CLASS_DATA = 0;
-    FREE_VARIABLE(OWNER, STACK_TRACE);
-
     if (THROW_DATA) {
         FREE_VARIABLE(THROW_DATA, STACK_TRACE);
         AnsiException *Exc = new AnsiException(ERR635, 0, 635, "", self->_Class->_DEBUG_INFO_FILENAME, self->_Class->NAME, self->_Class->DESTRUCTOR_MEMBER->NAME);
