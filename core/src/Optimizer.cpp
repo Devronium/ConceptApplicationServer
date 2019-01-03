@@ -394,6 +394,16 @@ public:
         this->make_accesible(left_id, right_id);
     }
 
+    int is_cached(int left_id) {
+        if ((left_id <= 0) || (left_id > left_var_len))
+            return 0;
+
+        if (this->left_vars[left_id - 1].var_len)
+            return 1;
+
+        return 0;
+    }
+
     ~TempVariableManager() {
         if (left_vars) {
             for (int i = 0; i < left_var_len; i++)
@@ -1314,7 +1324,8 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
                 (LAST_OP->Result_ID > helper->LOCAL_VARIABLES) && (LAST_OP->OperandReserved.TYPE != TYPE_PARAM_LIST) &&
                 ((!Parameter) || ((Parameter->TYPE != TYPE_OPERATOR) || 
                 ((Parameter->ID != KEY_ASG) && (Parameter->ID != KEY_BY_REF)))) && 
-                (Right) && (Right->_INFO_OPTIMIZED != 2) && (!TVM->is_accesible(LAST_OP->OperandLeft.ID, LAST_OP->OperandRight.ID))) {
+                (Right) && (Right->_INFO_OPTIMIZED != 2) && (!TVM->is_accesible(LAST_OP->OperandLeft.ID, LAST_OP->OperandRight.ID)) &&
+                (!TVM->is_cached(LAST_OP->Result_ID)) && (!TVM->is_cached(LAST_OP->OperandLeft.ID))) {
                 // optimization for: a.b.c. Reuse result variable.
                 // note that it will not work for optimized values
                 // ensure that next is not an assignment (crashes with set/properties)
@@ -1547,6 +1558,8 @@ nooptimizations:
         } else
         if ((OP_TYPE == KEY_COMMA) && (IS_PARAM_LIST)) {
             // am lista de parametri ...
+            LAST_OP = NULL;
+            LAST_OP_2 = NULL;
         }
     } while (FIRST_OPERATOR > -1);
 
