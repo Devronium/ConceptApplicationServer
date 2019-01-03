@@ -5322,6 +5322,26 @@ VariableDATA *ConceptInterpreter_Interpret(struct ConceptInterpreter *self, PIFA
     VariableDATA     *RETURN_DATA;
     signed char      next_is_asg;
     RuntimeOptimizedElement *CODE = OPT->CODE;
+#ifdef COMPUTED_GOTO
+    static void* dispatch[0xFF] = { 
+        &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none, // 15 (last index, 0 based)
+        &&none, &&op,   &&op,   &&op,   &&op, &&sel_label, &&index_label, &&op, &&call_label, &&op, &&op, &&new_label, &&simple_label, &&simple_label, &&simple_label, &&op,   // 31
+        &&op  , &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   // 47
+        &&op  , &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   // 63
+        &&op  , &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   // 79
+        &&op  , &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   // 95
+        &&op  , &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   // 111
+        &&op  , &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   // 127
+        &&op  , &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   // 143
+        &&op  , &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op, &&op, &&op,&&asg_label, &&simple_label, &&op, &&op, &&op, &&op,   // 159
+        &&op  , &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   // 175
+        &&op  , &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   // 191
+        &&op  , &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   // 207
+        &&op  , &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   &&op,   // 223
+        &&op  , &&op,   &&if_label, &&goto_label, &&echo_label, &&return_label, &&throw_label, &&try_catch_label, &&end_catch_label, &&trap_label, &&none, &&none, &&none, &&none, &&none, &&none, // 239
+        &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none, &&none // 254
+    };
+#endif
 
 #ifdef SIMPLE_MULTI_THREADING
     char IsWriteLocked = 0;
@@ -5405,8 +5425,12 @@ VariableDATA *ConceptInterpreter_Interpret(struct ConceptInterpreter *self, PIFA
             fprintf(stderr, "========================\n");
         }
 #endif
+#ifdef COMPUTED_GOTO
+        goto *dispatch[OE_Operator_ID];
+#endif
         switch (OE_Operator_ID) {
             case KEY_OPTIMIZED_IF:
+if_label:
 
                 DECLARE_PATH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE);
                 switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
@@ -5431,11 +5455,13 @@ VariableDATA *ConceptInterpreter_Interpret(struct ConceptInterpreter *self, PIFA
                 continue;
 
             case KEY_OPTIMIZED_GOTO:
+goto_label:
                 DECLARE_PATH(VARIABLE_NUMBER);
                 INSTRUCTION_POINTER = OE->OperandReserved_ID;
                 continue;
 
             case KEY_ASG:
+asg_label:
                 {
                     WRITE_LOCK
                     if ((OE->Operator_FLAGS == MAY_IGNORE_RESULT) && (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE == VARIABLE_NUMBER) && (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE == VARIABLE_NUMBER)) {
@@ -5505,9 +5531,10 @@ VariableDATA *ConceptInterpreter_Interpret(struct ConceptInterpreter *self, PIFA
                         continue;
                     }
                 }
-                goto fallbacklabel;
+                goto none;
 
             case KEY_SEL:
+sel_label:
                 // execute member !!!
                 WRITE_LOCK
                 if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE != VARIABLE_CLASS) {
@@ -5600,6 +5627,7 @@ nothrow:
                 continue;
 
             case KEY_NEW:
+new_label:
                 //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1]);
                 if ((OE->OperandRight_ID > 0) && (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_CLASS) && ((!PROPERTIES) || (!PROPERTIES[OE->OperandRight_ID - 1].IS_PROPERTY_RESULT))) {
                     // skip next instruction (is asg)
@@ -5641,6 +5669,7 @@ nothrow:
             //WRITE_LOCK
             switch (OE_Operator_ID) {
                 case KEY_DLL_CALL:
+call_label:
                     WRITE_LOCK
                     FORMAL_PARAMETERS = 0;
                     STATIC_ERROR = 0;
@@ -5799,8 +5828,8 @@ nothrow:
                     }
                     DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                     continue;
-
                 default:
+op:
                     SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
                     SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                     if (OE->OperandLeft_ID) {
@@ -5874,6 +5903,7 @@ nothrow:
                             if (!IS_SIMPLE(OE_Operator_ID))
                                 goto numbereval;
                         } else
+index_label:
                         if ((OE_Operator_ID == KEY_INDEX_OPEN) && (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE == VARIABLE_ARRAY)) {
                             WRITE_LOCK
                             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
@@ -5924,6 +5954,7 @@ nothrow:
                             continue;
                         }
                         if (IS_SIMPLE(OE_Operator_ID)) {
+simple_label:
 #ifdef SIMPLE_MULTI_THREADING
                             int simple_eval = ConceptInterpreter_EvalSimpleExpression(self, PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
 #else
@@ -5946,7 +5977,7 @@ nothrow:
                     // -------------------- pana aici --------------------------------//
             }
 
-fallbacklabel:
+none:
             switch (LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE) {
                 case VARIABLE_NUMBER:
 numbereval:
@@ -5994,6 +6025,7 @@ numbereval:
         } else {
             switch (OE_Operator_ID) {
                 case KEY_OPTIMIZED_RETURN:
+return_label:
                     DECLARE_PATH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE);
                     if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->LINKS == 1) {
                         LOCAL_CONTEXT [OE->OperandRight_ID - 1]->LINKS = 2;
@@ -6044,6 +6076,7 @@ numbereval:
                     break;
 
                 case KEY_OPTIMIZED_ECHO:
+echo_label:
                     DECLARE_PATH(1);
                     if (PIF->out) {
                         WRITE_LOCK
@@ -6082,6 +6115,7 @@ numbereval:
                     continue;
 
                 case KEY_OPTIMIZED_THROW:
+throw_label:
                     DECLARE_PATH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE);
                     LOCAL_CONTEXT [OE->OperandRight_ID - 1]->LINKS++;
                     THROW_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1];
@@ -6109,6 +6143,7 @@ numbereval:
                     continue;
 
                 case KEY_OPTIMIZED_TRY_CATCH:
+try_catch_label:
                     DECLARE_PATH(1);
                     CATCH_INSTRUCTION_POINTER = OE->OperandReserved_ID;
                     CATCH_VARIABLE            = OE->Result_ID;
@@ -6116,6 +6151,7 @@ numbereval:
                     continue;
 
                 case KEY_OPTIMIZED_END_CATCH:
+end_catch_label:
                     DECLARE_PATH(1);
                     CATCH_INSTRUCTION_POINTER = 0;
                     CATCH_VARIABLE            = 0;
@@ -6126,6 +6162,7 @@ numbereval:
                     continue;
 
                 case KEY_OPTIMIZED_DEBUG_TRAP:
+trap_label:
                     DECLARE_PATH(1);
                     if (PIF->DEBUGGER_TRAP) {
                         WRITE_UNLOCK

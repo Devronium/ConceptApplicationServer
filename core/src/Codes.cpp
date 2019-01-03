@@ -396,51 +396,55 @@ const char *GetKeyWord(INTEGER ID) {
 
 unsigned char GetShortID(unsigned short id) {
     switch (id) {
-        case KEY_ARR_KEY:
-            return 0xE0;
-        case KEY_CND_2:
-            return 0xE1;
-        case KEY_OPTIMIZED_IF:
-            return 0xE2;
-        case KEY_OPTIMIZED_GOTO:
-            return 0xE3;
-        case KEY_OPTIMIZED_ECHO:
-            return 0xE4;
-        case KEY_OPTIMIZED_RETURN:
-            return 0xE5;
-        case KEY_OPTIMIZED_THROW:
-            return 0xE6;
-        case KEY_OPTIMIZED_TRY_CATCH:
-            return 0xE7;
-        case KEY_OPTIMIZED_END_CATCH:
-            return 0xE8;
+        case 0x198:
+            return KEY_ARR_KEY;
+        case 0x199:
+            return KEY_CND_2;
+        case 0xFF0:
+            return KEY_OPTIMIZED_IF;
+        case 0xFF1:
+            return KEY_OPTIMIZED_GOTO;
+        case 0xFF2:
+            return KEY_OPTIMIZED_ECHO;
+        case 0xFF3:
+            return KEY_OPTIMIZED_RETURN;
+        case 0xFF4:
+            return KEY_OPTIMIZED_THROW;
+        case 0xFF5:
+            return KEY_OPTIMIZED_TRY_CATCH;
+        case 0xFF6:
+            return KEY_OPTIMIZED_END_CATCH;
+        case 0xFF7:
+            return KEY_OPTIMIZED_DEBUG_TRAP;
     }
-    return id - __START_OPERATORS;
+    return id - 0x80;
 }
 
 unsigned short GetLongID(unsigned char id) {
     unsigned short new_id = id;
     switch (new_id) {
-        case 0xE0:
-            return KEY_ARR_KEY;
-        case 0xE1:
-            return KEY_CND_2;
-        case 0xE2:
-            return KEY_OPTIMIZED_IF;
-        case 0xE3:
-            return KEY_OPTIMIZED_GOTO;
-        case 0xE4:
-            return KEY_OPTIMIZED_ECHO;
-        case 0xE5:
-            return KEY_OPTIMIZED_RETURN;
-        case 0xE6:
-            return KEY_OPTIMIZED_THROW;
-        case 0xE7:
-            return KEY_OPTIMIZED_TRY_CATCH;
-        case 0xE8:
-            return KEY_OPTIMIZED_END_CATCH;
+        case KEY_ARR_KEY:
+            return 0x198;
+        case KEY_CND_2:
+            return 0x199;
+        case KEY_OPTIMIZED_IF:
+            return 0xFF0;
+        case KEY_OPTIMIZED_GOTO:
+            return 0xFF1;
+        case KEY_OPTIMIZED_ECHO:
+            return 0xFF2;
+        case KEY_OPTIMIZED_RETURN:
+            return 0xFF3;
+        case KEY_OPTIMIZED_THROW:
+            return 0xFF4;
+        case KEY_OPTIMIZED_TRY_CATCH:
+            return 0xFF5;
+        case KEY_OPTIMIZED_END_CATCH:
+            return 0xFF6;
+        case KEY_OPTIMIZED_DEBUG_TRAP:
+            return 0xFF7;
     }
-    return new_id + __START_OPERATORS;
+    return new_id + 0x80;
 }
 
 

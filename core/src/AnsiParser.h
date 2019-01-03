@@ -42,4 +42,3 @@ public:
     bool Done();
 };
 #endif
-

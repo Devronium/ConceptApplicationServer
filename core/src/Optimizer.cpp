@@ -3026,7 +3026,6 @@ int Optimizer_Unserialize(struct Optimizer *self, PIFAlizator *PIFOwner, concept
         for (i = 0; i < self->codeCount; i++) {
             //=======================//
             OE = &self->CODE [i];
-
             switch (version) {
                 case 2:
                     UNSERIALIZE_OPTIMIZEDv3(OE, in, is_pooled);

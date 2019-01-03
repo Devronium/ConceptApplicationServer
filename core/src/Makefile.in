@@ -342,8 +342,8 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # what flags you want to pass to the C compiler & linker
-AM_CFLAGS = --pedantic -Wall -std=c99 -O2 -fPIC -fno-strict-aliasing -fomit-frame-pointer
-AM_CXXFLAGS = -O2 -fPIC -fno-strict-aliasing -fomit-frame-pointer
+AM_CFLAGS = --pedantic -Wall -std=c99 -O2 -fPIC -fno-strict-aliasing -fomit-frame-pointer -DCOMPUTED_GOTO
+AM_CXXFLAGS = -O2 -fPIC -fno-strict-aliasing -fomit-frame-pointer -DCOMPUTED_GOTO
 #AM_LDFLAGS = -shared
 
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
