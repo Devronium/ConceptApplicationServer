@@ -12,9 +12,6 @@
 POOLED_IMPLEMENTATION(tsSCStack)
 POOLED_IMPLEMENTATION(ConceptInterpreter)
 
-static TinyString DLL_CLASS = "STATIC/LIBRARY";
-static TinyString DLL_MEMBER = "STATIC_FUNCTION";
-
 #define IS_SIMPLE(id)   ((id == KEY_TYPE_OF) || (id == KEY_CLASS_NAME) || (id == KEY_BY_REF) || (id == KEY_DELETE))
 
 #define PROPERTY_CODE(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                      \

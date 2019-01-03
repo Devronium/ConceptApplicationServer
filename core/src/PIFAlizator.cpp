@@ -392,6 +392,7 @@ PIFAlizator::~PIFAlizator(void) {
             CC->BeforeDestructor(this);
             delete CC;
         }
+        this->DeletedMembers.Clear();
         int count = ModuleList->Count();
         for (INTEGER i = 0; i < count; i++) {
             HMODULE hLIBRARY = (HMODULE)ModuleList->Item(i);

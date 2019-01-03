@@ -1638,7 +1638,7 @@ nooptimizations:
                             }
 
                             LAST_OP_2->Result_ID = LAST_OP->OperandLeft.ID;
-                            helper->OptimizedPIF->Remove(helper->OptimizedPIF->Count() - 1);
+                            helper->OptimizedPIF->Delete(helper->OptimizedPIF->Count() - 1);
 
                             // clear next_is_asg flag
                             if (LAST_OP_2->OperandRight.ID) {

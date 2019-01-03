@@ -13,9 +13,8 @@
 #define STATICLIST_BLOCKSIZE    0x10
 
 class StaticList {
-//private:
 public:
-    intptr_t DataOffset;
+    char     **data;
     int      allocated;
     int      count;
     int      pooled_marker;
