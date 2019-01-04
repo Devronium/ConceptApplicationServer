@@ -441,7 +441,7 @@ AnsiString Strip2(AnsiString String);
 INTEGER IsOperator(AnsiString& S);
 INTEGER GetOperatorType(INTEGER ID);
 INTEGER LexicalCheck(AnsiString& S, INTEGER TYPE);
-void StripString(AnsiString *S, AnsiString& result);
+void StripString(AnsiString *S, AnsiString* result);
 INTEGER GetPriority(INTEGER OP_ID);
 HASH_TYPE hash_func(const void *key_ref, int len = -1);
 void __DEBUG_PRINT(char *str);

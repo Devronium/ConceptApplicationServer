@@ -648,6 +648,7 @@ SYS_INT PIFAlizator::ClassExists(const char *name, char by_addr, int *index) {
 
 INTEGER PIFAlizator::BuildVariable(ClassCode *CC, AnsiParser *P, INTEGER on_line, INTEGER ACCESS) {
     AnsiString sPARSE;
+    AnsiString s_res;
 
     P->NextAtom(sPARSE);
 
@@ -713,8 +714,7 @@ INTEGER PIFAlizator::BuildVariable(ClassCode *CC, AnsiParser *P, INTEGER on_line
 
         if ((TYPE == TYPE_STRING) || (TYPE == TYPE_NUMBER)) {
             if (TYPE == TYPE_STRING) {
-                AnsiString s_res;
-                StripString(&sPARSE, s_res);
+                StripString(&sPARSE, &s_res);
                 CM->VD->value = s_res;
             } else {
                 CM->VD->nValue = sPARSE.ToFloat() * sign;
@@ -816,6 +816,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
     ClassMember         *CM              = 0;
     char                IN_VAR_STATAMENT = 0;
     INTEGER             inline_count     = 0;
+    AnsiString          s_res;
 
     struct MemoryTable  SelectorCacheList;
     MemoryTable_init(&SelectorCacheList);
@@ -980,10 +981,9 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                             type = -type;
                     }
 
-                    AnsiString s_res;
-                    StripString(&sPARSE, s_res);
+                    StripString(&sPARSE, &s_res);
                     VDPARAM->value  = s_res;
-                    VDPARAM->nValue = VDPARAM->value.ToFloat() * sign;
+                    VDPARAM->nValue = s_res.ToFloat() * sign;
                     VDPARAM->TYPE   = type;
                     VDPARAM         = 0;
                     NEXT_IS_ASG     = 0;
@@ -1329,11 +1329,9 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 _ID = pos;
             } else {
                 VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
-                //AnsiString strip=StripString(&sPARSE)
-                AnsiString strip;
-                StripString(&sPARSE, strip);
-                if (strip.Length()) {
-                    VD->value.LoadBuffer(strip.c_str(), strip.Length());
+                StripString(&sPARSE, &s_res);
+                if (s_res.Length()) {
+                    VD->value.LoadBuffer(s_res.c_str(), s_res.Length());
                 }
                 VD->USED   = 1;
                 if (TYPE == TYPE_STRING) {
@@ -1525,6 +1523,11 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                         AE->_PARSE_DATA      = "inline";
                         AE->_HASH_DATA       = 0;
                         PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
+
+                        PREC_2_TYPE = TYPE_VARIABLE;
+                        PREC_2_ID = 1;
+                        PREC_TYPE = TYPE_OPERATOR;
+                        PREC_ID = KEY_SEL;
                         continue;
                     }
                     if (ATOMIC_LEVEL) {
@@ -1578,6 +1581,11 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                     AE->_PARSE_DATA      = "inline";
                     AE->_HASH_DATA       = 0;
                     PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
+
+                    PREC_2_TYPE = TYPE_VARIABLE;
+                    PREC_2_ID = 1;
+                    PREC_TYPE = TYPE_OPERATOR;
+                    PREC_ID = KEY_SEL;
                     continue;
                 }
             }
@@ -1708,6 +1716,11 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                             AE->_PARSE_DATA      = ".";
                             AE->_HASH_DATA       = 0;
                             PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
+
+                            PREC_2_TYPE = TYPE_VARIABLE;
+                            PREC_2_ID = 1;
+                            PREC_TYPE = TYPE_OPERATOR;
+                            PREC_ID = KEY_SEL;
                         }
                     }
                 }
@@ -1750,6 +1763,11 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                                     sPARSE += C_FINALIZE;
                                 }
                                 _ID = GeneralMembers->ContainsString(sPARSE.c_str());
+
+                                PREC_2_TYPE = 0;
+                                PREC_2_ID = 0;
+                                PREC_TYPE = TYPE_OPERATOR;
+                                PREC_ID = KEY_SEL;
                             }
                         }
                     }
@@ -1826,6 +1844,12 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                     AE->_PARSE_DATA      = ".";
                     AE->_HASH_DATA       = 0;
                     PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
+
+                    PREC_2_TYPE = TYPE_VARIABLE;
+                    PREC_2_ID = 1;
+
+                    PREC_TYPE = TYPE_OPERATOR;
+                    PREC_ID = KEY_SEL;
                 }
             }
         } else
@@ -1994,7 +2018,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 #if __SIZEOF_POINTER__ != 8
                 if ((_ID < 0x7FFF) && (PREC_2_ID < 0x7FFF)) {
 #endif
-                    if (cached.Length())
+                    if (!cached.Length())
                         P->NextAtom(cached);    
                     if (cached != P_OPEN) {
 #if __SIZEOF_POINTER__ == 8
@@ -2678,13 +2702,16 @@ INTEGER PIFAlizator::IncludeFile(const char *MODULE_NAME, INTEGER on_line) {
     AnsiString FILENAME             = MODULE_NAME;
     AnsiString RELATIVE_MODULE_NAME = TEMP_INC_DIR + MODULE_NAME;
     AnsiString clean_filename_dir;
+    AnsiString ModuleStream;
+    AnsiString OldFile;
+    AnsiString OLD_TEMP_INC_DIR;
+    AnsiString MODULE_NAME_DIR;
 
     RELATIVE_MODULE_NAME = this->NormalizePath(&RELATIVE_MODULE_NAME);
 
     if (!IncludePackage(MODULE_NAME)) {
-        AnsiString ModuleStream;
         if (ModuleStream.LoadFile(RELATIVE_MODULE_NAME.c_str())) {
-            AnsiString MODULE_NAME_DIR = INCLUDE_DIR + MODULE_NAME;
+            MODULE_NAME_DIR = INCLUDE_DIR + MODULE_NAME;
             if (ModuleStream.LoadFile(MODULE_NAME_DIR.c_str())) {
                 Errors.Add(new AnsiException(ERR270, on_line, 270, MODULE_NAME, FileName), DATA_EXCEPTION);
                 INCLUDE_LEVEL--;
@@ -2698,10 +2725,10 @@ INTEGER PIFAlizator::IncludeFile(const char *MODULE_NAME, INTEGER on_line) {
         }
         if (!ListContains(clean_filename_dir.c_str(), IncludedList)) {
             IncludedList->Add(new TinyString(clean_filename_dir), DATA_TINYSTRING);
-            AnsiString OldFile = FileName;
+            OldFile = FileName;
             FileName = MODULE_NAME;
 
-            AnsiString OLD_TEMP_INC_DIR = TEMP_INC_DIR;
+            OLD_TEMP_INC_DIR = TEMP_INC_DIR;
             TEMP_INC_DIR = GetPath(&clean_filename_dir);
             Execute(&ModuleStream, 0, USE_WARN, USE_EXC, USE_IMPLICIT);
             TEMP_INC_DIR = OLD_TEMP_INC_DIR;

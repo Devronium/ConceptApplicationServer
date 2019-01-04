@@ -23,6 +23,7 @@
 #include <libxslt/xsltutils.h>
 #include <libxslt/extensions.h>
 #include <libxslt/xsltInternals.h>
+#include <stdint.h>
 
 #include <map>
 #include <string>
@@ -135,7 +136,7 @@ void SerializeArray(void *pData, void *arr_id, xmlNodePtr parent, char is_simple
                 char *deleg_name = 0;
                 //xmlNewProp(node2, BAD_CAST "type", BAD_CAST "delegate");
                 InvokePtr(INVOKE_GET_MEMBER_FROM_ID, (void *)szData, (long)nData, &deleg_name);
-                nData = (long)deleg_name;
+                nData = (intptr_t)deleg_name;
                 char *class_name = 0;
                 InvokePtr(INVOKE_GET_SERIAL_CLASS, (void *)szData, (int)0, &class_name, (char **)0, (char *)0, (char *)0, (char *)0, (char **)0, (NUMBER *)0, (char *)0, (char *)0);
                 SerializeVariable(/*key*/ 0, type, class_name, nData, /*0*/ (void *)szData, newpData, node2, is_simple);
@@ -594,7 +595,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(XSLTRegister, 1, 3)
                 fname += members[i];
                 void *var = CLASS_OBJECTS[fname.c_str()];
                 if (!var) {
-                    CREATE_VARIABLE(var);
+                    Invoke(INVOKE_CREATE_VARIABLE_2, PARAMETERS->HANDLER, &var);
                 }
                 if (var) {
                     Invoke(INVOKE_CREATE_DELEGATE, PARAMETER(0), var, members[i]);

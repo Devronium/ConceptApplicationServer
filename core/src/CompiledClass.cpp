@@ -71,14 +71,18 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
 
     // ensure is not deleted
     self->LINKS++;
+
+#ifdef USE_RECURSIVE_MARKINGS
     if (self->_Class->DESTRUCTOR)
         CompiledClass_Destroy(self, (PIFAlizator *)PIF);
 
-    if (!self->_CONTEXT)
+    if (!self->_CONTEXT) {
+        self->LINKS = -1;
         return;
-#ifdef USE_RECURSIVE_MARKINGS
-    VariableDATA **r_CONTEXT = this->_CONTEXT;
-    this->_CONTEXT = NULL;
+    }
+
+    VariableDATA **r_CONTEXT = self->_CONTEXT;
+    self->_CONTEXT = NULL;
 
     INTEGER Count = _Class->DataMembersCount;
 
@@ -90,7 +94,7 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
             void *orig_data = r_CONTEXT [i]->CLASS_DATA;
             if (orig_data) {
                 if ((r_CONTEXT [i]->TYPE == VARIABLE_CLASS) || (r_CONTEXT [i]->TYPE == VARIABLE_DELEGATE)) {
-                    if (orig_data != this) {
+                    if (orig_data != self) {
                         __gc_obj->Reference(orig_data);
                         void *CLASS_DATA = Var->CLASS_DATA;
                         if (Var->TYPE == VARIABLE_DELEGATE) {
@@ -111,11 +115,12 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
         }
     }
     FAST_FREE(r_CONTEXT);
-    this->LINKS = -1;
+    self->LINKS = -1;
 #else
     int           inspectSize = INITIAL_INSPECT_SIZE;
     struct CompiledClass **toInspect = (struct CompiledClass **)realloc(NULL, sizeof(struct CompiledClass *) * inspectSize);
     toInspect[0] = self;
+    self->LINKS = 1;
     int inspectPos = 1;
 
     for (int j = 0; j < inspectPos; j++) {

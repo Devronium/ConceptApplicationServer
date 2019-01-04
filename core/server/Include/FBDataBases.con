@@ -95,7 +95,7 @@ class FBConnection {
 		if (this->connection)
 			FBDisconnect(this->connection);
 		this.last_tran=0;
-		return this->connection=0;
+		this->connection=0;
 	}
 
 	function StartTransaction(arr=null) {
@@ -135,6 +135,10 @@ class FBConnection {
 
 	function LastError() {
 		return this.InitError();
+	}
+
+	finalize() {
+		this.Close();
 	}
 }
 

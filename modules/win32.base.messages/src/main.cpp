@@ -499,6 +499,12 @@ public:
             LOOPERS       = NULL;
             LOOPERS_count = 0;
         }
+        if (cached_buffer) {
+            free(cached_buffer);
+            cached_size       = 0;
+            alloc_cached_size = 0;
+            cached_buffer     = 0;
+        }
         semdel(sem_send);
         semdel(sem_recv);
         semdel(sem_bufferlist);
@@ -801,7 +807,6 @@ int Cache(MetaContainer *mc, char *buffer, int size) {
     }
     return 1;
 }
-
 //-----------------------------------------------------------------------------------
 int FlushCache(MetaContainer *mc, int CLIENT_SOCKET) {
     int res = -1;

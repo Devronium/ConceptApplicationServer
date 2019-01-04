@@ -339,7 +339,169 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct 
     STACK_TRACE.TOP = &STACK_TRACE;
 
     bool         can_run;
+#ifdef NO_FORCED_INLINE_CODE
     VariableDATA **CONTEXT = ConceptInterpreter_CreateEnvironment((struct ConceptInterpreter *)INTERPRETER, (PIFAlizator *)PIF, Owner, FORMAL_PARAM, SenderCTX, &STACK_TRACE, can_run);
+#else
+    VariableDATA **CONTEXT;
+    struct Optimizer *OPT = (struct Optimizer *)this->OPTIMIZER;
+
+    can_run = true;
+    INTEGER ParamCount = FORMAL_PARAM ? FORMAL_PARAM->COUNT : 0;
+    INTEGER data_count = OPT->dataCount;
+
+    SCStack *STACK_ROOT = (SCStack *)STACK_TRACE.ROOT;
+    if ((STACK_ROOT) && (STACK_ROOT->STACK_CONTEXT) && (STACK_ROOT->stack_pos + data_count < BLOCK_STACK_SIZE)) {
+        CONTEXT                 = ((VariableDATA **)STACK_ROOT->STACK_CONTEXT) + STACK_ROOT->stack_pos;
+        STACK_ROOT->stack_pos        += data_count;
+        STACK_TRACE.alloc_from_stack = 1;
+    } else
+        CONTEXT = (VariableDATA **)FAST_MALLOC(PIF, sizeof(VariableDATA *) * OPT->dataCount);
+#ifdef POOL_BLOCK_ALLOC
+ #ifdef POOL_STACK
+    if (STACK_TRACE.alloc_from_stack) {
+        if (!CONTEXT[0])
+            CONTEXT[0] = (VariableDATA *)VAR_ALLOC(PIF);
+    } else
+ #endif
+    BLOCK_VAR_ALLOC(CONTEXT, PIF, data_count, 0);
+    VariableDATA *this_ref = CONTEXT[0];
+#else
+    VariableDATA *this_ref = (VariableDATA *)VAR_ALLOC(PIF);
+    CONTEXT [0] = this_ref;
+#endif
+    this_ref->TYPE               = VARIABLE_CLASS;
+    this_ref->CLASS_DATA         = Owner;
+    this_ref->LINKS              = 1;
+    this_ref->IS_PROPERTY_RESULT = -1;
+
+    CC_WRITE_LOCK(PIF)
+    if (this_ref->CLASS_DATA)
+        ((struct CompiledClass *)this_ref->CLASS_DATA)->LINKS++;
+
+    INTEGER i;
+    RuntimeVariableDESCRIPTOR *DATA = OPT->DATA;
+    for (i = 1; i <= ParamCount; i++) {
+ #ifdef POOL_STACK
+        if ((STACK_TRACE.alloc_from_stack) && (!CONTEXT[i]))
+            CONTEXT[i] = (VariableDATA *)VAR_ALLOC(PIF);
+ #endif
+        RuntimeVariableDESCRIPTOR *TARGET = &DATA [i];
+        VariableDATA *sndr = SenderCTX [DELTA_UNREF(FORMAL_PARAM, FORMAL_PARAM->PARAM_INDEX) [i - 1] - 1];
+        if (TARGET->TYPE < 0) {
+#ifdef INLINE_PARAMETER_CHECK
+            // validator !
+            if (sndr->TYPE != -TARGET->TYPE) {
+                VariableDATA *sender = SenderCTX ? SenderCTX [0] : 0;
+                if ((sender) && (sender->TYPE == VARIABLE_CLASS) && (sender->CLASS_DATA)) {
+                    CompiledClass *cc = (struct CompiledClass *)sender->CLASS_DATA;
+                    ((PIFAlizator *)PIF)->AcknoledgeRunTimeError(&STACK_TRACE, new AnsiException(1205, ERR1205, this->_DEBUG_STARTLINE, "parameter ", i, cc->_Class->_DEBUG_INFO_FILENAME.c_str(), ((ClassCode *)(this->Defined_In))->NAME.c_str(), this->NAME));
+                } else {
+                    ((PIFAlizator *)PIF)->AcknoledgeRunTimeError(&STACK_TRACE, new AnsiException(1205, ERR1205, this->_DEBUG_STARTLINE, "parameter ", i, ((ClassCode *)(this->Defined_In))->_DEBUG_INFO_FILENAME.c_str(), ((ClassCode *)(this->Defined_In))->NAME.c_str(), this->NAME));
+                }
+                can_run = false;
+            } else
+            if (sndr->TYPE == VARIABLE_CLASS) {
+                INTEGER CLS_ID = (INTEGER)TARGET->nValue - 1;
+                if (CLS_ID >= 0) {
+                    if ((!sndr->CLASS_DATA) || (!((struct CompiledClass *)sndr->CLASS_DATA)->_Class->Inherits(CLS_ID))) {
+                        VariableDATA *sender = SenderCTX [0];
+                        if ((sender) && (sender->TYPE == VARIABLE_CLASS) && (sender->CLASS_DATA)) {
+                            CompiledClass *cc = (struct CompiledClass *)sender->CLASS_DATA;
+                            ((PIFAlizator *)PIF)->AcknoledgeRunTimeError(&STACK_TRACE, new AnsiException(1206, ERR1206, this->_DEBUG_STARTLINE, "parameter ", i, cc->_Class->_DEBUG_INFO_FILENAME, ((ClassCode *)(this->Defined_In))->NAME, this->NAME));
+                        } else {
+                            ((PIFAlizator *)PIF)->AcknoledgeRunTimeError(&STACK_TRACE, new AnsiException(1206, ERR1206, this->_DEBUG_STARTLINE, "parameter ", i, ((ClassCode *)(this->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(this->Defined_In))->NAME, this->NAME));
+                        }
+                        can_run = false;
+                    }
+                }
+            }
+#else
+            ConceptInterpreter_CheckParameters(INTERPRETER, (PIFAlizator *)PIF, SenderCTX, TARGET, sndr, &STACK_TRACE, i, can_run);
+#endif
+        }
+        // if IS_PROPERTY_RESULT is -1 => is constant !
+        if ((TARGET->BY_REF) && (sndr->IS_PROPERTY_RESULT != -1)) {
+#ifdef POOL_BLOCK_ALLOC
+            VAR_FREE(CONTEXT [i]);
+#endif
+            CONTEXT [i] = sndr;
+            CONTEXT [i]->LINKS++;
+        } else {
+            VariableDATA *PARAM = sndr;
+#ifdef POOL_BLOCK_ALLOC
+            VariableDATA *CONTEXT_i = CONTEXT [i];
+#else
+            VariableDATA *CONTEXT_i = (VariableDATA *)VAR_ALLOC(PIF);
+            CONTEXT [i] = CONTEXT_i;
+#endif
+
+            CONTEXT_i->TYPE  = PARAM->TYPE;
+            CONTEXT_i->LINKS = 1;
+            if (PARAM->TYPE == VARIABLE_STRING) {
+                CONTEXT_i->CLASS_DATA     = 0;
+                CONCEPT_STRING(CONTEXT_i, PARAM);
+            } else
+            if (PARAM->TYPE == VARIABLE_CLASS) {
+                CONTEXT_i->CLASS_DATA = PARAM->CLASS_DATA;
+                ((struct CompiledClass *)PARAM->CLASS_DATA)->LINKS++;
+            } else
+            if (PARAM->TYPE == VARIABLE_DELEGATE) {
+                CONTEXT_i->CLASS_DATA = copy_Delegate(PARAM->CLASS_DATA);
+            } else
+            if (PARAM->TYPE == VARIABLE_ARRAY) {
+                CONTEXT_i->CLASS_DATA = PARAM->CLASS_DATA;
+                ((struct Array *)PARAM->CLASS_DATA)->LINKS++;
+            } else
+                CONTEXT_i->NUMBER_DATA = PARAM->NUMBER_DATA;
+            CONTEXT_i->IS_PROPERTY_RESULT = 0;
+        }
+    }
+    while (i < data_count) {
+#ifdef USE_JIT_TRACE
+        if ((INTERPRETER->initcode.code) && (i > this->PARAMETERS_COUNT)) {
+            INTERPRETER->initcode.func2((sljit_sw)CONTEXT, (sljit_sw)PIF);
+            CC_WRITE_UNLOCK(PIF)
+            break;
+        }
+#endif
+        // variable descriptor
+        RuntimeVariableDESCRIPTOR *TARGET = &DATA [i];
+#ifdef POOL_STACK
+        if ((STACK_TRACE.alloc_from_stack) && (!CONTEXT[i]))
+            CONTEXT[i] = (VariableDATA *)VAR_ALLOC(PIF);
+#endif
+
+#ifdef POOL_BLOCK_ALLOC
+        VariableDATA *CONTEXT_i = CONTEXT[i];
+#else
+        VariableDATA *CONTEXT_i = (VariableDATA *)VAR_ALLOC(PIF);
+        CONTEXT [i] = CONTEXT_i;
+#endif
+
+        i++;
+        CONTEXT_i->TYPE = (TARGET->TYPE < 0) ? -TARGET->TYPE : TARGET->TYPE;
+        CONTEXT_i->IS_PROPERTY_RESULT = (TARGET->BY_REF == 2) ? -1 : 0;
+        CONTEXT_i->LINKS = 1;
+        if (CONTEXT_i->TYPE == VARIABLE_NUMBER)
+            CONTEXT_i->NUMBER_DATA = TARGET->nValue;
+        else
+        if (CONTEXT_i->TYPE == VARIABLE_STRING) {
+            if (TARGET->value.Length()) {
+                NEW_CONCEPT_STRING_BUFFER(CONTEXT_i, TARGET->value.c_str(), TARGET->value.Length());
+            } else
+                CONTEXT_i->CLASS_DATA = 0;
+        } else
+        if (CONTEXT_i->TYPE == VARIABLE_ARRAY) {
+            CONTEXT_i->CLASS_DATA = NULL;
+            // extremly important: AllocArray is called with "skip top" parameter set to true
+            // this is in case garbage collector is called, and current stack variables are not yet initialized
+            // not to do the same if class objects are allocated here
+            CONTEXT_i->CLASS_DATA = new_Array(PIF, true);
+        } else
+            CONTEXT_i->CLASS_DATA = NULL;
+    }
+    CC_WRITE_UNLOCK(PIF)
+#endif
     STACK_TRACE.LOCAL_CONTEXT = (void **)CONTEXT;
 
     if (CONTEXT)

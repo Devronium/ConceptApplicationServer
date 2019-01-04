@@ -277,7 +277,7 @@ int ClassCode::RemoveMember(PIFAlizator *PIF, const char *name, INTEGER line, co
                 return 0;
             }
             has_it = ((ClassCode *)CM->Defined_In)->BoundMember(PIF, CM, this);
-            Members->Remove(i);
+            Members->Delete(i);
 
             if (i + 1 == CONSTRUCTOR) {
                 CONSTRUCTOR        = 0;

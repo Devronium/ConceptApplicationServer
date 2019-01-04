@@ -29,21 +29,6 @@ POOLED_IMPLEMENTATION(ConceptInterpreter)
         }                                                                                                                                                                                                                                                                                                       \
     }
 
-#define PROPERTY_CODE_IGNORE_RESULT(THISREF, PROPERTIES)                                                                                                                                                                                                                                                        \
-    if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                             \
-        CCTEMP = (struct CompiledClass *)PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET;                                                                                                                                                                                                                          \
-        WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
-        CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, CCTEMP, OE, CCTEMP->_Class->CLSID == ClassID, OE->OperandLeft_ID, LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);                                                                \
-        if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
-            if (ConceptInterpreter_Catch(THISREF, THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {                                                                                                                                   \
-                FAST_FREE(PIF, PROPERTIES);                                                                                                                                                                                                                                                                     \
-                PROPERTIES = 0;                                                                                                                                                                                                                                                                                 \
-                WRITE_UNLOCK                                                                                                                                                                                                                                                                                    \
-                return 0;                                                                                                                                                                                                                                                                                       \
-            }                                                                                                                                                                                                                                                                                                   \
-        }                                                                                                                                                                                                                                                                                                       \
-    }
-
 #define PROPERTY_CODE_LEFT(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                 \
     if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                             \
         CCTEMP = (struct CompiledClass *)PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET;                                                                                                                                                                                                                          \
@@ -1263,6 +1248,13 @@ void ConceptInterpreter_AnalizeInstructionPath(struct ConceptInterpreter *self, 
                             }
                         }
                     }
+                    // count result as used
+                    if (usedflags[OE->Result_ID - 1] != 3) {
+                        if (usedflags[OE->Result_ID - 1])
+                            usedflags[OE->Result_ID - 1] = 2;
+                        else
+                            usedflags[OE->Result_ID - 1] = 1;
+                    }
                     break;
 
                 case KEY_DLL_CALL:
@@ -1284,6 +1276,13 @@ void ConceptInterpreter_AnalizeInstructionPath(struct ConceptInterpreter *self, 
                                 }
                             }
                         }
+                    }
+                    // count result as used
+                    if (usedflags[OE->Result_ID - 1] != 3) {
+                        if (usedflags[OE->Result_ID - 1])
+                            usedflags[OE->Result_ID - 1] = 2;
+                        else
+                            usedflags[OE->Result_ID - 1] = 1;
                     }
                     break;
                 case KEY_CND_NULL:
@@ -3041,7 +3040,7 @@ int ConceptInterpreter_StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *GR
                             WRITE_LOCK
                             if ((OE->Operator_FLAGS == MAY_IGNORE_RESULT) && (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE == VARIABLE_NUMBER) && (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE == VARIABLE_NUMBER)) {
                                 LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
-                                PROPERTY_CODE_IGNORE_RESULT(THIS_REF, TARGET_THREAD->PROPERTIES)
+                                PROPERTY_CODE_LEFT(THIS_REF, TARGET_THREAD->PROPERTIES)
                                 continue;
                             }                                // ------------------- //
                             if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE != VARIABLE_CLASS) {
@@ -4381,7 +4380,7 @@ int ConceptInterpreter_EvalDelegateExpression(struct ConceptInterpreter *self, P
             if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
                 LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
                 //----------------//
-                PROPERTY_CODE_IGNORE_RESULT(self, PROPERTIES)
+                PROPERTY_CODE_LEFT(self, PROPERTIES)
                 //----------------//
             } else {
                 LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA    = copy_Delegate(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA);
@@ -5466,7 +5465,7 @@ asg_label:
                     WRITE_LOCK
                     if ((OE->Operator_FLAGS == MAY_IGNORE_RESULT) && (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE == VARIABLE_NUMBER) && (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE == VARIABLE_NUMBER)) {
                         LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
-                        PROPERTY_CODE_IGNORE_RESULT(self, PROPERTIES)
+                        PROPERTY_CODE_LEFT(self, PROPERTIES)
                         continue;
                     }
                     if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE != VARIABLE_CLASS) {
@@ -5572,8 +5571,10 @@ sel_label:
                             // not_executed = false;
                             relocation = CCTEMP->_Class->RELOCATIONS2 [relocation - 1];
                             RESULT = CCTEMP->_CONTEXT [relocation - 1];
-                            if (!RESULT)
+                            if (!RESULT) {
                                 RESULT = CompiledClass_CreateVariable(CCTEMP, relocation - 1, pMEMBER_i);
+                                goto here;
+                            }
                             goto nothrow;
                         }
                     }
@@ -5618,6 +5619,7 @@ nothrow:
                         LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                     } else
                     if (RESULT) {
+here:
                         FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
                         LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
                         RESULT->LINKS++;
@@ -5846,7 +5848,7 @@ op:
                                         continue;
                                     case KEY_ASU:
                                         EVAL_NUMBER_EXPRESSION2(self, += )
-                                        PROPERTY_CODE_IGNORE_RESULT(self, PROPERTIES)
+                                        PROPERTY_CODE_LEFT(self, PROPERTIES)
                                         continue;
                                     case KEY_DEC_LEFT:
                                     case KEY_DEC:
@@ -6280,7 +6282,7 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
                             CompiledClass *cc = (struct CompiledClass *)sender->CLASS_DATA;
                             PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(1206, ERR1206, self->OWNER->_DEBUG_STARTLINE, "parameter ", i, cc->_Class->_DEBUG_INFO_FILENAME, ((ClassCode *)(self->OWNER->Defined_In))->NAME, self->OWNER->NAME));
                         } else {
-                            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(1206, ERR1206, self->OWNER->_DEBUG_STARTLINE, "parameter ", i, ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(self->OWNER->Defined_In))->NAME, self->OWNER->NAME));
+                            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(1206, ERR1206, self->OWNER->_DEBUG_STARTLINE, "parameter ", i, ((ClassCode *)(self->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(self->OWNER->Defined_In))->NAME, self->OWNER->NAME));
                         }
                         can_run = false;
                     }

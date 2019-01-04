@@ -990,7 +990,7 @@ inline INTEGER LexicalCheck(AnsiString& S, INTEGER TYPE) {
     return 0;
 }
 
-void StripString(AnsiString *S, AnsiString& result) {
+void StripString(AnsiString *S, AnsiString *result) {
     intptr_t len     = S->Length();
     int      start   = 0;
     int      escape  = 0;
@@ -1009,6 +1009,7 @@ void StripString(AnsiString *S, AnsiString& result) {
         start++;
     }
     char *ptr = S->c_str();
+    result->LoadBuffer("", 0);
 
     for (uintptr_t i = start; i < (uintptr_t)len; i++) {
         if ((ptr [i] == '\\') && (!escape)) {
@@ -1019,35 +1020,35 @@ void StripString(AnsiString *S, AnsiString& result) {
 
         if (!set_esc) {
             if (!escape) {
-                result += ptr [i];
+                *result += ptr [i];
             } else {
                 switch (ptr [i]) {
                     case 'n':
-                        result += '\n';
+                        *result += '\n';
                         break;
 
                     case 'r':
-                        result += '\r';
+                        *result += '\r';
                         break;
 
                     case 't':
-                        result += '\t';
+                        *result += '\t';
                         break;
 
                     case 'b':
-                        result += '\b';
+                        *result += '\b';
                         break;
 
                     case 'a':
-                        result += '\a';
+                        *result += '\a';
                         break;
 
                     case 'f':
-                        result += '\f';
+                        *result += '\f';
                         break;
 
                     case 'v':
-                        result += '\v';
+                        *result += '\v';
                         break;
 
                     case 'x':
@@ -1072,7 +1073,7 @@ void StripString(AnsiString *S, AnsiString& result) {
                                 unsigned INTEGER TEMP_NR = 0;
                                 sscanf(hex, "%x", &TEMP_NR);
                                 unsigned char t = (unsigned char)TEMP_NR;
-                                result.AddBuffer((char *)&t, 1);
+                                result->AddBuffer((char *)&t, 1);
                             }
                         }
                         break;
@@ -1098,11 +1099,11 @@ void StripString(AnsiString *S, AnsiString& result) {
                                 unsigned INTEGER TEMP_NR = 0;
                                 sscanf(oct, "%o", &TEMP_NR);
                                 char t = (signed char)TEMP_NR;
-                                result.AddBuffer((char *)&t, 1);
+                                result->AddBuffer((char *)&t, 1);
                                 i--;
                             } else {
                                 // it something wrong ... is not octal ... i just put it
-                                result += ptr [i];
+                                *result += ptr [i];
                             }
                         }
                 }

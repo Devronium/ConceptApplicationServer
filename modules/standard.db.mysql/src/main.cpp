@@ -676,6 +676,7 @@ CONCEPT_FUNCTION_IMPL(MySQLFreeQuery, 1)
     if (PARAM_INT(0)) {
         RETURN_NUMBER(mysql_stmt_close(((WrappedSTMT *)(SYS_INT)PARAM(0))->stmt));
         DONE_STMT(((WrappedSTMT *)(SYS_INT)PARAM(0)));
+        SET_NUMBER(0, 0);
     } else {
         RETURN_NUMBER(0)
     }

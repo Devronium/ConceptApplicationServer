@@ -1562,7 +1562,12 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         RuntimeOptimizedElement *OE    = &OElist[it];
                         TreeContainer           *reftc = &tc[it];
 
-                        reftc->Operator_ID       = OE->Operator_ID;
+                        reftc->Operator_ID       = GetLongID(OE->Operator_ID);
+                        if (IS_OPERATOR(OE))
+                            reftc->Operator_TYPE = TYPE_OPERATOR;
+                        else
+                        if (IS_KEYWORD(OE))
+                            reftc->Operator_TYPE = TYPE_OPTIMIZED_KEYWORD;
                         reftc->OperandLeft_ID    = OE->OperandLeft_ID;
                         reftc->OperandRight_ID   = OE->OperandRight_ID;
                         if ((OE->Operator_ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) {

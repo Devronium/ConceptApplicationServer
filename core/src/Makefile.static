@@ -2,7 +2,7 @@ CC = g++
 CCOMP = gcc
 RM = del
 CFLAGS = -O3 -DSTATIC_CLI -fno-strict-aliasing -fomit-frame-pointer -DCOMPUTED_GOTO
-LIBS = -ldl
+LIBS = -ldl -pthread
 BUILDFLAGS= -o concept
 
 OBJS = AnsiString.o TinyString.o AnsiList.o AnsiException.o Codes.o ClassMember.o ClassCode.o AnsiParser.o PIFAlizator.o Optimizer.o ConceptInterpreter.o CompiledClass.o ModuleLink.o Array.o Debugger.o GarbageCollector.o SHManager.o StaticString.o StaticList.o DoubleList.o main.o sljitLir.o dlmalloc.o regexp.o plainstring.o BuiltIns.o HashTable.o MemoryTable.o

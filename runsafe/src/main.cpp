@@ -1451,9 +1451,8 @@ int main3(int argc, char **argv) {
     else
         fprintf(stderr, "Worker gone\n");
 
-    // ugly, but safe to skip cleaning-up, the process will be closed anyway
-    // if (handler)
-    //     Concept_Execute3_Done(handler);
+    if (handler)
+        Concept_Execute3_Done(handler);
 
     if ((size > 0) && (Concept_CachedInit) && (Concept_CachedDone))
         Concept_CachedDone(filename);

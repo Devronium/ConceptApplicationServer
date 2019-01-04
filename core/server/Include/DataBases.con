@@ -85,7 +85,7 @@ class ADOConnection {
 	function Close() {
 		if (this->connection)
 			ODBCDisconnect(this->connection);
-		return this->connection=0;
+		this->connection=0;
 	}
 
 	function StartTransaction() {
@@ -168,6 +168,10 @@ class ADOConnection {
 
 	function LastError() {
 		return ODBCError(this->connection);
+	}
+
+	finalize() {
+		this->Close();
 	}
 }
 

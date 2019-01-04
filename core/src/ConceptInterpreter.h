@@ -8,6 +8,7 @@
 #include "Debugger.h"
 #include "Array.h"
 #include "ConceptPools.h"
+#include "ConceptTypes.h"
 extern "C" {
     #include "simple/plainstring.h"
 }
@@ -269,7 +270,7 @@ int ConceptInterpreter_Catch(struct ConceptInterpreter *self, VariableDATA *&THR
 struct ConceptInterpreter *new_ConceptInterpreter(Optimizer *O, INTEGER LocalClsID, ClassMember *Owner);
 
 #ifndef INLINE_PARAMETER_CHECK
-    void ConceptInterpreter_CheckParameters(PIFAlizator *PIF, VariableDATA **SenderCTX, const RuntimeVariableDESCRIPTOR *TARGET, const VariableDATA *sndr, SCStack *STACK_TRACE, INTEGER i, bool& can_run);
+    void ConceptInterpreter_CheckParameters(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **SenderCTX, const RuntimeVariableDESCRIPTOR *TARGET, const VariableDATA *sndr, SCStack *STACK_TRACE, INTEGER i, bool& can_run);
 #endif
 
 VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *self, PIFAlizator *PIF, struct CompiledClass *Sender, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *STACK_TRACE, bool& can_run);

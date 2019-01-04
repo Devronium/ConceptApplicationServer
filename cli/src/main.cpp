@@ -458,7 +458,7 @@ int main(int argc, char **argv) {
                     mt = 1;
                     arg_start++;
                 } else {
-                    std::cerr << "Unknown option : " << arg << "\n";
+                    fprintf(stderr, "Unknown option: %s\n", arg);
                     return -1;
                 }
             } else {
@@ -471,7 +471,7 @@ int main(int argc, char **argv) {
         filename  = argv[1];
         arg_start = 2;
     } else {
-        std::cerr << "USAGE : " << argv[0] << " [-debug] [-chdir] [-mt] filename [arguments]\n";
+        fprintf(stderr, "USAGE: %s [-debug] [-chdir] [-mt] filename [arguments]\n", argv[0]);
         return -1;
     }
 
@@ -499,9 +499,9 @@ int main(int argc, char **argv) {
 
     if (!hDLL) {
         if (mt)
-            std::cerr << "Error loading core library '" << LIBRARY_MT << "'\n";
+            fprintf(stderr, "Error loading core library '%s\n", LIBRARY_MT);
         else
-            std::cerr << "Error loading core library '" << LIBRARY << "'\n";
+            fprintf(stderr, "Error loading core library '%s\n", LIBRARY);
         return -1;
     }
 
@@ -531,7 +531,7 @@ int main(int argc, char **argv) {
     Concept_Execute = (API_INTERPRETER2)dlsym(hDLL, "Concept_Execute");
 #endif
     if (!Concept_Execute) {
-        std::cerr << "Corrupted library : '" << LIBRARY << "'\n";
+        fprintf(stderr, "Corrupted library : '%s'\n", LIBRARY);
         return -1;
     }
 
@@ -557,8 +557,9 @@ int main(int argc, char **argv) {
     if (!res) {
         res = Concept_Execute(filename, Include, Library, (void *)Print, 0, debug, DEBUGGER_TRAP, 0, 0, 0, 0, -1, -1, -1, -1, 0);
         if (res == -3)
-            std::cerr << "File not found or insufficient rights : " << filename << "\n";
-        else if (LastResult)
+            fprintf(stderr, "File not found or insufficient rights: %s\n", filename);
+        else 
+        if (LastResult)
             res = LastResult();
     }
 

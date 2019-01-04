@@ -1158,7 +1158,8 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
                                                        0, PREC_AE
                                                        //===========//
                                                        );
-
+                LAST_OP = NULL;
+                LAST_OP_2 = NULL;
                 POP_CHAR(helper->_clean_condition);
                 continue;
             } else
@@ -1185,6 +1186,8 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
                         helper->_clean_condition = 0;
                     }
                 }
+                LAST_OP = NULL;
+                LAST_OP_2 = NULL;
                 continue;
             }
         }
@@ -1625,8 +1628,8 @@ nooptimizations:
                     // full expression
                     // note that for = operator, this can be executed just for local variables that are not yet assigned a value to
                     // avoid class objects with an overriden = operator
-                    if (((LAST_OP->Operator.ID == KEY_BY_REF) || ((LAST_OP->Operator.ID == KEY_ASG) && ((!helper->PIFOwner->ASG_OVERLOADED) || (TVM->assignments(LAST_OP->OperandLeft.ID) == 1)))) && 
-                        (LAST_OP_2) && (LAST_OP_2->Operator.ID == KEY_NEW) && (LAST_OP_2->Result_ID == LAST_OP->OperandRight.ID)) {
+                    if ((((LAST_OP->Operator.ID == KEY_BY_REF) || ((LAST_OP->Operator.ID == KEY_ASG) && ((!helper->PIFOwner->ASG_OVERLOADED) || (TVM->assignments(LAST_OP->OperandLeft.ID) == 1)))) && 
+                        (LAST_OP_2) && (LAST_OP_2->Operator.ID == KEY_NEW) && (LAST_OP_2->Result_ID == LAST_OP->OperandRight.ID))) {
                         // NOTE: this will not work for properties
                         // code like this.property =& new A, where property has a setproperty setter
                         // will not work!

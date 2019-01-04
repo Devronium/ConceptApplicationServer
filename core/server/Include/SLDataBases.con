@@ -94,7 +94,7 @@ class SLConnection {
 	function Close() {
 		if (this->connection)
 			DBClose(this->connection);
-		return this->connection=0;
+		this->connection=0;
 	}
 
 	private function _internalQuery(string query) {
@@ -162,6 +162,10 @@ class SLConnection {
 
 	function LastError() {
 		return this.InitError();
+	}
+
+	finalize() {
+		this.Close();
 	}
 }
 

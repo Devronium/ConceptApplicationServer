@@ -23,12 +23,18 @@ INVOKE_CALL InvokePtr = 0;
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     InvokePtr = Invoke;
 #ifndef NO_DEPENDENCIES
-    g_type_init();
+    #if !GLIB_CHECK_VERSION(2, 35, 0)
+        g_type_init();
+    #endif
+    rsvg_init();
 #endif
     return 0;
 }
 //-----------------------------------------------------//
 CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
+#ifndef NO_DEPENDENCIES
+    rsvg_term ();
+#endif
     return 0;
 }
 //-----------------------------------------------------//
@@ -86,6 +92,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SVG, 1, 4)
         if (PARAMETERS_COUNT > 3) {
             SET_STRING(3, gsvgerror->message);
         }
+        g_error_free(gsvgerror);
         if (handle) {
             rsvg_handle_close(handle, &gsvgerror);
             g_object_unref(handle);
@@ -107,6 +114,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SVG, 1, 4)
             if (PARAMETERS_COUNT > 3) {
                 SET_STRING(3, gsvgerror->message);
             }
+            g_error_free(gsvgerror);
         }
         if ((data) && (buf_size > 0)) {
             RETURN_BUFFER(data, buf_size);
@@ -118,11 +126,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SVG, 1, 4)
     } else {
         RETURN_STRING("");
     }
-    rsvg_handle_close(handle, NULL);
-    g_object_unref(handle);
-
     if (pixbuf)
         g_object_unref(pixbuf);
+
+    rsvg_handle_close(handle, NULL);
+    g_object_unref(handle);
 #endif
 END_IMPL
 //-----------------------------------------------------//
