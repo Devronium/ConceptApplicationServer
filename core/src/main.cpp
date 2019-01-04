@@ -1165,7 +1165,8 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
         var_pools->NUMBER_DATA++;
         if (NEXT_POOL->POOL_VARS) {
             for (int i = 0; i < POOL_BLOCK_SIZE; i++) {
-                if (NEXT_POOL->POOL[i].flags != -1) {
+                // exclude stack-allocated variables
+                if ((NEXT_POOL->POOL[i].flags != -1) && (NEXT_POOL->POOL[i].LINKS > 0)) {
                     variable_var->NUMBER_DATA += 1;
                     memory->NUMBER_DATA       += sizeof(VariableDATA);
                     switch (NEXT_POOL->POOL[i].TYPE) {

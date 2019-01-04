@@ -88,8 +88,8 @@ CONCEPT_FUNCTION_IMPL(ProfilerDelegate, 1)
     if (mc->DELEGATE)
         Invoke(INVOKE_FREE_VARIABLE, mc->DELEGATE);
 
-    Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(0));
-    mc->DELEGATE = PARAMETER(0);
+    Invoke(INVOKE_CREATE_VARIABLE_2, PARAMETERS->HANDLER, &mc->DELEGATE);
+    Invoke(INVOKE_SET_VARIABLE, mc->DELEGATE, (INTEGER)VARIABLE_DELEGATE, (void *)PARAM(0), (NUMBER)PARAM_LEN(0));
     Invoke(INVOKE_GET_DELEGATE_NAMES, mc->DELEGATE, &mc->deleg_class, &mc->deleg_member);
 END_IMPL
 //------------------------------------------------------------------------
