@@ -1085,7 +1085,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                                                                         CLASS_DATA->_Class->CLSID,
                                                                         SENDER_EXCEPTION,
 #ifdef SIMPLE_MULTI_THREADING
-                                                                        NULL, spin_lock);
+                                                                        NULL, -1, spin_lock);
 #else
                                                                         STACK_TRACE);
 #endif

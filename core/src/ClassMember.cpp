@@ -374,7 +374,7 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct 
     this_ref->LINKS              = 1;
     this_ref->IS_PROPERTY_RESULT = -1;
 
-    CC_WRITE_LOCK(PIF)
+    CC_WRITE_LOCK(((PIFAlizator *)PIF))
     if (this_ref->CLASS_DATA)
         ((struct CompiledClass *)this_ref->CLASS_DATA)->LINKS++;
 
@@ -460,7 +460,6 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct 
 #ifdef USE_JIT_TRACE
         if ((INTERPRETER->initcode.code) && (i > this->PARAMETERS_COUNT)) {
             INTERPRETER->initcode.func2((sljit_sw)CONTEXT, (sljit_sw)PIF);
-            CC_WRITE_UNLOCK(PIF)
             break;
         }
 #endif
@@ -500,7 +499,7 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct 
         } else
             CONTEXT_i->CLASS_DATA = NULL;
     }
-    CC_WRITE_UNLOCK(PIF)
+    CC_WRITE_UNLOCK(((PIFAlizator *)PIF))
 #endif
     STACK_TRACE.LOCAL_CONTEXT = (void **)CONTEXT;
 

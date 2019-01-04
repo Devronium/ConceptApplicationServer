@@ -3159,7 +3159,7 @@ int ConceptInterpreter_StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *GR
                         }
 #else
                         WRITE_UNLOCK
-                        RESULT = CCTEMP->_Class->ExecuteMember(PIF, OE->OperandRight_ID - 1, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, CCTEMP->_Class->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, ClassID, THIS_REF->LocalClassID, &THROW_DATA, STACK_TRACE, next_is_asg, &TARGET_THREAD->PROPERTIES, OPT->dataCount, OE->Result_ID - 1);
+                        RESULT = CCTEMP->_Class->ExecuteMember(PIF, OE->OperandRight_ID - 1, CCTEMP, OE, CCTEMP->_Class->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, ClassID, THIS_REF->LocalClassID, &THROW_DATA, STACK_TRACE, next_is_asg, &TARGET_THREAD->PROPERTIES, OPT->dataCount, OE->Result_ID - 1);
                         WRITE_LOCK
 #endif
                         if (THROW_DATA) {
@@ -5586,7 +5586,7 @@ sel_label:
                 }
 #else
                 WRITE_UNLOCK
-                RESULT = CCTEMP->_Class->ExecuteMember(PIF, OE->OperandRight_ID - 1, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, CCTEMP->_Class->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, ClassID, self->LocalClassID, &THROW_DATA, STACK_TRACE, next_is_asg, &PROPERTIES, OPT->dataCount, OE->Result_ID - 1);
+                RESULT = CCTEMP->_Class->ExecuteMember(PIF, OE->OperandRight_ID - 1, CCTEMP, OE, CCTEMP->_Class->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, ClassID, self->LocalClassID, &THROW_DATA, STACK_TRACE, next_is_asg, &PROPERTIES, OPT->dataCount, OE->Result_ID - 1);
                 WRITE_LOCK
 #endif
                 if (THROW_DATA) {
