@@ -4272,14 +4272,15 @@ CONCEPT_FUNCTION_IMPL(signal, 2)
     }
 #endif
     if (!res) {
-        Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(1));
         if (!SIGNAL_LIST) {
             SIGNAL_LIST = (void **)malloc(0xFF * sizeof(void *));
             memset(SIGNAL_LIST, 0, 0xFF * sizeof(void *));
         }
         if (SIGNAL_LIST[signum])
             Invoke(INVOKE_FREE_VARIABLE, SIGNAL_LIST[signum]);
-        SIGNAL_LIST[signum] = PARAMETER(1);
+        Invoke(INVOKE_CREATE_VARIABLE_2, PARAMETERS->HANDLER, &SIGNAL_LIST[signum]); 
+        if (SIGNAL_LIST[signum])
+            Invoke(INVOKE_SET_VARIABLE, SIGNAL_LIST[signum], (INTEGER)VARIABLE_DELEGATE, (void *)PARAM(1), (NUMBER)PARAM_LEN(1));
     }
     RETURN_NUMBER(res);
 END_IMPL
