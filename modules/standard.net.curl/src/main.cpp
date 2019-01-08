@@ -5,7 +5,6 @@
 #include "AnsiString.h"
 #include <string.h>
 #include <stdlib.h>
-//#include <iostream>
 extern "C" {
 #include <curl/curl.h>
 }
@@ -1108,7 +1107,7 @@ CONCEPT_DLL_API CONCEPT__curl_easy_setopt CONCEPT_API_PARAMETERS {
         case CURLOPT_WRITEDATA:
             if (chandle) {
                 GET_CHECK_NUMBER(2, d_member, "curl_easy_setopt: for the given CURLoption, parameter 3 should be a number");
-                chandle->write_data = d_member;
+                chandle->write_data = (int)d_member;
             }
             break;
 
@@ -1117,8 +1116,7 @@ CONCEPT_DLL_API CONCEPT__curl_easy_setopt CONCEPT_API_PARAMETERS {
             if (chandle) {
                 if (chandle->write_delegate)
                     Invoke(INVOKE_FREE_VARIABLE, chandle->write_delegate);
-                chandle->write_delegate = PARAMETER(2);
-                Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(2));
+                DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(2), chandle->write_delegate);
                 curl_easy_setopt(handle, CURLOPT_WRITEDATA, handle);
                 res = (int)curl_easy_setopt(handle, option, write_callback);
             }
@@ -1127,7 +1125,7 @@ CONCEPT_DLL_API CONCEPT__curl_easy_setopt CONCEPT_API_PARAMETERS {
         case CURLOPT_READDATA:
             if (chandle) {
                 GET_CHECK_NUMBER(2, d_member, "curl_easy_setopt: for the given CURLoption, parameter 3 should be a number");
-                chandle->read_data = d_member;
+                chandle->read_data = (int)d_member;
             }
             break;
 
@@ -1137,8 +1135,7 @@ CONCEPT_DLL_API CONCEPT__curl_easy_setopt CONCEPT_API_PARAMETERS {
             if (chandle) {
                 if (chandle->read_delegate)
                     Invoke(INVOKE_FREE_VARIABLE, chandle->read_delegate);
-                chandle->read_delegate = PARAMETER(2);
-                Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(2));
+                DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(2), chandle->read_delegate);
                 curl_easy_setopt(handle, CURLOPT_READDATA, handle);
                 res = (int)curl_easy_setopt(handle, option, read_callback);
             }
@@ -1151,8 +1148,7 @@ CONCEPT_DLL_API CONCEPT__curl_easy_setopt CONCEPT_API_PARAMETERS {
             if (chandle) {
                 if (chandle->ioctl_delegate)
                     Invoke(INVOKE_FREE_VARIABLE, chandle->ioctl_delegate);
-                chandle->ioctl_delegate = PARAMETER(2);
-                Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(2));
+                DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(2), chandle->ioctl_delegate);
                 curl_easy_setopt(handle, CURLOPT_IOCTLDATA, handle);
                 res = (int)curl_easy_setopt(handle, option, ioctl_callback);
             }
@@ -1164,8 +1160,7 @@ CONCEPT_DLL_API CONCEPT__curl_easy_setopt CONCEPT_API_PARAMETERS {
             if (chandle) {
                 if (chandle->sockopt_delegate)
                     Invoke(INVOKE_FREE_VARIABLE, chandle->sockopt_delegate);
-                chandle->sockopt_delegate = PARAMETER(2);
-                Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(2));
+                DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(2), chandle->sockopt_delegate);
 
                 curl_easy_setopt(handle, CURLOPT_SOCKOPTDATA, handle);
                 res = (int)curl_easy_setopt(handle, option, sockopt_callback);
@@ -1178,8 +1173,7 @@ CONCEPT_DLL_API CONCEPT__curl_easy_setopt CONCEPT_API_PARAMETERS {
             if (chandle) {
                 if (chandle->progress_delegate)
                     Invoke(INVOKE_FREE_VARIABLE, chandle->progress_delegate);
-                chandle->progress_delegate = PARAMETER(2);
-                Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(2));
+                DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(2), chandle->progress_delegate);
 
                 curl_easy_setopt(handle, CURLOPT_PROGRESSDATA, handle);
                 res = (int)curl_easy_setopt(handle, option, progress_callback);
@@ -1189,7 +1183,7 @@ CONCEPT_DLL_API CONCEPT__curl_easy_setopt CONCEPT_API_PARAMETERS {
         case CURLOPT_HEADERDATA:
             if (chandle) {
                 GET_CHECK_NUMBER(2, d_member, "curl_easy_setopt: for the given CURLoption, parameter 3 should be a number");
-                chandle->header_data = d_member;
+                chandle->header_data = (int)d_member;
             }
             break;
 
@@ -1199,8 +1193,7 @@ CONCEPT_DLL_API CONCEPT__curl_easy_setopt CONCEPT_API_PARAMETERS {
             if (chandle) {
                 if (chandle->header_delegate)
                     Invoke(INVOKE_FREE_VARIABLE, chandle->header_delegate);
-                chandle->header_delegate = PARAMETER(2);
-                Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(2));
+                DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(2), chandle->header_delegate);
                 curl_easy_setopt(handle, CURLOPT_HEADERDATA, handle);
                 res = (int)curl_easy_setopt(handle, option, header_callback);
             }
@@ -1252,8 +1245,7 @@ CONCEPT_DLL_API CONCEPT__curl_easy_setopt CONCEPT_API_PARAMETERS {
             if (chandle) {
                 if (chandle->debug_delegate)
                     Invoke(INVOKE_FREE_VARIABLE, chandle->debug_delegate);
-                chandle->debug_delegate = PARAMETER(2);
-                Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(2));
+                DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(2), chandle->debug_delegate);
 
                 res = (int)curl_easy_setopt(handle, option, debug_callback);
             }
@@ -1264,8 +1256,7 @@ CONCEPT_DLL_API CONCEPT__curl_easy_setopt CONCEPT_API_PARAMETERS {
             if (chandle) {
                 if (chandle->ssl_ctx_delegate)
                     Invoke(INVOKE_FREE_VARIABLE, chandle->ssl_ctx_delegate);
-                chandle->ssl_ctx_delegate = PARAMETER(2);
-                Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(2));
+                DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(2), chandle->ssl_ctx_delegate);
 
                 res = (int)curl_easy_setopt(handle, option, ssl_ctx_callback);
             }
@@ -1278,8 +1269,7 @@ CONCEPT_DLL_API CONCEPT__curl_easy_setopt CONCEPT_API_PARAMETERS {
             if (chandle) {
                 if (chandle->conv_delegate)
                     Invoke(INVOKE_FREE_VARIABLE, chandle->conv_delegate);
-                chandle->conv_delegate = PARAMETER(2);
-                Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(2));
+                DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(2), chandle->conv_delegate);
 
                 res = (int)curl_easy_setopt(handle, option, conv_callback);
             }

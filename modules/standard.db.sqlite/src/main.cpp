@@ -525,8 +525,9 @@ CONCEPT_FUNCTION_IMPL(DBWrap, 2)
         Invoke(INVOKE_GET_DELEGATE_NAMES, PARAMETER(1), &class_name, &member_name);
         int params = Invoke(INVOKE_COUNT_DELEGATE_PARAMS, PARAMETER(1));
         if ((member_name) && (params >= 0)) {
+            void *deleg = NULL;
+            DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(1), deleg);
             db->WrapFunction(member_name, WRAPFunc, PARAMETER(1), params);
-            LOCK_VARIABLE(PARAMETER(1));
         }
         RETURN_NUMBER(1);
     }

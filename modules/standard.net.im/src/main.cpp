@@ -45,10 +45,14 @@ INVOKE_CALL InvokePtr = 0;
         char    *sDummy;                                              \
         NUMBER  nDummy;                                               \
         InvokePtr(INVOKE_GET_VARIABLE, var, &type, &sDummy, &nDummy); \
-        if (type != VARIABLE_DELEGATE)                                \
+        if (type != VARIABLE_DELEGATE) {                              \
             var = 0;                                                  \
-        else                                                          \
-            InvokePtr(INVOKE_LOCK_VARIABLE, var);                     \
+        } else {                                                      \
+            void *temp = NULL;                                        \
+            INVOKE_CALL Invoke = InvokePtr;                           \
+            DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, var, temp);    \
+            var = temp;                                               \
+        }                                                             \
     }
 //------------------------------------------------------------------------
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
@@ -576,7 +580,7 @@ static void data_not_sent(PurpleXfer *xfer, const guchar *buffer, gsize size) {
     }
 }
 
-PurpleConversationUiOps *InitConversationOps(void *arr_var) {
+PurpleConversationUiOps *InitConversationOps(ParamList *PARAMETERS, void *arr_var) {
     InvokePtr(INVOKE_ARRAY_VARIABLE_BY_KEY, arr_var, "create_conversation", &create_conversation_DELEGATE);
     SAFE_DELEGATE(create_conversation_DELEGATE);
     InvokePtr(INVOKE_ARRAY_VARIABLE_BY_KEY, arr_var, "destroy_conversation", &destroy_conversation_DELEGATE);
@@ -624,7 +628,7 @@ PurpleConversationUiOps *InitConversationOps(void *arr_var) {
     return ops;
 }
 
-PurpleCoreUiOps *InitCoreOps(void *arr_var) {
+PurpleCoreUiOps *InitCoreOps(ParamList *PARAMETERS, void *arr_var) {
     InvokePtr(INVOKE_ARRAY_VARIABLE_BY_KEY, arr_var, "ui_prefs_init", &ui_prefs_init_DELEGATE);
     SAFE_DELEGATE(ui_prefs_init_DELEGATE);
     InvokePtr(INVOKE_ARRAY_VARIABLE_BY_KEY, arr_var, "debug_ui_init", &debug_ui_init_DELEGATE);
@@ -648,7 +652,7 @@ PurpleCoreUiOps *InitCoreOps(void *arr_var) {
     return ops;
 }
 
-PurpleXferUiOps *InitXferOps(void *arr_var) {
+PurpleXferUiOps *InitXferOps(ParamList *PARAMETERS, void *arr_var) {
     InvokePtr(INVOKE_ARRAY_VARIABLE_BY_KEY, arr_var, "new_xfer", &new_xfer_DELEGATE);
     SAFE_DELEGATE(new_xfer_DELEGATE);
     InvokePtr(INVOKE_ARRAY_VARIABLE_BY_KEY, arr_var, "destroy", &destroy_DELEGATE);
@@ -3358,14 +3362,14 @@ CONCEPT_FUNCTION_IMPL(purple_conversation_set_ui_ops, 2)
     T_NUMBER(purple_conversation_set_ui_ops, 0)     // PurpleConversation*
     T_ARRAY(purple_conversation_set_ui_ops, 1)
 
-    purple_conversation_set_ui_ops((PurpleConversation *)(long)PARAM(0), InitConversationOps(PARAMETER(1)));
+    purple_conversation_set_ui_ops((PurpleConversation *)(long)PARAM(0), InitConversationOps(PARAMETERS, PARAMETER(1)));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(purple_conversations_set_ui_ops, 1)
     T_ARRAY(purple_conversations_set_ui_ops, 0)
 
-    purple_conversations_set_ui_ops(InitConversationOps(PARAMETER(0)));
+    purple_conversations_set_ui_ops(InitConversationOps(PARAMETERS, PARAMETER(0)));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
@@ -4087,7 +4091,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(purple_core_set_ui_ops, 1)
     T_ARRAY(purple_core_set_ui_ops, 0)     // PurpleCoreUiOps*
 
-    purple_core_set_ui_ops(InitCoreOps(PARAMETER(0)));
+    purple_core_set_ui_ops(InitCoreOps(PARAMETERS, PARAMETER(0)));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
@@ -4529,7 +4533,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(purple_xfers_set_ui_ops, 1)
     T_ARRAY(purple_xfers_set_ui_ops, 0)
 
-    purple_xfers_set_ui_ops(InitXferOps(PARAMETER(0)));
+    purple_xfers_set_ui_ops(InitXferOps(PARAMETERS, PARAMETER(0)));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------

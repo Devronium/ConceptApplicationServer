@@ -1036,7 +1036,10 @@ CONCEPT_FUNCTION_IMPL(ldap_sasl_interactive_bind_s, 8)
     T_DELEGATE(ldap_sasl_interactive_bind_s, 6)
     T_NUMBER(ldap_sasl_interactive_bind_s, 7)     // void*
 
-    deleg = PARAMETER(6);
+    if (deleg)
+        Invoke(INVOKE_FREE_VARIABLE, deleg);
+
+    DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(6), deleg);
 
 // ... parameter 3 is by reference (LDAPControl**)
     LDAPControl *local_parameter_3;
@@ -1613,7 +1616,11 @@ CONCEPT_FUNCTION_IMPL(ldap_X509dn2bv, 4)
     T_DELEGATE(ldap_X509dn2bv, 2)
     T_NUMBER(ldap_X509dn2bv, 3)     // unsigned
 
-    deleg2 = PARAMETER(2);
+    if (deleg2)
+        Invoke(INVOKE_FREE_VARIABLE, deleg2);
+
+    DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(2), deleg2);
+
 // ... parameter 1 is by reference (berval*)
     GET_DECL_BERVAL(1, local_parameter_1);
 // ... parameter 2 is by reference (LDAPDN_rewrite_func*)

@@ -2188,11 +2188,15 @@ CONCEPT_FUNCTION_IMPL(xmlSetGenericErrorFunc, 2)
         T_DELEGATE(xmlSetGenericErrorFunc, 1)
     }
 
-    if (TYPE == VARIABLE_NUMBER) {
+    if (GenericErrorDelegate) {
+        Invoke(INVOKE_FREE_VARIABLE, GenericErrorDelegate);
         GenericErrorDelegate = 0;
+    }
+
+    if (TYPE == VARIABLE_NUMBER) {
         xmlSetGenericErrorFunc(ctx, (xmlGenericErrorFunc)0);
     } else {
-        GenericErrorDelegate = PARAMETER(1);
+        DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(1), GenericErrorDelegate);
         xmlSetGenericErrorFunc(ctx, MyGenericErrorFunc);
     }
 
@@ -2212,11 +2216,15 @@ CONCEPT_FUNCTION_IMPL(xmlSetStructuredErrorFunc, 2)
         T_DELEGATE(xmlSetStructuredErrorFunc, 1)
     }
 
-    if (TYPE == VARIABLE_NUMBER) {
+    if (StructErrorDelegate) {
+        Invoke(INVOKE_FREE_VARIABLE, StructErrorDelegate);
         StructErrorDelegate = 0;
+    }
+
+    if (TYPE == VARIABLE_NUMBER) {
         xmlSetStructuredErrorFunc(ctx, (xmlStructuredErrorFunc)0);
     } else {
-        StructErrorDelegate = PARAMETER(1);
+        DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(1), StructErrorDelegate);
         xmlSetStructuredErrorFunc(ctx, MyStructuredErrorFunc);
     }
 
@@ -2306,4 +2314,3 @@ CONCEPT_FUNCTION_IMPL(xmlChildElementCount, 1)
     RETURN_NUMBER((SYS_INT)count);
 END_IMPL
 //---------------------------------------------------------------------------
-

@@ -812,13 +812,11 @@ CONCEPT_DLL_API CONCEPT_RunThread CONCEPT_API_PARAMETERS {
         GET_CHECK_NUMBER(1, ndetachable, "RunThread : detached should be of NUMBER type");
     }
 
-    // LocalInvoker(INVOKE_DYNAMIC_LOCK,PARAMETER(0));
-    LocalInvoker(INVOKE_LOCK_VARIABLE, PARAMETER(0));
     LocalInvoker(INVOKE_GET_THREAD_DATA, &context);
 
     Container *cdc = new Container();
     INTEGER spin_lock = 1;
-    cdc->DELEGATE = PARAMETER(0);
+    DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(0), cdc->DELEGATE);
     cdc->CONTEXT  = context;
     cdc->SPINLOCK = &spin_lock;
 #ifdef _WIN32

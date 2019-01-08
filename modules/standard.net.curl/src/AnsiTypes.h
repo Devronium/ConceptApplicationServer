@@ -13,7 +13,8 @@ typedef void   VariableDATA;
 typedef struct {
     INTEGER *PARAM_INDEX;
     INTEGER COUNT;
-} ParamList;
+    void    *HANDLER;
+} ParamList; 
 
 typedef INTEGER (*EXTERNAL_CALL)(ParamList *PARAMETERS, VariableDATA **LOCAL_CONTEXT, VariableDATA *RESULT);
 #endif // __ANSI_TYPES_H

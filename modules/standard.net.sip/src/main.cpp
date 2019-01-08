@@ -475,7 +475,7 @@ CONCEPT_FUNCTION_IMPL(osip_transaction_init, 4)
     osip_transaction_t * t = NULL;
     osip_t         *osip    = (osip_t *)PARAM_INT(2);
     osip_message_t *request = (osip_message_t *)PARAM_INT(3);
-    if (request->allows) {
+    if ((request) && (request->allows)) {
         int res = osip_transaction_init(&t, (osip_fsm_type_t)PARAM_INT(1), osip, request);
         SET_NUMBER(0, (SYS_INT)t);
         RETURN_NUMBER(res);
@@ -646,10 +646,11 @@ CONCEPT_FUNCTION_IMPL(osip_set_cb_send_message, 2)
     T_DELEGATE(osip_set_cb_send_message, 1)
 
     osip_t * osip = (osip_t *)PARAM_INT(0);
-    Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(1));
     if (EventsMap[0][0])
         Invoke(INVOKE_FREE_VARIABLE, EventsMap[0][0]);
-    EventsMap[0][0] = PARAMETER(1);
+    void *var = NULL;
+    DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(1), var);
+    EventsMap[0][0] = var;
     osip_set_cb_send_message(osip, do_osip_set_cb_send_message);
 
     RETURN_NUMBER(0)
@@ -661,10 +662,11 @@ CONCEPT_FUNCTION_IMPL(osip_set_message_callback, 3)
     T_DELEGATE(osip_set_message_callback, 2)
 
     osip_t * osip = (osip_t *)PARAM_INT(0);
-    Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(2));
     if (EventsMap[1][PARAM_INT(1)])
         Invoke(INVOKE_FREE_VARIABLE, EventsMap[1][PARAM_INT(1)]);
-    EventsMap[1][PARAM_INT(1)] = PARAMETER(2);
+    void *var = NULL;
+    DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(2), var);
+    EventsMap[1][PARAM_INT(1)] = var;
 
     osip_set_message_callback(osip, PARAM_INT(1), do_osip_set_message_callback);
 END_IMPL
@@ -675,11 +677,11 @@ CONCEPT_FUNCTION_IMPL(osip_set_kill_transaction_callback, 3)
     T_DELEGATE(osip_set_kill_transaction_callback, 2)
 
     osip_t * osip = (osip_t *)PARAM_INT(0);
-//EventsMap[2][PARAM_INT(1)]=PARAMETER(2);
-    Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(2));
     if (EventsMap[2][PARAM_INT(1)])
         Invoke(INVOKE_FREE_VARIABLE, EventsMap[2][PARAM_INT(1)]);
-    EventsMap[2][PARAM_INT(1)] = PARAMETER(2);
+    void *var = NULL;
+    DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(2), var);
+    EventsMap[2][PARAM_INT(1)] = var;
 
     osip_set_kill_transaction_callback(osip, PARAM_INT(1), do_osip_set_kill_transaction_callback);
 END_IMPL
@@ -690,10 +692,10 @@ CONCEPT_FUNCTION_IMPL(osip_set_transport_error_callback, 3)
     T_DELEGATE(osip_set_transport_error_callback, 2)
 
     osip_t * osip = (osip_t *)PARAM_INT(0);
-//EventsMap[3][PARAM_INT(1)]=PARAMETER(2);
-    Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(3));
     if (EventsMap[3][PARAM_INT(1)])
         Invoke(INVOKE_FREE_VARIABLE, EventsMap[3][PARAM_INT(1)]);
+    void *var = NULL;
+    DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(2), var);
     EventsMap[3][PARAM_INT(1)] = PARAMETER(2);
 
     osip_set_transport_error_callback(osip, PARAM_INT(1), do_osip_set_transport_error_callback);

@@ -521,8 +521,7 @@ CONCEPT_FUNCTION_IMPL(TLSESetVerify, 2)
     if (context->user_data)
         Invoke(INVOKE_FREE_VARIABLE, context->user_data);
 
-    context->user_data = PARAMETER(1);
-    Invoke(INVOKE_LOCK_VARIABLE, context->user_data);
+    DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(1), context->user_data);
     RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------
