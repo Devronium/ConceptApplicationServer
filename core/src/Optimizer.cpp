@@ -217,6 +217,39 @@ public:
         }
     }
 
+    void save(TempVariableLevelManager *saved) {
+        saved->reset();
+        if (this->left_var_len) {
+            saved->left_vars = (TempVariableLevelManagerVars *)malloc(sizeof(TempVariableLevelManagerVars) * this->left_var_len);
+            if (saved->left_vars) {
+                saved->left_var_len = this->left_var_len;
+                for (int i = 0; i < saved->left_var_len; i++) {
+                    saved->left_vars[i].var_len = this->left_vars[i].var_len;
+                    if (saved->left_vars[i].var_len) {
+                        saved->left_vars[i].vars = (unsigned char *)malloc(sizeof(unsigned char) * saved->left_vars[i].var_len);
+                        if (!saved->left_vars[i].vars)
+                            saved->left_vars[i].var_len = 0;
+
+                        memcpy(saved->left_vars[i].vars, this->left_vars[i].vars, sizeof(unsigned char) * saved->left_vars[i].var_len);
+                    } else {
+                        saved->left_vars[i].var_len = 0;
+                        saved->left_vars[i].vars = NULL;
+                    }
+                }
+            }
+        }
+    }
+
+    void restore(TempVariableLevelManager *saved) {
+        this->reset();
+        if ((saved->left_var_len) && (saved->left_vars)) {
+            this->left_vars = saved->left_vars;
+            this->left_var_len = saved->left_var_len;
+        }
+        saved->left_vars = NULL;
+        saved->left_var_len = 0;
+    }
+
     ~TempVariableLevelManager() {
         this->reset();
     }
@@ -303,6 +336,26 @@ public:
             level->parent = level_manager;
             level_manager = level;
         }
+    }
+
+    void save_level(TempVariableLevelManager *level) {
+        if (!level)
+            return;
+
+        if (level_manager)
+            level_manager->save(level);
+        else
+            level->reset();
+    }
+
+    void restore_level(TempVariableLevelManager *level) {
+        if (!level)
+            return;
+
+        if (level_manager)
+            level_manager->restore(level);
+        else
+            level->reset();
     }
 
     void pop_level() {
@@ -1149,6 +1202,9 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
             if (AE->ID == KEY_P_OPEN) {
                 PUSH_CHAR(helper->_clean_condition);
                 helper->PIFList->Delete(--helper->PIF_POSITION);
+
+                TempVariableLevelManager saved_level;
+                TVM->save_level(&saved_level);
                 int is_param_list = Optimizer_OptimizeExpression(self, helper, TVM, KEY_P_CLOSE,
                                                        TYPE_OPERATOR,
                                                        ((PREC_TYPE == TYPE_METHOD) || (PREC_TYPE == TYPE_CLASS)) ||
@@ -1158,6 +1214,8 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
                                                        0, PREC_AE
                                                        //===========//
                                                        );
+                TVM->restore_level(&saved_level);
+
                 LAST_OP = NULL;
                 LAST_OP_2 = NULL;
                 POP_CHAR(helper->_clean_condition);
@@ -1172,6 +1230,8 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
                 break;
             } else
             if (AE->ID == KEY_INDEX_OPEN) {
+                TempVariableLevelManager saved_level;
+                TVM->save_level(&saved_level);
                 if ((PREC_TYPE == TYPE_KEYWORD) ||
                     (PREC_TYPE == TYPE_OPERATOR) ||
                     (PREC_TYPE == TYPE_SEPARATOR) ||
@@ -1186,6 +1246,8 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
                         helper->_clean_condition = 0;
                     }
                 }
+                TVM->restore_level(&saved_level);
+
                 LAST_OP = NULL;
                 LAST_OP_2 = NULL;
                 continue;
@@ -1334,7 +1396,7 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
                 // ensure that next is not an assignment (crashes with set/properties)
                 tmp_index = LAST_OP->Result_ID;
             } else
-            if ((AE_ID == KEY_SEL) && (Right) && (Right->ID > 0) && (Right->_INFO_OPTIMIZED != 2) && ((!Parameter) || ((Parameter->TYPE != TYPE_OPERATOR) ||  ((Parameter->TYPE != TYPE_PARAM_LIST) && (Parameter->ID != KEY_ASG) && (Parameter->ID != KEY_BY_REF))))) {
+            if ((AE_ID == KEY_SEL) && (Right) && (Right->ID > 0) && (Right->_INFO_OPTIMIZED != 2) && ((!Parameter) || ((Parameter->TYPE != TYPE_OPERATOR) || ((Parameter->TYPE != TYPE_PARAM_LIST) && (Parameter->ID != KEY_ASG) && (Parameter->ID != KEY_BY_REF))))) {
                 tmp_index = TVM->GetVar2();
             } else
             if ((AE_ID == KEY_SEL) && (Left) && (Left->ID >= 1) && (Right) && (Right->ID > 0) && (Right->_INFO_OPTIMIZED == 2) && ((!Parameter) || (Parameter->TYPE != TYPE_PARAM_LIST))) {

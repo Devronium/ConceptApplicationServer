@@ -354,6 +354,8 @@ int tls_unmake_ktls(struct TLSContext *context, int socket);
 */
 void dtls_reset_cookie_secret();
 
+int tls_remote_error(struct TLSContext *context);
+
 #ifdef SSL_COMPATIBLE_INTERFACE
     #define SSL_SERVER_RSA_CERT 1
     #define SSL_SERVER_RSA_KEY  2

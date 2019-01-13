@@ -46,6 +46,8 @@
  * from the sample implementation.
  */
 
+#include <stdint.h>
+
 /* Field element representation:
  *
  * Field elements are written as an array of signed, 64-bit limbs, least
