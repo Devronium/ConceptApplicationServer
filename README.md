@@ -5,7 +5,7 @@ A scalable webserver, a fast with small footprint programming language, a framew
 
 ## The programing language
 
-Concept is a simple javascript-like language, with a small difference: it is strict object-oriented. Also, all the code is compiled. Additionally it has a JIT compiler based on sljit. It is designed to be friendly and easy to user.
+Concept is a simple javascript-like language, with a small difference: it is strict object-oriented. Also, all the code is compiled. Additionally it has a JIT compiler based on sljit. It is designed to be friendly and easy to use.
 
 A simple console hello world app:
 ```
@@ -74,7 +74,7 @@ class app {
 
 ## The webserver
 
-A full HTTP2 asynchronous webserver, written in Concept with an websocket application model.
+A full HTTP2 asynchronous webserver, written in Concept with a websocket application model.
 
 ## The framework
 

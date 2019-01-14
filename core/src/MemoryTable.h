@@ -13,9 +13,9 @@ extern "C" {
 typedef khint_t MemoryTableIterator;
 
 #if __SIZEOF_POINTER__ == 8
-    KHASH_MAP_INIT_INT64(intptrhashtable, intptr_t);
+    KHASH_MAP_INIT_INT64(intptrhashtable, intptr_t)
 #else
-    KHASH_MAP_INIT_INT(intptrhashtable, intptr_t);
+    KHASH_MAP_INIT_INT(intptrhashtable, intptr_t)
 #endif
 
 struct MemoryTable {

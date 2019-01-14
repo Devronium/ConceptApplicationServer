@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-KHASH_MAP_INIT_STR(strhashtable, intptr_t);
+KHASH_MAP_INIT_STR(strhashtable, intptr_t)
 
 typedef khint_t HashTableIterator;
 
