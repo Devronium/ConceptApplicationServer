@@ -446,7 +446,7 @@ PIFAlizator::~PIFAlizator(void) {
         void *ptr = MemoryTable_key(&this->LibraryAllocations, it);
         if (ptr) {
             fprintf(stderr, "WARNING: %i bytes at address %X allocated in static library was not freed\n", (int)MemoryTable_val(&this->LibraryAllocations, it), ptr);
-            free(ptr);
+            FAST_FREE(this, ptr);
         }
     }
     MemoryTable_deinit(&this->LibraryAllocations);
