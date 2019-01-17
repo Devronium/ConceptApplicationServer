@@ -27,6 +27,8 @@ define CONCEPT_STRICT_EXECUTE	false
 
 define WS_SESSION_RESTORE	true
 
+define LOG_LEVEL		LOG_TRACE
+
 define MAX_RECV_BUFFER		0xFFFF
 define READ_BUFFER		0x7FFFF
 define MAX_WS_HEADER		0xFFF
@@ -654,10 +656,10 @@ class ConceptChild {
 		if (arguments)
 			log_str+="("+arguments+")";
 		if (this.ServerName)
-			Owner.Log(ip, "Using server ${this.ServerName}, APID: "+this.APID);
-		Owner.Log(ip, "Run $log_str");
+			console.log(LOG_THIS, "$ip: Using server ${this.ServerName}, APID: "+this.APID);
+		console.info(LOG_THIS, "$ip:Run $log_str");
 		//if (this.Session)
-		//	Owner.Log(ip, "Session ${this.Session}");
+		//	console.log(LOG_THIS, "$ip:Session ${this.Session}");
 
 		var cwd = getcwd();
 		var shared_pool = value Owner.IniKey("Server", "UseSharedMemoryPool", "0");
@@ -670,11 +672,11 @@ class ConceptChild {
 
 		if (DirectPipe==-1) {
 			if (socketpair(direct_pipe1, direct_pipe2)) {
-				Owner.Log(ip, "Error creating direct pipe (${_errno()}), APID: "+this.APID);
+				console.warn(LOG_THIS, "$ip:Error creating direct pipe (${_errno()}), APID: "+this.APID);
 			} else {
 				DirectPipe=direct_pipe2;
 				if (SetNonBlocking(direct_pipe2, true))
-					Owner.Log(ip, "Cannot set non-blocking pipe (${_errno()}), APID: "+this.APID);
+					console.warn(LOG_THIS, "$ip:Cannot set non-blocking pipe (${_errno()}), APID: "+this.APID);
 			}
 		}
 		var pipein1=-1;
@@ -684,22 +686,22 @@ class ConceptChild {
 		var pipeout2=-1;
 
 		if (this.PipeOut==-1) {
-			if (pipe(pipein1, pipein2))
-				Owner.Log(ip, "Error creating in pipe (${_errno()}), APID: "+this.APID);
-			else {
+			if (pipe(pipein1, pipein2)) {
+				console.error(LOG_THIS, "$ip:Error creating in pipe (${_errno()}), APID: "+this.APID);
+			} else {
 				this.PipeOut=pipein2;
 				if (SetNonBlocking(pipein2, true))
-					Owner.Log(ip, "Cannot set non-blocking pipe (pipe in error: ${_errno()}), APID: "+this.APID);
+					console.error(LOG_THIS, "$ip:Cannot set non-blocking pipe (pipe in error: ${_errno()}), APID: "+this.APID);
 			}
 		}
 
 		if (this.PipeIn==-1) {
 			if (pipe(pipeout1, pipeout2))
-				Owner.Log(ip, "Error creating out pipe (${_errno()}), APID: "+this.APID);
+				console.error(LOG_THIS, "$ip:Error creating out pipe (${_errno()}), APID: "+this.APID);
 			else {
 				this.PipeIn=pipeout1;
 				if (SetNonBlocking(pipeout1, true))
-					Owner.Log(ip, "Cannot set non-blocking pipe (pipe out error: ${_errno()}), APID: "+this.APID);
+					console.error(LOG_THIS, "$ip:Cannot set non-blocking pipe (pipe out error: ${_errno()}), APID: "+this.APID);
 			}
 		}
 
@@ -811,16 +813,16 @@ class ConceptChild {
 			var pw1, pw2;
 
 			if (socketpair(pr1, pr2))
-				Owner.Log(ip, "Error creating in context socket pair (${_errno()}), APID: "+this.APID);
+				console.warn(LOG_THIS, "$ip:Error creating in context socket pair (${_errno()}), APID: "+this.APID);
 			if (socketpair(pw1, pw2))
-				Owner.Log(ip, "Error creating in context socket pair (${_errno()}), APID: "+this.APID);
+				console.warn(LOG_THIS, "$ip:Error creating in context socket pair (${_errno()}), APID: "+this.APID);
 
 			// leave it blocking !
 			//if (SetNonBlocking(pr2, true))
-			//	Owner.Log(ip, "Cannot set non-blocking context (pipe out error: ${_errno()}), APID: "+this.APID);
+			//	console.warn(LOG_THIS, "$ip:Cannot set non-blocking context (pipe out error: ${_errno()}), APID: "+this.APID);
 
 			if (SetNonBlocking(pw1, true))
-				Owner.Log(ip, "Cannot set non-blocking context (pipe out error: ${_errno()}), APID: "+this.APID);
+				console.warn(LOG_THIS, "$ip:Cannot set non-blocking context (pipe out error: ${_errno()}), APID: "+this.APID);
 
 			if ((pr1>0) && (pw2>0)) {
 				this.HostID=hostid;
@@ -877,10 +879,10 @@ class ConceptChild {
 			close(pipeout2);
 
 		if (this.PID==-2) {
-			Owner.Log(ip, "New child connection for $hostid");
+			console.info(LOG_THIS, "$ip:New child connection for $hostid");
 		} else
 		if (this.PID<0) {
-			Owner.Log(ip, "Error creating child process");
+			console.warn(LOG_THIS, "$ip:Error creating child process");
 			throw "Error creating child process";
 		}
 		step++;
@@ -961,7 +963,7 @@ class ConceptChild {
 				// return true;
 			}
 		} else
-			Owner.Log(ip, "Invalid APID: $app_id");
+			console.warn(LOG_THIS, "$ip:Invalid APID: $app_id");
 		return false;
 	}
 
@@ -975,21 +977,21 @@ class ConceptChild {
 
 		if (this.PipeOut==-1) {
 			if (pipe(pipein1, pipein2))
-				Owner.Log("ConceptService", "Error creating in pipe (${_errno()}), APID: "+this.APID);
+				console.error(LOG_THIS, "ConceptService: Error creating in pipe (${_errno()}), APID: "+this.APID);
 			else {
 				this.PipeOut=pipein2;
 				if (SetNonBlocking(pipein2, true))
-					Owner.Log("ConceptService", "Cannot set non-blocking pipe (pipe in error: ${_errno()}), APID: "+this.APID);
+					console.error(LOG_THIS, "ConceptService: Cannot set non-blocking pipe (pipe in error: ${_errno()}), APID: "+this.APID);
 			}
 		}
 
 		if (this.PipeIn==-1) {
 			if (pipe(pipeout1, pipeout2))
-				Owner.Log("ConceptService", "Error creating out pipe (${_errno()}), APID: "+this.APID);
+				console.error(LOG_THIS, "ConceptService: Error creating out pipe (${_errno()}), APID: "+this.APID);
 			else {
 				this.PipeIn=pipeout1;
 				if (SetNonBlocking(pipeout1, true))
-					Owner.Log("ConceptService", "Cannot set non-blocking pipe (pipe out error: ${_errno()}), APID: "+this.APID);
+					console.error(LOG_THIS, "ConceptService: Cannot set non-blocking pipe (pipe out error: ${_errno()}), APID: "+this.APID);
 			}
 		}
 
@@ -1086,11 +1088,11 @@ class ConceptChild {
 					}
 					var code=ExecuteJoin(pid);
 					if (code)
-						Owner.Log("ConceptServer", "$apid: Done (error code: $code)");
+						console.warn(LOG_THIS, "$apid: Done (error code: $code)");
 					else
-						Owner.Log("ConceptServer", "$apid: Done");
+						console.info(LOG_THIS, "$apid: Done");
 				} else
-					Owner.Log("ConceptServer", "$apid: Done (child)");
+					console.info(LOG_THIS, "$apid: Done (child)");
 
 			}
 		}
@@ -1304,7 +1306,7 @@ class ConceptChild {
 		var ip="unknown";
 		if (info)
 			ip=info["address"];
-		Owner.Log(ip, "Connected(${socket.Socket})");
+		console.info(LOG_THIS, "$ip:Connected(${socket.Socket})");
 
 		var received_data="";
 		var disconnected=false;
@@ -1384,7 +1386,7 @@ class ConceptChild {
 									CleanApp(app);
 									if ((method=="GET") || (method == "POST") || (method == "PUT")) {
 										ParseHeader(header, ws, ws_key, origin, host, session_to_restore, if_modified, keep_alive, parent, debug, in_content_length, protocol, extension);
-										Owner.Log(ip, "$method $app");
+										console.info(LOG_THIS, "$ip:$method $app");
 									}
 								}
 							}
@@ -1852,12 +1854,12 @@ class ConceptChild {
 					}
 					var delta_ms = microseconds() - max_idle;
 					if (delta_ms > 0) {
-						Owner.Log(ip, "Timed out (${delta_ms/1000}ms)");
+						console.info(LOG_THIS, "$ip:Timed out (${delta_ms/1000}ms)");
 						break;
 					}
 					if (step==-1) {
 						// restored
-						Owner.Log(ip, "Session restored");
+						console.info(LOG_THIS, "$ip:Session restored");
 						break;
 					}
 				}
@@ -1867,7 +1869,7 @@ class ConceptChild {
 				var private_key = ReadFile(key_path+"/server.key");
 				var allow_debug	 = value Owner.IniKey("Server", "AllowDebug", "1");
 				if ((!public_key) || (!private_key)) {
-					Owner.Log("ConceptServer", "Invalid key path $key_path");
+					console.critical(LOG_THIS, "Invalid key path $key_path");
 					throw "Invalid keys";
 				}
 
@@ -1887,22 +1889,22 @@ class ConceptChild {
 						}
 
 						if (microseconds()>=max_idle) {
-							Owner.Log(ip, "Protocol negotiation timed out");
+							console.warn(LOG_THIS, "$ip:Protocol negotiation timed out");
 							break;
 						}
 						if (step==-1) {
 							// restored
-							Owner.Log(ip, "Session restored");
+							console.log(LOG_THIS, "$ip:Session restored");
 							break;
 						}
 					}
 				} else
-					Owner.Log(ip, "Broken socket on write");
+					console.info(LOG_THIS, "$ip:Broken socket on write");
 			}
 
 			var pid=this.PID;
 			if ((step==3) && ((pid>0) || (pid==-2))) {
-				Owner.Log(ip, "Executing");
+				console.info(LOG_THIS, "$ip:Executing");
 
 				var pipein=this.PipeIn;
 				var pipeout=this.PipeOut;
@@ -1925,7 +1927,7 @@ class ConceptChild {
 				// this should never happen
 				while ((pid > 0) && (!ExecuteIsRunning(pid))) {
 					if (microseconds() - execute_start >= 50000) {
-						Owner.Log(ip, "Application failed to start in 50ms.");
+						console.warn(LOG_THIS, "$ip:Application failed to start in 50ms.");
 						break;
 					}
 				}
@@ -2000,12 +2002,12 @@ class ConceptChild {
 					}
 					var code=ExecuteJoin(pid);
 					if (code)
-						Owner.Log(ip, "$apid: Done (error code: $code)");
+						console.info(LOG_THIS, "$ip:$apid done (error code: $code)");
 					else
 					
-						Owner.Log(ip, "$apid: Done");
+						console.info(LOG_THIS, "$ip:$apid done");
 				} else
-					Owner.Log(ip, "$apid: Done (child)");
+					console.info(LOG_THIS, "$ip:$apid Done (child)");
 			}
 		} catch (exc) {
 			// broken socket
@@ -2044,8 +2046,8 @@ class ConceptChild {
 
 		if (this.Socket) {
 			if (reason)
-				reason = ", reason: " + reason;
-			Owner.Log(ip, "Disconnected(${this.Socket.Socket}, ${this.APID}$reason)");
+				reason = " " + reason;
+			console.info(LOG_THIS, "$ip:Disconnected(${this.Socket.Socket}, ${this.APID}$reason)");
 			SocketSetBlocking(this.Socket.Socket, false);
 			this.Socket.Close(true);
 		}
@@ -2053,7 +2055,7 @@ class ConceptChild {
 
 	finalize() {
 		Owner.ClientCount--;
-		Owner.Log("ConceptServer", "${Owner.ClientCount} active client(s)");
+		console.trace(LOG_THIS, "${Owner.ClientCount} active client(s)");
 		Owner.Clean();
 	}
 }
@@ -4029,6 +4031,8 @@ pragma used
 
 					if (!path)
 						throw "Invalid request";
+
+					console.info(LOG_THIS, "${h2.GetSocket().Info["address"]}: $method $path");
 					var root = GetRoot(server);
 
 					if (path[length path - 1] == "/")
@@ -4259,6 +4263,7 @@ IF_CHECK_GZIP							}
 					if ((t - child.IdleSince > H2_MAX_IDLE_SECONDS) && (child.UserData <= 0))
 						throw "Dropping connection (idle for maximum seconds)";
 				} catch (exc) {
+					console.warn(LOG_THIS, exc);
 					CleanCGIChildren(child);
 					child.Close();
 					children[i] = null;
@@ -5417,7 +5422,7 @@ class ConceptServer extends RewriteContainer extends IniCache {
 		}
 
 		var workers_count = this.WorkerCount(DEFAULT_CGI_WORKERS);
-		this.Log("ConceptServer", "Initializing $workers_count CGI workers");
+		console.info(LOG_THIS, "Initializing $workers_count CGI workers");
 		for (var i = 0; i < workers_count; i++)
 			Workers[i] = new Worker("ConceptWorker", BinarizeObject(["Worker${i+1}", inifile]));
 	}
@@ -5434,7 +5439,7 @@ class ConceptServer extends RewriteContainer extends IniCache {
 		var private_key = this.IniKey("Server", "WebSocketPrivateKey", "ssl/privatekey.pem");
 
 		if (!this.TLSWSSocket.LoadKeys(public_key, private_key))
-			this.Log("ConceptServer", "Warning: Error loading TLS/SSL keys. HTTPS/WSS will not be supported.");
+			console.warn(LOG_THIS, "Warning: Error loading TLS/SSL keys. HTTPS/WSS will not be supported.");
 	}
 
 	NormalizeName(name, var hash_base) {
@@ -5469,7 +5474,7 @@ class ConceptServer extends RewriteContainer extends IniCache {
 				var buf=tobin(source_apid, 32)+tobin(msg_id, 32)+tobin(length msg, 32)+msg;
 				connection.Send(buf);
 			} else {
-				this.Log("ConceptServer", "Unknown APID: $apid (message sent by $source_apid)");
+				console.warn(LOG_THIS, "Unknown APID: $apid (message sent by $source_apid)");
 				err = true;
 			}
 		} else {
@@ -5590,7 +5595,7 @@ class ConceptServer extends RewriteContainer extends IniCache {
 					cleaned++;
 			}
 			if (cleaned) {
-				this.Log("ConceptServer", "$cleaned placeholders cleaned");
+				console.trace(LOG_THIS, "$cleaned placeholders cleaned");
 				this.Connections=res;
 			}
 		}
@@ -5609,33 +5614,6 @@ class ConceptServer extends RewriteContainer extends IniCache {
 		var child = new ConceptChild(this, null);
 		child.ServerName = servicename;
 		loop.Add(child.IterateService);
-	}
-
-	Log(domain, text) {
-		try {
-			var t=StrReplace(StrReplace(ctime(time()), "\r", ""), "\n", "");
-			var str="$t $domain: $text\n";
-			if (this.LogFile) {
-				if (!LogFileHandle) {
-					var f=new File("a");
-					f.Name=this.LogFile;
-					if (f.Open())
-						LogFileHandle = f;
-					else
-						echo str + " (log I/O error)";
-					// f.Write(str);
-					// f.Close();
-				}
-				if (LogFileHandle)
-					LogFileHandle.Write(str);
-			} else
-				echo str;
-		} catch (var e) {
-			echo "Log IO exception: ";
-			echo e;
-			echo "\n";
-			echo "$domain: $text\n";
-		}
 	}
 
 	ChooseWorker() {
@@ -5698,21 +5676,21 @@ class ConceptServer extends RewriteContainer extends IniCache {
 						if ((s) && (s.Socket > 0))
 							AcceptChild(loop, s);
 						else
-							this.Log("ConceptServer", "Invalid socket in accept");
+							console.error(LOG_THIS, "Invalid socket in accept");
 					}
 					if ((o0 == wsock_fd) || (o1 == wsock_fd) || (o2 == wsock_fd) || (o3 == wsock_fd)) {
 						s = wsocket.Accept();
 						if ((s) && (s.Socket>0))
 							AcceptChild(loop, s, true);
 						else
-							this.Log("ConceptServer", "Invalid socket in accept (websocket)");
+							console.error(LOG_THIS, "Invalid socket in accept (websocket)");
 					}
 					if ((o0 == tlssock_fd) || (o1 == tlssock_fd) || (o2 == tlssock_fd) || (o3 == tlssock_fd)) {
 						s = tlswssocket.AcceptTCP();
 						if ((s) && (s.Socket > 0))
 							AcceptChild(loop, s, true, 2);
 						else
-							this.Log("ConceptServer", "Invalid socket in accept (websocket)");
+							console.error(LOG_THIS, "Invalid socket in accept (websocket)");
 					}
 					if (sslsock_fd > 0) {
 						if ((o0 == sslsock_fd) || (o1 == sslsock_fd) || (o2 == sslsock_fd) || (o3 == sslsock_fd)) {
@@ -5720,7 +5698,7 @@ class ConceptServer extends RewriteContainer extends IniCache {
 							if ((s) && (s.Socket>0))
 								AcceptChild(loop, s, true, true);
 							else
-								this.Log("ConceptServer", "Invalid socket in accept (websocket)");
+								console.error(LOG_THIS, "Invalid socket in accept (websocket)");
 						}
 					}
 				}
@@ -5746,7 +5724,7 @@ class ConceptServer extends RewriteContainer extends IniCache {
 					timeout = 20;
 				}
 			} catch (var exc) {
-				this.Log("ConceptServer", exc);
+				console.error(LOG_THIS, exc);
 			}
 		}
 		this.CloseClients();
@@ -5777,7 +5755,7 @@ class ConceptServer extends RewriteContainer extends IniCache {
 				}
 			}	
 		}
-		this.Log("ConceptServer", "Clean shut down ...");
+		console.info(LOG_THIS, "Clean shut down ...");
 		echo "Shutting down...\n";
 	}
 
@@ -5823,7 +5801,7 @@ class ConceptServer extends RewriteContainer extends IniCache {
 		if (setrlimit(RLIMIT_NOFILE, max_fd)) {
 			// try to set it as super user
 			if (setrlimit(RLIMIT_NOFILE, max_fd, max_fd))
-				this.Log("ConceptServer", "WARNING: cannot set the maximum connection count to $max_fd");
+				console.warn(LOG_THIS, "cannot set the maximum connection count to $max_fd");
 		}
 
 		if (Socket.Listen(this.Port, max_connections, interface))
@@ -5847,7 +5825,7 @@ class ConceptServer extends RewriteContainer extends IniCache {
 					TLSWSSocket.AddALPN("h2");
 					var h2worker_init_parameters = BinarizeObject([this.IniFile, this.ConceptClient, this.mimetypes, this.cgi, this.cgiother]);
 					var workers_count = this.WorkerCount(DEFAULT_H2_WORKERS);
-					this.Log("ConceptServer", "Initializing $workers_count HTTP/2 workers");
+					console.info(LOG_THIS, "Initializing $workers_count HTTP/2 workers");
 					for (i = 0; i < workers_count; i++)
 						H2Workers[i] = new Worker("ConceptH2Worker", h2worker_init_parameters);
 				}
@@ -5858,10 +5836,12 @@ class ConceptServer extends RewriteContainer extends IniCache {
 		var pwd  = this.IniKey("Server", "UserPassword", "");
 
 		if (!SetCurrentUser(user, pwd))
-			this.Log("ConceptServer", "WARNING: cannot change user to $user");
+			console.warn(LOG_THIS, "cannot change user to $user");
 		pwd = "";
 
 		this.LogFile = IniGetPath("Paths", "LogFile", "");
+		if (this.LogFile)
+			console.use_file(this.LogFile);
 		var loop = new Greenloop();
 		this.Loop = loop;
 
@@ -5918,17 +5898,18 @@ class Main {
 			ini_file = "/etc/concept.ini";
 		if (!FileExists(ini_file))
 			ini_file = getcwd()+"/concept.ini";
-		
+
+		console.level(LOG_LEVEL);		
 		var s = new ConceptServer(ini_file);
 		if (USE_TLS_PROXY) {
 			if (ExecuteProcess("concept", ".", ["-mt", "ConceptTLSProxyServer.con"], [ ], false) < 0)
-				s.Log("ConceptServer", "Error initializing Concept SSL proxy");
+				console.error(LOG_THIS, "Error initializing Concept SSL proxy");
 		}
 		if (USE_DB_SERVICE) {
 			if (ExecuteProcess("concept", ".", ["TinDB.con"], [ ], false) < 0) {
 				if (ExecuteProcess(getcwd() + "/concept", ".", ["TinDB.con"], [ ], false) < 0)
 					if (ExecuteProcess("/usr/local/bin/concept", ".", ["TinDB.con"], [ ], false) < 0)
-						s.Log("ConceptServer", "Error running database service");
+						console.error(LOG_THIS, "Error running database service");
 			}
 		}
 
