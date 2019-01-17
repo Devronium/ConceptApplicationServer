@@ -181,7 +181,7 @@ class session {
 					}
 				}
 			} catch (var exc) {
-				echo exc;
+				console.error(LOG_THIS, exc);
 			}
 			this.removesession(sessionid);
 		}
@@ -233,7 +233,7 @@ class Main {
 		if (obj)
 			MainLoop();
 		else
-			echo "Cannot start: no app class defined";
+			console.error(LOG_THIS, "Cannot start: no app class defined");
 	}
 }
 
@@ -444,7 +444,7 @@ class _webrequest {
 		this.sync();
 		web.requests--;
 		done();
-		echo "Request fulfilled in ${microseconds()/1000 - this.timestamp}ms\n";
+		console.info(LOG_THIS, "Request fulfilled in ${microseconds()/1000 - this.timestamp}ms");
 	}
 }
 
@@ -613,7 +613,7 @@ class web {
 	}
 
 	static exit() {
-		echo "Worker closed\n";
+		console.info(LOG_THIS, "Worker closed");
 		Worker::Result(BinarizeObject([["do" => "drop"]]));
 		QuitLoop();
 	}

@@ -50,8 +50,10 @@ ConceptLogContext *get_log_context(PIFAlizator *pif) {
     PIFAlizator *parentPIF = (PIFAlizator *)pif->parentPIF;
     while (parentPIF) {
         if (parentPIF->log_context) {
+            semp(parentPIF->log_context->loglock);
             pif->log_context = parentPIF->log_context;
             pif->log_context->links ++;
+            semv(parentPIF->log_context->loglock);
             return pif->log_context;
         }
         parentPIF = (PIFAlizator *)parentPIF->parentPIF;
@@ -184,6 +186,13 @@ void PIFAlizator::AcknoledgeRunTimeError(SCStack *STACK_TRACE, AnsiException *Ex
             buf_size = 0;
         memcpy(buf + buf_size, plainstring_c_str(&cstack), plainstring_len(&cstack));
         out->ClientError(buf);
+        if (this->log_context) {
+            Exc->ToString(buf, &buf_size, 1);
+            // remove new line at the end
+            if (buf_size > 0)
+                buf[buf_size - 1] = 0;
+            log_log(this, 4, Exc->GetFileName(), Exc->GetLine(), buf);
+        }
         free(buf);
     }
     Errors.Add(Exc, DATA_EXCEPTION);
@@ -552,7 +561,9 @@ PIFAlizator::~PIFAlizator(void) {
         }
     }
     if (this->log_context) {
+        semp(this->log_context->loglock);
         this->log_context->links --;
+        semv(this->log_context->loglock);
         if (!this->log_context->links) {
             if (this->log_context->logfile)
                 fclose(this->log_context->logfile);

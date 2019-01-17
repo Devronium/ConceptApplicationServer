@@ -3961,11 +3961,6 @@ class QuerySyncWorker {
 	protected var node_checksum = "";
 	protected var ServerSocket;
 
-	Log(str) {
-		var now = trim(StrReplace(ctime(time()), "\r", ""));
-		echo "$now: $str\n";
-	}
-
 	RemoveOffsetKey(p, var has_key_offset) {
 		var keys = GetKeys(p);
 		var new_p = new [];
@@ -4009,7 +4004,7 @@ class QuerySyncWorker {
 			if ((typeof obj.p == "array") && (IsSet(obj.p, '$'))) {
 				obj.p = RemoveOffsetKey(obj.p, var has_key_offset);
 				if ((has_key_offset) && (!obj.p)) {
-					this.Log("Broken query received (has key offset, but no other parameters)");
+					console.error(LOG_THIS, "Broken query received (has key offset, but no other parameters)");
 					return;
 				}
 			}
@@ -4031,7 +4026,7 @@ class QuerySyncWorker {
 					break;
 			}
 			if (TIN_CLUSTER_LOG)
-				this.Log("Added '${obj.o}' to queue");
+				console.info(LOG_THIS, "Added '${obj.o}' to queue");
 			AddWorkerData(worker, BinarizeObject([-20, obj]));
 		}
 		return wait_confirmation;
@@ -4045,7 +4040,7 @@ class QuerySyncWorker {
 				try {
 					if (socket.Connect(node.host, node.port)) {
 						if (TIN_CLUSTER_LOG)
-							this.Log("Connected to node ${node.host}:${node.port}");
+							console.info(LOG_THIS, "Connected to node ${node.host}:${node.port}");
 						var sockfd = socket.Socket;	
 						// no autoclose
 						socket.Socket = -1;
@@ -4322,7 +4317,7 @@ class QuerySyncWorker {
 			var ip = info["address"];
 			if (ValidIP(ip)) {
 				if (TIN_CLUSTER_LOG)
-					this.Log("Connected input node $ip");
+					console.info(LOG_THIS, "Connected input node $ip");
 				AddSocket(sockfd, ip, 0);
 				return true;
 			}
@@ -4404,7 +4399,7 @@ class QuerySyncWorker {
 				if ("QSHA:" + sha1(buf) == written_buf_hash) {
 					localjournal.Log(buf, "sync", opid++, 3);
 					if (TIN_CLUSTER_LOG)
-						this.Log("ACK $written_buf_hash");
+						console.info(LOG_THIS, "ACK $written_buf_hash");
 				} else
 					wait_confirmation[length wait_confirmation] = buf;
 			}
@@ -4719,7 +4714,7 @@ class Main {
 	}
 
 	Main() {
-		echo "Initializing Tinbase...\n";
+		console.info(LOG_THIS, "Initializing Tinbase...");
 		var ini_file = "/usr/local/etc/concept.ini";
 		if (!FileExists(ini_file))
 			ini_file="/usr/etc/concept.ini";
@@ -4739,7 +4734,7 @@ class Main {
 		}
 		if (user) {
 			if (!SetCurrentUser(user, password))
-				echo "TinDB WARNING: cannot change user to $user\n";
+				console.warn(LOG_THIS, "cannot change user to $user");
 		}
 		var default_db_path = "/var/lib/concept";
 		if (ON_MSWINDOWS)
@@ -4747,18 +4742,18 @@ class Main {
 		var root = RealPath(IniGetPath(ini_file, "Paths", "DB", default_db_path));
 		_mkdir(root);
 		if ((!root) || (_chdir(root))) {
-			echo "Error initializing DB engine\nCannot chdir to '$root'\n";
+			console.critical(LOG_THIS, "Error initializing DB engine: cannot chdir to '$root'");
 			return -1;
 		}
-		echo "Performing database check ...\n";
+		console.info(LOG_THIS, "Performing database check ...");
 		if (!TinDB::Check()) {
 			echo "Database seems to be corrupted.\n";
 			return -1;
 		}
-		echo "Done, database seems to be OK\n";
+		console.info(LOG_THIS, "Done, database seems to be OK");
 		TinDB::InitializeDatabases();
 		var db = new TinDB(machineid);
-		echo "Listening\n";
+		console.info(LOG_THIS, "Listening");
 		db.Start();
 	}
 }

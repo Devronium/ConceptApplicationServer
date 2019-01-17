@@ -2045,6 +2045,12 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         (*worker)->pipe_write  = -1;
                         (*worker)->direct_pipe = -1;
                         (*worker)->Workers     = ref_pif->Workers;
+                        if (ref_pif->log_context) {
+                            semp(ref_pif->log_context->loglock);
+                            ref_pif->log_context->links ++;
+                            semv(ref_pif->log_context->loglock);
+                            (*worker)->log_context = ref_pif->log_context;
+                        }
                     }
                     semv(ref_pif->DelegateLock);
                     if ((error_buffer_size > 0) && (error_buffer)) {

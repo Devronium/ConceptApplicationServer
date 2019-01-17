@@ -389,7 +389,7 @@ class BinIndex {
 			}
 
 			index_cache[idxname] = null;
-			echo "Error #${_errno()} reopening index $idxname\n";
+			console.error(LOG_THIS, "Error #${_errno()} reopening index $idxname");
 			return null;
 		}
 		if (Locked == 2)
@@ -612,7 +612,7 @@ class BinIndex {
 						if (sync)
 							f.DataSync();
 					} catch (var exc) {
-						echo "Index flush error: $exc\n";
+						console.error(LOG_THIS, "Index flush error: $exc");
 					}
 				}
 			}
@@ -639,13 +639,13 @@ class BM25Index {
 				word_format = "U32";
 			file = FixedStorageHelper::Create(basename + ".words", "r+b", ["w" => word_format, "d" => "U64", "a" => "U64", "l" => "U32"]);
 			if (!file.Open()) {
-				echo "Error #${_errno()} opening BM25 index (words): " + file.Name + "\n";
+				console.error(LOG_THIS, "Error #${_errno()} opening BM25 index (words): " + file.Name);
 				file = null;
 				return;
 			}
 			wordsfile = FixedStorageHelper::Create(basename + ".all", "r+b", ["w" => word_format, "a" => "U64"]);
 			if (!wordsfile.Open()) {
-				echo "Error #${_errno()} opening BM25 index (all): " + wordsfile.Name + "\n";
+				console.error(LOG_THIS, "Error #${_errno()} opening BM25 index (all): " + wordsfile.Name);
 				wordsfile = null;
 				file = null;
 				return;
@@ -656,7 +656,7 @@ class BM25Index {
 			graph_structure["d"] = "U64";
 			graphfile = FixedStorageHelper::Create(basename + ".graph", "r+b", graph_structure);
 			if (!graphfile.Open()) {
-				echo "Error #${_errno()} opening BM25 index (graph): " + graphfile.Name + "\n";
+				console.error(LOG_THIS, "Error #${_errno()} opening BM25 index (graph): " + graphfile.Name);
 				wordsfile = null;
 				file = null;
 				graphfile = null;
@@ -675,7 +675,7 @@ class BM25Index {
 				// graphfile.EnsureIndex(["a", "b", "d"]);
 				graphfile.EnsureIndex("d");
 			} catch (var exc) {
-				echo "BM25 index error: $exc\n";
+				console.error(LOG_THIS, "BM25 index error: $exc");
 			}
 		}
 	}
@@ -683,15 +683,15 @@ class BM25Index {
 	Reopen() {
 		if (file) {
 			if (!file.Open())
-				echo "Error #${_errno()} opening BM25 index (words): " + file.Name + "\n";
+				console.error(LOG_THIS, "Error #${_errno()} opening BM25 index (words): " + file.Name);
 		}
 		if (wordsfile) {
 			if (!wordsfile.Open())
-				echo "Error #${_errno()} opening BM25 index (all): " + wordsfile.Name + "\n";
+				console.error(LOG_THIS, "Error #${_errno()} opening BM25 index (all): " + wordsfile.Name);
 		}
 		if (graphfile) {
 			if (!graphfile.Open())
-				echo "Error #${_errno()} opening BM25 index (graph): " + graphfile.Name + "\n";
+				console.error(LOG_THIS, "Error #${_errno()} opening BM25 index (graph): " + graphfile.Name);
 		}
 	}
 
@@ -1095,7 +1095,7 @@ class BM25Index {
 							update_index = false;
 						wordsfile.Store(w, update_index);
 					} catch (var exc) {
-						echo "BM25 dumpcache error: $exc\n";
+						console.error(LOG_THIS, "BM25 dumpcache error: $exc");
 					}
 				}
 			}
@@ -1204,7 +1204,7 @@ class BM25Index {
 									wordsfile.Store(w, update_index, false);
 
 							} catch (var exc) {
-								echo "BM25 store error: $exc\n";
+								console.error(LOG_THIS, "BM25 store error: $exc");
 								return false;
 							}
 						}
@@ -2297,14 +2297,14 @@ class BinFile extends File {
 							if ((length wordcache[1] >= BM25_MAX_WORDCACHE) || (length wordcache[2] >= BM25_MAX_WORDCACHE))
 								bm25.dumpcache(null, wordcache[1], wordcache[2]);
 						} catch (var exc) {
-							echo "Error in bm25.update $exc\n";
+							console.error(LOG_THIS, "Error in bm25.update $exc");
 						}
 					} else {
 						bm25.SetIndexLock(2);
 						try {
 							bm25.update(bm25_document, id, changed_keys, graph, true, null, null, null, orig_id > 0);
 						} catch (exc) {
-							echo "Error in bm25.update $exc\n";
+							console.error(LOG_THIS, "Error in bm25.update $exc");
 						}
 						bm25.SetIndexLock(false);
 						if (exc)
@@ -2342,7 +2342,7 @@ class BinFile extends File {
 						// to do
 						var string_val = "" + this.GetObjectFieldsAsString(c, key[1], var field_count, extra_obj);
 						if ((field_count) && (!_Index.Put(id, key[0], string_val))) {
-							echo "Error writing composite index\n";
+							console.error(LOG_THIS, "Error writing composite index");
 							// to do
 							// this._Delete(id, false, false);
 						}
@@ -2351,14 +2351,14 @@ class BinFile extends File {
 						if (!_Index.Put(id, key, c[key])) {
 							// to do
 							// this._Delete(id, false, false);
-							echo "Error writing index $key\n";
+							console.error(LOG_THIS, "Error writing index $key");
 						}
 					} else
 					if (this.IsSet2(c, StrSplit(key, "."), var v)) {
 						if (!_Index.Put(id, key, v)) {
 							// to do
 							// this._Delete(id, false, false);
-							echo "Error writing index $key\n";
+							console.error(LOG_THIS, "Error writing index $key");
 						}
 					}
 				}
@@ -2864,7 +2864,7 @@ class BinFile extends File {
 			if ((Indexes) && (update_index))
 				this.RemoveIndexes(UnBinarizeObject(obj, 0, MinIndexFields), id);
 		} catch (var exc) {
-			echo "Exception: $exc\n";
+			console.error(LOG_THIS, "Exception: $exc");
 			return false;
 		}
 
@@ -3034,7 +3034,7 @@ class BinFile extends File {
 				fseek(hFile, pos, SEEK_SET);
 			}, field);
 		} catch (exc) {	
-			echo exc;
+			console.error(LOG_THIS, exc);
 		}
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
 		_Index.Locked = false;
@@ -3146,7 +3146,7 @@ class BinFile extends File {
 				fseek(hFile, pos, SEEK_SET);
 			}, [fields, index_name]);
 		} catch (exc) {
-			echo exc;
+			console.error(LOG_THIS, exc);
 		}
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
 		_Index.Locked = false;
@@ -3799,7 +3799,7 @@ class BinFile extends File {
 				this.Flush();
 				this.DataSync();
 			} catch (var exc) {
-				echo "FlushDB error: $exc\n";
+				console.error(LOG_THIS, "FlushDB error: $exc");
 			}
 		}
 		if (flush_index) {
@@ -4076,14 +4076,14 @@ changed_keys = null;
 							if ((length wordcache[1] >= BM25_MAX_WORDCACHE) || (length wordcache[2] >= BM25_MAX_WORDCACHE))
 								bm25.dumpcache(null, wordcache[1], wordcache[2]);
 						} catch (var exc) {
-							echo "Error in bm25.update $exc\n";
+							console.error(LOG_THIS, "Error in bm25.update $exc");
 						}
 					} else {
 						bm25.SetIndexLock(2);
 						try {
 							bm25.update(bm25_document, id, changed_keys, graph, true, null, null, null, orig_id > 0);
 						} catch (exc) {
-							echo "Error in bm25.update $exc\n";
+							console.error(LOG_THIS, "Error in bm25.update $exc");
 						}
 						bm25.SetIndexLock(false);
 						if (exc)
@@ -4276,7 +4276,7 @@ changed_keys = null;
 			if ((Indexes) && (update_index))
 				this.RemoveIndexes(variableunpack(obj), id);
 		} catch (var exc) {
-			echo "Exception: $exc\n";
+			console.error(LOG_THIS, "Exception: $exc");
 			return false;
 		}
 
