@@ -319,6 +319,63 @@ CONCEPT_FUNCTION_IMPL(formatdate, 2)
     }
 END_IMPL
 
+CONCEPT_FUNCTION_IMPL(log_log, 4)
+    T_NUMBER(log_log, 0)
+    T_STRING(log_log, 1)
+    T_NUMBER(log_log, 2)
+    T_STRING(log_log, 3)
+    PIFAlizator *PIF = (PIFAlizator *)PARAMETERS->PIF;
+    ConceptLogContext *context = get_log_context(PIF);
+    if (!context) {
+        RETURN_NUMBER(0);
+        return 0;
+    }
+    log_log(PIF, PARAM_INT(0), PARAM(1), PARAM_INT(2), PARAM(3));
+    RETURN_NUMBER(1);
+END_IMPL
+
+CONCEPT_FUNCTION_IMPL(log_level, 1)
+    T_NUMBER(log_level, 0)
+    PIFAlizator *PIF = (PIFAlizator *)PARAMETERS->PIF;
+    ConceptLogContext *context = get_log_context(PIF);
+    if (!context) {
+        RETURN_NUMBER(0);
+        return 0;
+    }
+    context->loglevel = PARAM_INT(0);
+    RETURN_NUMBER(1);
+END_IMPL
+
+CONCEPT_FUNCTION_IMPL(log_quiet, 1)
+    T_NUMBER(log_quiet, 0)
+    PIFAlizator *PIF = (PIFAlizator *)PARAMETERS->PIF;
+    ConceptLogContext *context = get_log_context(PIF);
+    if (!context) {
+        RETURN_NUMBER(0);
+        return 0;
+    }
+    context->quiet = PARAM_INT(0) ? 1 : 0;
+    RETURN_NUMBER(1);
+END_IMPL
+
+CONCEPT_FUNCTION_IMPL(log_colors, 1)
+    T_NUMBER(log_quiet, 0)
+    PIFAlizator *PIF = (PIFAlizator *)PARAMETERS->PIF;
+    ConceptLogContext *context = get_log_context(PIF);
+    if (!context) {
+        RETURN_NUMBER(0);
+        return 0;
+    }
+    context->colors = PARAM_INT(0) ? 1 : 0;
+    RETURN_NUMBER(1);
+END_IMPL
+
+CONCEPT_FUNCTION_IMPL(log_file, 1)
+    T_STRING(log_quiet, 0)
+    int is_set = log_use_file((PIFAlizator *)PARAMETERS->PIF, PARAM(0));
+    RETURN_NUMBER(is_set);
+END_IMPL
+
 CONCEPT_FUNCTION_IMPL(allocinfo, 0)
     CREATE_ARRAY(RESULT);
 #ifdef USE_DLMALLOC
@@ -564,6 +621,14 @@ void BUILTININIT(void *pif) {
     DEFINE2(DBL_MAX_10_EXP, "308");
     DEFINE2(DBL_DIG, "15");
     DEFINE2(DBL_MANT_DIG, "53");
+
+    DEFINE2(LOG_TRACE, "0");
+    DEFINE2(LOG_DEBUG, "1");
+    DEFINE2(LOG_INFO, "2");
+    DEFINE2(LOG_WARN, "3");
+    DEFINE2(LOG_ERROR, "4");
+    DEFINE2(LOG_FATAL, "5");
+    DEFINE2(LOG_THIS, "@filename, @line");
 
     srand((unsigned)time(NULL));
     tzset();
@@ -897,6 +962,105 @@ int BUILTINOBJECTS(void *pif, const char *classname) {
             "}"
         "}"
     );
+    BUILTINCLASS("console", ""
+        "class console {"
+            "static arraytostring(array) {"
+        		"var str = \"\";"
+		        "for (var i = 0; i < length array; i++) {"
+			        "var e = array[i];"
+				     "if (str)"
+					     "str += \", \";"
+                    "switch (typeof e) {"
+                        "case \"string\":"
+                        "case \"numeric\":"
+				            "str += e;"
+                            "break;"
+                        "case \"class\":"
+				            "str += classof e;"
+                            "break;"
+                        "default:"
+				            "str += typeof e;"
+		            "}"
+		        "}"
+		        "return str;"
+            "}"
+            "static tostring(what) {"
+                "switch (typeof what) {"
+                    "case \"string\":"
+                        "return what;"
+                    "case \"numeric\":"
+                        "return \"\" + what;"
+                    "case \"class\":"
+                        "return classof what;"
+                    "case \"array\":"
+                        "return \"[\" + console::arraytostring(what) + \"]\";"
+                    "default:"
+                        "return typeof what;"
+                "}"
+            "}"
+            "static trace(filename, line = 0, what = \"\") {"
+                "if (!what) {"
+                "   what = filename;"
+                "   filename = \"builtin\";"
+                "   line = 1;"
+                "}"
+                "log_log(LOG_TRACE, filename, line, console.tostring(what));"
+            "}"
+            "static debug(filename, line = 0, what = \"\") {"
+                "if (!what) {"
+                "   what = filename;"
+                "   filename = \"builtin\";"
+                "   line = 1;"
+                "}"
+                "log_log(LOG_DEBUG, filename, line, console.tostring(what));"
+            "}"
+            "static log(filename, line = 0, what = \"\") {"
+                "if (!what) {"
+                "   what = filename;"
+                "   filename = \"builtin\";"
+                "   line = 1;"
+                "}"
+                "log_log(LOG_DEBUG, filename, line, console.tostring(what));"
+            "}"
+            "static warn(filename, line = 0, what = \"\") {"
+                "if (!what) {"
+                "   what = filename;"
+                "   filename = \"builtin\";"
+                "   line = 1;"
+                "}"
+                "log_log(LOG_WARN, filename, line, console.tostring(what));"
+            "}"
+            "static error(filename, line = 0, what = \"\") {"
+                "if (!what) {"
+                "   what = filename;"
+                "   filename = \"builtin\";"
+                "   line = 1;"
+                "}"
+                "log_log(LOG_ERROR, filename, line, console.tostring(what));"
+            "}"
+            "static critical(filename, line = 0, what = \"\") {"
+                "if (!what) {"
+                "   what = filename;"
+                "   filename = \"builtin\";"
+                "   line = 1;"
+                "}"
+                "log_log(LOG_FATAL, filename, line, console.tostring(what));"
+            "}"
+            "static colors(enabled = 1) {"
+                "log_colors(enabled);"
+            "}"
+            "static level(level) {"
+                "log_level(level);"
+            "}"
+            "static use_file(string path) {"
+                "return log_file(path);"
+            "}"
+            "static quiet(quiet = 1) {"
+                "log_quiet(quiet);"
+            "}"
+        "}"
+    );
+
     return 0;
 }
 
@@ -956,6 +1120,12 @@ void *BUILTINADDR(void *pif, const char *name, unsigned char *is_private) {
     BUILTIN(CheckReachability);
     BUILTIN(MemoryInfo);
     BUILTIN(allocinfo);
+
+    BUILTIN(log_log);
+    BUILTIN(log_level);
+    BUILTIN(log_quiet);
+    BUILTIN(log_colors);
+    BUILTIN(log_file);
 #ifndef DISABLE_INTROSPECTION
     BUILTIN(bytecode)
     BUILTIN(bytedata)

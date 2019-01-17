@@ -212,6 +212,16 @@ typedef struct {
 
 int ClearVariablesByCLSID(void *PIF, int CLSID);
 
+typedef struct {
+    FILE       *logfile;
+    HHSEM      loglock;
+    int        loglevel;
+    char       colors;
+    char       quiet;
+    void       *owner;
+    int        links;
+} ConceptLogContext;
+
 class PIFAlizator {
 public:
     StaticList *GeneralMembers;
@@ -379,6 +389,8 @@ public:
 
     char is_buffer;
 
+    ConceptLogContext *log_context;
+
 #ifdef PRINT_DEBUG_INFO
     AnsiString DEBUG_CLASS_CONFIGURATION();
     AnsiString DEBUG_INFO();
@@ -420,5 +432,9 @@ public:
     void EnsureThreadSafe();
     static void Shutdown();
 };
+
+ConceptLogContext *get_log_context(PIFAlizator *pif);
+void log_log(PIFAlizator *pif, int level, const char *file, int line, const char *data);
+int log_use_file(PIFAlizator *pif, const char *filename);
 #endif //__PIFALIZATOR_H
 

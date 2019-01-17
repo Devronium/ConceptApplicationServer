@@ -15,6 +15,9 @@
 #include <time.h>
 #ifdef _WIN32
  #include <io.h>
+ #include <windows.h>
+#else
+ #include <sys/time.h>
 #endif
 #ifndef NO_BUILTIN_REGEX
 extern "C" {
@@ -33,6 +36,104 @@ CHECK_POINT     PIFAlizator::CheckPoint           = 0;
 SECURE_MESSAGE  SimpleStream::send_secure_message = 0;
 HHSEM           PIFAlizator::WorkerLock;
 char            PIFAlizator::WorkerLockInitialized= 0;
+
+static const char *level_names[] = { "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
+static const char *level_colors[] = { "\x1b[94m", "\x1b[36m", "\x1b[32m", "\x1b[33m", "\x1b[31m", "\x1b[35m" };
+
+ConceptLogContext *get_log_context(PIFAlizator *pif) {
+    if (!pif)
+        return NULL;
+
+    if (pif->log_context)
+        return pif->log_context;
+
+    PIFAlizator *parentPIF = (PIFAlizator *)pif->parentPIF;
+    while (parentPIF) {
+        if (parentPIF->log_context) {
+            pif->log_context = parentPIF->log_context;
+            pif->log_context->links ++;
+            return pif->log_context;
+        }
+        parentPIF = (PIFAlizator *)parentPIF->parentPIF;
+    }
+    pif->log_context = (ConceptLogContext *)malloc(sizeof(ConceptLogContext));
+    pif->log_context->logfile = NULL;
+    pif->log_context->loglevel = 0;
+    seminit(pif->log_context->loglock, 1);
+#ifdef _WIN32
+    HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD fdwSaveOldMode;
+    GetConsoleMode(hStdout, &fdwSaveOldMode);
+    if (SetConsoleMode(hStdout, fdwSaveOldMode | 0x0004))
+        pif->log_context->colors = 1;
+    else
+        pif->log_context->colors = 0;
+#else
+    pif->log_context->colors = 1;
+#endif
+    pif->log_context->quiet = 0;
+    pif->log_context->owner = pif;
+    pif->log_context->links = 1;
+
+    return pif->log_context;
+}
+
+#ifdef _WIN32
+int gettimeofday(struct timeval *tv, struct timezone *tz);
+#endif
+void log_log(PIFAlizator *pif, int level, const char *file, int line, const char *data) {
+    ConceptLogContext *log_context = get_log_context(pif);
+    if (!log_context)
+        return;
+
+    if ((level < log_context->loglevel) || (level < 0) || (level > 5))
+        return;
+
+    semp(log_context->loglock);
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    uint64_t now = (uint64_t)(tv.tv_sec) * 1000 + (uint64_t)(tv.tv_usec) / 1000;
+
+    time_t t = (time_t)(now/1000);
+    struct tm *lt = localtime(&t);
+
+    if (!log_context->quiet) {
+        char buf[16];
+        buf[strftime(buf, sizeof(buf), "%H:%M:%S", lt)] = '\0';
+        if (log_context->colors)
+            fprintf(stderr, "%s.%03d %s%-5s\x1b[0m \x1b[90m%s:%d:\x1b[0m %s\n", buf, (int)(now % 1000), level_colors[level], level_names[level], file, line, data);
+        else
+            fprintf(stderr, "%s.%03d %-5s %s:%d: %s\n", buf, (int)(now % 1000), level_names[level], file, line, data);
+        fflush(stderr);
+    }
+
+    if (log_context->logfile) {
+        char buf[32];
+        buf[strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", lt)] = '\0';
+        fprintf(log_context->logfile, "%s.%03d %-5s %s:%d: %s\n", buf, (int)(now % 1000), level_names[level], file, line, data);
+        fflush(log_context->logfile);
+    }
+    semv(log_context->loglock);
+}
+
+int log_use_file(PIFAlizator *pif, const char *filename) {
+    ConceptLogContext *log_context = get_log_context(pif);
+    if (!log_context)
+        return 0;
+
+    if (log_context->logfile)
+        fclose(log_context->logfile);
+
+    log_context->logfile = fopen(filename, "ab");
+    if (!log_context->logfile)
+        log_context->logfile = fopen(filename, "wb");
+
+    if (log_context->logfile)
+        return 1;
+
+    return 0;
+}
 
 void PIFAlizator::Shutdown() {
     if (PIFAlizator::WorkerLockInitialized) {
@@ -314,6 +415,7 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     this->in_gc              = 0;
     this->TSClassCount       = 0;
     this->Workers            = 0;
+    this->log_context        = 0;
 
 #ifdef DEBUGGER_VAR_NAMES
     HashTable_init(&this->DebugVarNames);
@@ -447,6 +549,15 @@ PIFAlizator::~PIFAlizator(void) {
         if (ptr) {
             fprintf(stderr, "WARNING: %i bytes at address %X allocated in static library was not freed\n", (int)MemoryTable_val(&this->LibraryAllocations, it), ptr);
             FAST_FREE(this, ptr);
+        }
+    }
+    if (this->log_context) {
+        this->log_context->links --;
+        if (!this->log_context->links) {
+            if (this->log_context->logfile)
+                fclose(this->log_context->logfile);
+            semdel(this->log_context->loglock);
+            free(this->log_context);
         }
     }
     MemoryTable_deinit(&this->LibraryAllocations);
