@@ -309,7 +309,7 @@ class Journal {
 		if ((!FileExists(name)) || (_filesize(name) < 64)) {
 			var header = pack("sU32:64", "Journal file", time());
 			WriteFile(header, name);
-			echo "Creating journal file $name\n";
+			console.info(LOG_THIS, "Creating journal file $name");
 		}
 		this.Open(name);
 	}
@@ -326,17 +326,17 @@ class Journal {
 			f.Read(var buf, 4);
 			last_cleanup = unpack("U32", buf)[0];
 			if (!LockFileBytes(f.Handle, F_SETLKW, 0, 0))
-				echo "Error locking file $name\n";
+				console.warn(LOG_THIS, "Error locking file $name");
 			f.Seek(0, SEEK_END);
 		} else {
-			echo "Error opening $name\n";
+			console.error(LOG_THIS, "Error opening $name");
 			f = null;
 		}
 		last_sync = microseconds();
 	}
 
 	static Truncate(name, offset) {
-		echo "Truncating invalid journal file at offset $offset\n";
+		console.warn(LOG_THIS, "Truncating invalid journal file at offset $offset");
 		var f2 = new File("wb");
 		f2.Name = name;
 		if (f2.Open()) {
@@ -344,7 +344,7 @@ class Journal {
 				f2.Truncate(offset);
 				f2.Close();
 			} catch (var exc) {
-				echo "Error truncating file $name: $exc\n";
+				console.error(LOG_THIS, "Error truncating file $name: $exc");
 			}
 		}
 	}
@@ -402,7 +402,7 @@ class Journal {
 			} else
 				f2 = null;
 		} catch (var exc) {
-			echo "Error in journal read: $exc\n";
+			console.error(LOG_THIS, "Error in journal read: $exc");
 			if (f2)
 				f2.Close();
 		}
@@ -427,14 +427,14 @@ class Journal {
 		try {
 			if (f2.Open()) {
 				if (!f2.Seek(12))
-					throw "Error in seek: ${_errno()}";
+					throw "error in seek: ${_errno()}";
 				f2.Read(var buf, 4);
 				if (length buf != 4)
-					throw "Error in journal\n";
+					throw "invalid buffer size";
 				var newerthan = unpack("U32", buf)[0];
 
 				if (!f2.Seek(64))
-					throw "Error in seek: ${_errno()}";
+					throw "error in seek: ${_errno()}";
 				do {
 					truncate_at = f2.Tell();
 					if (f2.Read(buf, 27) != 27)
@@ -454,7 +454,7 @@ class Journal {
 						}
 						if (record[5] != Murmur(buffer)) {
 							hash_error  = true;
-							throw "Hash failed";
+							throw "hash failed";
 							break;
 						}
 						if (f2.Read(collection, collection_size) != collection_size) {
@@ -479,7 +479,7 @@ class Journal {
 			} else
 				f2 = null;
 		} catch (var exc) {
-			echo "Error in journal read: $exc\n";
+			console.error(LOG_THIS, "Error in journal read: $exc");
 			if (f2)
 				f2.Close();
 		}
@@ -540,7 +540,7 @@ class Journal {
 							var t = new BinFile(key, "r+b", DEFAULT_MODULO_SIZE, false);
 							try {
 								if (!t.Open()) {
-									echo "Error opening file $key, errno: ${_errno()}\n";
+									console.error(LOG_THIS, "Error opening file $key, errno: ${_errno()}");
 									broken_collections[key] = key;
 									db_is_ok = false;
 									continue;
@@ -549,31 +549,31 @@ class Journal {
 								t.Seek(id);
 								var ref_obj = Journal::StripPadding(t.GetOne(id));
 								t.Close();
-								echo "Last write($type) for database $db, collection $collection was: ${obj['$']}, on ${ctime(obj["time"])}";
+								console.info(LOG_THIS, "Last write($type) for database $db, collection $collection was: ${obj['$']}, on ${StrReplace(ctime(obj["time"]), '\n', '')}");
 								if (obj["flags"] == 3) {
 									if (ref_obj) {
-										echo "Deleted object retrieved for id ($id). Database may be corrupted (file: $key)\n";
+										console.warn(LOG_THIS, "Deleted object retrieved for id ($id). Database may be corrupted (file: $key)");
 										db_is_ok = false;
 										broken_collections[key] = key;
 										continue;
 									}
 								} else {
 									if (!ref_obj) {
-										echo "Null object retrieved for id ($id). Database may be corrupted (file: $key)\n";
+										console.warn(LOG_THIS, "Null object retrieved for id ($id). Database may be corrupted (file: $key)");
 										db_is_ok = false;
 										broken_collections[key] = key;
 										continue;
 									} else
 									if (ref_obj != Journal::StripPadding(obj["data"])) {
-										echo "Stored object is not the same as logged object. Database may be corrupted (file: $key)\n";
+										console.warn(LOG_THIS, "Stored object is not the same as logged object. Database may be corrupted (file: $key)");
 										db_is_ok = false;
 										broken_collections[key] = key;
 										continue;
 									}
 								}
-								echo "Object is OK\n";
+								console.info(LOG_THIS, "Object is OK");
 							} catch (var exc) {
-								echo "I/O Error: $exc\n";
+								console.error(LOG_THIS, "I/O Error: $exc");
 								return false;
 							}
 						}
@@ -629,7 +629,7 @@ class Journal {
 					this.Done();
 					_unlink(name);
 					if (rename(name + ".clean", name))
-						throw  "Error in rename ${name}.clean to $name, errno: ${_errno()}\n";
+						throw "Error in rename ${name}.clean to $name, errno: ${_errno()}\n";
 
 					this.Open(name);
 				}
@@ -637,7 +637,7 @@ class Journal {
 		} catch (var exc) {
 			if (f)
 				f.Seek(0, SEEK_END);
-			echo exc;
+			console.error(LOG_THIS, exc);
 		}
 		last_cleanup = time();
 	}
@@ -698,7 +698,7 @@ class Journal {
 
 					_unlink(name);
 					if (rename(name + ".clean", name))
-						throw  "Error in rename ${name}.clean to $name, errno: ${_errno()}\n";
+						throw "Error in rename ${name}.clean to $name, errno: ${_errno()}\n";
 
 					this.Open(name);
 				} else {
@@ -713,7 +713,7 @@ class Journal {
 				this.Done();
 				this.Open(name);
 			}
-			echo exc;
+			console.error(LOG_THIS, exc);
 		}
 		last_cleanup = time();
 	}
@@ -730,7 +730,7 @@ class Journal {
 					throw "Error in log reset ${name}, errno: ${_errno()}\n";
 			}
 		} catch (var exc) {
-			echo exc;
+			console.error(LOG_THIS, exc);
 		}
 		last_cleanup = time();
 	}
@@ -743,7 +743,7 @@ class Journal {
 
 				var buffer = pack("U32U64U64U16U8U32", time(), offset, length op_bin, length collection, flags, Murmur(op_bin)) + op_bin + collection;
 				if (f.Write(buffer) != length buffer) {
-					echo "Error writing to log file '${f.Name}', errno: ${_errno()}\n";
+					console.error(LOG_THIS, "Error writing to log file '${f.Name}', errno: ${_errno()}");
 					return false;
 				}
 				if (microseconds() - last_sync >= LOG_SYNC_US) {
@@ -757,7 +757,7 @@ class Journal {
 						Clean(now - LOG_CLEAN_TIMEOUT);
 				}
 			} catch (var exc) {
-				echo "Log error: $exc\n";
+				console.error(LOG_THIS, "Log error: $exc");
 				return false;
 			}
 			return true;
@@ -1096,9 +1096,9 @@ pragma used
 			r.p["cw_id"] = WorkerID;
 		} else
 		if (type == "gc") {
-			echo "Garbage collector forced in worker #${WorkerID}\n";
+			console.info(LOG_THIS, "Garbage collector forced in worker #${WorkerID}");
 			if (CheckReachability())
-				echo " => unreachable objects found\n";
+				console.debug(LOG_THIS, " => unreachable objects found");
 			var total_workers = 1;
 			var worker_gc = BinarizeObject([-100]);
 			var worker_gc_js = BinarizeObject([-9]);
@@ -1236,7 +1236,7 @@ pragma used
 							return;
 						} else
 						if (obj.o == "PONG") {
-							echo "Received ping reply from ${sock}: ${round((microseconds() - obj.p[0])/1000000, 3)}s\n";
+							console.info(LOG_THIS, "Received ping reply from ${sock}: ${round((microseconds() - obj.p[0])/1000000, 3)}s");
 							// silently discard it
 							return;
 						}
@@ -1331,7 +1331,7 @@ pragma used
 					} catch (exc) {
 						r.e = ERR_IO;
 						r.et = ERR_IO_S;
-						echo "Exception: $exc\n";
+						console.error(LOG_THIS, "Exception: $exc");
 					}
 					if ((!obj.io) || (obj.io != current_worker))
 						r.Send(sock, obj.io);
@@ -1356,7 +1356,7 @@ pragma used
 					} catch (exc) {
 						r.e = ERR_IO;
 						r.et = ERR_IO_S;
-						echo "Exception: $exc\n";
+						console.error(LOG_THIS, "Exception: $exc");
 					}
 					if ((!obj.io) || (obj.io != current_worker))
 						r.Send(sock, obj.io);
@@ -1404,9 +1404,9 @@ class JSQueryWorker extends QueryWorkerBase {
 				this.Notify(remote_obj, job[2], true);
 			} else
 			if (socket == -100) {
-				echo "Garbage collector forced in JS query worker\n";
+				console.info(LOG_THIS, "Garbage collector forced in JS query worker");
 				if (CheckReachability())
-					echo " => unreachable objects found\n";
+					console.debug(LOG_THIS, " => unreachable objects found");
 			} else
 			if (socket == -101) {
 				Worker::Set("..//memory//..", WorkerID, BinarizeObject(QueryWorkerBase::WorkerMemory()));
@@ -1489,7 +1489,7 @@ pragma used
 			for (var i = 0; i < length storage_workers; i++) {
 				var deleted = RemoveWorkerData(storage_workers[i], queue_key);
 				if (deleted)
-					echo "Removed $deleted queries from queue (client disconnected)\n";
+					console.info(LOG_THIS, "Removed $deleted queries from queue (client disconnected)");
 			}
 		}
 	}
@@ -1550,7 +1550,7 @@ pragma used
 					}
 				} catch (var exc) {
 					t.ReleaseLock();
-					echo "Exception: $exc\n";
+					console.error(LOG_THIS, "Exception: $exc");
 				}
 			}
 			if (!ctx.auth) {
@@ -1589,10 +1589,10 @@ pragma used
 						if (r.Send(ctx.socket) <= 0)
 							RemoveSocket(ctx.socket);
 						else
-							echo "Sent ping to ${ctx.socket}\n";
+							console.debug(LOG_THIS, "Sent ping to ${ctx.socket}");
 					}
 				} catch (var exc) {
-					echo "Ping exception: $exc\n";
+					console.warn(LOG_THIS, "Ping exception: $exc");
 				}
 			}
 		}
@@ -1642,9 +1642,9 @@ pragma used
 					this.Notify(remote_obj, job[2]);
 				} else
 				if (socket == -100) {
-					echo "Garbage collector forced in worker #${WorkerID}\n";
+					console.info(LOG_THIS, "Garbage collector forced in worker #${WorkerID}");
 					if (CheckReachability())
-						echo " => unreachable objects found\n";
+						console.debug(LOG_THIS, " => unreachable objects found");
 				} else
 				if (socket == -101) {
 					Worker::Set("..//memory//..", WorkerID, BinarizeObject(QueryWorkerBase::WorkerMemory(["sockets" => length sockets, "contexts" => length buffers])));
@@ -1822,7 +1822,7 @@ pragma used
 				try {
 					db.Flush(flush_index);
 				} catch (var exc) {
-					echo "Flush error: $exc\n";
+					console.error(LOG_THIS, "Flush error: $exc");
 				}
 			}
 		}
@@ -1839,7 +1839,7 @@ pragma used
 			for (i = 0; i < length managed_dbs; i++) {
 				var db = managed_dbs[i];
 				if (db) {
-					echo "Resetting triggers in worker #${CurrentWorker()}\n";
+					console.info(LOG_THIS, "Resetting triggers in worker #${CurrentWorker()}");
 					var t2 = db.ReadTriggers();
 					if (typeof t2 == "array")
 						_triggers = t2;
@@ -1858,7 +1858,7 @@ pragma used
 					AddWorkerData(worker, BinarizeObject([-9]));
 			}
 		} else {
-			echo "Resetting JS context in worker #${CurrentWorker()}\n";
+			console.info(LOG_THIS, "Resetting JS context in worker #${CurrentWorker()}");
 			for (i = 0; i < length managed_dbs; i++) {
 				var db = managed_dbs[i];
 				if (db)
@@ -1869,9 +1869,9 @@ pragma used
 
 	ResetDBS(all_workers = false) {
 		if (!all_workers)
-			echo "\t * Resetting storage worker #${CurrentWorker()}\n";
+			console.info(LOG_THIS, "\t * Resetting storage worker #${CurrentWorker()}");
 		else
-			echo "Resetting storage worker #${CurrentWorker()}\n";
+			console.info(LOG_THIS, "Resetting storage worker #${CurrentWorker()}");
 		for (var i = 0; i < length managed_dbs; i++) {
 			var db = managed_dbs[i];
 			if (db) {
@@ -1879,7 +1879,7 @@ pragma used
 			}
 		}
 		if (all_workers) {
-			echo "\tresetting child workers ...\n";
+			console.info(LOG_THIS, "\tresetting child workers ...");
 			for (i = 0; i < length other_workers; i++) {
 				var worker = other_workers[i];
 				if (worker)
@@ -2184,7 +2184,7 @@ pragma used
 					js.script(jstrycatch(data));
 			}
 		} catch (var exc) {
-			echo "Unhandled JSError: $exc\n";
+			console.error(LOG_THIS, "Unhandled JSError: $exc");
 		}
 	}
 
@@ -2196,12 +2196,12 @@ pragma used
 		var js = jsctx[dbname];
 		if (js) {
 			if (js.UserData[1]) {
-				echo "Cannot reset JS context (locked) ...\n";
+				console.warn(LOG_THIS, "Cannot reset JS context (locked) ...");
 				return js;
 			}
 			// recursive
 			if (js.UserData[0]) {
-				echo "Cannot reset JS context (recursive call) ...\n";
+				console.warn(LOG_THIS, "Cannot reset JS context (recursive call) ...");
 				return js;
 			}
 			js.reset();
@@ -2293,7 +2293,7 @@ pragma used
 				}
 			}
 		} catch (var exc) {
-			echo "JSCall exception: $exc\n";
+			console.error(LOG_THIS, "JSCall exception: $exc");
 		}
 	}
 
@@ -2313,7 +2313,7 @@ pragma used
 			if (code) {
 				var load_err = IncludeCode(code);
 				if (load_err) {
-					echo "Stored handler loading error:\n$load_err\n";
+					console.warn(LOG_THIS, "Stored handler loading error:\n$load_err");
 					load_err = "";
 				}
 				code = "";
@@ -2368,7 +2368,7 @@ pragma used
 				f.Close();
 				return written;
 			} catch (var exc) {
-				echo "Error writing to file $filename: $exc\n";
+				console.error(LOG_THIS, "Error writing to file $filename: $exc");
 				return -1;
 			}
 		} 
@@ -2403,7 +2403,7 @@ pragma used
 						}
 						f.Close();
 					} catch (var exc) {
-						echo "Error reading file $filename: $exc\n";
+						console.error(LOG_THIS, "Error reading file $filename: $exc");
 					}
 				}
 			}
@@ -2484,9 +2484,9 @@ pragma used
 				case -100:
 					jsctx = new [];
 					this.CacheReset();
-					echo "Garbage collector forced in worker #StorageWorker${workerid + 1}\n";
+					console.info(LOG_THIS, "Garbage collector forced in worker #StorageWorker${workerid + 1}");
 					if (CheckReachability())
-						echo " => unreachable objects found\n";
+						console.debug(LOG_THIS, " => unreachable objects found");
 					return;
 				case -101:
 					Worker::Set("..//memory//..", "SW${workerid + 1}" , BinarizeObject(QueryWorkerBase::WorkerMemory(["jscontexts" => length jsctx, "dbs" => this.ManagedCollections()])));
@@ -2644,7 +2644,7 @@ pragma used
 					// 					try {
 					// 						r.p['$trigger'] = deleg(t, items);
 					// 					} catch (var deleg_exception) {
-					// 						echo "Uncaught delegate exception: $deleg_exception\n";
+					// 						console.warn(LOG_THIS, "Uncaught delegate exception: $deleg_exception");
 					// 					}
 					// 				}
 					// 			}
@@ -2704,7 +2704,7 @@ pragma used
 
 												var id2 = t.Store(o);
 											} catch (var store_exc) {
-												echo "Store error: $store_exc\n";
+												console.error(LOG_THIS, "Store error: $store_exc");
 												r.e = ERR_INTERNAL;
 												r.et = store_exc;
 												break;
@@ -2730,7 +2730,7 @@ pragma used
 														try {
 															deleg(t, o);
 														} catch (deleg_exception) {
-															echo "Uncaught delegate exception: $deleg_exception\n";
+															console.warn(LOG_THIS, "Uncaught delegate exception: $deleg_exception");
 														}
 													}
 												}
@@ -2801,7 +2801,7 @@ pragma used
 													try {
 														r.p['$trigger'] = deleg(t, obj.p);
 													} catch (deleg_exception) {
-														echo "Uncaught delegate exception: $deleg_exception\n";
+														console.warn(LOG_THIS, "Uncaught delegate exception: $deleg_exception");
 													}
 												}
 											}
@@ -2844,7 +2844,7 @@ pragma used
 													try {
 														r.p['$trigger'] = deleg(t, obj.p);
 													} catch (deleg_exception) {
-														echo "Uncaught delegate exception: $deleg_exception\n";
+														console.warn(LOG_THIS, "Uncaught delegate exception: $deleg_exception");
 													}
 												}
 											}
@@ -2924,7 +2924,7 @@ pragma used
 										if (obj.origp) {
 											data[16]++;
 											if ((sync_worker) && (TIN_FULLOBJECT) && (this.CheckVersion(o, version_oid))) {
-												echo "Older object received, ignoring ${TinDBOid::hex(version_oid)}\n";
+												console.info(LOG_THIS, "Older object received, ignoring ${TinDBOid::hex(version_oid)}");
 												return;
 											}
 										}
@@ -3039,7 +3039,7 @@ pragma used
 													if (deleg)
 														deleg(t, o);
 												} catch (var exc) {
-													echo "Error in update: $exc\n";
+													console.warn(LOG_THIS, "Error in update: $exc");
 												}
 												t.Seek(filepos);
 											}
@@ -3144,7 +3144,7 @@ pragma used
 										if (deleg)
 											deleg(t, o);
 									} catch (var exc) {
-										echo "Error in delete: $exc\n";
+										console.warn(LOG_THIS, "Error in delete: $exc");
 									}
 									t.Seek(filepos);
 								}
@@ -3224,7 +3224,7 @@ pragma used
 							var lang = "en";
 							if ((obj.x) && (obj.x["lang"]))
 								lang = obj.x["lang"];
-							echo "Full text index requested (building index) ...\n";
+							console.info(LOG_THIS, "Full text index requested (building index) ...");
 							var start_time = microseconds();
 							t.Lock();
 							var index_exists = t.EnsureFullTextIndex(obj.p, lang);
@@ -3233,11 +3233,11 @@ pragma used
 							if (index_exists) {
 								r.p["created"] = false;
 								r.p["exists"] = true;
-								echo "Index exists (${end_time/1000}ms)\n";
+								console.debug(LOG_THIS, "Index exists (${end_time/1000}ms)");
 							} else {
 								r.p["created"] = true;
 								r.p["duration"] = end_time/1000;
-								echo "Full text index created in ${end_time/1000}ms\n";
+								console.info(LOG_THIS, "Full text index created in ${end_time/1000}ms");
 								// QueryWorker::InvalidateCache(obj.d, obj.c);
 								QueryWorker::InvalidateCacheSync(obj, syncworker);
 								this.ResetDBS(true);
@@ -3352,7 +3352,7 @@ pragma used
 											else
 												r.p = member();
 										} catch (deleg_exception) {
-											echo "Uncaught delegate exception: $deleg_exception\n";
+											console.warn(LOG_THIS, "Uncaught delegate exception: $deleg_exception");
 										}
 									} else {
 										r.e = ERR_IN_CODE;
@@ -3432,7 +3432,7 @@ pragma used
 									RemoveCollectionFS(obj.d, obj.c);
 									db.Reset();
 								} catch (var exc_drop) {
-									echo "Remove error: $exc_drop\n";
+									console.error(LOG_THIS, "Remove error: $exc_drop");
 									r.e = ERR_COLLECTION;
 									r.et = ERR_COLLECTION_S;
 								}
@@ -3646,7 +3646,7 @@ pragma used
 					try {
 						Execute(UnBinarizeObject(data[i]));
 					} catch (var exc) {
-						echo "Storage worker exception: $exc\n";
+						console.error(LOG_THIS, "Storage worker exception: $exc");
 					}
 					if ((non_flushed_writes) && ((non_flushed_writes > BUSY_FSYNC_LIMIT) || ((time() - last_flush) >= BUSY_FSYNC_TIMEOUT)))
 						this.Flush();
@@ -3930,7 +3930,7 @@ class QueryAggregator {
 							Execute(data[i]);
 					}
 				} catch (var exc) {
-					echo "Storage worker exception: $exc\n";
+					console.error(LOG_THIS, "Storage worker exception: $exc");
 				}
 				data = null;
 			}
@@ -4048,9 +4048,9 @@ class QuerySyncWorker {
 						if (ctx)
 							return sockfd;
 					} else
-						echo "Cannot connect to node ${node.host}:${node.port}\n";
+						console.error(LOG_THIS, "Cannot connect to node ${node.host}:${node.port}");
 				} catch (var exc) {
-					echo "Error connecting to ${node.host}:${node.port}: $exc\n";
+					console.error(LOG_THIS, "Error connecting to ${node.host}:${node.port}: $exc");
 				}
 				// try just next neighbour to mantain correct order
 				break;
@@ -4091,9 +4091,9 @@ class QuerySyncWorker {
 							var read_code = SocketReadTimeout(socket, var buffer, 3);
 							if ((read_code != 3) || (buffer != "\x02OK")) {
 								if (read_code == -2)
-									echo "Node sync timed out, resetting connection ...\n";
+									console.warn(LOG_THIS, "Node sync timed out, resetting connection ...");
 								else
-									echo "Node sync error(errno: ${SocketErrno()}), resetting connection ...\n";
+									console.warn(LOG_THIS, "Node sync error(errno: ${SocketErrno()}), resetting connection ...");
 								new_notsync[length new_notsync] = data;
 								this.RemoveSocket(socket);
 								socket = 0;
@@ -4175,7 +4175,7 @@ class QuerySyncWorker {
 
 		node = JSONDeserialize(node);
 		if (!node) {
-			echo "Error parsing node config file\n";
+			console.error(LOG_THIS, "Error parsing node config file");
 			return;
 		}
 
@@ -4195,7 +4195,7 @@ class QuerySyncWorker {
 		}
 
 		if (!host) {
-			echo "Node host is not set\n";
+			console.error(LOG_THIS, "Node host is not set");
 			return;
 		}
 
@@ -4204,7 +4204,7 @@ class QuerySyncWorker {
 
 		data = JSONDeserialize(data);
 		if ((!data) || (typeof data != "array")) {
-			echo "Error parsing ring config file\n";
+			console.error(LOG_THIS, "Error parsing ring config file");
 			return;
 		}
 
@@ -4248,7 +4248,7 @@ class QuerySyncWorker {
 
 		validips = all_hosts;
 		if (this_node_index == -1) {
-			echo "Cannot identify current node in node list\n";
+			console.error(LOG_THIS, "Cannot identify current node in node list");
 			return;
 		}
 
@@ -4289,7 +4289,7 @@ class QuerySyncWorker {
 		if (info) {
 			var ip = info["address"];
 			var port = info["port"];
-			echo "Closing socket $ip:$port\n";
+			console.debug(LOG_THIS, "Closing socket $ip:$port");
 		}
 		this.poll.remove(sock);
 		SocketClose(sock);
@@ -4330,7 +4330,7 @@ class QuerySyncWorker {
 		if (res > 0) {
 			var ctx = buffers["" + sock];
 			if (!ctx) {
-				echo "Invalid socket\n";
+				console.warn(LOG_THIS, "Invalid socket");
 				RemoveSocket(sock);
 				return sock;
 			}
@@ -4351,13 +4351,13 @@ class QuerySyncWorker {
 					}
 					ctx.buffer = buf;
 				} else {
-					echo "Message too big, removing node\n";
+					console.warn(LOG_THIS, "Message too big, removing node");
 					RemoveSocket(sock);
 					return sock;
 				}
 			}
 		} else {
-			echo "Error in socket read ($res)\n";
+			console.warn(LOG_THIS, "Error in socket read ($res)");
 			RemoveSocket(sock);
 			return sock;
 		}
@@ -4433,7 +4433,7 @@ class QuerySyncWorker {
 					target[length target] = buf;
 			}
 			if (target)
-				echo "${length target} records to sync\n";
+				console.info(LOG_THIS, "${length target} records to sync");
 		}
 		return target;
 	}
@@ -4454,7 +4454,7 @@ class QuerySyncWorker {
 						} else
 							SocketClose(client);
 					} catch (var exc) {
-						echo "SyncWorker: $exc\n";
+						console.error(LOG_THIS, "SyncWorker: $exc");
 					}
 				} else
 					Dispatch(socket);
@@ -4470,11 +4470,11 @@ class QuerySyncWorker {
 		localjournal = new Journal("syncwrite");
 		localjournal.AutoClean = false;
 
-		echo "Checking sync journal ...\n";
+		console.info(LOG_THIS, "Checking sync journal ...");
 		NotSynced = LoadJournal(journal.Read(0, true));
-		echo "Checking local sync journal ...\n";
+		console.info(LOG_THIS, "Checking local sync journal ...");
 		NotWritten = LoadJournal(localjournal.Read(0, true));
-		echo "Done\n";
+		console.info(LOG_THIS, "Done");
 
 		n = UnBinarizeObject(n);
 		QueryWorkers = n[0];
@@ -4541,7 +4541,7 @@ class QuerySyncWorker {
 								NotifyNeighbours(data_i);
 						}
 					} catch (var exc) {
-						echo "SyncWorker: $exc\n";
+						console.error(LOG_THIS, "SyncWorker: $exc");
 					}
 					this.PollSockets();
 				}
@@ -4747,7 +4747,7 @@ class Main {
 		}
 		console.info(LOG_THIS, "Performing database check ...");
 		if (!TinDB::Check()) {
-			echo "Database seems to be corrupted.\n";
+			console.critical(LOG_THIS, "Database seems to be corrupted");
 			return -1;
 		}
 		console.info(LOG_THIS, "Done, database seems to be OK");
