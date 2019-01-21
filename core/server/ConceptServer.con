@@ -197,10 +197,10 @@ class CGIAsyncWorker {
 		if (worker) {
 			if (worker.modified(_filelast_mod(app))) {
 				worker.AddData(BinarizeObject([["q" => "0", "do" => "drop"]]), -1);
-				echo "$app changed, refreshing worker ... ";
+				console.info(LOG_THIS, "$app changed, refreshing worker ...");
 				worker.ClearCache();
 				worker.Join();
-				echo "done\n";
+				console.info(LOG_THIS, "done");
 			} else
 				return worker;
 		}
@@ -377,12 +377,12 @@ class ConceptChild {
 				case 'ecc!':
 					key = ECCDecrypt(key, SubStr(private_key, 4), var err);
 					if (err)
-						echo "ECC error: ${ECCRSAErrorExplain(err)}\n";
+						console.error(LOG_THIS, "ECC error: ${ECCRSAErrorExplain(err)}");
 					break;
 				case 'rsa!':
 					key = RSADecrypt(key, SubStr(private_key, 4), err);
 					if (err)
-						echo "ECC error: ${ECCRSAErrorExplain(err)}\n";
+						console.error(LOG_THIS, "ECC error: ${ECCRSAErrorExplain(err)}");
 					break;
 				case '----':
 					key = rsa_decrypt(key, private_key);
@@ -484,7 +484,7 @@ class ConceptChild {
 				while (buf) {
 					var written = write(child.DirectPipe, buf);
 					if (written <= 0) {
-						echo "Error in DirectPipe write\n";
+						console.warn(LOG_THIS, "Error in DirectPipe write");
 						return false;
 					}
 
@@ -535,7 +535,7 @@ class ConceptChild {
 
 	Invalidate(p) {
 		this.HostID = "";
-		echo "Process crashed (error: ${_errno()}, pipe: $p)\n";
+		console.error(LOG_THIS, "Process crashed (error: ${_errno()}, pipe: $p)");
 		//if (this.ContextIn>0)
 		//	close(this.ContextIn);
 		if (this.ContextOut>0)
@@ -1320,10 +1320,8 @@ class ConceptChild {
 				socket.MakeExportable();
 				var start_time = time();
 				while (!socket.HandshakeIterate()) {
-					if (time() - start_time > TLS_NEGOTIATION_TIMEOUT) {
-						echo "Handshake timeout error";
+					if (time() - start_time > TLS_NEGOTIATION_TIMEOUT)
 						throw "Handshake timeout error";
-					}
 				}
 				if (socket.ALPN == "h2") {
 					// is HTTP/2
@@ -2109,7 +2107,7 @@ class ConceptCGIChildBase {
 				delete stream;
 				delete Socket;
 			} catch (exc) {
-				echo "ConceptCGIChild/HTTP/2 Socket close error: $exc\n";
+				console.warn(LOG_THIS, "ConceptCGIChild/HTTP/2 Socket close error: $exc");
 			}
 		}
 	}
@@ -2164,15 +2162,14 @@ class JSCode extends JSFramework {
 			else
 				return ["message" => "Cannot include file $filename", "name" => "IncludeError"];
 		} catch (var exc) {
-			echo exc;
+			console.warn(LOG_THIS, exc);
 			return exc;
 		}
 		return null;
 	}
 
 	logdata(data) {
-		echo data;
-		echo "\n";
+		console.log(LOG_THIS, data);
 	}
 
 	JSCode(use_path, error_delegate = null, jspath = "") {
@@ -2180,9 +2177,8 @@ class JSCode extends JSFramework {
 		framework_path = jspath;
 		if (!error_delegate) {
 			error_delegate = function(js, message, struct) {
-				echo message;
-				echo "\n";
-				echo struct;
+				console.error(LOG_THIS, message);
+				console.error(LOG_THIS, struct);
 			};
 		}
 		js = new JS(error_delegate);
@@ -2379,7 +2375,7 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 					}
 				}
 			} catch (var exc) {
-				echo exc;
+				console.error(LOG_THIS, exc);
 			}
 			this.removesession(sessionid);
 		}
@@ -2404,7 +2400,7 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 	}
 
 	critical(exc) {
-		echo exc;
+		console.error(LOG_THIS, exc);
 		this.print("Uncaught error:\n");
 		this.print(exc);
 		this.done();		
@@ -2547,7 +2543,7 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 				delete stream;
 				delete Socket;
 			} catch (var exc) {
-				echo "ConceptJSChild/HTTP/2 Socket close error: $exc\n";
+				console.warn(LOG_THIS, "ConceptJSChild/HTTP/2 Socket close error: $exc");
 			}
 		} else
 		if (Socket) {
@@ -2555,7 +2551,7 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 				Socket.Close(true);
 				delete Socket;
 			} catch (exc) {
-				echo "ConceptJSChild/Socket close error: $exc\n";
+				console.warn(LOG_THIS, "ConceptJSChild/Socket close error: $exc");
 			}
 		}
 		std_out_buffer = "";
@@ -2687,7 +2683,7 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 						std_out_buffer = SubStr(std_out_buffer, res);
 						ops ++;
 						if (length std_out_buffer > CGI_MAX_STDOUT_BUFFER) {
-							echo "CGI stdout buffer overflow\n";
+							console.warn(LOG_THIS, "CGI stdout buffer overflow");
 							return true;
 						}
 						last_err_time = 0;
@@ -2701,7 +2697,7 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 					}
 
 					if ((last_err_time) && (time() - last_err_time >= CGI_MAX_RETRY_SECONDS)) {
-						echo "CGI write congestion\n";
+						console.warn(LOG_THIS, "CGI write congestion");
 						this.reset();
 						return true;
 					}
@@ -3028,7 +3024,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 				delete stream;
 				delete Socket;
 			} catch (var exc) {
-				echo "ConceptCGIChild/HTTP/2 Socket close error: $exc\n";
+				console.warn(LOG_THIS, "ConceptCGIChild/HTTP/2 Socket close error: $exc");
 			}
 		} else
 		if (Socket) {
@@ -3036,7 +3032,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 				Socket.Close(true);
 				delete Socket;
 			} catch (exc) {
-				echo "ConceptCGIChild/Socket close error: $exc\n";
+				console.warn(LOG_THIS, "ConceptCGIChild/Socket close error: $exc");
 			}
 		}
 
@@ -3085,11 +3081,11 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 				if (res <= 0) {
 					var pipe_err = _errno();
 					if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22)) {
-						echo "CGI pipe write error: $pipe_err\n";
+						console.error(LOG_THIS, "CGI pipe write error: $pipe_err");
 						return true;
 					}
 					if ((last_pipe_err_time) && (time() - last_pipe_err_time >= CGI_MAX_RETRY_SECONDS)) {
-						echo "CGI write congestion\n";
+						console.warn(LOG_THIS, "CGI write congestion");
 						return true;
 					}
 					if (!last_pipe_err_time)
@@ -3109,11 +3105,11 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 						if (!pipe_err)
 							pipe_err = SocketErrno();
 						if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22) && (pipe_err != 10035) && (err)) {
-							echo "CGI pipe read error: $pipe_err\n";
+							console.error(LOG_THIS, "CGI pipe read error: $pipe_err");
 							return true;
 						}
 						if ((last_pipe_err_time_read) && (time() - last_pipe_err_time_read >= CGI_MAX_RETRY_SECONDS)) {
-							echo "CGI pipe congestion\n";
+							console.warn(LOG_THIS, "CGI pipe congestion");
 							return true;
 						}
 						if (!last_pipe_err_time_read)
@@ -3142,11 +3138,11 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 				if (res <= 0) {
 					pipe_err = _errno();
 					if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22) && (res)) {
-						echo "CGI pipe read error: $pipe_err\n";
+						console.error(LOG_THIS, "CGI pipe read error: $pipe_err");
 						return true;
 					}
 					if ((last_pipe_err_time_read) && (time() - last_pipe_err_time_read >= CGI_MAX_RETRY_SECONDS)) {
-						echo "CGI pipe congestion\n";
+						console.warn(LOG_THIS, "CGI pipe congestion");
 						return true;
 					}
 					if (!last_pipe_err_time_read)
@@ -3199,7 +3195,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 						std_out_buffer = SubStr(std_out_buffer, res);
 						ops ++;
 						if (length std_out_buffer > CGI_MAX_STDOUT_BUFFER) {
-							echo "CGI stdout buffer overflow\n";
+							console.error(LOG_THIS, "CGI stdout buffer overflow");
 							return true;
 						}
 						last_err_time = 0;
@@ -3211,7 +3207,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 						return true;
 
 					if ((last_err_time) && (time() - last_err_time >= CGI_MAX_RETRY_SECONDS)) {
-						echo "CGI write congestion\n";
+						console.warn(LOG_THIS, "CGI write congestion");
 						return true;
 					}
 					if (!last_err_time)
@@ -3598,7 +3594,7 @@ pragma used
 							Socket.Close(true);
 						}
 					} catch (var exc) {
-						echo "Exc: $exc\n";
+						console.error(LOG_THIS, "Exc: $exc");
 						delete Socket;
 					}
 				}
@@ -5387,7 +5383,7 @@ class ConceptServer extends RewriteContainer extends IniCache {
 			this.WSSocket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
 			if (this.TLSWSSocket)
 				this.TLSWSSocket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
-			echo "TCP fast open enabled\n";
+			console.info(LOG_THIS, "TCP fast open enabled");
 		}
 		this.SSLWSSocketName = this.IniKey("Server", "SecureProxyUnixSocket", "");
 		if (this.SSLWSSocketName) {
@@ -5736,7 +5732,7 @@ class ConceptServer extends RewriteContainer extends IniCache {
 
 	CloseClients() {
 		if (ShuttingDown) {
-			echo "Please wait while shutting down ...\n";
+			console.info(LOG_THIS, "Please wait while shutting down ...");
 			return;
 		}
 		ShuttingDown = true;
@@ -5747,7 +5743,7 @@ class ConceptServer extends RewriteContainer extends IniCache {
 				try {
 					client.Disconnect("Server shutdown");
 				} catch (var exc) {
-					echo "Uncaught exception: $exc\n";
+					console.error(LOG_THIS, "Uncaught exception: $exc");
 				}
 				if (client.PID > 0) {
 					kill(__PID(client.PID), SIGTERM);
@@ -5756,11 +5752,11 @@ class ConceptServer extends RewriteContainer extends IniCache {
 			}	
 		}
 		console.info(LOG_THIS, "Clean shut down ...");
-		echo "Shutting down...\n";
+		console.info(LOG_THIS, "Shutting down ...");
 	}
 
 	BrokenPipe(signum) {
-		echo "Broken pipe received $signum\n";
+		console.debug(LOG_THIS, "Broken pipe received $signum");
 		// nothing
 	}
 
@@ -5868,11 +5864,11 @@ class ConceptPingWorker {
 		data = UnBinarizeObject(data);
 		var ping = data[0];
 		var timeout = data[1] * 1000;
-		echo "Initializing ping worker, command: $ping, interval: ${timeout}ms\n";
+		console.info(LOG_THIS, "Initializing ping worker, command: $ping, interval: ${timeout}ms");
 		while (true) {
 			var err = _system(ping);
 			if (err)
-				echo "Error $err executing $ping\n";
+				console.error(LOG_THIS, "Error $err executing $ping");
 			Sleep(timeout);
 		}
 	}
@@ -5928,7 +5924,7 @@ class Main {
 				CreateSharedPortWorkers(ini_file, ACCEPT_WORKERS);
 			s.Start();
 		} catch (var exc) {
-			echo exc;
+			console.error(LOG_THIS, exc);
 			return -1;
 		}
 	}
