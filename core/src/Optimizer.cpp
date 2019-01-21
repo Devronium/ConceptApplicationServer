@@ -174,7 +174,7 @@ public:
             for (int i = old_var_len; i < vars->var_len; i++)
                 vars->vars[i] = 0;
 
-            vars->vars[right_id - 1] = 1;
+            vars->vars[right_id - 2] = 1;
             return 0;
         }
 

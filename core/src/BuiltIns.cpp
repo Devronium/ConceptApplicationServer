@@ -426,9 +426,28 @@ CONCEPT_FUNCTION_IMPL(bytecode, 1)
                         } else {
                             VD2->NUMBER_DATA = OE->OperandReserved_ID - 1;
                         }
+                    } else
+                    if ((OE->Operator_ID == KEY_DLL_CALL) && (OE->OperandLeft_ID > 0)) {
+                        VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "class");
+                        ClassCode *CC = (ClassCode *)((PIFAlizator *)PARAMETERS->PIF)->ClassList->Item(OE->OperandLeft_ID - 1);
+                        if (CC) {
+                            VD2->CLASS_DATA = plainstring_new_str(CC->NAME.c_str());
+                            plainstring_add((struct plainstring *)VD2->CLASS_DATA, " (");
+                            plainstring_add_int((struct plainstring *)VD2->CLASS_DATA, OE->OperandLeft_ID - 1);
+                            plainstring_add((struct plainstring *)VD2->CLASS_DATA, ")");
+                            VD2->TYPE = VARIABLE_STRING;
+                        } else {
+                            VD2->NUMBER_DATA = OE->OperandLeft_ID - 1;
+                        }
                     } else {
                         VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "left");
                         VD2->NUMBER_DATA = OE->OperandLeft_ID - 1;
+                    }
+                } else {
+                    if (OE->Operator_ID == KEY_NEW) {
+                        VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "class");
+                        VD2->CLASS_DATA = plainstring_new_str("[]");
+                        VD2->TYPE = VARIABLE_STRING;
                     }
                 }
 
@@ -440,6 +459,17 @@ CONCEPT_FUNCTION_IMPL(bytecode, 1)
                         plainstring_add_int((struct plainstring *)VD2->CLASS_DATA, OE->OperandRight_ID - 1);
                         plainstring_add((struct plainstring *)VD2->CLASS_DATA, ")");
                         VD2->TYPE = VARIABLE_STRING;
+                    } else
+                    if (((OE->Operator_ID == KEY_SEL) || (OE->Operator_ID == KEY_DLL_CALL)) && (((PIFAlizator *)PARAMETERS->PIF)->GeneralMembers)) {
+                        const char *member = ((PIFAlizator *)PARAMETERS->PIF)->GeneralMembers->Item(OE->OperandRight_ID - 1);
+                        if (member) {
+                            VD2->CLASS_DATA = plainstring_new_str(member);
+                            plainstring_add((struct plainstring *)VD2->CLASS_DATA, " (");
+                            plainstring_add_int((struct plainstring *)VD2->CLASS_DATA, OE->OperandRight_ID - 1);
+                            plainstring_add((struct plainstring *)VD2->CLASS_DATA, ")");
+                            VD2->TYPE = VARIABLE_STRING;
+                        } else
+                            VD2->NUMBER_DATA = OE->OperandRight_ID - 1;
                     } else
                         VD2->NUMBER_DATA = OE->OperandRight_ID - 1;
                 }
