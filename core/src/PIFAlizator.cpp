@@ -24,6 +24,9 @@ extern "C" {
  #include "builtin/regexp.h"
 }
 #endif
+#ifdef USE_SYSLOG
+ #include <syslog.h>
+#endif
 
 POOLED_IMPLEMENTATION(PIFAlizator)
 
@@ -39,6 +42,9 @@ char            PIFAlizator::WorkerLockInitialized= 0;
 
 static const char *level_names[] = { "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
 static const char *level_colors[] = { "\x1b[94m", "\x1b[36m", "\x1b[32m", "\x1b[33m", "\x1b[31m", "\x1b[35m" };
+#ifdef USE_SYSLOG
+static int syslog_levels[] = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR, LOG_CRIT };
+#endif
 
 ConceptLogContext *get_log_context(PIFAlizator *pif) {
     if (!pif)
@@ -59,7 +65,7 @@ ConceptLogContext *get_log_context(PIFAlizator *pif) {
         parentPIF = (PIFAlizator *)parentPIF->parentPIF;
     }
     pif->log_context = (ConceptLogContext *)malloc(sizeof(ConceptLogContext));
-    pif->log_context->logfile = NULL;
+    pif->log_context->logfile = 0;
     pif->log_context->loglevel = 0;
     seminit(pif->log_context->loglock, 1);
 #ifdef _WIN32
@@ -76,7 +82,9 @@ ConceptLogContext *get_log_context(PIFAlizator *pif) {
     pif->log_context->quiet = 0;
     pif->log_context->owner = pif;
     pif->log_context->links = 1;
-
+#ifdef USE_SYSLOG
+    setlogmask (LOG_UPTO (LOG_DEBUG));
+#endif
     return pif->log_context;
 }
 
@@ -90,8 +98,9 @@ void log_log(PIFAlizator *pif, int level, const char *file, int line, const char
 
     if ((level < log_context->loglevel) || (level < 0) || (level > 5))
         return;
-
+#ifndef USE_SYSLOG
     semp(log_context->loglock);
+#endif
 
     struct timeval tv;
     gettimeofday(&tv, NULL);
@@ -111,19 +120,30 @@ void log_log(PIFAlizator *pif, int level, const char *file, int line, const char
     }
 
     if (log_context->logfile) {
+#ifdef USE_SYSLOG
+        syslog(syslog_levels[level], "%s:%d: %s\n", file, line, data);
+#else
         char buf[32];
         buf[strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", lt)] = '\0';
         fprintf(log_context->logfile, "%s.%03d %-5s %s:%d: %s\n", buf, (int)(now % 1000), level_names[level], file, line, data);
         fflush(log_context->logfile);
+#endif
     }
+#ifndef USE_SYSLOG
     semv(log_context->loglock);
+#endif
 }
 
 int log_use_file(PIFAlizator *pif, const char *filename) {
     ConceptLogContext *log_context = get_log_context(pif);
     if (!log_context)
         return 0;
-
+#ifdef USE_SYSLOG
+    if (log_context->logfile)
+        closelog();
+    openlog(filename, LOG_PID | LOG_NDELAY, LOG_LOCAL0);
+    log_context->logfile = 1;
+#else
     if (log_context->logfile)
         fclose(log_context->logfile);
 
@@ -133,6 +153,7 @@ int log_use_file(PIFAlizator *pif, const char *filename) {
 
     if (log_context->logfile)
         return 1;
+#endif
 
     return 0;
 }
@@ -565,8 +586,13 @@ PIFAlizator::~PIFAlizator(void) {
         this->log_context->links --;
         semv(this->log_context->loglock);
         if (!this->log_context->links) {
+#ifdef USE_SYSLOG
+            if (this->log_context->logfile)
+                closelog();
+#else
             if (this->log_context->logfile)
                 fclose(this->log_context->logfile);
+#endif
             semdel(this->log_context->loglock);
             free(this->log_context);
         }

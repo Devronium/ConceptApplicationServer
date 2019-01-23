@@ -213,7 +213,11 @@ typedef struct {
 int ClearVariablesByCLSID(void *PIF, int CLSID);
 
 typedef struct {
+#ifdef USE_SYSLOG
+    int        logfile;
+#else
     FILE       *logfile;
+#endif
     HHSEM      loglock;
     int        loglevel;
     char       colors;
