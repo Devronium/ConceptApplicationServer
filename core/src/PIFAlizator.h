@@ -21,6 +21,10 @@
 #endif
 #include "MemoryTable.h"
 
+#ifndef _WIN32
+    #define USE_SYSLOG
+#endif
+
 #ifdef SIMPLE_MULTI_THREADING
     class Semaphore {
         private:
