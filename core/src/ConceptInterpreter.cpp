@@ -3070,7 +3070,7 @@ int ConceptInterpreter_StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *GR
                                     if ((TARGET_THREAD->PROPERTIES) && (TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
                                         CCTEMP = (struct CompiledClass *)TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET;
                                         WRITE_UNLOCK
-                                        CCTEMP->_Class->SetProperty(PIF, TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, CCTEMP, OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, THIS_REF->LocalClassID, &THROW_DATA, STACK_TRACE);
+                                        CCTEMP->_Class->SetProperty(PIF, TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, CCTEMP, OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID /* - 1 */, LOCAL_CONTEXT, ClassID, THIS_REF->LocalClassID, &THROW_DATA, STACK_TRACE);
                                         if (THROW_DATA) {
                                             if (ConceptInterpreter_Catch(THIS_REF, THROW_DATA, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
                                                 FREE_VARIABLE(THROW_DATA, STACK_TRACE);
@@ -3800,7 +3800,7 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
             if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
                 CCTEMP = (struct CompiledClass *)PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET;
                 WRITE_UNLOCK
-                CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, CCTEMP, OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, self->LocalClassID, &THROW_DATA, STACK_TRACE);
+                CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, CCTEMP, OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID /* - 1 */, LOCAL_CONTEXT, ClassID, self->LocalClassID, &THROW_DATA, STACK_TRACE);
                 if (THROW_DATA)
                     return 0;
             }
@@ -4132,7 +4132,7 @@ int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFA
             if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
                 CCTEMP = (struct CompiledClass *)PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET;
                 WRITE_UNLOCK
-                CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, CCTEMP, OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, self->LocalClassID, &THROW_DATA, STACK_TRACE);
+                CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, CCTEMP, OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID /* - 1 */, LOCAL_CONTEXT, ClassID, self->LocalClassID, &THROW_DATA, STACK_TRACE);
                 if (THROW_DATA)
                     return 0;
             }
@@ -5496,7 +5496,7 @@ asg_label:
                             if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
                                 CCTEMP = (struct CompiledClass *)PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET;
                                 WRITE_UNLOCK
-                                CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, CCTEMP, OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, self->LocalClassID, &THROW_DATA, STACK_TRACE);
+                                CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, CCTEMP, OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID /* - 1*/, LOCAL_CONTEXT, ClassID, self->LocalClassID, &THROW_DATA, STACK_TRACE);
                                 if (THROW_DATA) {
                                     FAST_FREE(PIF, PROPERTIES);
                                     PROPERTIES = 0;
