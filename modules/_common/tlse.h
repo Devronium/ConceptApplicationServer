@@ -45,9 +45,7 @@
 #endif
 
 // disable TLS_RSA_WITH_* ciphers
-#ifndef NO_TLS_ROBOT_MITIGATION
-#define TLS_ROBOT_MITIGATION
-#endif
+// #define TLS_ROBOT_MITIGATION
 
 #define SSL_V30                 0x0300
 #define TLS_V10                 0x0301

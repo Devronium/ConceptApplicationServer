@@ -1570,18 +1570,15 @@ unsigned char *_private_tls_decrypt_rsa(struct TLSContext *context, const unsign
     }
     unsigned char *out = (unsigned char *)TLS_MALLOC(len);
     unsigned long out_size = len;
-    int hash_idx = find_hash("sha256");
     int res = 0;
-    err = rsa_decrypt_key_ex(buffer, len, out, &out_size, (unsigned char *)"Concept", 7, hash_idx, LTC_PKCS_1_V1_5, &res, &key);
+
+    err = rsa_decrypt_key_ex(buffer, len, out, &out_size, NULL, 0, -1, LTC_PKCS_1_V1_5, &res, &key);
     rsa_free(&key);
-    if ((err) || (!out_size)) {
-        DEBUG_PRINT("RSA DECRYPT ERROR\n");
-        TLS_FREE(out);
-        return NULL;
-    }
-    if (out_size != 48) {
-        out_size = 48;
+
+    if ((err) || (out_size != 48) || (ntohs(*(unsigned short *)out) != context->version)) {
         // generate a random secret and continue (ROBOT fix)
+        // silently ignore and generate a random secret
+        out_size = 48;
         tls_random(out, out_size);
         *(unsigned short *)out = htons(context->version);
     }
