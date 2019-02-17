@@ -8,6 +8,9 @@ import standard.C.time
 import standard.lib.str
 import standard.C.math
 import standard.C.casts
+import standard.coding.base64
+import standard.lib.cripto
+import standard.lib.json
 
 define MAX_LOOP_TIME	120
 
@@ -245,12 +248,13 @@ class CApplication {
 
 		if (method!="PLAIN") {
 			if (!challenge) {
-				challenge="";
+				// challenge="";
 				// 64 bytes of random string ... any length will do
-				for (var i=0;i<64;i++) {
-					var c=chr(33+rand()%94);
-					challenge+=c;
-				}
+				// for (var i=0;i<64;i++) {
+				// 	var c=chr(33+rand()%94);
+				// 	challenge+=c;
+				// }
+				challenge = sha1(CryptoRandom(64));
 			}
 			SendMessage("Application",MSG_POST_STRING, challenge, hint_markup);
 		} else
@@ -262,6 +266,49 @@ class CApplication {
 		WaitMessage(Sender, MSG_MESSAGE_LOGIN, username, password);
 
                 return value (""+Value);
+	}
+
+	static protected __url_b64(data) {
+		return "" + mime_decode(StrReplace(StrReplace(data, "-", "+"), "_", "/"));
+	}
+	static function U2FVerify(key_id, challenge = "") {
+		if (!challenge)
+			challenge = CryptoRandom(64);
+		var challenge_b64 = mime_encode(challenge);
+
+		SendMessage("verify", MSG_MESSAGE_U2F, challenge_b64, key_id);
+		WaitMessage(var Sender, MSG_MESSAGE_U2F, var Target, var Value);
+		// error
+		if (Target != "0")
+			throw Value;
+
+		var data = JSONDeserialize(Value);
+		if ((!data) || (!data["clientDataJSON"]))
+			throw "Invalid JSON data";
+		if (CApplication::__url_b64(data["clientDataJSON"]["challenge"]) != challenge)
+			throw "Invalid challenge data";
+		return data;
+	}
+
+	static function U2FRegister(appname, username, fullname = "", challenge = "") {
+		if (!challenge)
+			challenge = CryptoRandom(64);
+		var challenge_b64 = mime_encode(challenge);
+		if (!fullname)
+			fullname = username;
+		SendMessage("Application", MSG_POST_STRING, appname, challenge_b64);
+		SendMessage("register", MSG_MESSAGE_U2F, username, fullname);
+		WaitMessage(var Sender, MSG_MESSAGE_U2F, var Target, var Value);
+		// error
+		if (Target != "0")
+			throw Value;
+
+		var data = JSONDeserialize(Value);
+		if ((!data) || (!data["clientDataJSON"]))
+			throw "Invalid JSON data";
+		if (CApplication::__url_b64(data["clientDataJSON"]["challenge"]) != challenge)
+			throw "Invalid challenge data";
+		return data;
 	}
 
 	static function SendCookieContent(filename, content, number zipped=false) {

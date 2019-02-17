@@ -8,6 +8,7 @@ var PACK_SHRINK                       = 0;
 var PACK_EXPAND_PADDING               = 1;
 var PACK_EXPAND_WIDGET                = 2;
 
+var MSG_MESSAGE_U2F                   = -100;
 var MSG_FLUSH_UI                      = -12;
 var MSG_RAISE_ERROR                   = -11;
 var MSG_DEBUGGER_TRAPPED              = -10;
@@ -2699,6 +2700,18 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			case MSG_MESSAGE_LOGIN:
 				this.NotifyLoading("login required");
 				this.ModalLogin(Target, Value, this.POST_STRING, Sender.toUpperCase(), this.POST_TARGET);
+				break;
+			case MSG_MESSAGE_U2F:
+				this.NotifyLoading("u2f verify");
+				if (Sender === "verify") {
+					u2f_verify(Target, Value, function(login_data, error) {
+						SendMessageFunction("verify", MSG_MESSAGE_U2F, error ? "1" : "0", login_data, 0);
+					});
+				} else {
+					u2f_register(this.POST_STRING, this.POST_TARGET, Target, Value, 60000, function(login_data, error) {
+						SendMessageFunction(Sender, MSG_MESSAGE_U2F, error ? "1" : "0", login_data, 0);
+					});
+				}
 				break;
 			case MSG_APPLICATION_RUN:
 				this.NotifyLoading("application initialized");

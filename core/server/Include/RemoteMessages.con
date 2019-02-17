@@ -2,6 +2,7 @@ include MessageDispatcher.con
 
 define MSG_APPLICATION_MESSAGE    -0x100
 
+define MSG_MESSAGE_U2F           -100
 define MSG_RAISE_ERROR            -11
 define MSG_DEBUGGER_TRAPPED       -10
 define MSG_MESSAGE_REQUESTINPUT    -8

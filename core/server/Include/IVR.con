@@ -196,12 +196,12 @@ class IVR {
 
 	OnDTMF(session, key) {
 		if (Debug)
-			echo "Key pressed: $key\n";
+			console.info(LOG_THIS, "Key pressed: $key");
 
 		if (session.UserData.SkipUntil) {
 			if (session.UserData.SkipUntil > time()) {
 				if (Debug)
-					echo "Skip key: $key\n";
+					console.info(LOG_THIS, "Skip key: $key");
 				
 				return;
 			}
@@ -216,12 +216,12 @@ class IVR {
 
 		if ((last_timestamp) && (key == last_key)) {
 			var delta = abs(session.UserData.LastTimestamp - last_timestamp) / 1000;
-			if (delta < 420) {
+			if (delta < 250) {
 				session.ResetDTMF();
 				var history = SubStr(session.DTMFHistory, 0, length session.DTMFHistory - 1);
 				session.DTMFHistory = history;
 				if (Debug)
-					echo "Echo key ! ($key) $delta\n";
+					console.warn(LOG_THIS, "Echo key ! ($key) $delta");
 				return;
 			}
 		}
@@ -246,7 +246,7 @@ class IVR {
 				if (WrongKey)
 					WrongKey(session.UserData, key, session.UserData.Mode == READ_KEY);
 				if (Debug)
-					echo "Unaccepted key: $key\n";
+					console.warn(LOG_THIS, "Unaccepted key: $key");
 			}
 		} else {
 			if ((session.UserData.Record) && (key == session.UserData.RecordUntil)) {
@@ -293,7 +293,7 @@ class IVR {
 		}
 		delete session.UserData;
 		if (Debug)
-			echo "Session closed ($reason), ${length stack.Sessions} sessions\n";
+			console.info(LOG_THIS, "Session closed ($reason), ${length stack.Sessions} sessions");
 	}
 
 	ParseArray(session, arr) {
@@ -316,8 +316,6 @@ class IVR {
 	}
 
 	OnInvite(session, msg) {
-		//if (Debug)
-		//	echo msg.ToString();
 		var from = "" + StrSplit("" + msg.Headers["from"], " ")[0];
 		if ((from) && ((from[0] == '"') && (from[length from - 1] == '"')))
 			from = SubStr(from, 1, length from - 2);
@@ -391,21 +389,18 @@ class IVR {
 		};
 
 		stack.OnNotUnderstood = function(msg) {
-			if (Debug) {
-				echo "Message not understood:\n==========================\n";
-				echo msg.ToString();
-				echo "\n==========================\n";
-			}
+			if (Debug)
+				console.error(LOG_THIS, "Message not understood:\n" + msg.ToString());
 		};
 
 		stack.OnResponse = function(msg) {
 			if (Debug)
-				echo "Server responded with ${msg.ServerCode} (${msg.ServerCodeText})\n";
+				console.info(LOG_THIS, "Server responded with ${msg.ServerCode} (${msg.ServerCodeText})");
 		};
 
 		stack.OnRinging = function(session, msg) {
 			if (Debug)
-				echo "Ringing!\n";
+				console.info(LOG_THIS, "Ringing!");
 		};
 	}
 
@@ -422,7 +417,7 @@ class IVR {
 			if (!ops)
 				Sleep(1);
 			if ((delta > 10) && (Debug))
-				echo "DELTA: $delta\n";
+				console.info(LOG_THIS, "DELTA: $delta");
 		}
 	}
 }

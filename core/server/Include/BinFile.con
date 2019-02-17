@@ -20,6 +20,7 @@ define MAX_STRUCTURE_SIZE	0x2000
 include LucyIndex.con
 // define FULLTEXT_INDEX_TYPE	BM25Index
 define FULLTEXT_INDEX_TYPE	LucyIndex
+define WITH_APACHE_LUCY		true
 
 define BM25_GRAPH_LEVEL		5
 define BM25_QUERY_LEVEL		5
@@ -1085,6 +1086,8 @@ class BM25Index {
 	}
 
 	dumpcache(var wordcache, var cache1 = null, var cache2 = null) {
+		if (WITH_APACHE_LUCY)
+			return;
 		if (wordcache) {
 			for (var i = 0; i < length wordcache; i++) {
 				var w = wordcache[i];
@@ -1153,7 +1156,7 @@ class BM25Index {
 			if (!key_exists)
 				return false;
 		}
-		if (id > 0) {
+		if ((id > 0) && (!WITH_APACHE_LUCY)) {
 			var word_count = BM25::doclen(document);
 			if (word_count) {
 				if (file) {
@@ -2289,7 +2292,7 @@ class BinFile extends File {
 						this.UpdateIndex(changed_keys, id, obj);
 				}
 				if (bm25_document) {
-					if (wordcache) {
+					if ((wordcache) && (!WITH_APACHE_LUCY)) {
 						try {
 							bm25.update(bm25_document, id, changed_keys, graph, false, wordcache[0], wordcache[1], wordcache[2], orig_id > 0);
 							if (length wordcache[0] >= BM25_MAX_WORDCACHE)
@@ -3060,10 +3063,12 @@ class BinFile extends File {
 			cache_obj = c;
 
 			bm25.update(bm25.document(c, var graph, BM25_GRAPH_LEVEL), id, null, graph, false, word_cache[0], word_cache[1], word_cache[2], false, true);
-			if (length word_cache[0] >= BM25_MAX_WORDCACHE)
-				bm25.dumpcache(word_cache[0], word_cache[1], word_cache[2]);
-			if ((length word_cache[1] >= BM25_MAX_WORDCACHE) || (length word_cache[2] >= BM25_MAX_WORDCACHE))
-				bm25.dumpcache(null, word_cache[1], word_cache[2]);
+			if (!WITH_APACHE_LUCY) {
+				if (length word_cache[0] >= BM25_MAX_WORDCACHE)
+					bm25.dumpcache(word_cache[0], word_cache[1], word_cache[2]);
+				if ((length word_cache[1] >= BM25_MAX_WORDCACHE) || (length word_cache[2] >= BM25_MAX_WORDCACHE))
+					bm25.dumpcache(null, word_cache[1], word_cache[2]);
+			}
 		}, [word_cache, cache1, cache2]);
 		bm25.dumpcache(word_cache, cache1, cache2);
 		bm25.SetIndexLock(false);
@@ -4028,7 +4033,7 @@ class FixedStorage extends BinFile {
 			throw "Invalid file descriptor or no open file";
 		if (!structure)
 			throw "No structure set. Call SetStructure first.";
-changed_keys = null;
+		changed_keys = null;
 		var data;
 		var not_oid_update = true;
 		if (typeof obj == "array") {
@@ -4068,7 +4073,7 @@ changed_keys = null;
 						this.UpdateIndex(changed_keys, id, obj);
 				}
 				if (bm25_document) {
-					if (wordcache) {
+					if ((wordcache) && (!WITH_APACHE_LUCY)) {
 						try {
 							bm25.update(bm25_document, id, changed_keys, graph, false, wordcache[0], wordcache[1], wordcache[2], orig_id > 0);
 							if (length wordcache[0] >= BM25_MAX_WORDCACHE)
