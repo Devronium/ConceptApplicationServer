@@ -8,19 +8,22 @@ function u2f_buffer2string(buf) {
 }
 
 function u2f_base642buffer(base64) {
-	base64 = base64.split("-").join("+").split("_").join("/");
-	var pad = (4 - base64.length % 4) % 4;
-	while (pad > 0) {
-		base64 += "=";
-		pad --;
-	}
-	var raw = window.atob(base64);
-	var rawLength = raw.length;
-	var array = new Uint8Array(new ArrayBuffer(rawLength));
+        // check if already padded
+        if (base64.indexOf('=') == -1) {
+                base64 = base64.split("-").join("+").split("_").join("/");
+                var pad = (4 - base64.length % 4) % 4;
+                while (pad > 0) {
+                        base64 += "=";
+                        pad --;
+                }
+        }
+        var raw = window.atob(base64);
+        var rawLength = raw.length;
+        var array = new Uint8Array(new ArrayBuffer(rawLength));
 
-	for (var i = 0; i < rawLength; i++)
-		array[i] = raw.charCodeAt(i);
-	return array;
+        for (var i = 0; i < rawLength; i++)
+                array[i] = raw.charCodeAt(i);
+        return array;
 }
 
 function u2f_make_data(id, response) {
@@ -56,7 +59,6 @@ function u2f_register(challenge_b64, appname, username, fullname, timeout, callb
 		type: "public-key",
 		alg: -7 // ecdsa + sha256
 	}];
-
 	var rp = { name: appname };
 	var user = {
 		name: username,
