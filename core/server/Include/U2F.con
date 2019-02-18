@@ -1,0 +1,113 @@
+import standard.coding.base64
+import standard.lib.str
+import standard.lib.cbor
+import standard.lang.serialize
+import standard.lib.cripto
+import standard.lib.json
+include JWT.con
+
+class U2F {
+	static guid(str) {
+		if (length str != 16)
+			return StringToHex(str);
+		return StringToHex(SubStr(str, 0, 4)) + "-" + StringToHex(SubStr(str, 4, 2)) + "-" + StringToHex(SubStr(str, 6, 2)) + "-" + StringToHex(SubStr(str, 8, 2)) + "-" + StringToHex(SubStr(str, 10, 6));
+	}
+
+	static authData(auth, is_base64 = true) {
+		if (is_base64)
+			auth = mime_decode(auth);
+		var data = CBORDeserialize(auth);
+		if (!data)
+			return null;
+
+		var data_authData = data["authData"];
+		var authData = unpack("s32U8U32s16U16", data_authData);
+		var credential_id = SubStr(data_authData, 55, authData[4]);
+		var key = SubStr(data_authData, 55 + authData[4]);
+		return ["rpIdHash" => StringToHex(authData[0]), "flags" => authData[1], "counter" => authData[2], "guid" => U2F::guid(authData[3]), "credId" => StringToHex(credential_id), "pubKey" => key];
+	}
+
+	static attestation(str) {
+		if (typeof str == "string")
+			str = JSONDeserialize(str);
+
+		if ((!str) || (typeof str != "array") || (!str["attestationObject"]))
+			return null;
+
+		if (IsSet(str, "attestationObject"))
+			str["attestationObject"] = U2F::authData(str["attestationObject"]);
+		return str;
+	}
+
+	static authenticatorData(data, is_base64 = true) {
+		if (is_base64)
+			data = mime_decode(data);
+
+		data = "" + data;
+		var authData = unpack("s32U8U32", data);
+		return ["rpIdHash" => StringToHex(authData[0]), "flags" => authData[1], "counter" => authData[2]];
+	}
+
+	static formatkey(pubkey) {
+		var key_data = CBORDeserialize(pubkey);
+		if ((!key_data) || (key_data["1"] != 2) || (key_data["3"] != -6) || (key_data["0"] != 1))
+			return "";
+
+		var x = key_data["-1"];
+		var y = key_data["-2"];
+		if (x[0] >= '\x80')
+			x = "\x00" + x;
+		if (y[0] >= '\x80')
+			y = "\y00" + x;
+
+		var header = "\x03\x02\x07\x00\x02\x01\x20";
+		var len = length header + length x + length y + 4;
+		var der_bytes = pack("U8U8s${length header}U8U8s${length x}U8U8s${length y}", 0x30, len, header, 0x02, length x, x, 0x02, length y, y);
+		return der_bytes;
+	}
+
+	static verify(str, data, appid = "") {
+		if ((!str) || (!data))
+			return false;
+
+		if (typeof data == "string")
+			data = U2F::attestation(data);
+
+		if (typeof str == "string")
+			str = JSONDeserialize(str);
+
+		if ("" + str["id"] != "" + data["id"])
+			return false;
+
+		var appid_hash;
+		if (appid)
+			appid_hash = sha256(appid);
+		else
+		if (data["attestationObject"])
+			appid_hash = data["attestationObject"]["rpIdHash"];
+
+		if ((!data["attestationObject"]) || ("" + data["attestationObject"]["rpIdHash"] != appid_hash))
+			return false; 
+		if ((!data["attestationObject"]) || (!str["signature"]) || (!str["authenticatorData"]))
+			return false;
+		if (!data["clientDataJSON"])
+			return false;
+		var challenge = JWT::frombase64(data["clientDataJSON"]["challenge"]);
+		if (!challenge)
+			return false;
+		var pubkey = data["attestationObject"]["pubKey"];
+		if (!pubkey)
+			return false;
+		var authData = U2F::authenticatorData(str["authenticatorData"]);
+		if (!authData)
+			return false;
+
+		var signature = mime_decode(str["signature"]);
+		// same thing as next line
+		// var to_verify = SubStr(mime_decode(str["authenticatorData"]), 0, 37) + HexToString(sha256(mime_decode(str["rawClientDataJSON"])));
+		var to_verify = HexToString(appid_hash) + pack("U8U32", authData["flags"], authData["counter"]) + HexToString(sha256(mime_decode(str["rawClientDataJSON"])));
+		if (ECDSAVerify(signature, HexToString(sha256(to_verify)), U2F::formatkey(pubkey)) == true)
+			return true;
+		return false;
+	}
+}

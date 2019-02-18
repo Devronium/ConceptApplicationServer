@@ -2721,7 +2721,7 @@ CONCEPT_FUNCTION_IMPL(ECDSAVerify, 3)
     ecc_key key;
     int err = ecc_import((const unsigned char *)PARAM(2), PARAM_LEN(2), &key);
     if (err) {
-        RETURN_NUMBER(0);
+        RETURN_NUMBER(-1);
         return 0;
     }
 
@@ -2729,7 +2729,7 @@ CONCEPT_FUNCTION_IMPL(ECDSAVerify, 3)
     err = ecc_verify_hash((const unsigned char *)PARAM(0), PARAM_LEN(0), (const unsigned char *)PARAM(1), PARAM_LEN(1), &ecc_stat, &key);
     if (err) {
         ecc_free(&key);
-        RETURN_NUMBER(0);
+        RETURN_NUMBER(-2);
         return 0;
     }
     ecc_free(&key);

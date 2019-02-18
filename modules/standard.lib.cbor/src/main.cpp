@@ -216,8 +216,8 @@ void deserialize_recursive(cbor_item_t *item, void *var, INVOKE_CALL Invoke) {
                 array_size = cbor_map_size(item);
                 struct cbor_pair *handle = cbor_map_handle(item);
                 for (i = 0; i < array_size; i++) {
+                    void *var2 = NULL;
                     if (cbor_typeof(handle[i].key) == CBOR_TYPE_STRING) {
-                        void *var2 = NULL;
                         int len = cbor_string_codepoint_count(handle[i].key);
                         char *key = (char *)malloc(len + 1);
                         if (key) {
@@ -228,12 +228,36 @@ void deserialize_recursive(cbor_item_t *item, void *var, INVOKE_CALL Invoke) {
                             if (var2)
                                 deserialize_recursive(handle[i].value, var2, Invoke);
                         }
+                    } else
+                    if (cbor_typeof(handle[i].key) == CBOR_TYPE_UINT) {
+                        unsigned int int_val = (unsigned int)cbor_get_int(handle[i].key);
+                        char key[0x100];
+                        snprintf(key, sizeof(key), "%u", int_val);
+                        Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, var, key, &var2);
+                        if (var2)
+                            deserialize_recursive(handle[i].value, var2, Invoke);
+                    } else
+                    if (cbor_typeof(handle[i].key) == CBOR_TYPE_NEGINT) {
+                        int int_val = -1 * (unsigned int)cbor_get_int(handle[i].key);
+                        char key[0x100];
+                        snprintf(key, sizeof(key), "%i", int_val);
+                        Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, var, key, &var2);
+                        if (var2)
+                            deserialize_recursive(handle[i].value, var2, Invoke);
+                    } else
+                    if (cbor_typeof(handle[i].key) == CBOR_TYPE_FLOAT_CTRL) {
+                        double val = cbor_float_get_float(handle[i].key);
+                        char key[0x100];
+                        snprintf(key, sizeof(key), "%f", val);
+                        Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, var, key, &var2);
+                        if (var2)
+                            deserialize_recursive(handle[i].value, var2, Invoke);
                     }
                 }
             }
             break;
         case CBOR_TYPE_TAG:
-            // not supported
+            Invoke(INVOKE_SET_VARIABLE, var, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)cbor_tag_value(item));
             break;
         case CBOR_TYPE_FLOAT_CTRL:
             Invoke(INVOKE_SET_VARIABLE, var, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)cbor_float_get_float(item));

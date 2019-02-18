@@ -273,7 +273,7 @@ class CApplication {
 	}
 	static function U2FVerify(key_id, challenge = "") {
 		if (!challenge)
-			challenge = CryptoRandom(64);
+			challenge = sha256(CryptoRandom(64));
 		var challenge_b64 = mime_encode(challenge);
 
 		SendMessage("verify", MSG_MESSAGE_U2F, challenge_b64, key_id);
@@ -292,7 +292,7 @@ class CApplication {
 
 	static function U2FRegister(appname, username, fullname = "", challenge = "") {
 		if (!challenge)
-			challenge = CryptoRandom(64);
+			challenge = sha256(CryptoRandom(64));
 		var challenge_b64 = mime_encode(challenge);
 		if (!fullname)
 			fullname = username;

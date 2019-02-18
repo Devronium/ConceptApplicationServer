@@ -1920,6 +1920,15 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
 
         case KEY_ECHO:
             STATAMENT_POS = helper->OptimizedPIF->Count();
+            tempAE        = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
+#ifdef OPTIONAL_SEPARATOR
+            if ((!tempAE) || ((((tempAE->TYPE == TYPE) && (tempAE->ID == ID)) || ((!helper->PIFOwner->STRICT_MODE) && (tempAE->_DEBUG_INFO_LINE != AE->_DEBUG_INFO_LINE))))) {
+#else
+            if ((!tempAE) || ((tempAE->TYPE == TYPE) && (tempAE->ID == ID))) {
+#endif
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR495, AE->_DEBUG_INFO_LINE, 495, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER->NAME), DATA_EXCEPTION);
+                break;
+            }
             Optimizer_OptimizeExpression(self, helper, TVM, ID, TYPE);
 
             OE = new OptimizedElement;

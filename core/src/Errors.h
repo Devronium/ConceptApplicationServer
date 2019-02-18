@@ -50,6 +50,7 @@
 #define ERR470      "'extends' should be used before the class members list"
 #define ERR480      "';' (separator) is used only inside a class or within a statement"
 #define ERR490      "Expression syntax"
+#define ERR495      "Expression missing after 'echo'"
 #define ERR500      "Expression missing ')'"
 #define ERR510      "Expression missing ']'"
 #define ERR520      "Expression missing ';'"
