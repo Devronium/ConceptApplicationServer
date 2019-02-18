@@ -258,3 +258,4 @@ accel LucyIndex.con
 accel Nominatim.con
 accel BASIC.con
 accel JWT.con
+accel U2F.con
