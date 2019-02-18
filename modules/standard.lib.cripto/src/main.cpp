@@ -2680,6 +2680,62 @@ CONCEPT_FUNCTION_IMPL(ECDHSecret, 4)
     }
 END_IMPL
 //---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(ECDSASign, 2)
+    // message hash
+    T_STRING(ECCSign, 0)
+    // private key
+    T_STRING(ECCSign, 1)
+
+    ecc_key key;
+    int err = ecc_import((const unsigned char *)PARAM(1), PARAM_LEN(1), &key);
+    if (err) {
+        RETURN_NUMBER(0);
+        return 0;
+    }
+
+    int ecc_stat = 0;
+    unsigned char out[0x100];
+    unsigned long outlen = sizeof(out);
+    err = ecc_sign_hash((const unsigned char *)PARAM(0), PARAM_LEN(0), out, &outlen, NULL, find_prng("sprng"), &key);
+    if (err) {
+        ecc_free(&key);
+        RETURN_STRING("");
+        return 0;
+    }
+    ecc_free(&key);
+    if (outlen > 0) {
+        RETURN_BUFFER((const char *)out, outlen);
+    } else {
+        RETURN_STRING("");
+    }
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(ECDSAVerify, 3)
+    // signature
+    T_STRING(ECCVerify, 0)
+    // message hash
+    T_STRING(ECCVerify, 1)
+    // public key
+    T_STRING(ECCVerify, 2)
+
+    ecc_key key;
+    int err = ecc_import((const unsigned char *)PARAM(2), PARAM_LEN(2), &key);
+    if (err) {
+        RETURN_NUMBER(0);
+        return 0;
+    }
+
+    int ecc_stat = 0;
+    err = ecc_verify_hash((const unsigned char *)PARAM(0), PARAM_LEN(0), (const unsigned char *)PARAM(1), PARAM_LEN(1), &ecc_stat, &key);
+    if (err) {
+        ecc_free(&key);
+        RETURN_NUMBER(0);
+        return 0;
+    }
+    ecc_free(&key);
+    RETURN_NUMBER(ecc_stat);
+END_IMPL
+//---------------------------------------------------------------------------
 #endif
 
 // ChaCha20 implementation by D. J. Bernstein
