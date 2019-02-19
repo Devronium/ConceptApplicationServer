@@ -34,7 +34,7 @@ class U2F {
 		if ((!str) || (typeof str != "array") || (!str["attestationObject"]))
 			return null;
 
-		if (IsSet(str, "attestationObject"))
+		if ((IsSet(str, "attestationObject")) && (typeof str["attestationObject"]  == "string"))
 			str["attestationObject"] = U2F::authData(str["attestationObject"]);
 		return str;
 	}
@@ -70,9 +70,7 @@ class U2F {
 		if ((!str) || (!data))
 			return false;
 
-		if (typeof data == "string")
-			data = U2F::attestation(data);
-
+		data = U2F::attestation(data);
 		if (typeof str == "string")
 			str = JSONDeserialize(str);
 
