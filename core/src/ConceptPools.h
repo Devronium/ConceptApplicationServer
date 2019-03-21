@@ -97,7 +97,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT);
 
 #ifdef USE_MEMORY_SPACE
  #define FAST_MALLOC(pif, size)          (pif ? mspace_malloc(((PIFAlizator *)(pif))->memory, size) : dlmalloc(size))
- #define FAST_CALLOC(pif, size)          (pif ? mspace_calloc(((PIFAlizator *)(pif))->memory, num, size) : dlcalloc(num, size))
+ #define FAST_CALLOC(pif, num, size)     (pif ? mspace_calloc(((PIFAlizator *)(pif))->memory, num, size) : dlcalloc(num, size))
  #define FAST_FREE(pif, ptr)             (pif ? mspace_free(((PIFAlizator *)(pif))->memory, ptr) : dlfree(ptr))
  #define FAST_REALLOC(pif, ptr, size)    (pif ? mspace_realloc(((PIFAlizator *)(pif))->memory, ptr, size) : dlrealloc(ptr, size))
  #define FAST_MALLINFO(pif)              mspace_mallinfo(((PIFAlizator *)(pif))->memory)

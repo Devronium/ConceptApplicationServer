@@ -1,0 +1,110 @@
+import standard.lib.thread
+
+define MAX_CPU_SLEEP	100
+
+class __EventEvent {
+	var deleg;
+	var when;
+	var rerun;
+
+	__EventEvent(deleg, when, rerun = 0) {
+		this.deleg = deleg;
+		this.when = when;
+		if (rerun < 0)
+			rerun = 0;
+		this.rerun = rerun;
+	}
+
+	run(loop) {
+		if (!this.deleg)
+			return true;
+		if (!this.when)
+			return this.deleg(loop);
+		var now = Date.now();
+		if (this.when <= now) {
+			if (this.deleg(loop))
+				return true;
+			if (this.rerun > 0) {
+				this.when = now + this.rerun;
+				return false;
+			}
+			return true;
+		}
+		return false;
+	}
+}
+
+class EventLoop {
+	protected var[] events;
+	protected var running = true;
+	protected var cpu_sleep;
+	public var minSleep = 0;
+
+	schedule(delegate e, interval = 0) {
+		if (!interval)
+			interval = 1;
+		cpu_sleep = 0;
+		events[length events] = new __EventEvent(e, Date.now() + interval, interval);
+	}
+
+	timeout(delegate e, when) {
+		if (!when)
+			when = 1;
+		cpu_sleep = 0;
+		events[length events] = new __EventEvent(e, Date.now() + when, 0);
+	}
+
+	add(delegate e) {
+		cpu_sleep = 0;
+		events[length events] = new __EventEvent(e, 0, 0);
+	}
+
+	iterate() {
+		if (!(length this.events)) {
+			cpu_sleep = MAX_CPU_SLEEP;
+			return;
+		}
+
+		var events2 = new [];
+		var max_date = 0;
+		var no_sleep = 0;
+		for (var i = 0; i < length this.events; i ++) {
+			var e = this.events[i];
+			try {
+				if ((e) && (!e.run(this))) {
+					events2[length events2] = e;
+					if ((!max_date) || (e.when < max_date)) {
+						max_date = e.when;
+						if (!e.when)
+							no_sleep = true;
+					}
+				}
+			} catch (var exc) {
+				console.error(LOG_THIS, exc);
+			}
+		}
+		if (no_sleep) {
+			cpu_sleep = this.minSleep;
+		} else {
+			if (max_date) {
+				cpu_sleep = (max_date - Date.now()) / 2;
+				if (cpu_sleep > MAX_CPU_SLEEP)
+					cpu_sleep = MAX_CPU_SLEEP;
+			} else
+				cpu_sleep = MAX_CPU_SLEEP;
+		}
+		this.events = events2;
+	}
+
+	run() {
+		while (running) {
+			if (cpu_sleep > 0)
+				Sleep(cpu_sleep);
+			iterate();
+		}
+	}
+
+	quit() {
+		running = false;
+	}
+}
