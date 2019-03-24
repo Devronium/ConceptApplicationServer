@@ -115,7 +115,7 @@ class EventLoop {
 		for (var i = 0; i < length this.events; i ++) {
 			var e = this.events[i];
 			try {
-				if ((e) && (!e.run(e.data, this))) {
+				if ((e) && (!e.run(this))) {
 					events2[length events2] = e;
 					if ((!max_date) || (e.when < max_date)) {
 						max_date = e.when;
