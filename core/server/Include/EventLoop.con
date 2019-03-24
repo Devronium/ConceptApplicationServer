@@ -1,11 +1,14 @@
 import standard.lib.thread
+import standard.net.socket
 
-define MAX_CPU_SLEEP	100
+define MAX_CPU_SLEEP	1000
 
 class __EventEvent {
 	var deleg;
 	var when;
 	var rerun;
+	var socket;
+	var data;
 
 	__EventEvent(deleg, when, rerun = 0) {
 		this.deleg = deleg;
@@ -32,13 +35,28 @@ class __EventEvent {
 		}
 		return false;
 	}
+
+	runRead(loop) {
+		if (!this.deleg)
+			return true;
+		if (rerun > 0)
+			this.when = Date.now() + rerun;
+		return this.deleg(this.data, loop);
+	}
+
 }
 
 class EventLoop {
 	protected var[] events;
-	protected var running = true;
+	protected var[] sockets;
+	protected var[] socketevents;
+	protected var running;
 	protected var cpu_sleep;
+	protected var iotimeout_objects;
+
 	public var minSleep = 0;
+	// dummy variable
+	private var Socket;
 
 	schedule(delegate e, interval = 0) {
 		if (!interval)
@@ -51,7 +69,12 @@ class EventLoop {
 		if (!when)
 			when = 1;
 		cpu_sleep = 0;
-		events[length events] = new __EventEvent(e, Date.now() + when, 0);
+		var timeout = 0;
+		if (when) {
+			timeout = Date.now() + when;
+			iotimeout_objects ++;
+		}
+		events[length events] = new __EventEvent(e, timeout, when);
 	}
 
 	add(delegate e) {
@@ -59,9 +82,30 @@ class EventLoop {
 		events[length events] = new __EventEvent(e, 0, 0);
 	}
 
+	addRead(iodescriptor, delegate e, timeout = 0) {
+		var socket;
+		if (typeof iodescriptor == "class")
+			socket = iodescriptor.Socket;
+		else
+			socket = iodescriptor;
+		var key = "" + socket;
+		sockets[length sockets] = socket;
+		var when = 0;
+		if (timeout > 0)
+			when = Date.now() + timeout;
+		var ev = new __EventEvent(e, when, timeout);
+		ev.socket = socket;
+		ev.data = iodescriptor;
+		socketevents[key] = ev;
+		if (timeout > 0)
+			iotimeout_objects ++;
+	}
+
 	iterate() {
 		if (!(length this.events)) {
 			cpu_sleep = MAX_CPU_SLEEP;
+			if (!socketevents)
+				running = false;
 			return;
 		}
 
@@ -71,7 +115,7 @@ class EventLoop {
 		for (var i = 0; i < length this.events; i ++) {
 			var e = this.events[i];
 			try {
-				if ((e) && (!e.run(this))) {
+				if ((e) && (!e.run(e.data, this))) {
 					events2[length events2] = e;
 					if ((!max_date) || (e.when < max_date)) {
 						max_date = e.when;
@@ -96,10 +140,78 @@ class EventLoop {
 		this.events = events2;
 	}
 
+	protected __remove_sockets() {
+		var sockets2 = new [];
+		var socketevents2 = new [];
+		var iotimeout_objects2 = 0;
+		for (var i = 0; i < length socketevents; i++) {
+			var e = socketevents[i];
+			if ((e) && (e.socket > 0) && ((!e.when) || (e.when >= Date.now()))) {
+				sockets2[length sockets2] = e.socket;
+				socketevents2["" + e.socket] = e;
+				if (e.rerun)
+					iotimeout_objects2 ++;
+			}
+		}
+		this.sockets = sockets2;
+		this.socketevents = socketevents2;
+		this.iotimeout_objects = iotimeout_objects2;
+	}
+
+	protected __timedout() {
+		var iotimeout_objects2 = this.iotimeout_objects;
+		if (iotimeout_objects2 > 0) {
+			var expired = false;
+			for (var i = 0; i < length socketevents; i++) {
+				var e = socketevents[i];
+				if ((e) && (e.when <= Date.now())) {
+					expired = true;
+					break;
+				}
+			}
+			if (expired)
+				this.__remove_sockets();
+		}
+	}
+
+	protected __poll(timeout) {
+		if (timeout < 0)
+			timeout = 0;
+		if ((SocketPoll(sockets, var outsockets, timeout)) && (outsockets)) {
+			var remove_sockets = 0;
+			for (var i = 0; i < length outsockets; i ++) {
+				var socket = outsockets[i];
+				if (socket) {
+					var key = "" + socket;
+					var e = socketevents[key];
+					try {
+						if ((!e) || (e.runRead(this))) {
+							socketevents[key] = null;
+							remove_sockets ++;
+						}
+					} catch (var exc) {
+						socketevents[key] = null;
+						remove_sockets ++;
+						console.error(LOG_THIS, exc);
+					}
+				}
+			}
+			if (remove_sockets)
+				this.__remove_sockets();
+		} else
+		if (this.iotimeout_objects)
+			this.__timedout();
+	}
+
 	run() {
+		running = true;
 		while (running) {
-			if (cpu_sleep > 0)
-				Sleep(cpu_sleep);
+			if (this.sockets) {
+				this.__poll(cpu_sleep);
+			} else {
+				if (cpu_sleep > 0)
+					Sleep(cpu_sleep);
+			}
 			iterate();
 		}
 	}

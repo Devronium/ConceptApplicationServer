@@ -2089,15 +2089,21 @@ CONCEPT_FUNCTION_IMPL(STUN, 3)
     }
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SocketPoll, 1, 3)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SocketPoll, 1, 4)
     T_ARRAY(SocketPoll, 0)
     int timeout = 0;
+    int check_write = 0;
     if (PARAMETERS_COUNT > 1) {
         CREATE_ARRAY(PARAMETER(1));
 
         if (PARAMETERS_COUNT > 2) {
             T_NUMBER(SocketPoll, 2)
             timeout = (int)PARAM_INT(2);
+
+            if (PARAMETERS_COUNT > 3) {
+                T_NUMBER(SocketPoll, 3)
+                check_write = (int)PARAM_INT(3);
+            }
         }
     }
     int  count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(0));
@@ -2137,7 +2143,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SocketPoll, 1, 3)
     timeout2.tv_sec  = timeout / 1000;
     timeout2.tv_usec = (timeout % 1000) * 1000;
 
-    int res = select(FD_SETSIZE, &socks, 0, 0, &timeout2);
+    int res;
+    if (check_write)
+        res = select(FD_SETSIZE, 0, &socks, 0, &timeout2);
+    else
+        res = select(FD_SETSIZE, &socks, 0, 0, &timeout2);
     if ((res > 0) && (PARAMETERS_COUNT > 1)) {
         for (int i = 0; i < count; i++) {
             Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(0), i, &newpData);
@@ -2170,7 +2180,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SocketPoll, 1, 3)
             if (type == VARIABLE_NUMBER) {
                 if ((nData > 0) && (nData != INVALID_SOCKET)) {
                     ufds[real_count].fd     = (int)nData;
-                    ufds[real_count].events = POLLIN | POLLPRI;
+                    if (check_write)
+                        ufds[real_count].events = POLLOUT;
+                    else
+                        ufds[real_count].events = POLLIN | POLLPRI;
                     real_count++;
                 }
             }
@@ -2178,9 +2191,16 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SocketPoll, 1, 3)
     }
     int res = poll(ufds, count, timeout);
     if ((res > 0) && (PARAMETERS_COUNT > 1)) {
-        for (int i = 0; i < count; i++) {
-            if (ufds[i].revents && POLLIN)
-                Invoke(INVOKE_SET_ARRAY_ELEMENT, PARAMETER(1), index++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)ufds[i].fd);
+        if (check_write) {
+            for (int i = 0; i < count; i++) {
+                if (ufds[i].revents & POLLOUT)
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT, PARAMETER(1), index++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)ufds[i].fd);
+            }
+        } else {
+            for (int i = 0; i < count; i++) {
+                if (ufds[i].revents & POLLIN)
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT, PARAMETER(1), index++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)ufds[i].fd);
+            }
         }
     }
     free(ufds);
