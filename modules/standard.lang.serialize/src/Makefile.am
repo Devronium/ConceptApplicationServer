@@ -7,4 +7,4 @@ AM_LDFLAGS = -shared
 # the previous manual Makefile
 libexecdir=@libexecdir@/concept
 libexec_PROGRAMS = standard.lang.serialize.so
-standard_lang_serialize_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h AnsiString.cpp AnsiString.h pugixml.cpp pugixml.hpp pugiconfig.hpp
+standard_lang_serialize_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h AnsiString.cpp AnsiString.h pugixml.cpp pugixml.hpp pugiconfig.hpp picohttpparser.c picohttpparser.h

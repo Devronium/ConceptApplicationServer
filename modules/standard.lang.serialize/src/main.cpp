@@ -72,6 +72,7 @@ public:
 };
 #endif
 #include "miniz.c"
+#include "picohttpparser.h"
 
 typedef struct {
     unsigned int val;
@@ -1156,7 +1157,7 @@ CONCEPT_DLL_API CONCEPT_SetMember CONCEPT_API_PARAMETERS {
 CONCEPT_DLL_API CONCEPT_GetMember CONCEPT_API_PARAMETERS {
     RESET_ERROR
 
-                                  PARAMETERS_CHECK_MIN_MAX(3, 4, "GetMember: GetMember(Object,szMemberName,Value[, asdelegate=false])");
+    PARAMETERS_CHECK_MIN_MAX(3, 4, "GetMember: GetMember(Object,szMemberName,Value[, asdelegate=false])");
     LOCAL_INIT;
     char *membername = 0;
     char *pData;
@@ -3473,6 +3474,147 @@ CONCEPT_FUNCTION_IMPL(hpack, 1)
         SetVariable(RESULT, -1, out_buf, len);
     } else {
         RETURN_STRING("");
+    }
+END_IMPL
+//---------------------------------------------------------------------------
+char *canonical_path(const char *path, int len, char *path_buffer) {
+    if (!path_buffer)
+        return NULL;
+
+    char prev_chr = 0;
+    int last_dir = 0;
+    int new_component = 1;
+    int index = 0;
+    for (int i = 0; i < len; i ++) {
+        char chr = path[i];
+        switch (chr) {
+            case '.':
+                if (new_component) {
+                    if (i + 1 < len) {
+                        char next_chr = path[i + 1];
+                        switch (next_chr) {
+                            case '.':
+                                if (last_dir) {
+                                    index = last_dir;
+                                } else {
+                                    // invalid path
+                                    i ++;
+                                }
+                                continue;
+                            case '/':
+                            case '\\':
+                                // skip
+                                i ++;
+                                continue;
+                        }
+                    }
+                }
+                if (new_component) {
+                    new_component = 0;
+                    last_dir = index;
+                }
+                path_buffer[index ++] = chr;
+                break;
+            case '/':
+            case '\\':
+                if ((prev_chr != '/') && (prev_chr != '\\')) {
+                    path_buffer[index ++] = chr;
+                    new_component = 1;
+                }
+                break;
+            case '?':
+                goto out;
+            default:
+                if (new_component) {
+                    new_component = 0;
+                    last_dir = index;
+                }
+                path_buffer[index ++] = chr;
+        }
+        prev_chr = chr;
+    }
+out:
+    path_buffer[index] = 0;
+    return path_buffer;
+}
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(http_normalize_path, 1)
+    T_STRING(http_normalize_path, 0)
+    char buffer[8192];
+    int len = PARAM_LEN(0);
+    if (len > sizeof(buffer) - 1)
+        len = sizeof(buffer) - 1;
+    char *normalized = canonical_path(PARAM(0), len, buffer);
+    if (normalized) {
+        RETURN_STRING(normalized);
+    } else {
+        RETURN_STRING("");
+    }
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(http_parse_header, 1)
+    T_STRING(http_header, 0)
+
+    const char *method;
+    const char *path;
+    int minor_version;
+    char buffer[8192];
+    struct phr_header headers[0x100];
+    size_t method_len, path_len, num_headers = 0x100;
+
+    CREATE_ARRAY(RESULT);
+
+    int err = phr_parse_request(PARAM(0), PARAM_LEN(0), &method, &method_len, &path, &path_len, &minor_version, headers, &num_headers, 0);
+    if ((err >= 0) || (err == -2)) {
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, ":method", (INTEGER)VARIABLE_STRING, method, (NUMBER)method_len);
+        if (path_len >= 8192)
+            path_len = 8191;
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, ":path", (INTEGER)VARIABLE_STRING, path, (NUMBER)path_len);
+        char *query = (char *)memchr(path, '?', path_len);
+        if (query) {
+            int offset = query - path + 1;
+            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, ":query", (INTEGER)VARIABLE_STRING, query + 1, (NUMBER)(path_len - offset));
+        }
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, ":version", (INTEGER)VARIABLE_NUMBER, (const char *)NULL, (NUMBER)(0x10 + minor_version));
+        for (int i = 0; i < num_headers; i ++) {
+            char name[0x100];
+            int len = headers[i].name_len;
+            if (len > 0xFF)
+                len = 0xFF;
+            for (int j = 0; j < len; j++)
+                name[j] = tolower(headers[i].name[j]);
+            name[len] = 0;
+            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, name, (INTEGER)VARIABLE_STRING, headers[i].value, (NUMBER)headers[i].value_len);
+        }
+    }
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(http_parse_response, 1)
+    T_STRING(http_header, 0)
+
+    const char *msg;
+    int minor_version;
+    int status;
+    struct phr_header headers[0x100];
+    size_t msg_len, num_headers = 0x100;
+
+    CREATE_ARRAY(RESULT);
+
+    int err = phr_parse_response(PARAM(0), PARAM_LEN(0), &minor_version, &status, &msg, &msg_len, headers, &num_headers, 0);
+    if ((err >= 0) || (err == -2)) {
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, ":status", (INTEGER)VARIABLE_NUMBER, (const char *)NULL, (NUMBER)status);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, ":version", (INTEGER)VARIABLE_NUMBER, (const char *)NULL, (NUMBER)(0x10 + minor_version));
+        for (int i = 0; i < num_headers; i ++) {
+            char name[0x100];
+            int len = headers[i].name_len;
+            if (len > 0xFF)
+                len = 0xFF;
+            for (int j = 0; j < len; j++)
+                name[j] = tolower(headers[i].name[j]);
+            name[len] = 0;
+            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, headers[i].name, (INTEGER)VARIABLE_STRING, headers[i].value, (NUMBER)headers[i].value_len);
+        }
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, ":data", (INTEGER)VARIABLE_STRING, (msg_len > 0) && (msg) ? msg : "", (NUMBER)msg_len);
     }
 END_IMPL
 //---------------------------------------------------------------------------

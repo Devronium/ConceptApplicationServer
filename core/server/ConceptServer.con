@@ -1169,115 +1169,61 @@ class ConceptChild {
 		return "";
 	}
 
-	ParseHeader(header, var ws, var ws_key, var origin, var host, var session_to_restore, var if_modified, var keep_alive, var parent, var debug, var content_length, var protocol, var extension) {
-		var len = length header;
+	ParseHeader(arr, var ws, var ws_key, var origin, var host, var session_to_restore, var if_modified, var keep_alive, var parent, var debug, var content_length, var protocol, var extension) {
 		content_length = 0;
 		var cache = true;
-		if (len > MAX_HEADER_PARAMETERS)
-			len = MAX_HEADER_PARAMETERS;
-		for (var i=1;i<len;i++) {
-			var line=header[i];
-			var arr=StrSplit(line, ":", true);
-			if (length arr>1) {
-				var key=ToLower(arr[0]);
-				switch (key) {
-					case "upgrade":
-						if (Pos(ToLower(arr[1]), "websocket")>0)
-							ws=true;
-						break;
-					case "sec-websocket-key":
-						ws_key=trim(arr[1]);
-						break;
-					case "origin":
-						var orig="";
-						var len2=length arr;
-						for (var j=1;j<len2;j++) {
-							if (j>1)
-								orig+=":";
-							orig+=arr[j];
-						}
-						origin=trim(orig);
-						break;
-					case "host":
-						len2=length arr;
-						for (j=1;j<len2;j++) {
-							if (j>1)
-								host+=":";
-							host+=arr[j];
-						}
-						if (len>1)
-							ServerName = trim(arr[1]);
-						else
-							ServerName = trim(host);
-						break;
-					case "referer":
-					case "origin":
-						if (!this.TLS) {
-							if (ToLower(trim(""+StrSplit(""+arr[1], "://")[0])) == "https")
-								this.TLS = true;
-						}
-						break;
-					//case "concept-parent":
-					//	parent = value arr[1];
-					//	break;
-					//case "concept-tls":
-					//	if (!this.TLS)
-					//		this.TLS = value arr[1];
-					//	break;
-					case "cookie":
-						var cookie = this.GetCookie("_s", arr[1]);
-						if (cookie)
-							session_to_restore = cookie;
-						break;
-					// case "concept-session":
-					// 	orig="";
-					// 	len2=length arr;
-					// 	for (j=1;j<len2;j++) {
-					// 		if (j>1)
-					// 			orig+=":";
-					// 		orig+=arr[j];
-					// 	}
-					// 	session_to_restore=trim(orig);
-					// 	break;
-					case "if-modified-since":
-						if (cache)
-							if_modified = trim(SubStr(line, 18));
-						break;
-					case "cache-control":
-						if (trim(ToLower("" + arr[1])) == "no-cache") {
-							if_modified = "";
-							cache = false;
-						}
-						break;
-					case "connection":
-						if (ToLower(trim(""+arr[1])) == "keep-alive")
-							keep_alive = true;
-						else
-							keep_alive = false;
-						break;
-					case "sec-websocket-protocol":
-						protocol = trim(ToLower("" + arr[1]));
-						var proto_description = StrSplit(protocol, "_", true);
-						if (proto_description) {
-							parent = value proto_description[0];
-							debug = value proto_description[1];
-						}
-						break;
-					case "content-length":
-						content_length = value arr[1];
-						break;
-					case "transfer-encoding":
-						if (ToLower("" + value arr[1]) == "chunked")
-							content_length = -1;
-						break;
-					case "sec-websocket-extensions":
-						extension = trim(arr[1]);
-						break;
-				}
+		if ("" + arr["upgrade"] == "websocket")
+			ws=true;
+		ws_key = arr["sec-websocket-key"] ?? "";
+		host = arr["host"] ?? "";
+		var pos = Pos(host, ":");
+		if (pos > 1)
+			ServerName = SubStr(host, 0, pos - 1);
+		else
+			ServerName = host;
+		if (!this.TLS) {
+			if (ToLower(trim(""+StrSplit(""+arr["referer"], "://")[0])) == "https")
+				this.TLS = true;
+		}
+		var cookies = arr["cookie"];
+		if (cookies) {
+			var cookie = this.GetCookie("_s", cookies);
+			if (cookie)
+				session_to_restore = cookie;
+		}
+		if (cache)
+			if_modified = arr["if-modified-since"] ?? "";
+		
+		var cache_control = arr["cache-control"];
+		if ((cache_control) && (cache_control == "no-cache")) {
+			if_modified = "";
+			cache = false;
+		}
+		content_length = value arr["content-length"];
+		extension = arr["sec-websocket-extensions"] ?? "";
+		var transfer_encoding = arr["transfer-encoding"];
+		if ((transfer_encoding) && (ToLower(transfer_encoding) == "chunked"))
+			content_length = -1;
+		var connection = arr["connection"];
+		if (connection) {
+			connection = ToLower(connection);
+			if (connection == "keep-alive")
+				keep_alive = true;
+			else
+				keep_alive = false;
+		}
+
+		var sec_websocket_protocol = arr["sec-websocket-protocol"];
+		if (sec_websocket_protocol) {
+			protocol = trim(ToLower("" + arr[1]));
+			var proto_description = StrSplit(protocol, "_", true);
+			if (proto_description) {
+				parent = value proto_description[0];
+				debug = value proto_description[1];
 			}
 		}
+		origin = arr["origin"] ?? "";
 	}
-
 
 	Iterate() {
 		var step = 0;
@@ -1360,8 +1306,7 @@ class ConceptChild {
 							//pos--;
 							requests_served++;
 							Socket.SetOption(SOL_SOCKET, SO_RCVTIMEO, 600000);
-							var header = StrSplit(SubStr(received_data, 0, pos), "\r\n");
-							// DoWSHeader(StrSplit(received_data, "\r\n"), step);
+							var header = http_parse_header(SubStr(received_data, 0, pos + 1));
 							var len = length header;
 							var ws = false;
 							var ws_key = "";
@@ -1377,15 +1322,12 @@ class ConceptChild {
 							var protocol = "";
 							var extension = "";
 							if (len) {
-								var line=StrSplit(header[0], " ");
-								if (length line > 1) {
-									var method=ToUpper(line[0]);
-									app=URIDecode(line[1]);
-									CleanApp(app);
-									if ((method=="GET") || (method == "POST") || (method == "PUT")) {
-										ParseHeader(header, ws, ws_key, origin, host, session_to_restore, if_modified, keep_alive, parent, debug, in_content_length, protocol, extension);
-										console.info(LOG_THIS, "$ip:$method $app");
-									}
+								var method=ToUpper(header[":method"]);
+								app=URIDecode(header[":path"]);
+								CleanApp(app);
+								if ((method=="GET") || (method == "POST") || (method == "PUT")) {
+									ParseHeader(header, ws, ws_key, origin, host, session_to_restore, if_modified, keep_alive, parent, debug, in_content_length, protocol, extension);
+									console.info(LOG_THIS, "$ip:$method $app");
 								}
 							}
 							var content_offset = pos + 4;

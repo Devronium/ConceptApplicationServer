@@ -1,5 +1,5 @@
 import standard.lib.thread
-import standard.net.socket
+import standard.net.poll
 
 define MAX_CPU_SLEEP	1000
 
@@ -9,6 +9,7 @@ class __EventEvent {
 	var rerun;
 	var socket;
 	var data;
+	var deleg2;
 
 	__EventEvent(deleg, when, rerun = 0) {
 		this.deleg = deleg;
@@ -37,26 +38,41 @@ class __EventEvent {
 	}
 
 	runRead(loop) {
-		if (!this.deleg)
+		if (!this.deleg) {
+			if (this.deleg2)
+				return false;
 			return true;
+		}
 		if (rerun > 0)
 			this.when = Date.now() + rerun;
 		return this.deleg(this.data, loop);
 	}
 
+	runWrite(loop) {
+		if (!this.deleg2) {
+			if (this.deleg)
+				return false;
+			return true;
+		}
+		return this.deleg2(this.data, loop);
+	}
 }
 
 class EventLoop {
 	protected var[] events;
-	protected var[] sockets;
 	protected var[] socketevents;
 	protected var running;
 	protected var cpu_sleep;
 	protected var iotimeout_objects;
+	protected var pollfd;
 
 	public var minSleep = 0;
 	// dummy variable
 	private var Socket;
+
+	EventLoop() {
+		this.pollfd = PollOpen();
+	}
 
 	schedule(delegate e, interval = 0) {
 		if (!interval)
@@ -82,20 +98,28 @@ class EventLoop {
 		events[length events] = new __EventEvent(e, 0, 0);
 	}
 
-	addRead(iodescriptor, delegate e, timeout = 0) {
-		var socket;
-		if (typeof iodescriptor == "class")
-			socket = iodescriptor.Socket;
-		else
-			socket = iodescriptor;
+	addSocket(iodescriptor, e, w = null, timeout = 0) {
+		var socket = iodescriptor;
+		while (typeof socket == "class")
+			socket = socket.Socket;
+
 		var key = "" + socket;
-		sockets[length sockets] = socket;
+		
+		var flags = 0;
+		if (e)
+			flags |= POLL_READ;
+		if (w)
+			flags |= POLL_WRITE;
+
+		PollAdd(pollfd, socket, flags);
 		var when = 0;
 		if (timeout > 0)
 			when = Date.now() + timeout;
 		var ev = new __EventEvent(e, when, timeout);
 		ev.socket = socket;
 		ev.data = iodescriptor;
+		if (w)
+			ev.deleg2 = w;
 		socketevents[key] = ev;
 		if (timeout > 0)
 			iotimeout_objects ++;
@@ -141,19 +165,18 @@ class EventLoop {
 	}
 
 	protected __remove_sockets() {
-		var sockets2 = new [];
 		var socketevents2 = new [];
 		var iotimeout_objects2 = 0;
 		for (var i = 0; i < length socketevents; i++) {
 			var e = socketevents[i];
 			if ((e) && (e.socket > 0) && ((!e.when) || (e.when >= Date.now()))) {
-				sockets2[length sockets2] = e.socket;
 				socketevents2["" + e.socket] = e;
 				if (e.rerun)
 					iotimeout_objects2 ++;
-			}
+			} else
+			if ((e) && (e.socket > 0))
+				PollRemove(pollfd, e.socket);
 		}
-		this.sockets = sockets2;
 		this.socketevents = socketevents2;
 		this.iotimeout_objects = iotimeout_objects2;
 	}
@@ -174,28 +197,41 @@ class EventLoop {
 		}
 	}
 
+	protected __exec(outsockets, write_event) {
+		var remove_sockets = 0;
+		for (var i = 0; i < length outsockets; i ++) {
+			var socket = outsockets[i];
+			if (socket) {
+				var key = "" + socket;
+				var e = socketevents[key];
+				try {
+					if ((!e) || (((write_event) && (e.runWrite(this))) || ((!write_event) && (e.runRead(this))))) {
+						if (e)
+							PollRemove(pollfd, e.socket);
+						socketevents[key] = null;
+						remove_sockets ++;
+					}
+				} catch (var exc) {
+					PollRemove(pollfd, e.socket);
+					socketevents[key] = null;
+					remove_sockets ++;
+					console.error(LOG_THIS, exc);
+				}
+			}
+		}
+		return remove_sockets;
+	}
+
 	protected __poll(timeout) {
 		if (timeout < 0)
 			timeout = 0;
-		if ((SocketPoll(sockets, var outsockets, timeout)) && (outsockets)) {
+		var outsockets = PollWait(pollfd, timeout, var write_sockets);
+		if ((outsockets) || (write_sockets)) {
 			var remove_sockets = 0;
-			for (var i = 0; i < length outsockets; i ++) {
-				var socket = outsockets[i];
-				if (socket) {
-					var key = "" + socket;
-					var e = socketevents[key];
-					try {
-						if ((!e) || (e.runRead(this))) {
-							socketevents[key] = null;
-							remove_sockets ++;
-						}
-					} catch (var exc) {
-						socketevents[key] = null;
-						remove_sockets ++;
-						console.error(LOG_THIS, exc);
-					}
-				}
-			}
+			if (outsockets)
+				remove_sockets += this.__exec(outsockets, false);
+			if (write_sockets)
+				remove_sockets += this.__exec(write_sockets, true);
 			if (remove_sockets)
 				this.__remove_sockets();
 		} else
@@ -206,7 +242,7 @@ class EventLoop {
 	run() {
 		running = true;
 		while (running) {
-			if (this.sockets) {
+			if (this.socketevents) {
 				this.__poll(cpu_sleep);
 			} else {
 				if (cpu_sleep > 0)
@@ -214,9 +250,23 @@ class EventLoop {
 			}
 			iterate();
 		}
+		this.__close();
+		// enable restarting the queue
+		this.pollfd = PollOpen();
 	}
 
 	quit() {
 		running = false;
+	}
+
+	protected __close() {
+		if (this.pollfd) {
+			PollClose(this.pollfd);
+			this.pollfd = 0;
+		}
+	}
+
+	finalize() {
+		this.__close();
 	}
 }

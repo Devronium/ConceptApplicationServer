@@ -52,6 +52,10 @@ CONCEPT_FUNCTION(__object)
 CONCEPT_FUNCTION(hpack)
 CONCEPT_FUNCTION(hunpack)
 
+CONCEPT_FUNCTION(http_parse_header)
+CONCEPT_FUNCTION(http_parse_response)
+CONCEPT_FUNCTION(http_normalize_path)
+
 CONCEPT_FUNCTION(gzip)
 CONCEPT_FUNCTION(gzip_create)
 CONCEPT_FUNCTION(gzip_compress)
