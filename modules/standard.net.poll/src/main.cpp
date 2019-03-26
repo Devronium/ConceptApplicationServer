@@ -364,16 +364,16 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollAdd, 2, 3)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollUpdate, 2, 3)
-    T_NUMBER(PollAdd, 1);
+    T_NUMBER(PollUpdate, 1);
     int fd = PARAM_INT(1);
     int err = -1;
     int mode = 0;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(PollAdd, 2);
+        T_NUMBER(PollUpdate, 2);
         mode = PARAM_INT(2);
     }
 #ifdef WITH_SELECT_POLL
-    T_HANDLE(PollAdd, 0);
+    T_HANDLE(PollUpdate, 0);
     PollContainer *efd = (PollContainer *)(SYS_INT)PARAM(0);
     if (fd > 0) {
         efd->Remove(fd);
@@ -381,7 +381,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollUpdate, 2, 3)
     }
 #else
 #if defined(WITH_EPOLL) || defined(WITH_KQUEUE)
-    T_NUMBER(PollAdd, 0);
+    T_NUMBER(PollUpdate, 0);
     int efd = PARAM_INT(0);
     if ((fd > 0) && (efd > 0)) {
 #ifdef WITH_KQUEUE

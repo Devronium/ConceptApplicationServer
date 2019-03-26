@@ -1,0 +1,499 @@
+include EventLoop.con
+include TCPSocket.con
+include TLSESocket.con
+include File.con
+include MIMETypes.con
+include HTTP2.con
+
+import standard.C.io
+import standard.lib.str
+import standard.lang.serialize
+
+define READ_BUFFER_SIZE		0xFFFF
+define FAST_READ_FILE		8192
+define MAX_HEADER_SIZE		8192
+
+define DEFAULT_HTTP1_HEADERS	"Date: ${__utc_string()} GMT\r\nServer: cas\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\n"
+define DEFAULT_HTTP2_HEADERS	[":status" => "200", "date" => "${__utc_string()} GMT", "server" => "cas", "x-content-type-options" => "nosniff", "x-frame-options" => "SAMEORIGIN", "x-xss-protection" => "1; mode=block"]
+
+class SocketContainer {
+	var Socket;
+	var file;
+	var tls;
+
+	SocketContainer(Socket) {
+		this.Socket = Socket;
+	}
+}
+
+class H2Server {
+	protected var root;
+	protected var mimetypes;
+	protected var utc_string;
+	protected var utc_time;
+	protected var max_age;
+	protected var timeout;
+	protected var timeout_ms;
+	protected var loop;
+	protected var statistics;
+
+	parseFilename(var path) {
+		var filename;
+		if (path) {
+		 	filename = http_normalize_path(path);
+			if (filename [0] == "/")
+				filename ++;
+		}
+		if (!filename)
+			filename = "index.html";
+		return root + filename;
+	}
+
+	parseRequest(var buffer, var header = null) {
+		header = http_parse_header(buffer);
+		var path;
+		if (header)
+			path = header[":path"];
+
+		return parseFilename(path);
+	}
+
+	protected __writeconsume(socket, loop) {
+		if ((socket.tls) && (socket.Socket.WriteIterate()))
+			return;
+
+		if (socket.file) {
+			if (socket.file.Read(var buf, READ_BUFFER_SIZE) > 0) {
+				try {
+					var written;
+					if (socket.tls) {
+						written = socket.Socket.TLSWrite(buf);
+						socket.Socket.WriteIterate();
+					} else
+						written = socket.Socket.Write(buf);
+					if (written != length buf) {
+						if (!socket.file.Seek(written - length buf, SEEK_CUR)) {
+							console.warn(LOG_THIS, "${socket.file.Name}: Error in file seek");
+							return true;
+						}
+					}
+				} catch (var exc) {
+					var err = SocketErrno();
+					if ((err != 11) && (err != 35) && (err != 10035)) {
+						// socket disconnected
+						console.warn(LOG_THIS, "$exc: $err");
+						return true;
+					}
+				}
+				loop.updateTimeout(this.timeout_ms);
+				return;
+			}
+			socket.file.Close();
+			socket.file = null;
+		}
+		loop.onWrite(null);
+	}
+
+	protected __error(socket, code, text) {
+		this.__socket_fast_write(socket, "HTTP/1.1 $code $text\r\nContent-Length: ${length text}\r\n\r\n$text");
+	}
+
+	protected __error_h2(h2, stream, code, text) {
+		stream.Response(h2, [
+			":status" => "$code",
+			"server" => "cas",
+			"content-type" => "text/html"
+		]);
+		stream.Write(h2, text, true);
+	}
+
+	protected __utc_string() {
+		var now = time();
+		if (now - utc_time >= 2) {
+			utc_time = now;
+			utc_string = formatdate(now * 1000, "%a, %d %b %Y %H:%M:%S");
+		}
+		return utc_string;
+	}
+
+	protected __parse_range(range) {
+		var[] parsed;
+		if (!range)
+			return parsed;
+		range = StrSplit(range, "=")[1];
+		if (!range)
+			return parsed;
+
+		range = StrSplit(range, ",")[0];
+		if (!range)
+			return parsed;
+
+		parsed = StrNumberSplit(range, "-");
+		return parsed;
+	}
+
+	protected __check_range_h2(stream, headers, response_headers, var file) {
+		// range support
+		response_headers["accept-ranges"] = "bytes";
+		var range = headers["range"];
+		if (range) {
+			range = __parse_range(range);
+			var range_start = range[0];
+			var range_end = range[1];
+			if (!range_end)
+				range_end = file.Size - 1;
+
+			if ((range_start > file.Size) || (range_end > file.Size) || (range_start < 0) || (range_end < 0) || (range_start > range_end) || (!file.Seek(range_start))) {
+				headers[":status"] = 416;
+				file.Close();
+				file = null;
+				headers["content-length"] = 0;
+			} else {
+				headers[":status"] = 206;
+				headers["content-length"] = range_end - range_start + 1;
+				headers["content-range"] = "bytes $range_start-$range_end/${file.Size}";
+				stream.ResponseFileLimit = range_end + 1;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	protected __create_headers(filename, header) {
+		var ext = Ext(filename);
+		var content_type = "";
+		var response_headers = "";
+		if (IsSet(this.mimetypes, ext)) {
+			content_type = this.mimetypes[ext];
+			if (content_type)
+				response_headers += "Content-Type: $content_type\r\n";
+		}
+		response_headers += DEFAULT_HTTP1_HEADERS;
+		if (max_age)
+			response_headers += "Cache-Control: max-age=${max_age}\r\n";
+		var keep_alive = true;
+		var connection_ka = header["connection"];
+		if ((connection_ka) && (connection_ka == "close"))
+			keep_alive = false;
+		if (keep_alive)
+			response_headers += "Connection: keep-alive\r\nKeep-Alive: timeout=${timeout}\r\n";
+		return response_headers;
+	}
+
+	protected __create_headers_h2(filename, header) {
+		var ext = Ext(filename);
+		var content_type = "";
+		var response_headers = DEFAULT_HTTP2_HEADERS;
+		if (IsSet(this.mimetypes, ext)) {
+			content_type = this.mimetypes[ext];
+			if (content_type)
+				response_headers["content-type"] = content_type;
+		}
+		if (max_age)
+			response_headers["cache_control"] = "max-age=${max_age}";
+		var keep_alive = true;
+		var connection_ka = header["connection"];
+		if ((connection_ka) && (connection_ka == "close"))
+			keep_alive = false;
+		if (keep_alive) {
+			response_headers["connection"] = "keep-alive";
+			response_headers["keep-alive"] = "timeout=${timeout}";
+		}
+		return response_headers;
+	}
+
+
+	protected __consume(socket, loop) {
+		return this.__consume_buffer(socket.Socket.Read(MAX_HEADER_SIZE), socket, loop);
+	}
+
+	protected __consume_tls_established(socket, loop) {
+		try {
+			var buf = socket.Socket.Read(MAX_HEADER_SIZE);
+			if (buf)
+				return this.__consume_buffer(buf, socket, loop);
+		} catch (var exc) {
+			console.log(LOG_THIS, exc);
+			return true;
+		}
+	}
+
+	protected __h2_fast_write(h2, stream, headers, data, close_stream = true) {
+		if (data)  {
+			headers["content-length"] = length data;
+			stream.Response(h2, headers);
+			stream.Write(h2, data, true);
+		} else {
+			stream.Response(h2, headers, true);
+		}
+	}
+
+	protected __h2_request(h2, stream) {
+		var header = stream.Headers;
+		if (!header) {
+			__error_h2(h2, stream, 400, "Bad Request");
+			return;
+		}
+		var method = header[":method"];
+		switch (method) {
+			case "GET":
+			case "POST":
+			case "PUT":
+				break;
+			default:
+				__error_h2(h2, stream, 405, "Method Not Allowed");
+				return;
+		}
+		var filename = parseFilename(header[":path"]);
+		if (_stat(filename, var stat_arr)) {
+			__error_h2(h2, stream, 404, "Not Found");
+			return;
+		}
+		var response_headers = __create_headers_h2(filename, header);
+		var size = stat_arr["st_size"];
+		if (size >= 0) {
+			var last_modified = formatdate(stat_arr["st_mtime"] * 1000, "%a, %d %b %Y %H:%M:%S") + " GMT";
+			var cache_control = header["cache-control"];
+			if ((cache_control) && (cache_control != "no-cache")) {
+				var if_modified_since = header["if-modified-since"];
+				if ((if_modified_since) && (last_modified == if_modified_since)) {
+					response_headers[":status"] = "304";
+					__h2_fast_write(h2, stream, response_headers, "");
+					return;
+				}
+			}
+			response_headers["last-modified"] = last_modified;
+			if (size < FAST_READ_FILE) {
+				__h2_fast_write(h2, stream, response_headers, ReadFile(filename));
+				return;
+			}
+		}
+		var file = new File("rb");
+		file.Name = filename;
+		if (file.Open()) {
+			var socket = loop.object();
+
+			this.__check_range_h2(stream, header, response_headers, file);
+
+			if (socket.file) {
+				socket.file[length socket.file] = stream;
+			} else {
+				socket.file = [ stream ];
+				loop.onWrite(this.__h2_write_consume);
+			}
+			response_headers["content-length"] = size;
+			stream.Response(h2, response_headers, false);
+			stream.ResponseFile = file;
+
+			this.__h2_write_consume(socket, loop);
+		} else
+			__error_h2(h2, stream, 404, "Not Found");
+	}
+
+	protected __h2_write_consume(socket, loop) {
+		if ((socket.file) && (!socket.Socket.Pending())) {
+			var closed_files = 0;
+			for (var i = 0; i < length socket.file; i++) {
+				var stream = socket.file[i];
+				if ((!stream.ResponseFile) || (stream.FileWrite(socket.Socket, READ_BUFFER_SIZE) < 0)) {
+					socket.file[i] = null;
+					closed_files ++;
+				}
+			}
+			if (closed_files) {
+				if (closed_files == length socket.file) {
+					socket.file = null;
+				} else {
+					var new_files = new [];
+					for (i = 0; i < length socket.file; i ++) {
+						stream = socket.file[i];
+						if (stream)
+							new_files[length new_files] = stream;
+					}
+					socket.file = new_files;
+				}
+			}
+		}
+		var err = socket.Socket.WriteOnce();
+		if (err <= 0) {
+			if ((!err) && (socket.file))
+				return;
+			loop.onWrite(null);
+		}
+		loop.updateTimeout(this.timeout_ms);
+	}
+
+	protected __consume_tls_established_h2(socket, loop) {
+		try {
+			socket.Socket.IterateOnce(this.__h2_request);
+			if (socket.Socket.Pending())
+				loop.onWrite(__h2_write_consume);
+		} catch (var exc) {
+			console.log(LOG_THIS, exc);
+			return true;
+		}
+	}
+
+	protected __socket_fast_write(socket, data) {
+		if (socket.tls) {
+			socket.Socket.TLSWrite(data);
+			socket.Socket.WriteIterate();
+		} else {
+			socket.Socket.Write(data);
+		}
+	}
+
+	protected __consume_buffer(buf, socket, loop) {
+		if (buf) {
+			var filename = this.parseRequest(buf, var header);
+			if (!header) {
+				__error(socket, 400, "Bad Request");
+				return true;
+			}
+			switch (header[":method"]) {
+				case "GET":
+				case "PUT":
+				case "POST":
+					break;
+				default:
+					__error(socket, 405, "Method Not Allowed");
+					break;
+			}
+			if (_stat(filename, var stat_arr)) {
+				__error(socket, 404, "Not Found");
+				return;
+			}
+			var response_headers = __create_headers(filename, header);
+			var size = stat_arr["st_size"];
+			if (size >= 0) {
+				var last_modified = formatdate(stat_arr["st_mtime"] * 1000, "%a, %d %b %Y %H:%M:%S") + " GMT";
+				var cache_control = header["cache-control"];
+				if ((cache_control) && (cache_control != "no-cache")) {
+					var if_modified_since = header["if-modified-since"];
+					if ((if_modified_since) && (last_modified == if_modified_since)) {
+						__socket_fast_write(socket, "HTTP/1.1 304 Not Modified\r\n${response_headers}Content-Length: 0\r\n\r\n");
+						return;
+					}
+				}
+				response_headers += "Last-Modified: $last_modified\r\n";
+				if (size < FAST_READ_FILE) {
+					var filebuf = ReadFile(filename);
+					__socket_fast_write(socket, "HTTP/1.1 200 OK\r\n${response_headers}Content-Length: ${length filebuf}\r\n\r\n" + filebuf);
+					return;
+				}
+			}
+			var file = new File("rb");
+			file.Name = filename;
+			if (file.Open()) {
+				var response = "HTTP/1.1 200 OK\r\n${response_headers}Content-Length: $size\r\n\r\n";
+				if (!socket.file)
+					loop.onWrite(this.__writeconsume);
+
+				socket.file = file;
+				__socket_fast_write(socket, response);
+				if (this.__writeconsume(socket, loop))
+					return true;
+			} else
+				__error(socket, 404, "Not Found");
+			return;
+		}
+		return true;
+	}
+
+	__consume_tls(socket, loop) {
+		try {
+			do {
+				if (socket.Socket.HandshakeIterateOnce()) {
+					if (socket.Socket.ALPN == "h2") {
+						var old_socket = socket.Socket;
+						socket.Socket = HTTP2::Socket(old_socket);
+						loop.onRead(__consume_tls_established_h2);
+						if (old_socket.GetHasTLSData())
+							return __consume_tls_established_h2(socket, loop);
+						break;
+					}
+					loop.onRead(__consume_tls_established);
+					if (socket.Socket.GetHasTLSData())
+						return __consume_tls_established(socket, loop);
+					break;
+				}
+			} while (socket.Socket.GetHasTLSData());
+		} catch (var exc) {
+			console.warn(LOG_THIS, exc);
+			return true;
+		}
+	}
+
+	protected __loadmime() {
+		this.mimetypes = MIMETypes::types();
+	}
+
+	H2Server(string root, public_key = "", private_key = "", port = 80, tls_port = 443, max_age = 604800, timeout = 10, max_connections = 8192) {
+		this.root = root;
+		this.max_age = max_age;
+		if (timeout <= 0)
+			timeout = 10;
+		this.timeout = timeout;
+		this.timeout_ms = timeout * 1000;
+		this.__loadmime();
+		var tcp = new TCPSocket();
+		tcp.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
+		tcp.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
+		SocketSetBlocking(tcp.Socket, false);
+		tcp.Listen(port, max_connections);
+
+		var tls;
+		if ((public_key) && (private_key)) {
+			tls = new TLSESocket();
+			tls.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
+			tls.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
+			SocketSetBlocking(tls.Socket, false);
+			tls.Listen(tls_port, max_connections);
+			if (tls.LoadKeys(public_key, private_key)) {
+				tls.AddALPN("h2");
+			} else {
+				console.warn(LOG_THIS, "Warning: Error loading TLS/SSL keys. HTTPS/WSS will not be supported.");
+				tls = null;
+			}
+		}
+
+		loop = new EventLoop();
+		loop.addSocket(tcp, function(tcp, loop) {
+			var socket = tcp.Accept();
+			if (socket) {
+				SocketSetBlocking(socket.Socket, false);
+				loop.addSocket(new SocketContainer(socket), this.__consume, this.timeout_ms);
+			}
+		});
+		if (tls) {
+			loop.addSocket(tls, function(tcp, loop) {
+				var socket = tcp.AcceptTCP();
+				if (socket) {
+					SocketSetBlocking(socket.Socket, false);
+					socket.PrepareAcceptTLS();
+					var container = new SocketContainer(socket);
+					container.tls = true;
+					loop.addSocket(container, this.__consume_tls, this.timeout_ms);
+				}
+			});
+		}
+	}
+
+	UseStatistics(deleg, interval = 1000) {
+		this.statistics = deleg;
+		loop.schedule(function(loop) {
+			if (this.statistics)
+				this.statistics(loop.stat());
+			else
+				return true;
+		}, interval);
+	}
+
+	Run() {
+		loop.run();
+	}
+
+	Stop() {
+		loop.quit();
+	}
+}

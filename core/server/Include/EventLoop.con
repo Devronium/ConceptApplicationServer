@@ -69,9 +69,16 @@ class EventLoop {
 	public var minSleep = 0;
 	// dummy variable
 	private var Socket;
+	private var __currentevent;
+
+	public var userData;
 
 	EventLoop() {
 		this.pollfd = PollOpen();
+	}
+
+	stat() {
+		return ["events" => length events, "sockets" => length socketevents, "iotimeoutobjects" => iotimeout_objects, "cpu_sleep" => cpu_sleep];
 	}
 
 	schedule(delegate e, interval = 0) {
@@ -98,7 +105,50 @@ class EventLoop {
 		events[length events] = new __EventEvent(e, 0, 0);
 	}
 
-	addSocket(iodescriptor, e, w = null, timeout = 0) {
+	object() {
+		if (!__currentevent)
+			throw new Error(@class + "." + @member + " must be called from a loop event", 1, @filename, @line);
+		return __currentevent.data;
+	}
+
+	onWrite(deleg) {
+		if (!__currentevent)
+			throw new Error(@class + "." + @member + " must be called from a loop event", 1, @filename, @line);
+		if (__currentevent.socket > 0) {
+			var old_deleg = __currentevent.deleg2;
+			__currentevent.deleg2 = deleg;
+			if ((!old_deleg) || (!deleg)) {
+				var flags;
+				if (__currentevent.deleg)
+					flags = POLL_READ;
+				if (deleg)
+					flags |= POLL_WRITE;
+
+				PollUpdate(pollfd, __currentevent.socket, flags);
+			}
+		}
+	}
+
+	onRead(delegate deleg) {
+		if (!__currentevent)
+			throw new Error(@class + "." + @member + " must be called from a loop event", 1, @filename, @line);
+		if (__currentevent.socket > 0)
+			__currentevent.deleg = deleg;
+	}
+
+	updateTimeout(timeout = 0) {
+		if ((__currentevent) && (__currentevent.socket > 0)) {
+			var when = 0;
+			if (timeout < 0)
+				timeout = 0;
+			if (timeout > 0)
+				when = Date.now() + timeout;
+			__currentevent.when = when;
+			__currentevent.rerun = timeout;
+		}		
+	}
+
+	addSocket(iodescriptor, delegate e, timeout = 0, w = null) {
 		var socket = iodescriptor;
 		while (typeof socket == "class")
 			socket = socket.Socket;
@@ -158,6 +208,9 @@ class EventLoop {
 				cpu_sleep = (max_date - Date.now()) / 2;
 				if (cpu_sleep > MAX_CPU_SLEEP)
 					cpu_sleep = MAX_CPU_SLEEP;
+				else
+				if (cpu_sleep < this.minSleep)
+					cpu_sleep = this.minSleep;
 			} else
 				cpu_sleep = MAX_CPU_SLEEP;
 		}
@@ -204,6 +257,7 @@ class EventLoop {
 			if (socket) {
 				var key = "" + socket;
 				var e = socketevents[key];
+				this.__currentevent = e;
 				try {
 					if ((!e) || (((write_event) && (e.runWrite(this))) || ((!write_event) && (e.runRead(this))))) {
 						if (e)
@@ -217,6 +271,7 @@ class EventLoop {
 					remove_sockets ++;
 					console.error(LOG_THIS, exc);
 				}
+				this.__currentevent = null;
 			}
 		}
 		return remove_sockets;

@@ -260,3 +260,4 @@ accel BASIC.con
 accel JWT.con
 accel U2F.con
 accel EventLoop.con
+accel MIMETypes.con

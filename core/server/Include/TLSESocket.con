@@ -16,6 +16,7 @@ class TLSESocket extends TCPSocket {
 	public property CipherName { get GetCipherName }
 	public property Established { get GetEstablished }
 	public property ALPN { get GetALPN }
+	public property HasTLSData { get GetHasTLSData }
 	public var OnVerify;
 	public var RequestCertificate = false;
 	public var Timeout = -1;
@@ -86,8 +87,45 @@ class TLSESocket extends TCPSocket {
 		return TLSESetExportable(tls);
 	}
 
+
+	public HandshakeIterateOnce() {
+		if (Socket <= 0)
+			throw "Invalid TLS socket (HandshakeIterate)";
+		if (!tls)
+			throw "Invalid TLS context (HandshakeIterate)";
+		var child_tls = tls;
+		var socket = this.Socket;
+		var established = TLSEstablished(child_tls);
+		if (established < 0)
+			throw "Broken socket (Handshake)";
+
+		if (established)
+			return true;
+
+		if (TLSEPending(tls)) {
+			this.WriteIterate();
+			return false;
+		}
+
+		var res = SocketRead(socket, var buffer, 0xFFFF);
+		if (res <= 0)
+			throw "Broken socket (Handshake)";
+
+		if (res > 0) {
+			res = TLSEConsume(child_tls, buffer);
+			if (res < 0)
+				throw "Broken socket (Handshake)";
+			this.WriteIterate();
+		}
+		established = TLSEstablished(child_tls);
+
+		if (established < 0)
+			throw "Broken socket (Handshake)";
+		return established;
+	}
+
 	public HandshakeIterate() {
-		if (Socket<=0)
+		if (Socket <= 0)
 			throw "Invalid TLS socket (HandshakeIterate)";
 		if (!tls)
 			throw "Invalid TLS context (HandshakeIterate)";
@@ -349,10 +387,32 @@ class TLSESocket extends TCPSocket {
 		return 0;
 	}
 
+	public TLSWrite(var string buffer) {
+		if (Socket<=0)
+			throw "Invalid TLS socket (Write)";
+		if (_islisten)
+			throw "Invalid TLS socket type (Write)";
+		if (!tls)
+			throw "Invalid TLS context (Write)";
+
+		if (TLSEBroken(tls))
+			throw "Broken TLS socket (Write)\n";
+
+		if (length buffer) {
+			var written = 0;
+			written = TLSEWrite(tls, buffer, written);
+			if (written < 0)
+				throw "Broken TLS socket (Write)";
+			return written;
+		}
+		return 0;
+	}
+
 	public WritePending() {
 		if (!tls)
 			throw "Invalid TLS context (WritePending)";
 		var written = 0;
+		var err_timestamp;
 		do {
 			var buffer = TLSEPending(tls);
 			if (buffer) {
@@ -362,6 +422,12 @@ class TLSESocket extends TCPSocket {
 					var err = SocketErrno();
 					if ((err != 11) && (err != 35) && (err != 10035))
 						throw exc;
+					if (err_timestamp) {
+						if (microseconds() - err_timestamp > 3000000)
+							throw "WritePending: timed out";
+					} else {
+						err_timestamp = microseconds();
+					}
 					continue;
 				}
 				if (res > 0)
@@ -428,7 +494,7 @@ class TLSESocket extends TCPSocket {
 
 	override GetHasData;
 	public function GetHasData(var timeout=0, var socket_layer_has_data=null) {
-		if (Socket<=0)
+		if (Socket <= 0)
 			throw "Invalid socket (GetHasData)";
 
 		socket_layer_has_data = false;
@@ -460,6 +526,16 @@ class TLSESocket extends TCPSocket {
 		}
 
 		return res;
+	}
+
+	public function GetHasTLSData() {
+		if (Socket <= 0)
+			throw "Invalid socket (GetHasTLSData)";
+
+		if ((tls) && (TLSEReadBufferSize(tls)))
+			return true;
+
+		return false;
 	}
 
 	public Iterate() {
