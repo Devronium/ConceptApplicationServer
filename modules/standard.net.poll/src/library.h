@@ -9,6 +9,7 @@ extern "C" {
 
     CONCEPT_FUNCTION(PollOpen)
     CONCEPT_FUNCTION(PollAdd)
+    CONCEPT_FUNCTION(PollUpdate)
     CONCEPT_FUNCTION(PollRemove)
     CONCEPT_FUNCTION(PollWait)
     CONCEPT_FUNCTION(PollClose)

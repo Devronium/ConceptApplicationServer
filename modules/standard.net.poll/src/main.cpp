@@ -363,6 +363,65 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollAdd, 2, 3)
     RETURN_NUMBER(err);
 END_IMPL
 //=====================================================================================//
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollUpdate, 2, 3)
+    T_NUMBER(PollAdd, 1);
+    int fd = PARAM_INT(1);
+    int err = -1;
+    int mode = 0;
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(PollAdd, 2);
+        mode = PARAM_INT(2);
+    }
+#ifdef WITH_SELECT_POLL
+    T_HANDLE(PollAdd, 0);
+    PollContainer *efd = (PollContainer *)(SYS_INT)PARAM(0);
+    if (fd > 0) {
+        efd->Remove(fd);
+        err = efd->Add(fd, mode);
+    }
+#else
+#if defined(WITH_EPOLL) || defined(WITH_KQUEUE)
+    T_NUMBER(PollAdd, 0);
+    int efd = PARAM_INT(0);
+    if ((fd > 0) && (efd > 0)) {
+#ifdef WITH_KQUEUE
+        struct kevent events[2];
+        int num_events = 1;
+        // Adds the event to the kqueue. Re-adding an existing event will modify the parameters of the original event, and not result in a duplicate entry.
+        switch (mode) {
+            case 1:
+                EV_SET(&events[0], fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
+                break;
+            case 3:
+                EV_SET(&events[0], fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, 0);
+                EV_SET(&events[1], fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
+                num_events = 2;
+                break;
+            default:
+                EV_SET(&events[0], fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, 0);
+        }
+        err = kevent(efd, events, num_events, NULL, 0, NULL);
+#else
+        struct epoll_event event;
+        event.data.fd = fd;
+        switch (mode) {
+            case 1:
+                event.events = EPOLLOUT;
+                break;
+            case 3:
+                event.events = EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLRDHUP;
+                break;
+            default:
+                event.events = EPOLLIN | /* EPOLLPRI |*/ EPOLLHUP | EPOLLRDHUP;// | EPOLLET;
+        }
+        err = epoll_ctl (efd, EPOLL_CTL_MOD, fd, &event);
+#endif
+    }
+#endif
+#endif
+    RETURN_NUMBER(err);
+END_IMPL
+//=====================================================================================//
 CONCEPT_FUNCTION_IMPL(PollRemove, 2)
     T_NUMBER(PollRemove, 1);
     int fd = PARAM_INT(1);

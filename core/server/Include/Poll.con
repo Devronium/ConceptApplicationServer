@@ -7,8 +7,16 @@ class Poll {
 		efd = PollOpen();
 	}
 
-	add(fd) {
-		var res = PollAdd(efd, fd);
+	add(fd, mode = 0) {
+		var res = PollAdd(efd, fd, mode);
+		if (res)
+			return false;
+
+		return true;
+	}
+
+	update(fd, mode = 0) {
+		var res = PollUpdate(efd, fd, mode);
 		if (res)
 			return false;
 

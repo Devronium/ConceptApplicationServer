@@ -16,6 +16,16 @@
  #include <ws2tcpip.h>
  #include <map>
 
+#ifndef SO_REUSEPORT
+    #if (defined (LINUX) || defined (__linux__))
+        #define SO_REUSEPORT    15
+    #else
+    #ifdef __FreeBSD__ 
+        #define SO_REUSEPORT    0x00000200
+    #endif
+    #endif
+#endif
+
 #ifndef IPPROTO_SCTP
     #define IPPROTO_SCTP    132
 #endif
@@ -2553,6 +2563,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SocketReusePort, 1, 2)
                 SOL_SOCKET,
                 SO_REUSEPORT,
                 (char *)&flag,
+
                 sizeof(flag));
 #endif
     RETURN_NUMBER(res);
