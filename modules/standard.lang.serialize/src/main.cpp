@@ -3477,7 +3477,8 @@ CONCEPT_FUNCTION_IMPL(hpack, 1)
     }
 END_IMPL
 //---------------------------------------------------------------------------
-char *canonical_path(const char *path, int len, char *path_buffer) {
+#define TO_HEX(character, err)   (((character) >= '0') && ((character) <= '9') ? (character) - '0' : (((character) >= 'a') && ((character) <= 'f') ? 0x0a + ((character) - 'a') : err = 1 ))
+char *canonical_path(const char *path, int len, char *path_buffer, int uri_decode) {
     if (!path_buffer)
         return NULL;
 
@@ -3485,8 +3486,32 @@ char *canonical_path(const char *path, int len, char *path_buffer) {
     int last_dir = 0;
     int new_component = 1;
     int index = 0;
+    int err = 0;
     for (int i = 0; i < len; i ++) {
         char chr = path[i];
+        char orig_chr = chr;
+        if (uri_decode) {
+            switch (chr) {
+                case '+':
+                    chr = ' ';
+                    break;
+                case '%':
+                    if (i + 2 < len) {
+                        unsigned char hex[3];
+                        unsigned char new_chr = 0;
+                        hex[0] = (unsigned char)tolower(path[i + 1]);
+                        hex[1] = (unsigned char)tolower(path[i + 2]);
+                        hex[2] = 0 ;
+                        new_chr = TO_HEX(hex[0], err) << 4;
+                        new_chr |= TO_HEX(hex[1], err);
+                        if (!err) {
+                            chr = (char)new_chr;
+                            i += 2;
+                        }
+                    }
+                    break;
+            }
+        }
         switch (chr) {
             case '.':
                 if (new_component) {
@@ -3523,7 +3548,9 @@ char *canonical_path(const char *path, int len, char *path_buffer) {
                 }
                 break;
             case '?':
-                goto out;
+                // ignore ? from uri decode
+                if (orig_chr == chr)
+                    goto out;
             default:
                 if (new_component) {
                     new_component = 0;
@@ -3538,13 +3565,18 @@ out:
     return path_buffer;
 }
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(http_normalize_path, 1)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(http_normalize_path, 1, 2)
     T_STRING(http_normalize_path, 0)
+    int uri_decode = 1;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(http_normalize_path, 1);
+        uri_decode = PARAM_INT(1);
+    }
     char buffer[8192];
     int len = PARAM_LEN(0);
     if (len > sizeof(buffer) - 1)
         len = sizeof(buffer) - 1;
-    char *normalized = canonical_path(PARAM(0), len, buffer);
+    char *normalized = canonical_path(PARAM(0), len, buffer, uri_decode);
     if (normalized) {
         RETURN_STRING(normalized);
     } else {
@@ -3553,7 +3585,7 @@ CONCEPT_FUNCTION_IMPL(http_normalize_path, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(http_parse_header, 1)
-    T_STRING(http_header, 0)
+    T_STRING(http_parse_header, 0)
 
     const char *method;
     const char *path;
@@ -3590,7 +3622,7 @@ CONCEPT_FUNCTION_IMPL(http_parse_header, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(http_parse_response, 1)
-    T_STRING(http_header, 0)
+    T_STRING(http_parse_response, 0)
 
     const char *msg;
     int minor_version;
@@ -3615,6 +3647,28 @@ CONCEPT_FUNCTION_IMPL(http_parse_response, 1)
             Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, headers[i].name, (INTEGER)VARIABLE_STRING, headers[i].value, (NUMBER)headers[i].value_len);
         }
         Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, ":data", (INTEGER)VARIABLE_STRING, (msg_len > 0) && (msg) ? msg : "", (NUMBER)msg_len);
+    }
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(http_directory, 1, 2)
+    T_STRING(http_directory, 0);
+    int len = PARAM_LEN(0);
+    char *str = PARAM(0);
+    int filename_offset = 0;
+    while (len > 0) {
+        len --;
+        if ((str[len] == '/') || (str[len] == '\\')) {
+            filename_offset = len + 1;
+            break;
+        }
+    }
+    if (PARAMETERS_COUNT> 1) {
+        SET_STRING(1, (str + filename_offset));
+    }
+    if (filename_offset > 0) {
+        RETURN_BUFFER(str, filename_offset);
+    } else {
+        RETURN_STRING("");
     }
 END_IMPL
 //---------------------------------------------------------------------------

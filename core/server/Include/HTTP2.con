@@ -626,7 +626,7 @@ class HTTP2Stream {
 }
 
 class HTTP2Socket {
-	protected var Socket;
+	public var Socket;
 	protected var Negotiated = false;
 	protected var IsClient = false;
 	protected var OutBuffer = "";

@@ -16,6 +16,14 @@ define MAX_HEADER_SIZE		8192
 define DEFAULT_HTTP1_HEADERS	"Date: ${__utc_string()} GMT\r\nServer: cas\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\n"
 define DEFAULT_HTTP2_HEADERS	[":status" => "200", "date" => "${__utc_string()} GMT", "server" => "cas", "x-content-type-options" => "nosniff", "x-frame-options" => "SAMEORIGIN", "x-xss-protection" => "1; mode=block"]
 
+define REQUEST_CONTINUE		0
+define REQUEST_STOP		1
+define REQUEST_DETACH		2
+
+define MIN_GZIP_AUTOCACHE_SIZE	1024
+// 8M limit on text file autocache
+define MAX_GZIP_AUTOCACHE_SIZE	0x800000
+
 class SocketContainer {
 	var Socket;
 	var file;
@@ -28,6 +36,7 @@ class SocketContainer {
 
 class H2Server {
 	protected var root;
+	protected var get_root_by_host;
 	protected var mimetypes;
 	protected var utc_string;
 	protected var utc_time;
@@ -37,16 +46,109 @@ class H2Server {
 	protected var loop;
 	protected var statistics;
 
-	parseFilename(var path) {
-		var filename;
+	public var OnRewrite;
+	public var OnRequest;
+	public var OnEmptyRequest;
+
+	public var TLSOnly;
+
+	public var CommonRoot = "";
+	public var CommonPrefix = "@/";
+
+	public var LogHTTPErrors = false;
+
+	parseFilename(var path, header) {
+		var filename = "";
+		var root;
+		if ((header) && (get_root_by_host)) {
+			var host = header["host"];
+			if (!host) {
+				host = header["origin"];
+				if (host)
+					host = StrSplit(host, "://")[1];
+			}
+			if (host)
+				root = get_root_by_host(host);
+		}
+		if (root)
+			root += "/";
+		else
+			root = this.root;
 		if (path) {
 		 	filename = http_normalize_path(path);
+			if (this.OnRewrite)
+				filename = this.OnRewrite(filename);
 			if (filename [0] == "/")
 				filename ++;
+			if ((length filename > length CommonPrefix) && (this.CommonRoot) && (this.CommonPrefix)) {
+				if (SubStr(filename, 0, length CommonPrefix) == CommonPrefix) {
+					root = this.CommonRoot + "/";
+					filename = SubStr(filename, length CommonPrefix);
+				}
+			}
+		} else
+		if (this.OnRewrite)
+			filename = this.OnRewrite("/");
+
+		if ((!filename) || (filename[length filename - 1] == '/')) {
+			if (this.OnEmptyRequest)
+				filename += this.OnEmptyRequest(root + filename);
+			else
+				filename += "index.html";
 		}
-		if (!filename)
-			filename = "index.html";
+		if (header) {
+			header[":app"] = filename;
+			header[":root"] = root;
+		}
 		return root + filename;
+	}
+
+	readCommon(filename) {
+		if (!this.CommonRoot)
+			return "";
+		return ReadFile(this.CommonRoot + "/" + filename);
+	}
+
+	checkGzip(var root_buffer, stream, headers) {
+		var encoding = stream.Headers["accept-encoding"];
+		if ((encoding) && (Pos(encoding, "gzip") > 0)) {
+			root_buffer = gzip(root_buffer);
+			headers["content-encoding"] = "gzip";
+		}
+	}
+
+	checkGzipFile(var file, stream, headers, var file_size, create_cache_dir = false) {
+		if ((file_size < MIN_GZIP_AUTOCACHE_SIZE) || (file_size > MAX_GZIP_AUTOCACHE_SIZE))
+			return;
+		var encoding = stream.Headers["accept-encoding"];
+		if ((encoding) && (Pos(encoding, "gzip") > 0)) {
+			var directory = http_directory(file.Name, var filename);
+			var cache_dir = directory + ".gzipcache/";
+			if (create_cache_dir)
+				_mkdir(cache_dir);
+			if (DirectoryExists(cache_dir)) {
+				var path = cache_dir + filename + ".gz";
+				var timestamp = filelast_mod(file.Name);
+				if ((FileExists(path)) && (filelast_mod(path) == timestamp)) {
+					file.Close();
+					var old_name = file.Name;
+					file.Name = path;
+					if (file.Open()) {
+						file_size = file.Size;
+						headers["content-encoding"] = "gzip";
+					} else {
+						file.Name = old_name;
+						file.Open();
+					}
+				} else {
+					var gzipped = gzip(ReadFile(file.Name), 9);
+					if (gzipped) {
+						WriteFile(gzipped, path);
+						utime(path, timestamp, timestamp);
+					}
+				}					
+			}
+		}
 	}
 
 	parseRequest(var buffer, var header = null) {
@@ -55,7 +157,7 @@ class H2Server {
 		if (header)
 			path = header[":path"];
 
-		return parseFilename(path);
+		return parseFilename(path, header);
 	}
 
 	protected __writeconsume(socket, loop) {
@@ -81,7 +183,6 @@ class H2Server {
 					var err = SocketErrno();
 					if ((err != 11) && (err != 35) && (err != 10035)) {
 						// socket disconnected
-						console.warn(LOG_THIS, "$exc: $err");
 						return true;
 					}
 				}
@@ -94,17 +195,31 @@ class H2Server {
 		loop.onWrite(null);
 	}
 
-	protected __error(socket, code, text) {
-		this.__socket_fast_write(socket, "HTTP/1.1 $code $text\r\nContent-Length: ${length text}\r\n\r\n$text");
+	protected __error(socket, code, text, method = "", filename = "") {
+		var page = ReadFile(this.CommonRoot + "/errors/$code.html");
+		if (!page)
+			page = text;
+		this.__socket_fast_write(socket, "HTTP/1.1 $code $text\r\nContent-Length: ${length page}\r\n\r\n$page");
+		if (this.LogHTTPErrors) {
+			var info = socket.Socket.Info;
+			console.warn(info[0], info[1], "$method $filename: $code $text");
+		}
 	}
 
-	protected __error_h2(h2, stream, code, text) {
+	protected __error_h2(h2, stream, code, text, method = "", filename = "") {
+		var page = ReadFile(this.CommonRoot + "/errors/$code.html");
+		if (!page)
+			page = text;
 		stream.Response(h2, [
 			":status" => "$code",
 			"server" => "cas",
 			"content-type" => "text/html"
 		]);
-		stream.Write(h2, text, true);
+		stream.Write(h2, page, true);
+		if (this.LogHTTPErrors) {
+			var info = h2.Socket.Info;
+			console.warn(info[0], info[1], "$method $filename: $code $text");
+		}
 	}
 
 	protected __utc_string() {
@@ -180,9 +295,9 @@ class H2Server {
 		return response_headers;
 	}
 
-	protected __create_headers_h2(filename, header) {
+	protected __create_headers_h2(filename, header, var content_type = null) {
 		var ext = Ext(filename);
-		var content_type = "";
+		content_type = "";
 		var response_headers = DEFAULT_HTTP2_HEADERS;
 		if (IsSet(this.mimetypes, ext)) {
 			content_type = this.mimetypes[ext];
@@ -213,7 +328,7 @@ class H2Server {
 			if (buf)
 				return this.__consume_buffer(buf, socket, loop);
 		} catch (var exc) {
-			console.log(LOG_THIS, exc);
+			// console.log(LOG_THIS, exc);
 			return true;
 		}
 	}
@@ -228,6 +343,24 @@ class H2Server {
 		}
 	}
 
+	protected __redirect_h2(h2, stream, header) {
+		var path = header[":path"];
+		var redirect = http_normalize_path(path);
+		var query = "";
+		var pos = Pos(path, "?");
+		if (pos > 0)
+			query = SubStr(path, pos - 1);
+		var host = header[":authority"];
+		if ((host) && (redirect)) {
+			stream.Response(h2, [
+				":status" => "301",
+				"server" => "cas",
+				"location" => "https://$host$redirect/$query"
+			], true);
+			return false;
+		}
+	}
+
 	protected __h2_request(h2, stream) {
 		var header = stream.Headers;
 		if (!header) {
@@ -235,23 +368,39 @@ class H2Server {
 			return;
 		}
 		var method = header[":method"];
+		var path = header[":path"];
 		switch (method) {
 			case "GET":
 			case "POST":
 			case "PUT":
 				break;
 			default:
-				__error_h2(h2, stream, 405, "Method Not Allowed");
+				__error_h2(h2, stream, 405, "Method Not Allowed", method, path);
 				return;
 		}
-		var filename = parseFilename(header[":path"]);
+		var filename = parseFilename(path, header);
 		if (_stat(filename, var stat_arr)) {
-			__error_h2(h2, stream, 404, "Not Found");
+			__error_h2(h2, stream, 404, "Not Found", method, path);
 			return;
 		}
-		var response_headers = __create_headers_h2(filename, header);
+		if (stat_arr["st_mode"] & S_IFDIR) {
+			__redirect_h2(h2, stream, header);
+			return;
+		}
+
+		var data;
+		if (this.OnRequest) {
+			switch (this.OnRequest(2, true, method, filename, header, h2, stream, data)) {
+				case REQUEST_STOP:
+					__error_h2(h2, stream, 403, "Forbidden", method, path);
+					return;
+				case REQUEST_DETACH:
+					return;
+			}
+		}
+		var response_headers = __create_headers_h2(filename, header, var content_type);
 		var size = stat_arr["st_size"];
-		if (size >= 0) {
+		if ((size >= 0) || (data)) {
 			var last_modified = formatdate(stat_arr["st_mtime"] * 1000, "%a, %d %b %Y %H:%M:%S") + " GMT";
 			var cache_control = header["cache-control"];
 			if ((cache_control) && (cache_control != "no-cache")) {
@@ -263,8 +412,8 @@ class H2Server {
 				}
 			}
 			response_headers["last-modified"] = last_modified;
-			if (size < FAST_READ_FILE) {
-				__h2_fast_write(h2, stream, response_headers, ReadFile(filename));
+			if ((size < FAST_READ_FILE) || (data)) {
+				__h2_fast_write(h2, stream, response_headers, data ?? ReadFile(filename));
 				return;
 			}
 		}
@@ -273,7 +422,10 @@ class H2Server {
 		if (file.Open()) {
 			var socket = loop.object();
 
-			this.__check_range_h2(stream, header, response_headers, file);
+			if (!this.__check_range_h2(stream, header, response_headers, file)) {
+				if ((content_type == "application/javascript") || (SubStr(content_type, 0, 5) == "text/"))
+					checkGzipFile(file, stream, response_headers, size);
+			}
 
 			if (socket.file) {
 				socket.file[length socket.file] = stream;
@@ -287,7 +439,7 @@ class H2Server {
 
 			this.__h2_write_consume(socket, loop);
 		} else
-			__error_h2(h2, stream, 404, "Not Found");
+			__error_h2(h2, stream, 404, "Not Found", method, path);
 	}
 
 	protected __h2_write_consume(socket, loop) {
@@ -329,7 +481,7 @@ class H2Server {
 			if (socket.Socket.Pending())
 				loop.onWrite(__h2_write_consume);
 		} catch (var exc) {
-			console.log(LOG_THIS, exc);
+			// console.log(LOG_THIS, exc);
 			return true;
 		}
 	}
@@ -343,6 +495,24 @@ class H2Server {
 		}
 	}
 
+	protected __redirect(socket, header) {
+		var redirect = http_normalize_path(header[":path"]);
+		var query = this.getQuery(header);
+		if (query)
+			query = "?" + query;
+		var proto;
+		if ((socket.tls) || (this.TLSOnly))
+			proto = "https";
+		else
+			proto = "http";
+		var host = header["host"];
+		if ((host) && (redirect)) {
+			__socket_fast_write(socket, "HTTP/1.1 301 Moved Permanently\r\nLocation: $proto://$host$redirect/$query\r\nContent-Length: 0\r\n\r\n");
+			return false;
+		}
+		return true;
+	}
+
 	protected __consume_buffer(buf, socket, loop) {
 		if (buf) {
 			var filename = this.parseRequest(buf, var header);
@@ -350,22 +520,40 @@ class H2Server {
 				__error(socket, 400, "Bad Request");
 				return true;
 			}
-			switch (header[":method"]) {
+			if (this.TLSOnly)
+				return __redirect(socket, header);
+			var method = header[":method"];
+			switch (method) {
 				case "GET":
 				case "PUT":
 				case "POST":
 					break;
 				default:
-					__error(socket, 405, "Method Not Allowed");
+					__error(socket, 405, "Method Not Allowed", method, header[":path"]);
 					break;
 			}
 			if (_stat(filename, var stat_arr)) {
-				__error(socket, 404, "Not Found");
+				__error(socket, 404, "Not Found", method, header[":path"]);
 				return;
+			}
+			if (stat_arr["st_mode"] & S_IFDIR)
+				return __redirect(socket, header);
+
+			var data;
+			if (this.OnRequest) {
+				switch (this.OnRequest(1, socket.tls, method, filename, header, socket, null, data)) {
+					case REQUEST_STOP:
+						__error(socket, 403, "Forbidden", method, header[":path"]);
+						return true;
+					case REQUEST_DETACH:
+						socket.Socket.Socket = 0;
+						socket.Socket = null;
+						return true;
+				}
 			}
 			var response_headers = __create_headers(filename, header);
 			var size = stat_arr["st_size"];
-			if (size >= 0) {
+			if ((size >= 0) || (data)) {
 				var last_modified = formatdate(stat_arr["st_mtime"] * 1000, "%a, %d %b %Y %H:%M:%S") + " GMT";
 				var cache_control = header["cache-control"];
 				if ((cache_control) && (cache_control != "no-cache")) {
@@ -376,8 +564,8 @@ class H2Server {
 					}
 				}
 				response_headers += "Last-Modified: $last_modified\r\n";
-				if (size < FAST_READ_FILE) {
-					var filebuf = ReadFile(filename);
+				if ((size < FAST_READ_FILE) || (data)) {
+					var filebuf = data ?? ReadFile(filename);
 					__socket_fast_write(socket, "HTTP/1.1 200 OK\r\n${response_headers}Content-Length: ${length filebuf}\r\n\r\n" + filebuf);
 					return;
 				}
@@ -394,7 +582,7 @@ class H2Server {
 				if (this.__writeconsume(socket, loop))
 					return true;
 			} else
-				__error(socket, 404, "Not Found");
+				__error(socket, 404, "Not Found", method, header[":path"]);
 			return;
 		}
 		return true;
@@ -419,7 +607,7 @@ class H2Server {
 				}
 			} while (socket.Socket.GetHasTLSData());
 		} catch (var exc) {
-			console.warn(LOG_THIS, exc);
+			// console.warn(LOG_THIS, exc);
 			return true;
 		}
 	}
@@ -428,30 +616,42 @@ class H2Server {
 		this.mimetypes = MIMETypes::types();
 	}
 
-	H2Server(string root, public_key = "", private_key = "", port = 80, tls_port = 443, max_age = 604800, timeout = 10, max_connections = 8192) {
-		this.root = root;
+	upgradeWebsocket(socket, key, extra_header = "") {
+		this.__socket_fast_write(socket, "HTTP/1.1 101 Switching Protocols\r\n${extra_header}Connection: Upgrade\r\nDate: ${__utc_string()} GMT\r\nSec-WebSocket-Accept: $key\r\nServer: cas\r\nUpgrade: websocket\r\n\r\n");
+	}
+
+	H2Server(string default_root, get_root_by_host = null, public_key = "", private_key = "", port = 80, tls_port = 443, max_age = 604800, timeout = 10, max_connections = 8192, interface = "", ipv6 = true) {
+		if ((default_root) && (default_root[length default_root - 1] != "/") && (default_root[length default_root - 1] != "\\"))
+			default_root += "/";
+		this.root = default_root;
+		this.get_root_by_host = get_root_by_host;
 		this.max_age = max_age;
 		if (timeout <= 0)
 			timeout = 10;
 		this.timeout = timeout;
 		this.timeout_ms = timeout * 1000;
 		this.__loadmime();
-		var tcp = new TCPSocket();
+		var tcp = new TCPSocket(-1, ipv6);
+		if (ipv6)
+			tcp.SetOption(IPPROTO_IPV6, IPV6_V6ONLY, 0);
 		tcp.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
 		tcp.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
 		SocketSetBlocking(tcp.Socket, false);
-		tcp.Listen(port, max_connections);
+		tcp.Listen(port, max_connections, interface);
 
 		var tls;
 		if ((public_key) && (private_key)) {
-			tls = new TLSESocket();
+			tls = new TLSESocket(-1, null, ipv6);
+			if (ipv6)
+				tls.SetOption(IPPROTO_IPV6, IPV6_V6ONLY, 0);
 			tls.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
 			tls.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
 			SocketSetBlocking(tls.Socket, false);
-			tls.Listen(tls_port, max_connections);
+			tls.Listen(tls_port, max_connections, interface);
 			if (tls.LoadKeys(public_key, private_key)) {
 				tls.AddALPN("h2");
 			} else {
+				this.TLSOnly = false;
 				console.warn(LOG_THIS, "Warning: Error loading TLS/SSL keys. HTTPS/WSS will not be supported.");
 				tls = null;
 			}
@@ -471,6 +671,8 @@ class H2Server {
 				if (socket) {
 					SocketSetBlocking(socket.Socket, false);
 					socket.PrepareAcceptTLS();
+					if (this.OnRequest)
+						socket.MakeExportable();
 					var container = new SocketContainer(socket);
 					container.tls = true;
 					loop.addSocket(container, this.__consume_tls, this.timeout_ms);
@@ -479,7 +681,26 @@ class H2Server {
 		}
 	}
 
-	UseStatistics(deleg, interval = 1000) {
+	public mimeType(filename) {
+		var ext = Ext(filename);
+		if (IsSet(this.mimetypes, ext))
+			return this.mimetypes[ext];
+		return "";
+	}
+
+	static getQuery(headers) {
+		if (!headers)
+			return "";
+		if (headers[":query"])
+			return headers[":query"];
+		var path = headers[":path"];
+		var pos = Pos(path, "?");
+		if (pos > 0)
+			return SubStr(path, pos);
+		return "";
+	}
+
+	useStatistics(deleg, interval = 1000) {
 		this.statistics = deleg;
 		loop.schedule(function(loop) {
 			if (this.statistics)
@@ -489,11 +710,11 @@ class H2Server {
 		}, interval);
 	}
 
-	Run() {
+	run() {
 		loop.run();
 	}
 
-	Stop() {
+	stop() {
 		loop.quit();
 	}
 }
