@@ -151,8 +151,8 @@ class H2Server {
 		}
 	}
 
-	parseRequest(var buffer, var header = null) {
-		header = http_parse_header(buffer);
+	parseRequest(var buffer, var header = null, var offset = 0) {
+		header = http_parse_header(buffer, offset);
 		var path;
 		if (header)
 			path = header[":path"];
@@ -390,7 +390,7 @@ class H2Server {
 
 		var data;
 		if (this.OnRequest) {
-			switch (this.OnRequest(2, true, method, filename, header, h2, stream, data)) {
+			switch (this.OnRequest(2, true, method, filename, header, h2, stream, data, "")) {
 				case REQUEST_STOP:
 					__error_h2(h2, stream, 403, "Forbidden", method, path);
 					return;
@@ -515,7 +515,7 @@ class H2Server {
 
 	protected __consume_buffer(buf, socket, loop) {
 		if (buf) {
-			var filename = this.parseRequest(buf, var header);
+			var filename = this.parseRequest(buf, var header, var offset);
 			if (!header) {
 				__error(socket, 400, "Bad Request");
 				return true;
@@ -541,7 +541,10 @@ class H2Server {
 
 			var data;
 			if (this.OnRequest) {
-				switch (this.OnRequest(1, socket.tls, method, filename, header, socket, null, data)) {
+				var remaining_buffer = "";
+				if ((offset > 0) && (offset < length buf))
+					remaining_buffer = SubStr(buf, offset);
+				switch (this.OnRequest(1, socket.tls, method, filename, header, socket, null, data, remaining_buffer)) {
 					case REQUEST_STOP:
 						__error(socket, 403, "Forbidden", method, header[":path"]);
 						return true;

@@ -1,3 +1,5 @@
+#!/usr/local/bin/concept -chdir
+
 include H2Server.con
 include WebSocket.con
 include Worker.con
@@ -10,6 +12,9 @@ define LOG_LEVEL		LOG_TRACE
 define WS_SESSION_RESTORE	true
 define CONCEPT_STRICT_EXECUTE	false
 define SERVER_NAME		"cas"
+define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/cgi1.1/http2/ess/async)"
+define USE_DB_SERVICE		true
+define DEFAULT_CGI_WORKERS	2
 define JS_CGI_DONE_TIMEOUT	30
 define JS_MAX_TIMEOUT		1200
 define JS_FRAMEWORK		"/js/"
@@ -17,6 +22,9 @@ define CGI_MAX_RETRY_SECONDS	30
 define INI_CACHE_TIMEOUT_S	30
 define PIPE_READ_CPU_TIME_US	2000
 define MAX_RECV_BUFFER		0xFFFF
+define IDLE_SLEEP_MS		10
+define IDLE_SLEEP_THRESHOLD	200
+define IDLE_SLEEP_MS2		50
 
 // 128k pipe read buffer
 define PIPE_MAX_STDOUT_BUFFER	0x20000
@@ -1339,6 +1347,389 @@ class IniCache {
 	}
 }
 
+class ConceptBaseWorker {
+	protected var[] cgiworkers;
+	protected var[] childcache;
+	protected var cacheholders;
+
+	UpdateChildCache(children) {
+		var[] new_cache;
+		for (var i = 0; i < length children; i++){ 
+			var cgi = children[i];
+			if ((cgi) && (cgi.reqid))
+				new_cache[cgi.reqid] = cgi;
+		}
+		childcache = new_cache;
+		cacheholders = 0;
+	}
+
+	ClearCache(child) {
+		if ((child) && (child.reqid)) {
+			if (IsSet(childcache, child.reqid)) {
+				childcache[child.reqid] = null;
+				cacheholders++;
+			}
+		}
+	}
+
+	IterateAsyncWorkers(children) {
+		if (cacheholders > 100)
+			this.UpdateChildCache(children);
+
+		var workers = cgiworkers;
+		if (!workers)
+			return 0;
+		var ops = 0;
+		var removed_workers = 0;
+		for (var i = 0; i < length workers; i++) {
+			var worker = workers[i];
+			if (worker) {
+				var worker_get = worker.GetResult(var data_arr);//worker.GetAll(var data_arr);
+				if ((data_arr) && (worker_get > 0)) {
+					data_arr = UnBinarizeObject(data_arr);
+					for (var j = 0; j < length data_arr; j++) {
+						var data = data_arr[j];//UnBinarizeObject(data_arr[j]);
+						if (data) {
+							ops++;
+							var request = data["q"];
+							if ((request) && (typeof request == "string")) {
+								var child = childcache[request];
+								if (child)
+									child.onmessage(data);
+							} else
+							if (data["do"] == "drop") {
+								ops++;
+								worker.ClearCache();
+								worker.Join();
+								workers[i] = null;
+								removed_workers ++;
+							}
+						}
+					}
+				} else
+				if (worker_get) {
+					ops++;
+					worker.ClearCache();
+					worker.Join();
+					workers[i] = null;
+					removed_workers ++;
+				}
+				worker.SendCached();
+			}
+		}
+		if (removed_workers) {
+			var new_workers = new [];
+			for (i = 0; i < length workers; i++) {
+				worker = workers[i];	
+				if (worker)
+					new_workers[length new_workers] = worker;
+			}
+			cgiworkers = new_workers;
+		}
+		return ops;
+	}
+}
+
+class WDataContainer {
+pragma used
+	var socket;
+	var app;
+	var headers;
+	var tls;
+	var query;
+	var snippet;
+	var method;
+	var hostname;
+	var path;
+	var port;
+	var cgihandler;
+	var root;
+	var javascript;
+
+	WDataContainer(socket, app, var headers, var query, var snippet, method, hostname, path, port, cgihandler, root, javascript = false) {
+		this.socket = socket.Socket;
+		this.app = app;
+		this.headers = headers;
+		this.query = query;
+		this.snippet = snippet;
+		this.method = method;
+		this.hostname = hostname;
+		this.path = path;
+		this.port = port;
+		this.cgihandler = cgihandler;
+		this.root = root;
+		this.javascript = javascript;
+		if (classof socket == "TLSESocket") {
+			tls = socket.Save();
+			socket.Done();
+		}
+		socket.Socket = -1;
+	}
+}
+
+class ConceptWorker extends ConceptBaseWorker {
+pragma used
+	protected var WorkerName;
+	protected var[] Children;
+	protected var Placeholders;
+	protected var Framework = "";
+
+	CreateEnv(Socket, job, scriptname = "javascript") {
+		var info = Socket.Info;
+		var address = info["address"];
+		var port = info["port"];
+
+		var headers = job.headers;
+		var env = [
+				"DOCUMENT_ROOT": job.root,
+				"GATEWAY_INTERFACE": "CGI/1.1",
+				"HTTP_COOKIE": headers["cookie"] ?? "",
+				"HTTP_HOST": job.hostname,
+				"HTTP_USER_AGENT": headers["user-agent"] ?? "",
+				"PATH_INFO": job.path,
+				"PATH_TRANSLATED": job.app,
+				"QUERY_STRING": job.query,
+				"REMOTE_ADDR": address,
+				"REMOTE_HOST": address,
+				"REMOTE_PORT": port,
+				"REMOTE_USER": "",
+				"REQUEST_METHOD": job.method,
+				"REQUEST_URI": job.path,
+				"SCRIPT_FILENAME":  job.app,
+				"SCRIPT_NAME": scriptname,
+				"SERVER_ADMIN": "",
+				"SERVER_NAME": job.hostname,
+				"SERVER_PORT": job.port,
+				"SERVER_PROTOCOL": "HTTP/1.1",
+				"SERVER_SOFTWARE":  SERVER_SOFTWARE,
+				"REDIRECT_STATUS": 200,
+				"REDIRECT_STATUS": "CGI",
+				"CONTENT_LENGTH": headers["content-length"] ?? "",
+				"CONTENT_TYPE": headers["content-type"] ?? "",
+				"HTTP_ACCEPT_LANGUAGE": headers["accept-language"] ?? "",
+				"HTTP_ACCEPT_ENCODING": headers["accept-encoding"] ?? "",
+				"HTTP_REFERER": headers["referer"] ?? ""
+		];
+		if (classof Socket == "TLSESocket") {
+			env["HTTPS"] = "on";
+			env["HTTPS_CIPHER"] = Socket.CipherName;
+		}
+		return env;
+	}
+
+	CreateJavascript(Socket, job) {
+		var env = this.CreateEnv(Socket, job);
+		return new ConceptJSChild(this.Framework, job.method, Socket, env, job.snippet, null, null, null, job.headers);
+	}
+
+	CreateCAS(Socket, job) {
+		var env = this.CreateEnv(Socket, job, "conceptasync");
+		var cgi = new ConceptCASChild(CGIAsyncWorker::Create(this.cgiworkers, job.app, null, var err), err, job.method, Socket, env, job.snippet, null, null, null, job.headers);
+		if (cgi.reqid)
+			this.childcache[cgi.reqid] = cgi;
+		return cgi;
+	}
+
+	Create(Socket, job, var err_text) {
+		if (job.javascript == 2)
+			return CreateCAS(Socket, job);
+		if (job.javascript)
+			return CreateJavascript(Socket, job);
+
+
+		if (ConceptCGIChild::CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w, err_text))
+			return null;
+
+		var cgi_handler_path = job.cgihandler;
+
+		var info = Socket.Info;
+		var address = info["address"];
+		var port = info["port"];
+		var headers = job.headers;
+		var env = [
+				"DOCUMENT_ROOT=" + job.root,
+				"GATEWAY_INTERFACE=CGI/1.1",
+				"HTTP_COOKIE=" + (headers["cookie"] ?? ""),
+				"HTTP_HOST=" + job.hostname,
+				"HTTP_USER_AGENT=" + (headers["user-agent"] ?? ""),
+				"PATH_INFO=" + job.path,
+				"PATH_TRANSLATED=" + job.app,
+				"QUERY_STRING=" + job.query,
+				"REMOTE_ADDR=" + address,
+				"REMOTE_HOST=" + address,
+				"REMOTE_PORT=" + port,
+				"REMOTE_USER=",
+				"REQUEST_METHOD=" + job.method,
+				"REQUEST_URI=" + job.path,
+				"SCRIPT_FILENAME=" + job.app,
+				"SCRIPT_NAME=" + cgi_handler_path,
+				"SERVER_ADMIN=",
+				"SERVER_NAME=" + job.hostname,
+				"SERVER_PORT=" + job.port,
+				"SERVER_PROTOCOL=HTTP/1.1",
+				"SERVER_SOFTWARE=" + SERVER_SOFTWARE,
+				"REDIRECT_STATUS=200",
+				"REDIRECT_STATUS=CGI",
+				"CONTENT_LENGTH=" + (headers["content-length"] ?? ""),
+				"CONTENT_TYPE=" + (headers["content-type"] ?? ""),
+				"HTTP_ACCEPT_LANGUAGE=" + (headers["accept-language"] ?? ""),
+				"HTTP_ACCEPT_ENCODING=" + (headers["accept-encoding"] ?? ""),
+				"HTTP_REFERER=" + (headers["referer"] ?? "")
+		];
+		if (classof Socket == "TLSESocket") {
+			env[length env] = "HTTPS=on";
+			env[length env] = "HTTPS_CIPHER=" + Socket.CipherName;
+		}
+
+		var pid = ExecuteProcess(cgi_handler_path, "", [job.app], env, false, std_out_w, std_in_r);
+
+		close(std_out_w);
+		close(std_in_r);
+
+		if (pid <= 0) {
+			close(std_out_r);
+			close(std_in_w);
+			if (!err_text)
+				err_text = "ConceptWorker: Error creating process\n";
+			return null;
+		}
+		return new ConceptCGIChild(job.method, Socket, std_out_r, std_in_w, pid, job.snippet);
+	}
+
+	AddChild(child) {
+		if (Placeholders > 0) {
+			for (var i = 0; i < length Children; i++) {
+				if (!Children[i]) {
+					Children[i] = child;
+					Placeholders--;
+					return;
+				}
+			}
+		}
+		Children[length Children] = child;
+	}
+
+	Clean() {
+		var new_children = new [];
+		var children = this.Children;
+		if (Placeholders == length children) {
+			this.Children = new_children;
+			Placeholders = 0;
+			return;
+		}
+
+		for (var i = 0; i < length children; i++) {
+			var child = children[i];
+			if (child)
+				new_children[length new_children] = child;
+		}
+		Placeholders = 0;
+	}
+
+	Iterate() {
+		var children = this.Children;
+		var res = 0;
+		for (var i = 0; i < length children; i++) {
+			var child = children[i];
+			if (child) {
+				if (child.Iterate(res)) {
+					child.Close();
+					children[i] = null;
+					this.ClearCache(child);
+					Placeholders ++;
+				}
+			}
+		}
+		this.IterateAsyncWorkers(children);
+		if (Placeholders >= 20)
+			this.Clean();
+		return res;
+	}
+
+	static RealPath(path) {
+		var res = "";
+		var arr = StrSplit(path, "/");
+		for (var i = length arr - 1; i >= 0; i--) {
+			var e = arr[i];
+			if (e == "..") {
+				i--;
+			} else {
+				if (res)
+					res = arr[i] + "/" + res;
+				else
+					res = arr[i];
+			}
+		}
+		return res;
+	}
+
+	static IniGetPath(inifile, category, key, default_value = "") {
+		var res = trim(IniGet(inifile, category, key, default_value));
+		if (res[0] == ".")
+			return getcwd() + "/" + res;
+		return res;
+	}
+
+	Loop(var empty_iterations, var sleep_value) {
+		var work_count = 0;
+		if (Worker::PendingAll(var data, sleep_value, 100)) {
+			for (var i = 0; i < length data; i++) {
+				work_count++;
+				var job = UnBinarizeObject(data[i]);
+				if (job) {
+					if (Pos(job.app, ".."))
+						job.app = this.RealPath(StrReplace(job.app, "\\", "/"));
+					var Socket;
+					try {
+						if (job.tls) {
+							Socket = new TLSESocket(job.socket);
+							Socket.Restore(job.tls);
+						} else
+							Socket = new TCPSocket(job.socket);
+						var child = this.Create(Socket, job, var err_text);
+						if (child) {
+							if (!job.javascript)
+								Socket.Write("HTTP/1.1 200 OK\r\nServer: " + SERVER_NAME + "\r\n");
+							AddChild(child);
+						} else {
+							Socket.Write("HTTP/1.1 503 Service unavailable\r\nServer: " + SERVER_NAME + "\r\nContent-Type: text/html\r\n\r\n<html><head><title>HTTP 503 Service unavailable</title></head><body><h1>HTTP 503 Service unavailable</h1><br/>$err_text</body></html>");
+							Socket.Close(true);
+						}
+					} catch (var exc) {
+						console.error(LOG_THIS, "Exc: $exc");
+						delete Socket;
+					}
+				}
+			}
+		}
+		work_count += this.Iterate();
+		if (work_count) {
+			empty_iterations = 0;
+			sleep_value = 0;
+		} else {
+			empty_iterations++;
+			if (empty_iterations > IDLE_SLEEP_THRESHOLD)
+				sleep_value = IDLE_SLEEP_MS2; // Sleep(IDLE_SLEEP_MS2);
+			else
+				sleep_value = IDLE_SLEEP_MS; // Sleep(IDLE_SLEEP_MS);
+		}
+		// return work_count;
+	}
+
+	ConceptWorker(n) {
+		n = UnBinarizeObject(n);
+		WorkerName = n[0];
+		Framework = this.IniGetPath(n[1], "Paths", "Include") + JS_FRAMEWORK;
+		var empty_iterations = 0;
+		var sleep_value = 0;
+		while (true) {
+			Loop(empty_iterations, sleep_value);
+			// if (!work_count)
+			//	Sleep(IDLE_SLEEP_MS);
+		}
+	}
+}
+
 class ConceptChild {
 	protected var Socket;
 	protected var Owner;
@@ -2091,20 +2482,28 @@ class ConceptServer extends IniCache {
 	var ClientCount;
 	var appworker;
 	var LogRequests = true;
+	var[] Workers;
+	var TargetWorker = 0;
+	var port;
+	var tlsport;
+	var cgi;
+	var[] cgiother;
 
 	get_root_by_host(host) {
 		return this.IniKey("Paths", "HostRoot($host)", "");
 	}
 
-	function log_request(http_version, tls, method, headers, socket) {
+	function log_request(http_version, tls, method, headers, socket, extra = "") {
 		if (!headers)
 			return;
 		socket = socket.Socket;
 		var info = socket.Info;
+		if (extra)
+			extra = " " + extra;
 		if (tls)
-			console.info(info[0], info[1], "hs${http_version} $method ${headers[":path"]}");
+			console.info(info[0], info[1], "hs${http_version} $method ${headers[":path"]}$extra");
 		else
-			console.info(info[0], info[1], "h$http_version $method ${headers[":path"]}");
+			console.info(info[0], info[1], "h$http_version $method ${headers[":path"]}$extra");
 	}
 
 	GenerateSession(string seed = "") {
@@ -2114,8 +2513,31 @@ class ConceptServer extends IniCache {
 		return sha1(""+NumberToHex(ClsPtr(this))+"#"+CryptoRandom(80)) + "-" + common;
 	}
 
+	static WorkerCount(workers_count) {
+		var cgi_workers = _floor(sysconf(_SC_NPROCESSORS_ONLN) / 2);
+		if (cgi_workers > workers_count)
+			workers_count = cgi_workers;
+		return workers_count;
+	}
+
+	ChooseWorker() {
+		if (Workers) {
+			if (TargetWorker >= length Workers)
+				TargetWorker = 0;
+			return Workers[TargetWorker++];
+		}
+		return null;
+	}
+
 	ConceptServer(ini_file) {
 		this.IniFile = ini_file;
+
+		var user = this.IniKey("Server", "User", "concept");
+		var pwd  = this.IniKey("Server", "UserPassword", "");
+
+		if (!SetCurrentUser(user, pwd))
+			console.warn(LOG_THIS, "cannot change user to $user");
+		pwd = "";
 
 		var log_file = this.IniGetPath("Paths", "LogFile", "");
 		if (log_file)
@@ -2129,16 +2551,37 @@ class ConceptServer extends IniCache {
 				console.warn(LOG_THIS, "cannot set the maximum connection count to $max_fd");
 		}
 
+		this.cgi = this.IniGetPath("Paths", "CGIHandler", "conceptcgi");
+		var cgi_other = this.IniKey("Paths", "OtherCGI", "");
+		if (cgi_other) {
+			var arr = StrSplit(cgi_other, ";");
+			for (var i = 0; i < length arr; i++) {
+				var e = StrSplit("" + arr[i], "=");
+				var type = trim(e[0]);
+				var val = trim(e[1]);
+				if ((length e == 2) && (type) && (val))
+					this.cgiother[type] = val;
+			}
+		}
+
 		appworker = new Worker("ConceptAppWorker", ini_file);
-		
-		httpserver = new H2Server(this.IniKey("Paths", "ServerRoot", ""), get_root_by_host, this.IniKey("Server", "WebSocketCertificate", ""), this.IniKey("Server", "WebSocketPrivateKey", ""), value this.IniKey("Server", "WebPort", "2680"), value this.IniKey("Server", "SecureWebPort", "2681"), value this.IniKey("Server", "MaxAge", "604800"), value this.IniKey("Server", "MaxInitialIDLE", "10"), max_connections, this.IniKey("Server", "Interface", ""));
+
+		var workers_count = this.WorkerCount(DEFAULT_CGI_WORKERS);
+		console.info(LOG_THIS, "Initializing $workers_count CGI workers");
+		for (i = 0; i < workers_count; i++)
+			Workers[i] = new Worker("ConceptWorker", BinarizeObject(["Worker${i+1}", ini_file]));
+
+		port = value this.IniKey("Server", "WebPort", "2680");
+		tlsport = value this.IniKey("Server", "SecureWebPort", "2681");
+		httpserver = new H2Server(this.IniGetPath("Paths", "ServerRoot", ""), get_root_by_host, this.IniKey("Server", "WebSocketCertificate", ""), this.IniKey("Server", "WebSocketPrivateKey", ""), port, tlsport, value this.IniKey("Server", "MaxAge", "604800"), value this.IniKey("Server", "MaxInitialIDLE", "10"), max_connections, this.IniKey("Server", "Interface", ""));
 		httpserver.TLSOnly = value this.IniKey("Server", "WebTLSOnly", "0");
 		httpserver.CommonRoot = this.IniGetPath("Paths", "ConceptClient", "./ConceptClient.js");
 
-		httpserver.OnRequest = function(http_version, tls, method, var filename, headers, socket, stream, var data) {
+		httpserver.OnRequest = function(http_version, tls, method, var filename, headers, socket, stream, var data, pending_buffer) {
 			if (this.LogRequests)
 				this.log_request(http_version, tls, method, headers, socket);
-			switch (httpserver.mimeType(filename)) {
+			var content_type = httpserver.mimeType(filename);
+			switch (content_type) {
 				case "application/concept":
 					if ((http_version == 1) && (ToLower("" + headers["upgrade"]) == "websocket")) {
 						var key = headers["sec-websocket-key"];
@@ -2181,6 +2624,28 @@ class ConceptServer extends IniCache {
 					data = StrReplace(data, "{APP}", app);
 					filename = "index.html";
 					return;
+				case "application/concept-server-page":
+					var worker = this.ChooseWorker();
+					worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.port, this.cgi, headers[":root"], false)));
+					return REQUEST_DETACH;
+				case "application/javascript-server-page":
+					worker = this.ChooseWorker();
+					worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.port, "", headers[":root"], 1)));
+					return REQUEST_DETACH;
+				case "application/concept-async-page":
+					worker = this.ChooseWorker();
+					worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.port, "", headers[":root"], 2)));
+					return REQUEST_DETACH;
+				case "application/concept-private":
+					// drop request
+					this.log_request(http_version, tls, method, headers, socket, "silently dropped");
+					return REQUEST_STOP;
+				default:
+					if ((this.cgiother) && (IsSet(this.cgiother, content_type))) {
+						worker = this.ChooseWorker();
+						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), "", headers[":method"], headers[":host"] ?? "", headers[":path"], this.port, this.Owner.cgiother[content_type], headers[":root"], false)));
+						return REQUEST_DETACH;
+					}
 			}
 		};
 		httpserver.OnEmptyRequest = function(path) {
@@ -2207,6 +2672,21 @@ class ConceptServer extends IniCache {
 	}
 }
 
+class ConceptPingWorker {
+	ConceptPingWorker(data) {
+		data = UnBinarizeObject(data);
+		var ping = data[0];
+		var timeout = data[1] * 1000;
+		console.info(LOG_THIS, "Initializing ping worker, command: $ping, interval: ${timeout}ms");
+		while (true) {
+			var err = _system(ping);
+			if (err)
+				console.error(LOG_THIS, "Error $err executing $ping");
+			Sleep(timeout);
+		}
+	}
+}
+
 class Main {
 	Main() {
 		console.level(LOG_LEVEL);
@@ -2220,6 +2700,24 @@ class Main {
 			ini_file = "concept.ini";
 
 		var server = new ConceptServer(ini_file);
+		server.LogRequests = false;
+		if (USE_DB_SERVICE) {
+			if (ExecuteProcess("concept", ".", ["TinDB.con"], [ ], false) < 0) {
+				if (ExecuteProcess(getcwd() + "/concept", ".", ["TinDB.con"], [ ], false) < 0)
+					if (ExecuteProcess("/usr/local/bin/concept", ".", ["TinDB.con"], [ ], false) < 0)
+						console.error(LOG_THIS, "Error running database service");
+			}
+		}
+
+		var ping = trim(IniGet(ini_file, "Watchdog", "Command", ""));
+		var timeout;
+		if (ping) {
+			timeout = value IniGet(ini_file, "Watchdog", "Interval", "30");
+			if (timeout < 1)
+				timeout = 1;
+
+			new Worker("ConceptPingWorker", BinarizeObject([ping, timeout]));
+		}
 		server.LogRequests = true;
 		server.Run();
 	}

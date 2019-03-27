@@ -3584,7 +3584,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(http_normalize_path, 1, 2)
     }
 END_IMPL
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(http_parse_header, 1)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(http_parse_header, 1, 2)
     T_STRING(http_parse_header, 0)
 
     const char *method;
@@ -3597,6 +3597,9 @@ CONCEPT_FUNCTION_IMPL(http_parse_header, 1)
     CREATE_ARRAY(RESULT);
 
     int err = phr_parse_request(PARAM(0), PARAM_LEN(0), &method, &method_len, &path, &path_len, &minor_version, headers, &num_headers, 0);
+    if (PARAMETERS_COUNT > 1) {
+        SET_NUMBER(1, err);
+    }
     if ((err >= 0) || (err == -2)) {
         Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, ":method", (INTEGER)VARIABLE_STRING, method, (NUMBER)method_len);
         if (path_len >= 8192)
