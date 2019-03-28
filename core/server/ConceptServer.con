@@ -1,30 +1,67 @@
 #!/usr/local/bin/concept -chdir
 
-include H2Server.con
+include Greenloop.con
+include TCPSocket.con
+include TLSESocket.con
+include UNIXSocket.con
+include Serializable.con
 include WebSocket.con
+include File.con
 include Worker.con
+include HTTP2.con
 include DUKJS.con
 include JSFramework.con
 
+import standard.C.io
+import standard.C.time
+import standard.lib.str
+import standard.C.casts
+import standard.lib.cripto
+import standard.coding.base64
 import standard.lang.cli
+import standard.math.rand
 
-define LOG_LEVEL		LOG_DEBUG
-define WS_SESSION_RESTORE	true
+// set to true when in production
+// this will allow only compiled files to run (.accel)
 define CONCEPT_STRICT_EXECUTE	false
-define SERVER_NAME		"cas"
-define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/cgi1.1/http2/ess/async)"
+
+define WS_SESSION_RESTORE	true
+
+define LOG_LEVEL		LOG_TRACE
+
+define MAX_RECV_BUFFER		0xFFFF
+define READ_BUFFER		0x7FFFF
+define MAX_WS_HEADER		0xFFF
+define MAX_WS_HEADER_BUF	0xFFF
+define USE_TLS_PROXY		false
 define USE_DB_SERVICE		true
 define DEFAULT_CGI_WORKERS	2
-define JS_CGI_DONE_TIMEOUT	30
-define JS_MAX_TIMEOUT		1200
-define JS_FRAMEWORK		"/js/"
-define CGI_MAX_RETRY_SECONDS	30
-define INI_CACHE_TIMEOUT_S	30
+define DEFAULT_H2_WORKERS	2
 define PIPE_READ_CPU_TIME_US	2000
-define MAX_RECV_BUFFER		0xFFFF
+define MAX_HEADER_PARAMETERS	0xFF
+define SERVER_NAME		"CAS5WS"
+define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/concept/deprecated concepts/cgi1.1/http2/ess/async)"
+define EXTRA_HEADER		"X-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\nX-Content-Type-Options: nosniff\r\n"
+define H2_EXTRA_HEADER		"strict-transport-security" => "max-age=31536000; includeSubDomains; preload", "x-frame-options" => "SAMEORIGIN", "x-xss-protection" => "1; mode=block", "x-content-type-options" => "nosniff"
+define H2_MAX_IDLE_SECONDS	30
 define IDLE_SLEEP_MS		10
 define IDLE_SLEEP_THRESHOLD	200
 define IDLE_SLEEP_MS2		50
+define CGI_MAX_RETRY_SECONDS	30
+define EAGAIN_TIMEOUT_SECONDS	30
+define TLS_NEGOTIATION_TIMEOUT	10
+define JS_CGI_DONE_TIMEOUT	30
+define JS_MAX_TIMEOUT		1200
+define JS_FRAMEWORK		"/js/"
+define INI_CACHE_TIMEOUT_S	30
+
+define CODE_ENABLED		/* enabled */
+define CODE_DISABLED		//
+
+define IF_CHECK_RANGE		CODE_ENABLED
+define IF_CHECK_GZIP		CODE_ENABLED
+
+define ACCEPT_WORKERS		false
 
 // 128k pipe read buffer
 define PIPE_MAX_STDOUT_BUFFER	0x20000
@@ -36,6 +73,1932 @@ define H2_MAX_STDOUT_BUFFER	0x800000
 define H2_MAX_FILE_BUFFER	0x200000
 // 128k file buffer for http 1.1
 define H1_MAX_FILE_BUFFER	0x20000
+// don't gzip files smaller than 1k
+define MIN_GZIP_AUTOCACHE_SIZE	1024
+// 8M limit on text file autocache
+define MAX_GZIP_AUTOCACHE_SIZE	0x800000
+
+class DummyContainer {
+	// nothing
+}
+
+class RewriteContainer {
+	var Rewrite;
+
+	RewriteContainer() {
+		// ========= rewrite rules ======== //
+		// uncomment if needed
+		// Rewrite = function(app, var parameters) {
+		// 	return app;
+		// };
+		// ======= end rewrite rules ====== //
+	}
+}
+
+class H2Container {
+pragma used
+	var socket;
+	var tls = "";
+
+	H2Container(socket) {
+		this.socket = socket.Socket;
+		if (classof socket == "TLSESocket") {
+			tls = socket.Save();
+			socket.Done();
+		}
+		socket.Socket = -1;
+	}
+}
+
+class ConceptServerUtils {
+	static ParseRange(range) {
+		var[] parsed;
+		if (!range)
+			return parsed;
+		range = StrSplit(range, "=")[1];
+		if (!range)
+			return parsed;
+
+		range = StrSplit(range, ",")[0];
+		if (!range)
+			return parsed;
+
+		parsed = StrNumberSplit(range, "-");
+		return parsed;
+	}
+}
+
+class ContainerWorker extends Worker {
+	var timestamp;
+	var app;
+	var idx;
+	var[] cache;
+
+	static GetPath(filename) {
+		var arr = StrSplit(filename, "/");
+		var len = length arr;
+		var directory = "";
+
+		var arr2 = new [];
+		for (var i = len - 1; i >= 0; i--) {
+			var d = arr[i];
+			if (d == "..") {
+				// jump one directory
+				i--;
+			} else
+			if (d != ".")
+				arr2[length arr2] = d;
+		}
+		len = length arr2;
+		for (i = len - 1; i >= 0; i--) {
+			d = arr2[i];
+			if (d) {
+				if (i)
+					directory += d + "/";
+			}
+		}
+		if ((!ON_MSWINDOWS) && (filename) && (filename[0] == "/") && (directory[0] != "/"))
+			return "/" + directory;
+
+		return directory;
+	}
+
+	ContainerWorker(sharedcontext, app, var err) {
+		super("web", this.GetPath(app), sharedcontext, app, err);
+		this.timestamp = filelast_mod(app);
+	}
+
+	modified(timestamp) {
+		return (this.timestamp != timestamp);
+	}
+
+	CacheData(data, priority) {
+		if (priority < 0)
+			cache = [data] + cache;
+		else
+			cache[length cache] = data;
+	}
+
+	SendCached() {
+		if (cache) {
+			this.AddData(BinarizeObject(cache));
+			cache = new [];
+		}
+	}
+
+	ClearCache() {
+		cache = new [];
+	}
+}
+
+class CGIAsyncWorker {
+	static Create(cgiworkers, app, sharedcontext = null, var err = null) {
+		var worker = cgiworkers[app];
+		if (worker) {
+			if (worker.modified(_filelast_mod(app))) {
+				worker.AddData(BinarizeObject([["q" => "0", "do" => "drop"]]), -1);
+				console.info(LOG_THIS, "$app changed, refreshing worker ...");
+				worker.ClearCache();
+				worker.Join();
+				console.info(LOG_THIS, "done");
+			} else
+				return worker;
+		}
+
+		worker = new ContainerWorker(sharedcontext, app, err);
+		if (err) {
+			worker.Join();
+			return worker;
+		}
+		cgiworkers[app] = worker;
+		return worker;
+	}
+}
+
+class IniCache {
+	public var IniFile;
+	protected var[] inicache;
+	protected var inicachetimeout;
+
+	IniGetPath(category, key, default_value = "") {
+		var cachekey = "$key[$category]";
+		if (time() > inicachetimeout) {
+			inicachetimeout = time() + INI_CACHE_TIMEOUT_S;
+			inicache = new [];
+		} else {
+			var cache = inicache[cachekey];
+			if (cache)
+				return cache;
+		}
+		var res = trim(IniGet(IniFile, category, key, default_value));
+		if (res[0] == ".")
+			res = getcwd() + "/" + res;
+		inicache[cachekey] = res;
+		return res;
+	}
+
+	IniKey(category, key, default_value = "") {
+		var cachekey = "$key[$category]";
+		if (time() > inicachetimeout) {
+			inicachetimeout = time() + INI_CACHE_TIMEOUT_S;
+			inicache = new [];
+		} else {
+			var cache = inicache[cachekey];
+			if (cache)
+				return cache;
+		}
+		var res = trim(IniGet(IniFile, category, key, default_value));
+		inicache[cachekey] = res;
+		return res;
+	}
+}
+
+class WDataContainer {
+pragma used
+	var socket;
+	var app;
+	var headers;
+	var tls;
+	var query;
+	var snippet;
+	var method;
+	var hostname;
+	var path;
+	var port;
+	var cgihandler;
+	var root;
+	var javascript;
+
+	WDataContainer(socket, app, var headers, var query, var snippet, method, hostname, path, port, cgihandler, root, javascript = false) {
+		this.socket = socket.Socket;
+		this.app = app;
+		this.headers = headers;
+		this.query = query;
+		this.snippet = snippet;
+		this.method = method;
+		this.hostname = hostname;
+		this.path = path;
+		this.port = port;
+		this.cgihandler = cgihandler;
+		this.root = root;
+		this.javascript = javascript;
+		if (classof socket == "TLSESocket") {
+			tls = socket.Save();
+			socket.Done();
+		}
+		socket.Socket = -1;
+	}
+}
+
+class ConceptChild {
+	protected var Socket;
+	protected var Owner;
+
+	private var DataLen;
+	private var Key="";
+	public var ServerName="";
+	public var PID;
+	private var DirectPipe=-1;
+
+	public var Session="";
+	public var APID;
+	public var Hash;
+
+	public var PipeIn=-1;
+	public var PipeOut=-1;
+	public var Parent=-1;
+	
+	public var ContextIn=-1;
+	public var ContextOut=-1;
+
+	private var APIDBuf="";
+	private var MaxBuffer=0;
+
+	public var HostID="";
+	public var UsingHost=-1;
+	public var UsingPID=-1;
+	public var ChildCount=0;
+
+	public var IsWebSocket=false;
+	public var Timestamp;
+	public var MaxChilds=0;
+	public var TLS;
+
+	ConceptChild(owner, socket) {
+		this.Owner = owner;
+		this.Socket = socket;
+		Owner.ClientCount++;
+	}
+
+	WriteExact(buffer, add_size=false, do_throw=false) {
+		var socket = this.Socket;
+
+		var len = length buffer;
+		if (add_size) {
+			buffer = toubin(htonl(len), 32)+buffer;
+			len = length buffer;
+		}
+
+		var result = 0;
+
+		while (len > 0) {
+			try {
+				var written = socket.Write(buffer);
+			} catch (var exc) {
+				if (do_throw)
+					throw "Socket.Write: $exc";
+				return -1;
+			}
+			if (written <= 0) {
+				if (do_throw)
+					throw "Socket.Write: broken socket";
+				return -1;
+			}
+			result += written;
+			len -= written;
+			if (len>0)
+				buffer = SubStr(buffer, written, len);
+		}
+		return result;
+	}
+
+	WriteExactNoBlocking(buffer, reblock = false) {
+		SocketSetBlocking(Socket.Socket, false);
+		var written = WriteExact(buffer);
+		if (reblock)
+			SocketSetBlocking(Socket.Socket, true);
+		return written;
+	}
+
+	DecryptKey(var private_key, size=16) {
+		var key=this.Key;
+		if (key) {
+			switch (SubStr(private_key, 0, 4)) {
+				case 'ecc!':
+					key = ECCDecrypt(key, SubStr(private_key, 4), var err);
+					if (err)
+						console.error(LOG_THIS, "ECC error: ${ECCRSAErrorExplain(err)}");
+					break;
+				case 'rsa!':
+					key = RSADecrypt(key, SubStr(private_key, 4), err);
+					if (err)
+						console.error(LOG_THIS, "ECC error: ${ECCRSAErrorExplain(err)}");
+					break;
+				case '----':
+					key = rsa_decrypt(key, private_key);
+					break;
+				default:
+					key = "";
+					break;
+			}
+		}
+		if (length key!=size)
+			throw "Invalid key size";
+
+		this.Key=key;
+	}
+
+	AnalyzeData(data, var step, var private_key, var public_key, var key_path, allow_debug) {
+		switch (step) {
+			case 0:
+				// protocol negotiation
+				if (length data>=4) {
+					var buf=data[0]+data[1]+data[2]+data[3];
+					var dlen=ntohl(tounumber(buf, 32));
+					data=SubStr(data, 4, length data-4);
+
+					if (dlen>=MAX_RECV_BUFFER)
+						throw "Invalid key size";
+
+					step++;
+					this.DataLen=dlen;
+				}
+				// no break here
+			case 1:
+				if (length data>=this.DataLen) {
+					var key=SubStr(data, 0, this.DataLen);
+					data=SubStr(data, length key, length data - length key);
+					this.Key=key;
+					step++;
+				}
+			case 2:
+				if (data) {
+					do {
+						var commands=StrSplit(data, "\r\n", true);
+						var len=length commands;
+						if (len>1) {
+							var command=commands[0];
+							var tlen=length command + 2;
+							data=SubStr(data, tlen, length data - tlen);
+							if (command)
+								this.ExecuteCommand(command, private_key, public_key, step, key_path, allow_debug);
+						}
+					} while (len>1);
+				}
+				
+		}
+		return data;
+	}
+
+	Restore(var session, var private_key) {
+		var child=this.Owner.GetSession(session);
+		if (child) {
+			DecryptKey(private_key);
+			if (child.Key == this.Key) {
+				if (child.DirectPipe>0) {
+					var size = DescriptorWrite(child.DirectPipe, this.Socket.Socket, child.UsingPID);
+					if (size > 0) {
+						// no tls key
+						// write(child.DirectPipe, "\0\0\0\0");
+						var prev_socket = child.Socket;
+						child.Socket = this.Socket;
+						this.WriteExact("1\r\n", false, true);
+						this.Socket = prev_socket;
+						return true;
+					}	
+				}
+			}
+		}
+		this.WriteExact("0\r\n", false, true);
+		return false;
+	}
+
+	RestoreWS_Step1(var session) {
+		var child = this.Owner.GetSession(session);
+		if ((child) && (child.DirectPipe > 0))
+			return child;
+		return null;
+	}
+
+	RestoreWS_Step2(child) {
+		if ((child) && (child.DirectPipe > 0) && (classof child.Socket == classof this.Socket)) {
+			var size = DescriptorWrite(child.DirectPipe, this.Socket.Socket, child.UsingPID);
+			if (size > 0) {
+				var buf = "";
+				var tls_buf = "";
+				if ((TLS) && (classof this.Socket == "TLSESocket"))
+				 	tls_buf = this.Socket.Save();
+
+				buf = pack("U32", length tls_buf) + tls_buf;
+
+				while (buf) {
+					var written = write(child.DirectPipe, buf);
+					if (written <= 0) {
+						console.warn(LOG_THIS, "Error in DirectPipe write");
+						return false;
+					}
+
+					buf = SubStr(buf, written);
+				}
+				var prev_socket = child.Socket;
+				child.Socket = this.Socket;
+				child.Session = this.Session;
+				this.Socket = prev_socket;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	ExecuteGet(command, param, private_key, var step) {
+		switch (ToLower(command)) {
+			case "protocol":
+				this.WriteExact("Protocol/2.0\r\n", false, true);
+				break;
+			case "session":
+				if (!this.Session)
+					this.Session = this.GenerateSession();
+				this.WriteExact("${this.Session}\r\n", false, true);
+				break;
+			case "restore":
+				if (param) {
+					if (Restore(param, private_key))
+						step=-1;
+					else
+						step=4;
+					break;
+				}
+				// no break if no parameter
+			default:
+				this.WriteExact("0\r\n", false, true);
+				break;
+		}
+	}
+
+	ExecuteSet(command, val) {
+		switch (ToLower(command)) {
+			case "servername":
+				ServerName=ToLower(val);
+				break;
+		}
+	}
+
+	Invalidate(p) {
+		this.HostID = "";
+		console.error(LOG_THIS, "Process crashed (error: ${_errno()}, pipe: $p)");
+		//if (this.ContextIn>0)
+		//	close(this.ContextIn);
+		if (this.ContextOut>0)
+			close(this.ContextOut);
+
+		this.ContextOut = -1;
+		//this.ContextIn = -1;
+		return -1;
+	}
+
+	AddChild(pr2, shared_key, pipein1, pipeout2, direct_pipe, pid=null) {
+		if (write(pr2, tobin(this.APID, 32)) != 4)
+			return this.Invalidate(pr2);
+
+		if (write(pr2, tobin(this.Parent, 32)) != 4)
+			return this.Invalidate(pr2);
+
+		if (pid)
+			DescriptorWrite(pr2, Socket.Socket, pid);
+		else
+			DescriptorWrite(pr2, Socket.Socket);
+
+		var d1 = Duplicate(pipein1, pid);
+		var d2 = Duplicate(pipeout2, pid);
+		var d3 = Duplicate(direct_pipe, pid);
+
+		// problems on windows
+		if ((d1 < 0) || (d2 < 0) || (d3 < 0)) {
+			d1 = -1;
+			d2 = -1;
+			d3 = -1;
+			if (this.DirectPipe>0)
+				close(this.DirectPipe);
+		}
+		DescriptorWrite(pr2, d1);
+		DescriptorWrite(pr2, d2);
+		DescriptorWrite(pr2, d3);
+
+		//DescriptorWrite(pr2, pipein1);
+		//DescriptorWrite(pr2, pipeout2);
+		//DescriptorWrite(pr2, direct_pipe);
+
+		if (shared_key) {
+			if (write(pr2, tobin(length shared_key, 32)) != 4)
+				return this.Invalidate(pr2);
+			if (write(pr2, shared_key) != length shared_key)
+				return this.Invalidate(pr2);
+		} else {
+			if (write(pr2, tobin(0, 32)) != 4)
+				return this.Invalidate(pr2);
+
+			var shared_key2=this.Key;
+			if (write(pr2, tobin(length shared_key2, 32)) != 4)
+				return this.Invalidate(pr2);
+			if (shared_key2) {
+				if (write(pr2, shared_key2) < 0)
+					return this.Invalidate(pr2);
+			}
+		}
+		return 0;
+	}
+
+	RunApplication(fname, var step, private_key="", public_key="", shared_key="", debug=false, multiple_host=false, var key_path="") {
+		var arguments="";
+		var has_arg=Pos(fname, "?");
+		if (has_arg>0) {
+			arguments=SubStr(fname, has_arg, length fname-has_arg);
+			fname=SubStr(fname, 0, has_arg-1);
+		}
+		if (fname=="/")
+			fname="";
+
+		if (!fname)
+			fname="start.con";
+
+		var hash_base="";
+		fname=this.Owner.NormalizeName(fname, hash_base);
+
+		var ip="unknown";
+		var port=-1;
+
+		var info=Socket.Info;
+		if (info) {
+			ip=info["address"];
+			port=info["port"];
+		}
+
+		var host_root="";
+
+		var server_root = Owner.IniKey("Paths", "ServerRoot", "");
+
+		if (this.ServerName)
+			host_root=Owner.IniKey("Paths", "HostRoot(${this.ServerName})", "");
+
+		if (!host_root)
+			host_root=server_root;
+
+		if (!host_root)
+			throw "Server has no valid root directory";
+
+		var check_full_path = "$host_root/$fname";
+		if (!FileExists(check_full_path))
+			throw "File '$check_full_path' does not exists\n";
+
+		if (CONCEPT_STRICT_EXECUTE) {
+			if (!FileExists(check_full_path + ".accel"))
+				throw "File '$check_full_path' has no compiled version\n";
+		}
+
+		if (!this.APID) {
+			Owner.APID++;
+			if (Owner.APID>0x7FFFFFFF)
+				Owner.APID=1;
+			this.APID=Owner.APID;
+		}
+
+		var log_str="$fname";
+		if (arguments)
+			log_str+="("+arguments+")";
+		if (this.ServerName)
+			console.log(LOG_THIS, "$ip: Using server ${this.ServerName}, APID: "+this.APID);
+		console.info(LOG_THIS, "$ip:Run $log_str");
+		//if (this.Session)
+		//	console.log(LOG_THIS, "$ip:Session ${this.Session}");
+
+		var cwd = getcwd();
+		var shared_pool = value Owner.IniKey("Server", "UseSharedMemoryPool", "0");
+		var inc_dir = this.Owner.IniGetPath("Paths", "Include") + "/";
+		var lib_dir = this.Owner.IniGetPath("Paths", "Library") + "/";
+		var safe_run = this.Owner.IniGetPath("Paths", "SafeMode", "runsafe");
+
+		var direct_pipe1=-1;
+		var direct_pipe2=-1;
+
+		if (DirectPipe==-1) {
+			if (socketpair(direct_pipe1, direct_pipe2)) {
+				console.warn(LOG_THIS, "$ip:Error creating direct pipe (${_errno()}), APID: "+this.APID);
+			} else {
+				DirectPipe=direct_pipe2;
+				if (SetNonBlocking(direct_pipe2, true))
+					console.warn(LOG_THIS, "$ip:Cannot set non-blocking pipe (${_errno()}), APID: "+this.APID);
+			}
+		}
+		var pipein1=-1;
+		var pipein2=-1;
+
+		var pipeout1=-1;
+		var pipeout2=-1;
+
+		if (this.PipeOut==-1) {
+			if (pipe(pipein1, pipein2)) {
+				console.error(LOG_THIS, "$ip:Error creating in pipe (${_errno()}), APID: "+this.APID);
+			} else {
+				this.PipeOut=pipein2;
+				if (SetNonBlocking(pipein2, true))
+					console.error(LOG_THIS, "$ip:Cannot set non-blocking pipe (pipe in error: ${_errno()}), APID: "+this.APID);
+			}
+		}
+
+		if (this.PipeIn==-1) {
+			if (pipe(pipeout1, pipeout2))
+				console.error(LOG_THIS, "$ip:Error creating out pipe (${_errno()}), APID: "+this.APID);
+			else {
+				this.PipeIn=pipeout1;
+				if (SetNonBlocking(pipeout1, true))
+					console.error(LOG_THIS, "$ip:Cannot set non-blocking pipe (pipe out error: ${_errno()}), APID: "+this.APID);
+			}
+		}
+
+		var hostapp = null;
+		var ws = this.IsWebSocket;
+		var baseid = "$host_root/$fname";
+		var hostid = baseid + ":" + ws;
+		if ((ws) && (arguments)) {
+			if ((Pos(arguments, "parent=") == 1) || (Pos(arguments, "&parent=") > 1)) {
+				var arg_p_arr = StrSplit(arguments, "parent=");
+				if (arg_p_arr)
+					this.Parent = value arg_p_arr[length arg_p_arr - 1];
+
+				if ((Pos(arguments, "debug=") == 1) || (Pos(arguments, "&debug=") > 1)) {
+					arg_p_arr = StrSplit(arguments, "debug=");
+					if (arg_p_arr) {
+						debug = value arg_p_arr[length arg_p_arr - 1];
+						if (debug) {
+							private_key="";
+							public_key="";
+							shared_key="";
+							multiple_host=false;
+						}
+					}
+				}
+			}
+		}
+
+		if (multiple_host) {
+			multiple_host = value IniGet(baseid + ".manifest", "Application", "Workers", "0");
+
+			if (multiple_host==1)
+				multiple_host = 100;
+
+			this.MaxChilds = multiple_host;
+		}
+
+		if (this.TLS == 2) {
+			private_key="";
+			public_key="";
+			// padding => > 16 bytes
+			shared_key = "----SSL DATA----" + Socket.Save();
+		}
+
+		if ((debug) || (!multiple_host)) {
+			var shared_hex = StringToHex(shared_key);
+
+			this.PID = ExecuteProcess(safe_run, host_root,
+					// parameters
+					["Direct pipe"	=> ""+direct_pipe1,
+					 "Pipe in"	=> ""+pipein1,
+					 "Pipe out"	=> ""+pipeout2,
+					 "APID"		=> ""+this.APID,
+					 "Parent"	=> ""+this.Parent,
+					 "Filename"	=> fname,
+					 "Socket"	=> ""+Socket.Socket,
+					 "Include dir"	=> inc_dir,
+					 "Library dir"	=> lib_dir,
+					 "Public key"	=> StringToHex(this.Key),
+					 "Private key"	=> shared_hex,
+					 "Shared secret"=> shared_hex,
+					 "Arguments"	=> arguments
+					],
+
+					// environment
+					["CONCEPT_FILENAME=$fname",
+					 "CONCEPT_HOSTROOT=$host_root",
+					 "CONCEPT_SERVERNAME=${this.ServerName}",
+					 "CONCEPT_INCLUDE=$inc_dir",
+					 "CONCEPT_LIBRARY=$lib_dir",
+					 "CONCEPT_ROOT=$server_root/",
+					 "CONCEPT_DEBUG=$debug",
+					 "CONCEPT_UseSharedMemoryPool=$shared_pool",
+					 "CONCEPT_TLS=${this.TLS}",
+					 "REMOTE_IP=$ip",
+					 "REMOTE_PORT=$port",
+					 "CONCEPT_WSPROTO=${this.IsWebSocket}",
+					 "DRM_KEY=${this.Key}",
+					 "CONCEPT_SERVERPATH="+cwd,
+					 "CONCEPT_INIPATH=${Owner.IniFile}",
+					 "CONCEPT_CERTIFICATE="+key_path,
+					 "CONCEPT_LOGFILE=${Owner.LogFile}"
+					],
+
+					// don't wait
+					false
+			);
+		} else {
+			hostapp = this.Owner.GetHost(hostid);
+		}
+
+		if (hostapp) {
+			hostapp.ChildCount++;
+			this.UsingHost = hostapp.APID;
+			this.UsingPID = hostapp.PID;
+
+			if (AddChild(hostapp.ContextOut, shared_key, pipein1, pipeout2, direct_pipe1, hostapp.PID)) {
+				hostapp.ChildCount--;
+				hostapp.HostID = "";
+				this.UsingHost = -1;
+				this.PID = -1;
+				step = 5;
+				return;
+			}
+			this.PID = -2;
+		} else
+		if (this.PID<=0) {
+			var pr1, pr2;
+			var pw1, pw2;
+
+			if (socketpair(pr1, pr2))
+				console.warn(LOG_THIS, "$ip:Error creating in context socket pair (${_errno()}), APID: "+this.APID);
+			if (socketpair(pw1, pw2))
+				console.warn(LOG_THIS, "$ip:Error creating in context socket pair (${_errno()}), APID: "+this.APID);
+
+			// leave it blocking !
+			//if (SetNonBlocking(pr2, true))
+			//	console.warn(LOG_THIS, "$ip:Cannot set non-blocking context (pipe out error: ${_errno()}), APID: "+this.APID);
+
+			if (SetNonBlocking(pw1, true))
+				console.warn(LOG_THIS, "$ip:Cannot set non-blocking context (pipe out error: ${_errno()}), APID: "+this.APID);
+
+			if ((pr1>0) && (pw2>0)) {
+				this.HostID=hostid;
+				this.PID=ExecuteProcess(safe_run, host_root, [fname, inc_dir, lib_dir, ""+pr1, ""+pw2], 
+					// environment
+					["CONCEPT_FILENAME=$fname",
+					 "CONCEPT_HOSTROOT=$host_root",
+					 "CONCEPT_SERVERNAME=${this.ServerName}",
+					 "CONCEPT_INCLUDE=$inc_dir",
+					 "CONCEPT_LIBRARY=$lib_dir",
+					 "CONCEPT_ROOT=$server_root/",
+					 "CONCEPT_DEBUG=$debug",
+					 "CONCEPT_UseSharedMemoryPool=$shared_pool",
+					 "CONCEPT_TLS=${this.TLS}",
+					 "REMOTE_IP=$ip",
+					 "REMOTE_PORT=$port",
+					 "CONCEPT_WSPROTO=${this.IsWebSocket}",
+					 "DRM_KEY=${this.Key}",
+					 "CONCEPT_SERVERPATH="+cwd,
+					 "CONCEPT_INIPATH=${Owner.IniFile}",
+					 "CONCEPT_CERTIFICATE="+key_path,
+					 "CONCEPT_LOGFILE=${Owner.LogFile}"
+					],
+
+					// don't wait
+					false
+				);
+				this.UsingPID = this.PID;
+				this.ChildCount=1;
+				AddChild(pr2, shared_key, pipein1, pipeout2, direct_pipe1, this.UsingPID);
+
+				close(pr1);
+				close(pw2);
+
+				this.ContextIn = pw1;
+				this.ContextOut = pr2;
+
+				this.Timestamp = time();
+			}
+		}
+
+		if (((this.PID>0) || (this.PID==-2)) && (this.APID>0)) {
+			Owner.Connections[""+this.APID] = this;
+			this.Hash=Murmur(hash_base);
+		}
+
+		if (direct_pipe1!=-1)
+			close(direct_pipe1);
+
+		if (pipein1!=-1)
+			close(pipein1);
+
+		if (pipeout2!=-1)
+			close(pipeout2);
+
+		if (this.PID==-2) {
+			console.info(LOG_THIS, "$ip:New child connection for $hostid");
+		} else
+		if (this.PID<0) {
+			console.warn(LOG_THIS, "$ip:Error creating child process");
+			throw "Error creating child process";
+		}
+		step++;
+	}
+
+	ExecuteCommand(command, private_key, public_key, var step, var key_path, allow_debug=true) {
+		var arr=StrSplit(command, " ");
+		var predicate=ToLower(""+arr[0]);
+		switch (predicate) {
+			case "get":
+				if (arr[1])
+					this.ExecuteGet(arr[1], arr[2], private_key, step);
+				break;
+			case "set":
+				if ((arr[1]) && (arr[2]))
+					this.ExecuteSet(arr[1], arr[2]);
+				break;
+			case "getparent":
+				this.WriteExact("-1\r\n", false, true);
+				break;
+			case "runfast":
+				var fname=arr[1];
+				DecryptKey(private_key);
+				this.RunApplication(fname, step, "", "", "", false, true, key_path);
+				break;
+			case "run":
+				fname=arr[1];
+				DecryptKey(private_key);
+				this.RunApplication(fname, step, private_key, public_key, this.Key, false, true, key_path);
+				break;
+			case "rundebug":
+				fname=arr[1];
+				DecryptKey(private_key);
+				if (allow_debug)
+					this.RunApplication(fname, step, "", "", "", true, false, key_path);
+				else {
+					throw "Debugging is disabled";
+					break;
+				}
+				break;
+			case "pipe":
+				var parent=value arr[1];
+				if (parent>0)
+					this.Parent=parent;
+				break;
+			case "pipew":
+				break;
+			case "piper":
+				break;
+			case "close":
+				throw "Socket closed by remote host";
+				break;
+		}
+	}
+
+	Send(var data) {
+		if ((this.MaxBuffer <= 0) || (length APIDBuf + length data <= this.MaxBuffer)) {
+			APIDBuf+=data;
+			return true;
+		}
+		return false;
+	}
+
+	RemoveChild(app_id, ip) {
+		var client = this.Owner.GetConnection(app_id);
+		if (client) {
+			this.ChildCount--;
+			// don't accept any more connections
+			if (this.ChildCount <= 0)
+				this.HostID = "";
+
+			if (client==this) {
+				return true;
+			} else {
+				this.Owner.Connections[""+app_id] = null;
+				this.Owner.PlaceHolders++;
+				client.PID = -3;
+				// return true;
+			}
+		} else
+			console.warn(LOG_THIS, "$ip:Invalid APID: $app_id");
+		return false;
+	}
+
+
+	IterateService() {
+		var pipein1=0;
+		var pipein2=0;
+
+		var pipeout1=0;
+		var pipeout2=0;
+
+		if (this.PipeOut==-1) {
+			if (pipe(pipein1, pipein2))
+				console.error(LOG_THIS, "ConceptService: Error creating in pipe (${_errno()}), APID: "+this.APID);
+			else {
+				this.PipeOut=pipein2;
+				if (SetNonBlocking(pipein2, true))
+					console.error(LOG_THIS, "ConceptService: Cannot set non-blocking pipe (pipe in error: ${_errno()}), APID: "+this.APID);
+			}
+		}
+
+		if (this.PipeIn==-1) {
+			if (pipe(pipeout1, pipeout2))
+				console.error(LOG_THIS, "ConceptService: Error creating out pipe (${_errno()}), APID: "+this.APID);
+			else {
+				this.PipeIn=pipeout1;
+				if (SetNonBlocking(pipeout1, true))
+					console.error(LOG_THIS, "ConceptService: Cannot set non-blocking pipe (pipe out error: ${_errno()}), APID: "+this.APID);
+			}
+		}
+
+		var max_iap = value Owner.IniKey("Server", "MaxInterAppMessageBuffer", "1024");
+		if (max_iap < 0)
+			max_iap = 0;
+
+		this.MaxBuffer = max_iap;
+
+		if (!this.APID) {
+			Owner.APID++;
+			if (Owner.APID>0x7FFFFFFF)
+				Owner.APID=1;
+			this.APID=Owner.APID;
+		}
+
+		var pipein=this.PipeIn;
+		var pipeout=this.PipeOut;
+		var ref_owner=this.Owner;
+		var apid=this.APID;
+
+		Owner.Connections[""+apid] = this;
+
+		var server_root = Owner.IniKey("Paths", "ServiceRoot", "");
+		var inc_dir = this.Owner.IniGetPath("Paths", "Include") + "/";
+		var lib_dir = this.Owner.IniGetPath("Paths", "Library") + "/";
+		var safe_run = this.Owner.IniGetPath("Paths", "SafeMode", "runsafe");
+		while (Owner.Running) {
+			var pid = ExecuteProcess(safe_run, server_root,
+					// parameters
+					["Direct pipe"	=> "0",
+					 "Pipe in"	=> ""+pipein1,
+					 "Pipe out"	=> ""+pipeout2,
+					 "APID"		=> ""+apid,
+					 "Parent"	=> ""+this.Parent,
+					 "Filename"	=> this.ServerName,
+					 "Socket"	=> "0",
+					 "Include dir"	=> inc_dir,
+					 "Library dir"	=> lib_dir,
+					 "Public key"	=> "",
+					 "Private key"	=> "",
+					 "Shared secret"=> "",
+					 "Arguments"	=> ""
+					], 
+
+					// environment
+					["CONCEPT_FILENAME=${this.ServerName}",
+					 "CONCEPT_HOSTROOT=$server_root",
+					 "CONCEPT_SERVERNAME=localhost",
+					 "CONCEPT_INCLUDE=$inc_dir",
+					 "CONCEPT_LIBRARY=$lib_dir",
+					 "CONCEPT_ROOT=$server_root/",
+					 "CONCEPT_DEBUG=0",
+					 "CONCEPT_WSPROTO=0",
+					 "CONCEPT_UseSharedMemoryPool=0",
+					 "REMOTE_IP=0.0.0.0",
+					 "CONCEPT_LOGFILE=${Owner.LogFile}",
+					 "REMOTE_PORT=0",
+					 "DRM_KEY="
+					],
+
+					// don't wait
+					false
+			);
+
+			this.PID=pid;
+			if (pid>0) {
+				this.APIDBuf="";
+				var buf="";
+				var processed_buffer="";
+				var err = false;
+				while (ExecuteIsRunning(pid)) {
+					if ((pipein > 0) && (!err)) {
+						while (read(pipein, buf, 0xFF) > 0) {
+							processed_buffer = ref_owner.ProcessMessage(apid, -1, processed_buffer + buf, err);
+							if ((max_iap) && (length processed_buffer > max_iap))
+								processed_buffer = "";
+							if (err)
+								break;
+						}
+					}
+					var buf_out = this.APIDBuf;
+					if (buf_out) {
+						var len = write(pipeout, buf_out);
+						if (len>0)
+							this.APIDBuf=SubStr(this.APIDBuf, len, length this.APIDBuf);
+					}
+				}
+				if (pid>0) {
+					while (read(pipein, buf, 0xFF) > 0) {
+						processed_buffer=ref_owner.ProcessMessage(apid, -1, processed_buffer + buf, err);
+						if (err)
+							break;
+					}
+					var code=ExecuteJoin(pid);
+					if (code)
+						console.warn(LOG_THIS, "$apid: Done (error code: $code)");
+					else
+						console.info(LOG_THIS, "$apid: Done");
+				} else
+					console.info(LOG_THIS, "$apid: Done (child)");
+
+			}
+		}
+
+		if (this.DirectPipe>0)
+			close(this.DirectPipe);
+		if (this.PipeIn>0)
+			close(this.PipeIn);
+		if (this.PipeOut>0)
+			close(this.PipeOut);
+	}
+
+	static CleanApp(var app) {
+		var len_filename = length app;
+		var skip = 0;
+		while (len_filename) {
+			len_filename--;
+			if (app[len_filename] == ".")
+				skip++;
+			else
+				break;
+		}
+		if (skip)
+			app = SubStr(app, 0, length app - skip);
+	}
+
+	static NormalizeFilename(filename, var directory) {
+		filename=StrReplace(filename, "\\", "/");
+		var arr=StrSplit(filename, "/");
+		var len=length arr;
+		var res="";
+		directory="/";
+
+		var arr2=new [];
+		for (var i=len-1;i>=0;i--) {
+			var d=arr[i];
+			if (d=="..") {
+				// jump one directory
+				i--;
+			} else
+			if (d!=".")
+				arr2[length arr2]=d;
+		}
+		len=length arr2;
+		for (i=len-1;i>=0;i--) {
+			d=arr2[i];
+			if (d) {
+				if (i)
+					directory+=d+"/";
+				else
+					res=d;
+			}
+		}
+		return res;
+	}
+
+	GenerateSession(string seed = "") {
+		var common = sha256(CryptoRandom(80));
+		if (seed)
+			return SubStr(seed, 0, length seed - length common) + common;
+		return sha1(""+NumberToHex(ClsPtr(this))+"#"+CryptoRandom(80)) + "-" + common;
+	}
+
+	GetCookie(key, cookie_str) {
+		var arr = StrSplit(cookie_str, ";");
+		for (var i = 0; i < length arr; i++) {
+			var k = arr[i];
+			var a2 = StrSplit(k, "=");
+			if ((a2) && (length a2 == 2)) {
+				if (trim(a2[0]) == key)
+					return trim(a2[1]);
+			}
+		}
+		return "";
+	}
+
+	ParseHeader(arr, var ws, var ws_key, var origin, var host, var session_to_restore, var if_modified, var keep_alive, var parent, var debug, var content_length, var protocol, var extension) {
+		content_length = 0;
+		var cache = true;
+		if ("" + arr["upgrade"] == "websocket")
+			ws=true;
+		ws_key = arr["sec-websocket-key"] ?? "";
+		host = arr["host"] ?? "";
+		var pos = Pos(host, ":");
+		if (pos > 1)
+			ServerName = SubStr(host, 0, pos - 1);
+		else
+			ServerName = host;
+		if (!this.TLS) {
+			if (ToLower(trim(""+StrSplit(""+arr["referer"], "://")[0])) == "https")
+				this.TLS = true;
+		}
+		var cookies = arr["cookie"];
+		if (cookies) {
+			var cookie = this.GetCookie("_s", cookies);
+			if (cookie)
+				session_to_restore = cookie;
+		}
+		if (cache)
+			if_modified = arr["if-modified-since"] ?? "";
+		
+		var cache_control = arr["cache-control"];
+		if ((cache_control) && (cache_control == "no-cache")) {
+			if_modified = "";
+			cache = false;
+		}
+		content_length = value arr["content-length"];
+		extension = arr["sec-websocket-extensions"] ?? "";
+		var transfer_encoding = arr["transfer-encoding"];
+		if ((transfer_encoding) && (ToLower(transfer_encoding) == "chunked"))
+			content_length = -1;
+		var connection = arr["connection"];
+		if (connection) {
+			connection = ToLower(connection);
+			if (connection == "keep-alive")
+				keep_alive = true;
+			else
+				keep_alive = false;
+		}
+
+		var sec_websocket_protocol = arr["sec-websocket-protocol"];
+		if (sec_websocket_protocol) {
+			protocol = trim(ToLower("" + arr[1]));
+			var proto_description = StrSplit(protocol, "_", true);
+			if (proto_description) {
+				parent = value proto_description[0];
+				debug = value proto_description[1];
+			}
+		}
+		origin = arr["origin"] ?? "";
+	}
+
+	Iterate() {
+		var step = 0;
+		var exc;
+		var socket = this.Socket;
+		socket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
+		socket.SetOption(IPPROTO_IP, IP_TOS, 0x10);
+		socket.SetOption(SOL_SOCKET, SO_KEEPALIVE, 1);
+		socket.SetOption(SOL_SOCKET, SO_LINGER, 0);
+
+		var max_idle = value Owner.IniKey("Server", "MaxInitialIDLE", "10") * 1000000;
+		var max_iap = value Owner.IniKey("Server", "MaxInterAppMessageBuffer", "1024");
+		if (max_iap < 0)
+			max_iap = 0;
+		var max_age = value Owner.IniKey("Server", "MaxAge", "604800");
+		this.MaxBuffer = max_iap;
+
+		if (max_idle < 1000000)
+			max_idle = 1000000;
+
+		var orig_idle = max_idle;
+		var keep_alive_header = "Keep-Alive: timeout=${max_idle/1000000}";
+		max_idle += microseconds();
+
+		var info=socket.Info;
+		var ip="unknown";
+		if (info)
+			ip=info["address"];
+		console.info(LOG_THIS, "$ip:Connected(${socket.Socket})");
+
+		var received_data="";
+		var disconnected=false;
+		var host="";
+		var requests_served = 0;
+		// don't use local variable socket after this point
+		// this.Socket may be changed if a session restore takes place
+		try {
+			if (this.TLS == 2) {
+				socket.PrepareAcceptTLS();
+				socket.MakeExportable();
+				var start_time = time();
+				while (!socket.HandshakeIterate()) {
+					if (time() - start_time > TLS_NEGOTIATION_TIMEOUT)
+						throw "Handshake timeout error";
+				}
+				if (socket.ALPN == "h2") {
+					// is HTTP/2
+					var h2worker = Owner.ChooseH2Worker();
+					if (h2worker) {
+						h2worker.AddData(BinarizeObject(new H2Container(socket)));
+						// not really an exception, just an ugly goto
+						throw null;
+					}
+				}
+			}
+			if (this.IsWebSocket) {
+				var force_tls = value Owner.IniKey("Server", "WebTLSOnly", "0");
+				step = 2;
+				var remainder = "";
+				while (step <= 2) {
+					if ((Socket.HasData) || (remainder)) {
+						if (remainder) {
+							var data = remainder;
+							remainder = "";
+						} else
+							data = Socket.Read(MAX_WS_HEADER_BUF);
+
+						if (!data)
+							throw "Broken socket";
+
+						received_data += data;
+
+						Owner.Iterations++;
+
+						if (length received_data > MAX_RECV_BUFFER)
+							throw "Data too big";
+
+						var pos = Pos(received_data, "\r\n\r\n");
+						if (pos > 0) {
+							//pos--;
+							requests_served++;
+							Socket.SetOption(SOL_SOCKET, SO_RCVTIMEO, 600000);
+							var header = http_parse_header(SubStr(received_data, 0, pos + 1));
+							var len = length header;
+							var ws = false;
+							var ws_key = "";
+							var app = "";
+							var origin = "";
+							var session_to_restore = "";
+							var parent = -1;
+							var done = true;
+							var if_modified = "";
+							var keep_alive = false;
+							var debug = false;
+							var in_content_length = 0;
+							var protocol = "";
+							var extension = "";
+							if (len) {
+								var method=ToUpper(header[":method"]);
+								app=URIDecode(header[":path"]);
+								CleanApp(app);
+								if ((method=="GET") || (method == "POST") || (method == "PUT")) {
+									ParseHeader(header, ws, ws_key, origin, host, session_to_restore, if_modified, keep_alive, parent, debug, in_content_length, protocol, extension);
+									console.info(LOG_THIS, "$ip:$method $app");
+								}
+							}
+							var content_offset = pos + 4;
+							if (in_content_length) {
+								if (in_content_length < 0) {
+									// content is chunked
+									keep_alive = false;
+								} else {
+									var content_len = length received_data - pos;
+									if (content_len > 0) {
+										remainder = SubStr(received_data, pos + content_len);
+										received_data = SubStr(received_data, 0, pos + content_len);
+									}
+								}
+							} else {
+								remainder = SubStr(received_data, content_offset);
+								received_data = SubStr(received_data, 0, content_offset);
+							}
+							var orig_app = app;
+							if ((ws) && (ws_key)) {
+								if ((!TLS) && (force_tls)) {
+									WriteExactNoBlocking(Owner.RedirectHeader(orig_app, ServerName));
+									keep_alive = false;
+									step=4;
+									done=true;
+								} else {
+									var ret_key=WebSocket::AcceptKey(ws_key);
+									if (!app)
+										app="start.con";
+
+									var extra_header = "";
+									var tstamp = StrReplace(StrReplace(asctime(time()), "\r", ""), "\n", "")+" GMT";
+
+									if (origin)
+										extra_header+="Access-Control-Allow-Credentials: true\r\nAccess-Control-Allow-Headers: content-type\r\nAccess-Control-Allow-Headers: authorization\r\nAccess-Control-Allow-Headers: x-websocket-extensions\r\nAccess-Control-Allow-Headers: x-websocket-version\r\nAccess-Control-Allow-Headers: x-websocket-protocol\r\nAccess-Control-Allow-Origin: $origin\r\n";
+
+									// cookie valid for 3 days
+									var expires=StrReplace(StrReplace(asctime(time() + 259200), "\r", ""), "\n", "")+" GMT";
+
+									var sess = "";
+									var sessChild = null;
+									var sessChildError = false;
+									// limit session restore to https
+									if ((session_to_restore) && (WS_SESSION_RESTORE) && (protocol=="restore")) {
+										if (TLS)
+											sessChild = RestoreWS_Step1(session_to_restore);
+										if (!sessChild)
+											sessChildError = true;
+									}
+
+									if (sessChildError) {
+										var header_response="HTTP/1.1 403 Forbidden\r\nServer: " + SERVER_NAME + "\r\n\r\n";
+										WriteExactNoBlocking(header_response);
+										keep_alive = false;
+										step=4;
+										done=true;
+									} else {
+										if (!sess) {
+											sess = this.GenerateSession();
+											this.Session = sess;
+											if (parent > 0)
+												this.Parent = parent;
+										}
+										extra_header += "Set-Cookie: _s=$sess;Expires=$expires\r\n";
+										if (extension) {
+											if (Pos(extension, "rtc") > 0)
+												extra_header += "Sec-WebSocket-Extensions: rtc\r\n";
+										}
+										header_response="HTTP/1.1 101 Switching Protocols\r\n${extra_header}Connection: Upgrade\r\nDate: $tstamp\r\nSec-WebSocket-Accept: $ret_key\r\nServer: " + SERVER_NAME + "\r\nUpgrade: websocket\r\n\r\n";
+										if (length header_response > MAX_WS_HEADER) {
+											step=4;
+											done=true;
+										} else
+										if (WriteExactNoBlocking(header_response, true) == length header_response) {
+											if ((sessChild) && (RestoreWS_Step2(sessChild))) {
+												step=4;
+												keep_alive = false;
+												done=true;
+											} else {
+												this.RunApplication(app, step, "", "", "", debug, true);
+												done=true;
+											}
+											max_idle = microseconds() + orig_idle;
+										}
+									}
+								}
+							} else
+							if ((method) && ((method=="GET") || (method=="POST") || (method=="PUT"))) {
+								tstamp=StrReplace(StrReplace(asctime(time()), "\r", ""), "\n", "")+" GMT";
+								var ok = false;
+								var err = 404;
+								var written = 0;
+								if (value Owner.IniKey("Server", "HandleWebResources", "1") == 0) {
+									app = "";
+									err = 503;
+								}
+								if (app) {
+									var pparam = Pos(app, "?");
+									var params = "";
+									if (pparam > 0) {
+										params = SubStr(app, pparam, length app - pparam);
+										app = SubStr(app, 0, pparam - 1);
+									}
+									var orig_path = app;
+
+									var path = this.NormalizeFilename(app, var directory);
+									var client_resource = (directory[0] + directory[1] + directory[2] == "/@/");
+									if (client_resource)
+										directory = SubStr(directory, 2);
+									app = directory + path;
+									var rewrite = this.Owner.Rewrite;
+									if (rewrite)
+										app = rewrite(app, params);
+
+									var ext = ToLower(Ext(app));
+									var content_type = "application/octet-stream";
+									var invalid_app = false;
+									if (IsSet(this.Owner.mimetypes, ext)) {
+										content_type = this.Owner.mimetypes[ext];
+										if (content_type == "application/concept-private") {
+											err = 403;
+											invalid_app = true;
+										}
+									}
+									var is_root = false;
+									var target_app = "start.con";
+									if (content_type == "application/concept") {
+										target_app = trim(app);
+										app = "/index.html";
+										content_type = "text/html";
+										is_root = true;
+										client_resource = true;
+
+										var host_root = this.Owner.IniGetPath("Paths", "ServerRoot", "");
+										if (this.ServerName)
+											host_root = this.Owner.IniGetPath("Paths", "HostRoot(${this.ServerName})", host_root);
+
+										var real_app_path = host_root + directory + path;
+										invalid_app = !FileExists(real_app_path);
+									}
+
+									if (ToLower(app) == "/@/index.html")
+										is_root = true;
+
+									var requested_path = app;
+
+									var is_server_page = false;
+									var cgi;
+									var is_javascript = false;
+									if (content_type == "application/concept-server-page") {
+										is_server_page = true;
+										cgi = this.Owner.cgi;
+									} else
+									if (content_type == "application/javascript-server-page") {
+										is_server_page = true;
+										cgi = this.Owner.cgi;
+										is_javascript = true;
+									} else
+									if (content_type == "application/concept-async-page") {
+										is_server_page = true;
+										cgi = this.Owner.cgi;
+										is_javascript = 2;
+									} else
+									if (this.Owner.cgiother) {
+										if (IsSet(this.Owner.cgiother, content_type)) {
+											is_server_page = true;
+											cgi = this.Owner.cgiother[content_type];
+										}
+									}
+
+									var is_redirect = false;
+									if (client_resource) {
+										var local_app = "";
+										if (is_root) {
+											var local_app_index = host_root + directory + "@index.html";
+											if (FileExists(local_app_index))
+												local_app = local_app_index;
+										}
+										if (local_app)
+											app = local_app;
+										else
+											app = Owner.ConceptClient + app;
+									} else {
+										var empty_request = false;
+										if (app == "/")
+											empty_request = true;
+										host_root = this.Owner.IniGetPath("Paths", "ServerRoot", "");
+										if (this.ServerName)
+											host_root = this.Owner.IniGetPath("Paths", "HostRoot(${this.ServerName})", host_root);
+										app = host_root + app;
+										if ((app) && (DirectoryExists(app))) {
+											empty_request = true;
+											if (app[length app - 1] != "/") {
+												app += "/";
+												// auto redirect if no / is present
+												if ((orig_path) && (orig_path[length orig_path - 1] != "/")) {
+													is_redirect = Owner.Redirect(orig_path + "/", params);
+													keep_alive = false;
+													empty_request = false;
+												}
+											}
+										}
+										if (empty_request) {
+											if (FileExists(app + "start.con")) {
+												content_type = "text/html";
+												target_app = directory + path + "/start.con";
+												local_app_index = host_root + "/" + path + "/@index.html";
+												if (FileExists(local_app_index))
+													app = local_app_index;
+												else
+													app = Owner.ConceptClient + "/index.html";
+												is_root = true;
+											} else
+											if (FileExists(app + "index.csp")) {
+												content_type = "application/concept-server-page";
+												app += "index.csp";
+												is_server_page = true;
+												cgi = this.Owner.cgi;
+											} else
+											if (FileExists(app + "index.cas")) {
+												content_type = "application/concept-async-page";
+												app += "index.cas";
+												is_server_page = true;
+												is_javascript = 2;
+												cgi = this.Owner.cgi;
+											} else
+											if (FileExists(app + "index.ess")) {
+												content_type = "application/javascript-server-page";
+												app += "index.ess";
+												is_javascript = true;
+												is_server_page = true;
+												cgi = this.Owner.cgi;
+											} else {
+												content_type = "text/html";
+												app += "index.html";
+											}
+										}
+
+									}
+
+									var exists;
+									if (invalid_app) {
+										exists = false;
+									} else
+									if (is_redirect) {
+										exists = true;
+									} else {
+										exists = FileExists(app);
+										if ((!exists) && (path[0] == "@")) {
+											app = Owner.ConceptClient + "/" + SubStr(path, 1);
+											exists = FileExists(app);
+										}
+									}
+
+									if (exists) {
+										var worker = null;
+										if ((is_server_page) && (cgi) && ((TLS) || (!force_tls))) //(content_type == "application/concept-server-page")
+											worker = Owner.ChooseWorker();
+										if (worker) {
+											var port = Owner.WSPort;
+											if (TLS)
+												port = Owner.SSLWSPort;
+											var w = new WDataContainer(Socket, app, SubStr(received_data, 0, pos), params, SubStr(received_data, pos + 2), method, this.ServerName, requested_path, port, cgi, host_root, is_javascript);
+											worker.AddData(BinarizeObject(w));
+											keep_alive = false;
+											break;
+										} else {
+											var connection_policy;
+											if (keep_alive)
+												connection_policy = "keep-alive\r\n" + keep_alive_header;
+											else
+												connection_policy = "close";
+											var last_mod = rtrim(asctime(_filelast_mod(app))) + " GMT";
+											data = "";
+											var skip_content = false;
+											var content_length = 0;
+											var eagain_time = 0;
+											if (is_redirect) {
+												var buffer = is_redirect;
+												data = "0";
+												is_redirect = "";
+												skip_content = true;
+											} else
+											if ((!TLS) && (force_tls)) {
+												buffer = Owner.RedirectHeader(orig_app, ServerName) ;
+												connection_policy = "close";
+												keep_alive = false;
+												skip_content = true;
+											} else
+											if (((!is_root) || (!params)) && (if_modified == last_mod)) {
+												buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=$max_age\r\nLast-Modified: $last_mod\r\n" + EXTRA_HEADER + "Server: " + SERVER_NAME + "\r\n\r\n";
+												skip_content = true;
+											} else {
+												var extra_origin = "";
+												if (is_root) {
+													host = trim(host);
+
+													data = ReadFile(app);
+													if (params)
+														data = StrReplace(data, "{APP}", target_app + "?" + params);
+													else
+														data = StrReplace(data, "{APP}", target_app);
+
+													var secured = this.TLS;
+													if ((!secured) && (Pos(host, ":" + Owner.SSLWSPort) > 0))
+														secured = true;
+													data = StrReplace(data, "{HOST}", trim(host));
+													if (secured)
+														data = StrReplace(data, "{PROTOCOL}", "concepts");
+													else
+														data = StrReplace(data, "{PROTOCOL}", "concept");
+													content_length = length data;
+													if (secured)
+														extra_origin += "Content-Security-Policy: connect-src wss://$host\r\n";
+												} else {
+													content_length = _filesize(app);
+												}
+												buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=$max_age\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\n" + EXTRA_HEADER + extra_origin + "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nContent-Length: $content_length\r\n\r\n" + data;
+											}
+											SocketSetBlocking(Socket.Socket, false);
+											var buf_len = length buffer;
+											if (data) {
+												if ((this.TLS == 2) && (buf_len)) {
+													Socket.WritePrepare(buffer);
+													while (Socket.WriteIterate())
+														yield();
+													written = buf_len;
+												} else
+												while (buf_len > 0) {
+													try {
+														written = Socket.Write(buffer);
+													} catch (exc) {
+														// EAGAIN
+														err = SocketErrno();
+														if (((err != 11) && (err != 35) && (err != 10035)) || ((eagain_time) && (time() - eagain_time > EAGAIN_TIMEOUT_SECONDS)))
+															break;
+														if (!eagain_time)
+															eagain_time = time();
+														continue;
+													}
+													if (written <= 0)
+														break;
+
+													buf_len -= written;
+													eagain_time = 0;
+													if (buf_len > 0)
+														buffer = SubStr(buffer, written, buf_len);
+												}
+											} else {
+												if (!skip_content) {
+													var file = new File("rb");
+													file.Name = app;
+													if (!file.Open())
+														delete file;
+												}
+
+												if ((this.TLS == 2) && (buf_len)) {
+													Socket.WritePrepare(buffer);
+													while ((Socket.WriteIterate()) || (file)) {
+														if (file) {
+															if (file.Read(var buf2, READ_BUFFER) > 0) {
+																Socket.WritePrepare(buf2);
+															} else {
+																file.Close();
+																file = null;
+															}
+														}
+														yield();
+													}
+													written = buf_len;
+												} else
+												while ((buf_len > 0) || (file)) {
+													if ((file) && (length buffer < H1_MAX_FILE_BUFFER)) {
+														if (file.Read(buf2, READ_BUFFER) > 0) {
+															buffer += buf2;
+															buf_len += length buf2;
+														} else {
+															file.Close();
+															file = null;
+															if (!buf_len)
+																break;
+														}
+													}
+													try {
+														written = Socket.Write(buffer);
+													} catch (exc) {
+														// EAGAIN
+														err = SocketErrno();
+														if (((err != 11) && (err != 35) && (err != 10035)) || ((eagain_time) && (time() - eagain_time > EAGAIN_TIMEOUT_SECONDS))) {
+															if (file) {
+																file.Close();
+																file = null;
+															}
+															break;
+														}
+														if (!eagain_time)
+															eagain_time = time();
+														continue;
+													}
+													if (written <= 0)
+														break;
+													buf_len -= written;
+													eagain_time = 0;
+													if (buf_len > 0)
+														buffer = SubStr(buffer, written, buf_len);
+													else
+														buffer = "";
+												}
+												if (file) {
+													file.Close();
+													file = null;
+												}
+											}
+										}
+										//WriteExact("HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: $content_type\r\nServer: " + SERVER_NAME + "\r\n\r\n" + data);
+										ok = true;
+										if ((keep_alive) && (written > 0)) {
+											step = 2;
+											received_data = "";
+											host="";
+											continue;
+										}
+									}
+								}
+								if (!ok) {
+									data =  ReadFile(Owner.ConceptClient + "/errors/$err.html");
+									if (!data)
+										data = "Error $err in processing your request.";
+
+									buffer = "HTTP/1.1 $err\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: text/html\r\n" + EXTRA_HEADER + "Server: " + SERVER_NAME + "\r\n\r\n" + data;
+									buf_len = length buffer;
+									SocketSetBlocking(Socket.Socket, false);
+									if ((this.TLS == 2) && (buf_len)) {
+										Socket.WritePrepare(buffer);
+										while (Socket.WriteIterate())
+											yield();
+										written = buf_len;
+									} else
+									while (buf_len > 0) {
+										try {
+											written = Socket.Write(buffer);
+										} catch (exc) {
+											// EAGAIN
+											err = SocketErrno();
+											if ((err != 11) && (err != 35) && (err != 10035))
+												break;
+											continue;
+										}
+										if (written <= 0)
+											break;
+
+										buf_len -= written;
+										if (buf_len > 0)
+											buffer = SubStr(buffer, written, buf_len);
+									}
+									//WriteExact("HTTP/1.1 $err\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: text/html\r\nServer: " + SERVER_NAME + "\r\n\r\n" + data);
+								}
+								max_idle = microseconds() + orig_idle;
+							}
+							if (!done)
+								step=4;
+							break;
+						}
+					}
+					var delta_ms = microseconds() - max_idle;
+					if (delta_ms > 0) {
+						console.info(LOG_THIS, "$ip:Timed out (${delta_ms/1000}ms)");
+						break;
+					}
+					if (step==-1) {
+						// restored
+						console.info(LOG_THIS, "$ip:Session restored");
+						break;
+					}
+				}
+			} else {
+				var key_path = this.Owner.IniGetPath("Paths", "Certificate", "");
+				var public_key = ReadFile(key_path+"/server.certificate");
+				var private_key = ReadFile(key_path+"/server.key");
+				var allow_debug	 = value Owner.IniKey("Server", "AllowDebug", "1");
+				if ((!public_key) || (!private_key)) {
+					console.critical(LOG_THIS, "Invalid key path $key_path");
+					throw "Invalid keys";
+				}
+
+				if (WriteExact(public_key, true)==length public_key + 4) {
+					while (step <= 2) {
+						if (Socket.HasData) {
+							data = Socket.Read();
+							if (!data)
+								throw "Broken socket";
+							received_data+=data;
+							Owner.Iterations++;
+
+							if (length received_data>MAX_RECV_BUFFER)
+								throw "Data too big";
+
+							received_data = AnalyzeData(received_data, step, private_key, public_key, key_path, allow_debug);
+						}
+
+						if (microseconds()>=max_idle) {
+							console.warn(LOG_THIS, "$ip:Protocol negotiation timed out");
+							break;
+						}
+						if (step==-1) {
+							// restored
+							console.log(LOG_THIS, "$ip:Session restored");
+							break;
+						}
+					}
+				} else
+					console.info(LOG_THIS, "$ip:Broken socket on write");
+			}
+
+			var pid=this.PID;
+			if ((step==3) && ((pid>0) || (pid==-2))) {
+				console.info(LOG_THIS, "$ip:Executing");
+
+				var pipein=this.PipeIn;
+				var pipeout=this.PipeOut;
+
+				var buf;
+				var processed_buffer="";
+
+				// local variables are slightly faster
+				var ref_owner=this.Owner;
+				var apid=this.APID;
+				var hash=this.Hash;
+
+				var ctx_in=this.ContextIn;
+
+				var apidbuf="";
+				var orig_host=this.HostID;
+				var flush_iterations = 1;
+
+				var execute_start = microseconds();
+				// this should never happen
+				while ((pid > 0) && (!ExecuteIsRunning(pid))) {
+					if (microseconds() - execute_start >= 50000) {
+						console.warn(LOG_THIS, "$ip:Application failed to start in 50ms.");
+						break;
+					}
+				}
+				var apid_err = false;
+				while ((this.PID==-2) || ((pid > 0) && (ExecuteIsRunning(pid)))) {
+					if ((this.ContextIn>0) && (ctx_in>0)) {
+						var r=read(this.ContextIn, var apidbuf2, 4);
+						if (r>0) {
+							this.Owner.Iterations++;
+							apidbuf+=apidbuf2;
+							if (length apidbuf>=4) {
+								var app_id = tonumber(SubStr(apidbuf, 0, 4), 32);
+								apidbuf = SubStr(apidbuf, 4, length apidbuf - 4);
+								if (RemoveChild(app_id, ip)) {
+									disconnected=true;
+									pipein=-1;
+									this.Disconnect(ip, "clean");
+								}
+								if (this.ChildCount<=0) {
+									this.HostID="";
+									// no children, unload from memory
+									write(this.ContextOut, tobin(-1, 32));
+									ctx_in = -1;
+								}
+							}
+						}
+					}
+
+					if (pipein > 0)  {
+						while ((!apid_err) && (read(pipein, buf, 0xFF) > 0)) {
+							this.Owner.Iterations++;
+							processed_buffer=ref_owner.ProcessMessage(apid, hash, processed_buffer + buf, apid_err);
+							if ((max_iap) && (length processed_buffer > max_iap))
+								processed_buffer="";
+							if (processed_buffer)
+								flush_iterations = 1000;
+							else
+								flush_iterations = 1;
+						}
+						var buf_out=this.APIDBuf;
+						if (buf_out) {
+							//var len;
+							if (length buf_out > 1024)
+								len = write(pipeout, SubStr(buf_out, 0, 1024));
+							else
+								len = write(pipeout, buf_out);
+
+							if (len>0)
+								this.APIDBuf = SubStr(this.APIDBuf, len, length this.APIDBuf);
+						}
+					}
+				}
+				if (this.Parent > 0)
+					ref_owner.ProcessMessage(apid, hash, tobin(this.Parent, 32) + tobin(-6, 32) + tobin(4, 32) + "done", apid_err);
+
+				if (orig_host)
+					Owner.CloseChildren(this.APID);
+
+				if (apid>0) {
+					RemoveChild(apid, ip);
+					Owner.Connections[""+apid] = null;
+					Owner.PlaceHolders++;
+				}
+
+				if (pid > 0) {
+					if (pipein > 0) {
+						while (read(pipein, buf, 0xFF) > 0) {
+							processed_buffer=ref_owner.ProcessMessage(apid, hash, processed_buffer + buf, apid_err);
+							if (apid_err)
+								break;
+						}
+					}
+					var code=ExecuteJoin(pid);
+					if (code)
+						console.info(LOG_THIS, "$ip:$apid done (error code: $code)");
+					else
+					
+						console.info(LOG_THIS, "$ip:$apid done");
+				} else
+					console.info(LOG_THIS, "$ip:$apid Done (child)");
+			}
+		} catch (exc) {
+			// broken socket
+		}
+		if (!disconnected)
+			this.Disconnect(ip, "iterate");
+
+		if (this.ContextIn>0) {
+			close(this.ContextIn);
+			this.ContextIn = -1;
+		}
+		if (this.ContextOut>0) {
+			close(this.ContextOut);
+			this.ContextOut = -1;
+		}
+		if (file) {
+			file.Close();
+			file = null;
+		}
+		this.Owner.threads--;
+	}
+
+	Disconnect(ip, reason = "") {
+		if (this.DirectPipe>0) {
+			close(this.DirectPipe);
+			this.DirectPipe = -1;
+		}
+		if (this.PipeIn>0) {
+			close(this.PipeIn);
+			this.PipeIn = -1;
+		}
+		if (this.PipeOut>0) {
+			close(this.PipeOut);
+			this.PipeOut = -1;
+		}
+
+		if (this.Socket) {
+			if (reason)
+				reason = " " + reason;
+			console.info(LOG_THIS, "$ip:Disconnected(${this.Socket.Socket}, ${this.APID}$reason)");
+			SocketSetBlocking(this.Socket.Socket, false);
+			this.Socket.Close(true);
+		}
+	}
+
+	finalize() {
+		Owner.ClientCount--;
+		console.trace(LOG_THIS, "${Owner.ClientCount} active client(s)");
+		Owner.Clean();
+	}
+}
 
 class ConceptCGIChildBase {
 	var h2;
@@ -190,7 +2153,28 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 	var content_length = -1;
 
 	GetPath(filename) {
-		var directory = http_directory(filename);
+		var arr = StrSplit(filename, "/");
+		var len = length arr;
+		var directory = "";
+
+		var arr2 = new [];
+		for (var i = len - 1; i >= 0; i--) {
+			var d = arr[i];
+			if (d == "..") {
+				// jump one directory
+				i--;
+			} else
+			if (d != ".")
+				arr2[length arr2] = d;
+		}
+		len = length arr2;
+		for (i = len - 1; i >= 0; i--) {
+			d = arr2[i];
+			if (d) {
+				if (i)
+					directory += d + "/";
+			}
+		}
 		if ((!ON_MSWINDOWS) && (filename) && (filename[0] == "/") && (directory[0] != "/"))
 			return "/" + directory;
 
@@ -507,7 +2491,7 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 		if (Socket) {
 			try {
 				SetNonBlocking(Socket.Socket, true);
-				Socket.Close(/* true */);
+				Socket.Close(true);
 				delete Socket;
 			} catch (exc) {
 				console.warn(LOG_THIS, "ConceptJSChild/Socket close error: $exc");
@@ -586,7 +2570,7 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 		return headers;
 	}
 
-	baseiterate(var ops, can_write = true) {
+	baseiterate(var ops) {
 		try {
 			if (stream) {
 				if (stream.HasData()) {
@@ -611,7 +2595,8 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 			this.reset();
 			return true;
 		}
-		if (((std_out_buffer) || (write_headers)) && (can_write)) {
+
+		if ((std_out_buffer) || (write_headers)) {
 			if (stream) {
 				var stream_write = true;
 				try {
@@ -623,7 +2608,7 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 						var close_stream = false;
 						if ((!running) && (stream.AtomicWriteSize(length std_out_buffer) == length std_out_buffer))
 							close_stream = true;
-						var res = stream.Write(h2, std_out_buffer, close_stream);
+						var res = stream.SafeWrite(h2, std_out_buffer, close_stream);
 						if (res > 0) {
 							std_out_buffer = SubStr(std_out_buffer, res);
 							ops ++;
@@ -796,7 +2781,7 @@ class ConceptJSChild extends ConceptAsyncChild {
 		}
 	}
 
-	Iterate(var ops, can_write = true) {
+	Iterate(var ops) {
 		// timed out
 		if (time() > timeout) {
 			if (js.js.call("ontimedout", [ ])) {
@@ -806,11 +2791,10 @@ class ConceptJSChild extends ConceptAsyncChild {
 				running = false;
 			}
 		}
-
 		if (!running)
 			this.reset();
 
-		if (this.baseiterate(ops, can_write))
+		if (this.baseiterate(ops))
 			return true;
 
 		if ((js) && ((!ops) || (microseconds() - last_idle_call > 1000000))) {
@@ -818,11 +2802,6 @@ class ConceptJSChild extends ConceptAsyncChild {
 			js.js.call("onidle", [ ]);
 		}
 		return false;
-	}
-
-	IterateEventLoop(socket, loop, is_write) {
-		if (this.Iterate(null, is_write))
-			return LOOP_EVENT_REMOVE;
 	}
 }
 
@@ -931,7 +2910,7 @@ class ConceptCASChild extends ConceptAsyncChild {
 		}
 	}
 
-	Iterate(var ops, can_write = true) {
+	Iterate(var ops) {
 		// timed out
 		if (time() > timeout) {
 			this.remotenotify("timedout");
@@ -941,12 +2920,7 @@ class ConceptCASChild extends ConceptAsyncChild {
 		if (!running)
 			this.reset();
 
-		return this.baseiterate(ops, can_write);
-	}
-
-	IterateEventLoop(socket, loop, is_write) {
-		if (this.Iterate(null, is_write))
-			return LOOP_EVENT_REMOVE;
+		return this.baseiterate(ops);
 	}
 }
 
@@ -1015,7 +2989,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 		}
 	}
 
-	Iterate(var ops, can_write = true) {
+	Iterate(var ops) {
 		var running = ExecuteIsRunning(pid);
 		if (running) {
 			try {
@@ -1062,7 +3036,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 				}
 			}
 		}
-		if ((std_out) && (can_write)) {
+		if (std_out) {
 			// pipesocket code (splice/sendfile/TransmitFile)
 			var err = -2;
 			if (!is_tls) {
@@ -1074,11 +3048,11 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 						if (!pipe_err)
 							pipe_err = SocketErrno();
 						if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22) && (pipe_err != 10035) && (err)) {
-							console.debug(LOG_THIS, "CGI pipe read error: $pipe_err");
+							console.error(LOG_THIS, "CGI pipe read error: $pipe_err");
 							return true;
 						}
 						if ((last_pipe_err_time_read) && (time() - last_pipe_err_time_read >= CGI_MAX_RETRY_SECONDS)) {
-							console.debug(LOG_THIS, "CGI pipe congestion");
+							console.warn(LOG_THIS, "CGI pipe congestion");
 							return true;
 						}
 						if (!last_pipe_err_time_read)
@@ -1107,7 +3081,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 				if (res <= 0) {
 					pipe_err = _errno();
 					if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22) && (res)) {
-						console.debug(LOG_THIS, "CGI pipe read error: $pipe_err");
+						console.error(LOG_THIS, "CGI pipe read error: $pipe_err");
 						return true;
 					}
 					if ((last_pipe_err_time_read) && (time() - last_pipe_err_time_read >= CGI_MAX_RETRY_SECONDS)) {
@@ -1147,7 +3121,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 						var close_stream = false;
 						if ((!running) && (stream.AtomicWriteSize(length std_out_buffer) == length std_out_buffer))
 							close_stream = true;
-						res = stream.Write(h2, std_out_buffer, close_stream);
+						res = stream.SafeWrite(h2, std_out_buffer, close_stream);
 						if (res > 0) {
 							std_out_buffer = SubStr(std_out_buffer, res);
 							ops ++;
@@ -1164,7 +3138,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 						std_out_buffer = SubStr(std_out_buffer, res);
 						ops ++;
 						if (length std_out_buffer > CGI_MAX_STDOUT_BUFFER) {
-							console.info(LOG_THIS, "CGI stdout buffer overflow");
+							console.error(LOG_THIS, "CGI stdout buffer overflow");
 							return true;
 						}
 						last_err_time = 0;
@@ -1191,18 +3165,15 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 		return false;
 	}
 
-	IterateEventLoop(socket, loop, is_write) {
-		if (this.Iterate(null, is_write))
-			return LOOP_EVENT_REMOVE;
-	}
-
-	static CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w) {
+	static CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w, var err_text) {
 		if (/*socketpair*/pipe(std_out_r, std_out_w)) {
+			err_text = "ConceptCGIChild: Error creating pipe (stdout)";
 			return -1;
 		}
 		if (/*socketpair*/pipe(std_in_r, std_in_w)) {
 			close(std_out_r);
 			close(std_out_w);
+			err_text = "ConceptCGIChild: Error creating pipe (stdin)";
 			return -1;
 		}
 		return 0;
@@ -1210,112 +3181,6 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 
 	finalize() {
 		Close();
-	}
-}
-
-class ContainerWorker extends Worker {
-	var timestamp;
-	var app;
-	var idx;
-	var[] cache;
-
-	GetPath(filename) {
-		var directory = http_directory(filename);
-		if ((!ON_MSWINDOWS) && (filename) && (filename[0] == "/") && (directory[0] != "/"))
-			return "/" + directory;
-
-		return directory;
-	}
-
-	ContainerWorker(sharedcontext, app, var err) {
-		super("web", this.GetPath(app), sharedcontext, app, err);
-		this.timestamp = filelast_mod(app);
-	}
-
-	modified(timestamp) {
-		return (this.timestamp != timestamp);
-	}
-
-	CacheData(data, priority) {
-		if (priority < 0)
-			cache = [data] + cache;
-		else
-			cache[length cache] = data;
-	}
-
-	SendCached() {
-		if (cache) {
-			this.AddData(BinarizeObject(cache));
-			cache = new [];
-		}
-	}
-
-	ClearCache() {
-		cache = new [];
-	}
-}
-
-class CGIAsyncWorker {
-	static Create(cgiworkers, app, sharedcontext = null, var err = null) {
-		var worker = cgiworkers[app];
-		if (worker) {
-			if (worker.modified(_filelast_mod(app))) {
-				worker.AddData(BinarizeObject([["q" => "0", "do" => "drop"]]), -1);
-				console.info(LOG_THIS, "$app changed, refreshing worker ...");
-				worker.ClearCache();
-				worker.Join();
-				console.info(LOG_THIS, "done");
-			} else
-				return worker;
-		}
-
-		worker = new ContainerWorker(sharedcontext, app, err);
-		if (err) {
-			worker.Join();
-			return worker;
-		}
-		cgiworkers[app] = worker;
-		return worker;
-	}
-}
-
-class IniCache {
-	public var IniFile;
-	protected var[] inicache;
-	protected var inicachetimeout;
-
-	public var ConceptClient=".ConceptClient.js";
-
-	IniGetPath(category, key, default_value = "") {
-		var cachekey = "$key[$category]";
-		if (time() > inicachetimeout) {
-			inicachetimeout = time() + INI_CACHE_TIMEOUT_S;
-			inicache = new [];
-		} else {
-			var cache = inicache[cachekey];
-			if (cache)
-				return cache;
-		}
-		var res = trim(IniGet(IniFile, category, key, default_value));
-		if (res[0] == ".")
-			res = getcwd() + "/" + res;
-		inicache[cachekey] = res;
-		return res;
-	}
-
-	IniKey(category, key, default_value = "") {
-		var cachekey = "$key[$category]";
-		if (time() > inicachetimeout) {
-			inicachetimeout = time() + INI_CACHE_TIMEOUT_S;
-			inicache = new [];
-		} else {
-			var cache = inicache[cachekey];
-			if (cache)
-				return cache;
-		}
-		var res = trim(IniGet(IniFile, category, key, default_value));
-		inicache[cachekey] = res;
-		return res;
 	}
 }
 
@@ -1339,7 +3204,7 @@ class ConceptBaseWorker {
 		if ((child) && (child.reqid)) {
 			if (IsSet(childcache, child.reqid)) {
 				childcache[child.reqid] = null;
-				cacheholders ++;
+				cacheholders++;
 			}
 		}
 	}
@@ -1356,11 +3221,11 @@ class ConceptBaseWorker {
 		for (var i = 0; i < length workers; i++) {
 			var worker = workers[i];
 			if (worker) {
-				var worker_get = worker.GetResult(var data_arr);
+				var worker_get = worker.GetResult(var data_arr);//worker.GetAll(var data_arr);
 				if ((data_arr) && (worker_get > 0)) {
 					data_arr = UnBinarizeObject(data_arr);
 					for (var j = 0; j < length data_arr; j++) {
-						var data = data_arr[j];
+						var data = data_arr[j];//UnBinarizeObject(data_arr[j]);
 						if (data) {
 							ops++;
 							var request = data["q"];
@@ -1402,43 +3267,6 @@ class ConceptBaseWorker {
 	}
 }
 
-class WDataContainer {
-pragma used
-	var socket;
-	var app;
-	var headers;
-	var tls;
-	var query;
-	var snippet;
-	var method;
-	var hostname;
-	var path;
-	var port;
-	var cgihandler;
-	var root;
-	var javascript;
-
-	WDataContainer(socket, app, var headers, var query, var snippet, method, hostname, path, port, cgihandler, root, javascript = false) {
-		this.socket = socket.Socket;
-		this.app = app;
-		this.headers = headers;
-		this.query = query;
-		this.snippet = snippet;
-		this.method = method;
-		this.hostname = hostname;
-		this.path = path;
-		this.port = port;
-		this.cgihandler = cgihandler;
-		this.root = root;
-		this.javascript = javascript;
-		if (classof socket == "TLSESocket") {
-			tls = socket.Save();
-			socket.Done();
-		}
-		socket.Socket = -1;
-	}
-}
-
 class ConceptWorker extends ConceptBaseWorker {
 pragma used
 	protected var WorkerName;
@@ -1446,18 +3274,59 @@ pragma used
 	protected var Placeholders;
 	protected var Framework = "";
 
+	GetHeader(job, header_name, var headers_lowercase) {
+		var cookie = "";
+		var needle = "\n$header_name:";
+		var pos = Pos(headers_lowercase, needle);
+		if (pos) {
+			cookie = trim(SubStr(job.headers, pos + length needle));
+			pos = Pos(cookie, "\n");
+			if (pos > 0)
+				cookie = trim(SubStr(cookie, 0, pos));
+		}
+		return cookie;
+	}
+
+	HeaderKeys(var headers_lowercase) {
+		var[] headers;
+		if (headers_lowercase) {
+			var arr = StrSplit(headers_lowercase, "\r\n");
+			if (arr) {
+				var arr2 = StrSplit(arr[0], " ");
+				var method = arr2[0];
+				var path = arr2[1];
+				if (method)
+					headers[":method"] = ToUpper(method);
+				if (path)
+					headers[":path"] = path;
+			}
+			for (var i = 1; i < length arr; i++) {
+				var header = arr[i];
+				if (header) {
+					var pos = Pos(header, ":");
+					if (pos > 0) {
+						var key = ToLower(trim(SubStr(header, 0, pos - 1)));
+						var val = trim(SubStr(header, pos));
+						headers[key] = val;
+					}
+				}
+			}
+		}
+		return headers;
+	}
+
 	CreateEnv(Socket, job, scriptname = "javascript") {
 		var info = Socket.Info;
 		var address = info["address"];
 		var port = info["port"];
 
-		var headers = job.headers;
+		var headers_lowercase = ToLower(job.headers);
 		var env = [
 				"DOCUMENT_ROOT": job.root,
 				"GATEWAY_INTERFACE": "CGI/1.1",
-				"HTTP_COOKIE": headers["cookie"] ?? "",
+				"HTTP_COOKIE": this.GetHeader(job, "cookie", headers_lowercase),
 				"HTTP_HOST": job.hostname,
-				"HTTP_USER_AGENT": headers["user-agent"] ?? "",
+				"HTTP_USER_AGENT": this.GetHeader(job, "user-agent", headers_lowercase),
 				"PATH_INFO": job.path,
 				"PATH_TRANSLATED": job.app,
 				"QUERY_STRING": job.query,
@@ -1476,11 +3345,11 @@ pragma used
 				"SERVER_SOFTWARE":  SERVER_SOFTWARE,
 				"REDIRECT_STATUS": 200,
 				"REDIRECT_STATUS": "CGI",
-				"CONTENT_LENGTH": headers["content-length"] ?? "",
-				"CONTENT_TYPE": headers["content-type"] ?? "",
-				"HTTP_ACCEPT_LANGUAGE": headers["accept-language"] ?? "",
-				"HTTP_ACCEPT_ENCODING": headers["accept-encoding"] ?? "",
-				"HTTP_REFERER": headers["referer"] ?? ""
+				"CONTENT_LENGTH": this.GetHeader(job, "content-length", headers_lowercase),
+				"CONTENT_TYPE": this.GetHeader(job, "content-type", headers_lowercase),
+				"HTTP_ACCEPT_LANGUAGE": this.GetHeader(job, "accept-language", headers_lowercase),
+				"HTTP_ACCEPT_ENCODING": this.GetHeader(job, "accept-encoding", headers_lowercase),
+				"HTTP_REFERER": this.GetHeader(job, "referer", headers_lowercase)
 		];
 		if (classof Socket == "TLSESocket") {
 			env["HTTPS"] = "on";
@@ -1491,25 +3360,25 @@ pragma used
 
 	CreateJavascript(Socket, job) {
 		var env = this.CreateEnv(Socket, job);
-		return new ConceptJSChild(this.Framework, job.method, Socket, env, job.snippet, null, null, null, job.headers);
+		return new ConceptJSChild(this.Framework, job.method, Socket, env, job.snippet, null, null, null, HeaderKeys(job.headers));
 	}
 
 	CreateCAS(Socket, job) {
 		var env = this.CreateEnv(Socket, job, "conceptasync");
-		var cgi = new ConceptCASChild(CGIAsyncWorker::Create(this.cgiworkers, job.app, null, var err), err, job.method, Socket, env, job.snippet, null, null, null, job.headers);
+		var cgi = new ConceptCASChild(CGIAsyncWorker::Create(this.cgiworkers, job.app, null, var err), err, job.method, Socket, env, job.snippet, null, null, null, HeaderKeys(job.headers));
 		if (cgi.reqid)
 			this.childcache[cgi.reqid] = cgi;
 		return cgi;
 	}
 
-	Create(Socket, job) {
+	Create(Socket, job, var err_text) {
 		if (job.javascript == 2)
 			return CreateCAS(Socket, job);
 		if (job.javascript)
 			return CreateJavascript(Socket, job);
 
 
-		if (ConceptCGIChild::CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w))
+		if (ConceptCGIChild::CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w, err_text))
 			return null;
 
 		var cgi_handler_path = job.cgihandler;
@@ -1517,13 +3386,13 @@ pragma used
 		var info = Socket.Info;
 		var address = info["address"];
 		var port = info["port"];
-		var headers = job.headers;
+		var headers_lowercase = ToLower(job.headers);
 		var env = [
 				"DOCUMENT_ROOT=" + job.root,
 				"GATEWAY_INTERFACE=CGI/1.1",
-				"HTTP_COOKIE=" + (headers["cookie"] ?? ""),
+				"HTTP_COOKIE=" + this.GetHeader(job, "cookie", headers_lowercase),
 				"HTTP_HOST=" + job.hostname,
-				"HTTP_USER_AGENT=" + (headers["user-agent"] ?? ""),
+				"HTTP_USER_AGENT=" + this.GetHeader(job, "user-agent", headers_lowercase),
 				"PATH_INFO=" + job.path,
 				"PATH_TRANSLATED=" + job.app,
 				"QUERY_STRING=" + job.query,
@@ -1542,12 +3411,13 @@ pragma used
 				"SERVER_SOFTWARE=" + SERVER_SOFTWARE,
 				"REDIRECT_STATUS=200",
 				"REDIRECT_STATUS=CGI",
-				"CONTENT_LENGTH=" + (headers["content-length"] ?? ""),
-				"CONTENT_TYPE=" + (headers["content-type"] ?? ""),
-				"HTTP_ACCEPT_LANGUAGE=" + (headers["accept-language"] ?? ""),
-				"HTTP_ACCEPT_ENCODING=" + (headers["accept-encoding"] ?? ""),
-				"HTTP_REFERER=" + (headers["referer"] ?? "")
+				"CONTENT_LENGTH=" + this.GetHeader(job, "content-length", headers_lowercase),
+				"CONTENT_TYPE=" + this.GetHeader(job, "content-type", headers_lowercase),
+				"HTTP_ACCEPT_LANGUAGE=" + this.GetHeader(job, "accept-language", headers_lowercase),
+				"HTTP_ACCEPT_ENCODING=" + this.GetHeader(job, "accept-encoding", headers_lowercase),
+				"HTTP_REFERER=" + this.GetHeader(job, "referer", headers_lowercase)
 		];
+
 		if (classof Socket == "TLSESocket") {
 			env[length env] = "HTTPS=on";
 			env[length env] = "HTTPS_CIPHER=" + Socket.CipherName;
@@ -1561,6 +3431,8 @@ pragma used
 		if (pid <= 0) {
 			close(std_out_r);
 			close(std_in_w);
+			if (!err_text)
+				err_text = "ConceptWorker: Error creating process\n";
 			return null;
 		}
 		return new ConceptCGIChild(job.method, Socket, std_out_r, std_in_w, pid, job.snippet);
@@ -1582,7 +3454,6 @@ pragma used
 	Clean() {
 		if (Placeholders < 10)
 			return;
-
 		var new_children = new [];
 		var children = this.Children;
 		this.Children = new_children;
@@ -1659,17 +3530,17 @@ pragma used
 							Socket.Restore(job.tls);
 						} else
 							Socket = new TCPSocket(job.socket);
-						var child = this.Create(Socket, job);
+						var child = this.Create(Socket, job, var err_text);
 						if (child) {
 							if (!job.javascript)
 								Socket.Write("HTTP/1.1 200 OK\r\nServer: " + SERVER_NAME + "\r\n");
 							AddChild(child);
 						} else {
-							Socket.Write("HTTP/1.1 503 Service unavailable\r\nServer: " + SERVER_NAME + "\r\nContent-Type: text/html\r\n\r\n<html><head><title>HTTP 503 Service unavailable</title></head><body><h1>HTTP 503 Service unavailable</h1><br/></body></html>");
+							Socket.Write("HTTP/1.1 503 Service unavailable\r\nServer: " + SERVER_NAME + "\r\nContent-Type: text/html\r\n\r\n<html><head><title>HTTP 503 Service unavailable</title></head><body><h1>HTTP 503 Service unavailable</h1><br/>$err_text</body></html>");
 							Socket.Close(true);
 						}
 					} catch (var exc) {
-						console.debug(LOG_THIS, "Exc: $exc");
+						console.error(LOG_THIS, "Exc: $exc");
 						delete Socket;
 					}
 				}
@@ -1682,774 +3553,38 @@ pragma used
 		} else {
 			empty_iterations++;
 			if (empty_iterations > IDLE_SLEEP_THRESHOLD)
-				sleep_value = IDLE_SLEEP_MS2;
+				sleep_value = IDLE_SLEEP_MS2; // Sleep(IDLE_SLEEP_MS2);
 			else
-				sleep_value = IDLE_SLEEP_MS;
+				sleep_value = IDLE_SLEEP_MS; // Sleep(IDLE_SLEEP_MS);
 		}
+		// return work_count;
 	}
 
 	ConceptWorker(n) {
 		n = UnBinarizeObject(n);
 		WorkerName = n[0];
 		Framework = this.IniGetPath(n[1], "Paths", "Include") + JS_FRAMEWORK;
-		var empty_iterations;
-		var sleep_value;
-		while (true)
-			Loop(empty_iterations, sleep_value);
-	}
-}
-
-class ConceptChild {
-	protected var Socket;
-	protected var Owner;
-	private var Key = "";
-	public var PID;
-	public var DirectPipe=-1;
-
-	public var Session = "";
-	public var APID;
-	public var Hash;
-
-	public var PipeIn = -1;
-	public var PipeOut = -1;
-	public var Parent = -1;
-	
-	public var ContextIn = -1;
-	public var ContextOut = -1;
-
-	private var APIDBuf = "";
-	private var MaxBuffer = 0;
-
-	public var HostID = "";
-	public var UsingHost = -1;
-	public var UsingPID = -1;
-	public var ChildCount = 0;
-
-	public var Timestamp;
-	public var MaxChilds = 0;
-	public var TLS;
-
-	protected var apidbuf = "";
-	protected var apid_err;
-	protected var processed_buffer = "";
-
-	protected var Running;
-	protected var disconnected = false;
-	protected var max_iap;
-
-	var ip;
-
-	ConceptChild(owner, socket, tls_data, session = "") {
-		this.Owner = owner;
-		this.Socket = new TCPSocket(socket);
-		this.TLS = tls_data;
-		this.Session = session ?? "";
-		max_iap = value this.Owner.IniKey("Server", "MaxInterAppMessageBuffer", "1024");
-		Owner.ClientCount ++;
-	}
-
-	Invalidate(p) {
-		this.HostID = "";
-		console.error(LOG_THIS, "Process crashed (error: ${_errno()}, pipe: $p)");
-		if (this.ContextOut>0)
-			close(this.ContextOut);
-
-		this.ContextOut = -1;
-		return -1;
-	}
-
-	Send(var data) {
-		if ((this.MaxBuffer <= 0) || (length APIDBuf + length data <= this.MaxBuffer)) {
-			APIDBuf+=data;
-			return true;
-		}
-		return false;
-	}
-
-	RemoveChild(app_id, ip) {
-		var client = this.Owner.GetConnection(app_id);
-		if (client) {
-			this.ChildCount--;
-			// don't accept any more connections
-			if (this.ChildCount <= 0)
-				this.HostID = "";
-
-			if (client==this) {
-				return true;
-			} else {
-				this.Owner.Connections[""+app_id] = null;
-				this.Owner.PlaceHolders++;
-				client.PID = -3;
-				// return true;
-			}
-		} else
-			console.warn(LOG_THIS, "$ip:Invalid APID: $app_id");
-		return false;
-	}
-
-	AddChild(pr2, shared_key, pipein1, pipeout2, direct_pipe, pid=null) {
-		if (write(pr2, tobin(this.APID, 32)) != 4)
-			return this.Invalidate(pr2);
-
-		if (write(pr2, tobin(this.Parent, 32)) != 4)
-			return this.Invalidate(pr2);
-		if (pid)
-			DescriptorWrite(pr2, Socket.Socket, pid);
-		else
-			DescriptorWrite(pr2, Socket.Socket);
-
-		var d1 = Duplicate(pipein1, pid);
-		var d2 = Duplicate(pipeout2, pid);
-		var d3 = Duplicate(direct_pipe, pid);
-
-		// problems on windows
-		if ((d1 < 0) || (d2 < 0) || (d3 < 0)) {
-			d1 = -1;
-			d2 = -1;
-			d3 = -1;
-			if (this.DirectPipe>0)
-				close(this.DirectPipe);
-		}
-		DescriptorWrite(pr2, d1);
-		DescriptorWrite(pr2, d2);
-		DescriptorWrite(pr2, d3);
-
-		if (shared_key) {
-			if (write(pr2, tobin(length shared_key, 32)) != 4)
-				return this.Invalidate(pr2);
-			if (write(pr2, shared_key) != length shared_key)
-				return this.Invalidate(pr2);
-		} else {
-			if (write(pr2, tobin(0, 32)) != 4)
-				return this.Invalidate(pr2);
-
-			var shared_key2=this.Key;
-			if (write(pr2, tobin(length shared_key2, 32)) != 4)
-				return this.Invalidate(pr2);
-			if (shared_key2) {
-				if (write(pr2, shared_key2) < 0)
-					return this.Invalidate(pr2);
-			}
-		}
-		return 0;
-	}
-
-	RunApplication(headers, fname, multiple_host = true) {
-		if (fname == "/")
-			fname="";
-
-		var shared_key = "";
-		if (!fname)
-			fname = "start.con";
-
-		var arguments = headers[":query"] ?? "";
-		var hash_base = "";
-		var server_name = "";
-
-		ip = "unknown";
-		var port = -1;
-
-		var info = Socket.Info;
-		if (info) {
-			ip=info["address"];
-			port=info["port"];
-		}
-
-		if (!FileExists(fname))
-			throw "File '$fname' does not exists\n";
-
-		if (CONCEPT_STRICT_EXECUTE) {
-			if (!FileExists(fname + ".accel"))
-				throw "File '$fname' has no compiled version\n";
-		}
-
-		if (!this.APID) {
-			Owner.APID++;
-			if (Owner.APID > 0x7FFFFFFF)
-				Owner.APID = 1;
-			this.APID = Owner.APID;
-		}
-
-		var log_str="$fname";
-		if (arguments)
-			log_str+="("+arguments+")";
-		if (server_name)
-			console.log(LOG_THIS, "$ip: Using server ${server_name}, APID: "+this.APID);
-		console.info(LOG_THIS, "$ip:Run $log_str");
-
-
-		var cwd = getcwd();
-		var shared_pool = value Owner.IniKey("Server", "UseSharedMemoryPool", "0");
-		var inc_dir = this.Owner.IniGetPath("Paths", "Include") + "/";
-		var lib_dir = this.Owner.IniGetPath("Paths", "Library") + "/";
-		var safe_run = this.Owner.IniGetPath("Paths", "SafeMode", "runsafe");
-
-		var direct_pipe1=-1;
-		var direct_pipe2=-1;
-
-		if (DirectPipe==-1) {
-			if (socketpair(direct_pipe1, direct_pipe2)) {
-				console.warn(LOG_THIS, "$ip:Error creating direct pipe (${_errno()}), APID: "+this.APID);
-			} else {
-				DirectPipe=direct_pipe2;
-				if (SetNonBlocking(direct_pipe2, true))
-					console.warn(LOG_THIS, "$ip:Cannot set non-blocking pipe (${_errno()}), APID: "+this.APID);
-			}
-		}
-		var pipein1=-1;
-		var pipein2=-1;
-
-		var pipeout1=-1;
-		var pipeout2=-1;
-
-		if (this.PipeOut == -1) {
-			if (pipe(pipein1, pipein2)) {
-				console.error(LOG_THIS, "$ip:Error creating in pipe (${_errno()}), APID: "+this.APID);
-			} else {
-				this.PipeOut = pipein2;
-				if (SetNonBlocking(pipein2, true))
-					console.error(LOG_THIS, "$ip:Cannot set non-blocking pipe (pipe in error: ${_errno()}), APID: "+this.APID);
-			}
-		}
-
-		if (this.PipeIn == -1) {
-			if (pipe(pipeout1, pipeout2))
-				console.error(LOG_THIS, "$ip:Error creating out pipe (${_errno()}), APID: "+this.APID);
-			else {
-				this.PipeIn = pipeout1;
-				if (SetNonBlocking(pipeout1, true))
-					console.error(LOG_THIS, "$ip:Cannot set non-blocking pipe (pipe out error: ${_errno()}), APID: "+this.APID);
-			}
-		}
-
-		var hostapp = null;
-		var baseid = fname;
-		var hostid = baseid;
-		var debug = false;
-		if (arguments) {
-			if ((Pos(arguments, "parent=") == 1) || (Pos(arguments, "&parent=") > 1)) {
-				var arg_p_arr = StrSplit(arguments, "parent=");
-				if (arg_p_arr)
-					this.Parent = value arg_p_arr[length arg_p_arr - 1];
-
-				if ((Pos(arguments, "debug=") == 1) || (Pos(arguments, "&debug=") > 1)) {
-					arg_p_arr = StrSplit(arguments, "debug=");
-					if (arg_p_arr) {
-						debug = value arg_p_arr[length arg_p_arr - 1];
-						if (debug)
-							multiple_host = false;
-					}
-				}
-			}
-		}
-
-		if (multiple_host) {
-			multiple_host = value IniGet(baseid + ".manifest", "Application", "Workers", "0");
-
-			if (multiple_host == 1)
-				multiple_host = 100;
-
-			this.MaxChilds = multiple_host;
-		}
-
-		if (TLS) {
-			shared_key = "----SSL DATA----" + TLS;
-			TLS = "";
-		}
-
-		SocketSetBlocking(Socket.Socket, true);
-
-		var server_root = Owner.IniGetPath("Paths", "ServerRoot", "");
-		var host_root = headers[":root"] ?? server_root;
-		this.Running = true;
-		if ((debug) || (!multiple_host)) {
-			var shared_hex = StringToHex(shared_key);
-			this.PID = ExecuteProcess(safe_run, fname,
-					// parameters
-					["Direct pipe"	=> ""+direct_pipe1,
-					 "Pipe in"	=> ""+pipein1,
-					 "Pipe out"	=> ""+pipeout2,
-					 "APID"		=> ""+this.APID,
-					 "Parent"	=> ""+this.Parent,
-					 "Filename"	=> fname,
-					 "Socket"	=> ""+Socket.Socket,
-					 "Include dir"	=> inc_dir,
-					 "Library dir"	=> lib_dir,
-					 "Public key"	=> StringToHex(this.Key),
-					 "Private key"	=> shared_hex,
-					 "Shared secret"=> shared_hex,
-					 "Arguments"	=> arguments
-					],
-
-					// environment
-					["CONCEPT_FILENAME=$fname",
-					 "CONCEPT_HOSTROOT=$host_root",
-					 "CONCEPT_SERVERNAME=$server_name",
-					 "CONCEPT_INCLUDE=$inc_dir",
-					 "CONCEPT_LIBRARY=$lib_dir",
-					 "CONCEPT_ROOT=$server_root/",
-					 "CONCEPT_DEBUG=$debug",
-					 "CONCEPT_UseSharedMemoryPool=$shared_pool",
-					 "CONCEPT_TLS=${this.TLS}",
-					 "REMOTE_IP=$ip",
-					 "REMOTE_PORT=$port",
-					 "CONCEPT_WSPROTO=1",
-					 "DRM_KEY=${this.Key}",
-					 "CONCEPT_SERVERPATH="+cwd,
-					 "CONCEPT_INIPATH=${Owner.IniFile}",
-					 "CONCEPT_LOGFILE=${Owner.IniGetPath("Paths", "LogFile", "")}"
-					],
-
-					// don't wait
-					false
-			);
-		} else {
-			hostapp = this.Owner.GetHost(hostid);
-		}
-
-		if (hostapp) {
-			hostapp.ChildCount++;
-			this.UsingHost = hostapp.APID;
-			this.UsingPID = hostapp.PID;
-
-			if (AddChild(hostapp.ContextOut, shared_key, pipein1, pipeout2, direct_pipe1, hostapp.PID)) {
-				hostapp.ChildCount--;
-				hostapp.HostID = "";
-				this.UsingHost = -1;
-				this.PID = -1;
-				return;
-			}
-			this.PID = -2;
-		} else
-		if (this.PID <= 0) {
-			var pr1, pr2;
-			var pw1, pw2;
-
-			if (socketpair(pr1, pr2))
-				console.warn(LOG_THIS, "$ip:Error creating in context socket pair (${_errno()}), APID: "+this.APID);
-			if (socketpair(pw1, pw2))
-				console.warn(LOG_THIS, "$ip:Error creating in context socket pair (${_errno()}), APID: "+this.APID);
-
-			// leave it blocking !
-			//if (SetNonBlocking(pr2, true))
-			//	console.warn(LOG_THIS, "$ip:Cannot set non-blocking context (pipe out error: ${_errno()}), APID: "+this.APID);
-
-			if (SetNonBlocking(pw1, true))
-				console.warn(LOG_THIS, "$ip:Cannot set non-blocking context (pipe out error: ${_errno()}), APID: "+this.APID);
-
-			if ((pr1 > 0) && (pw2 > 0)) {
-				this.HostID = hostid;
-				this.PID = ExecuteProcess(safe_run, host_root, [fname, inc_dir, lib_dir, "" + pr1, "" + pw2], 
-					// environment
-					["CONCEPT_FILENAME=$fname",
-					 "CONCEPT_HOSTROOT=$host_root",
-					 "CONCEPT_SERVERNAME=$server_name",
-					 "CONCEPT_INCLUDE=$inc_dir",
-					 "CONCEPT_LIBRARY=$lib_dir",
-					 "CONCEPT_ROOT=$server_root/",
-					 "CONCEPT_DEBUG=$debug",
-					 "CONCEPT_UseSharedMemoryPool=$shared_pool",
-					 "CONCEPT_TLS=${this.TLS}",
-					 "REMOTE_IP=$ip",
-					 "REMOTE_PORT=$port",
-					 "CONCEPT_WSPROTO=1",
-					 "DRM_KEY=${this.Key}",
-					 "CONCEPT_SERVERPATH="+cwd,
-					 "CONCEPT_INIPATH=${Owner.IniFile}",
-					 "CONCEPT_LOGFILE=${Owner.IniGetPath("Paths", "LogFile", "")}"
-					],
-
-					// don't wait
-					false
-				);
-				this.UsingPID = this.PID;
-				this.ChildCount = 1;
-				AddChild(pr2, shared_key, pipein1, pipeout2, direct_pipe1, this.UsingPID);
-
-				close(pr1);
-				close(pw2);
-
-				this.ContextIn = pw1;
-				this.ContextOut = pr2;
-
-				this.Timestamp = time();
-			}
-		}
-
-		if (((this.PID > 0) || (this.PID == -2)) && (this.APID > 0)) {
-			Owner.Connections["" + this.APID] = this;
-			this.Hash = Murmur(hash_base);
-		}
-
-		if (direct_pipe1 != -1)
-			close(direct_pipe1);
-
-		if (pipein1 != -1)
-			close(pipein1);
-
-		if (pipeout2 != -1)
-			close(pipeout2);
-
-		if (this.PID == -2) {
-			console.info(LOG_THIS, "$ip:New child connection for $hostid");
-		} else
-		if (this.PID < 0) {
-			console.warn(LOG_THIS, "$ip:Error creating child process");
-			throw "Error creating child process";
-		}
-	}
-
-	Iterate() {
-		var apid = this.APID;
-		var pipein = this.PipeIn;
-		var pipeout = this.PipeOut;
-
-		if ((this.ContextIn > 0) && (!disconnected)) {
-			var r = read(this.ContextIn, var apidbuf2, 4);
-			if (r > 0) {
-				this.Owner.Iterations++;
-				apidbuf += apidbuf2;
-				if (length apidbuf>=4) {
-					var app_id = tonumber(SubStr(apidbuf, 0, 4), 32);
-					apidbuf = SubStr(apidbuf, 4, length apidbuf - 4);
-					if (RemoveChild(app_id, ip)) {
-						disconnected = true;
-						pipein = -1;
-						this.Disconnect("clean");
-					}
-					if (this.ChildCount <= 0) {
-						this.HostID = "";
-						// no children, unload from memory
-						write(this.ContextOut, tobin(-1, 32));
-					}
-				}
-			}
-		}
-		if (pipein > 0)  {
-			while ((!apid_err) && (read(pipein, var buf, 0xFF) > 0)) {
-				this.Owner.Iterations++;
-				processed_buffer = this.Owner.ProcessMessage(apid, this.Hash, processed_buffer + buf, apid_err);
-				if ((max_iap) && (length processed_buffer > max_iap))
-					processed_buffer="";
-			}
-			var buf_out=this.APIDBuf;
-			if (buf_out) {
-				var len;
-				if (length buf_out > 1024)
-					len = write(pipeout, SubStr(buf_out, 0, 1024));
-				else
-					len = write(pipeout, buf_out);
-				if (len>0)
-					this.APIDBuf = SubStr(this.APIDBuf, len, length this.APIDBuf);
-			}
-		}
-		if (this.Running) {
-			if (this.PID > 0) {
-				if (!ExecuteIsRunning(this.PID))
-					this.Done();
-			} else
-			if (disconnected)
-				this.Done();
-		}
-	}
-
-	Done() {
-		this.Running = false;
-		var apid = this.APID;
-		var pipein = this.PipeIn;
-		if (this.Parent > 0)
-			this.Owner.ProcessMessage(apid, this.Hash, tobin(this.Parent, 32) + tobin(-6, 32) + tobin(4, 32) + "done", apid_err);
-
-		if (this.HostID)
-			Owner.CloseChildren(apid);
-
-		if (apid > 0) {
-			RemoveChild(apid, ip);
-			Owner.Connections["" + apid] = null;
-			Owner.PlaceHolders ++;
-		}
-
-		if (this.PID > 0) {
-			if (pipein > 0) {
-				while (read(pipein, var buf, 0xFF) > 0) {
-					processed_buffer = this.Owner.ProcessMessage(apid, this.Hash, processed_buffer + buf, apid_err);
-					if (apid_err)
-						break;
-				}
-			}
-			var code = ExecuteJoin(this.PID);
-			if (code)
-				console.info(LOG_THIS, "$ip:$apid done (error code: $code)");
-			else			
-				console.info(LOG_THIS, "$ip:$apid done");
-		} else
-			console.info(LOG_THIS, "$ip:$apid Done (child)");
-	}
-
-	Disconnect(reason = "") {
-		if (this.DirectPipe > 0) {
-			close(this.DirectPipe);
-			this.DirectPipe = -1;
-		}
-		if (this.PipeIn > 0) {
-			close(this.PipeIn);
-			this.PipeIn = -1;
-		}
-		if (this.PipeOut > 0) {
-			close(this.PipeOut);
-			this.PipeOut = -1;
-		}
-
-		if (this.Socket) {
-			if (reason)
-				reason = " " + reason;
-			console.info(LOG_THIS, "$ip:Disconnected(${this.Socket.Socket}, ${this.APID}$reason)");
-			SocketSetBlocking(this.Socket.Socket, false);
-			this.Socket.Close(true);
-		}
-	}
-
-	finalize() {
-		Owner.ClientCount--;
-		console.trace(LOG_THIS, "${Owner.ClientCount} active client(s)");
-		Owner.Clean();
-	}
-}
-
-class ConceptAppWorker extends IniCache {
-	public var ClientCount = 0;
-	public var[] Connections;
-	public var PlaceHolders;
-	public var Iterations;
-	public var APID;
-
-	public GetHost(host) {
-		var clients=this.Connections;
-		var len=length clients;
-		for (var i=0;i<len;i++) {
-			var c=clients[i];
-			if ((c) && (c.HostID == host) && (c.ChildCount < c.MaxChilds) && (c.ChildCount >= 0))
-				return c;
-		}
-		return null;
-	}
-
-	public CloseChildren(apid) {
-		var clients = this.Connections;
-		var len = length clients;
-		for (var i = 0; i < len; i++) {
-			var c = clients[i];
-			if ((c) && (c.UsingHost == apid))
-				c.PID = -3;
-		}
-	}
-
-	public GetConnection(apid) {
-		var key=""+apid;
-		if (IsSet(this.Connections, key))
-			return this.Connections[key];
-		return null;
-	}
-
-	public GetSession(session) {
-		var clients = this.Connections;
-		var len = length clients;
-		for (var i = 0; i < len; i ++) {
-			var c = clients[i];
-			if ((c) && (c.Session == session))
-				return c;
-		}
-		return null;
-	}
-
-	RouteMessage(source_apid, hash, apid, msg_id, msg, var err) {
-		if (apid>0) {
-			var connection=this.GetConnection(apid);
-			if (connection) {
-				this.Iterations++;
-				var buf=tobin(source_apid, 32)+tobin(msg_id, 32)+tobin(length msg, 32)+msg;
-				connection.Send(buf);
-			} else {
-				console.warn(LOG_THIS, "Unknown APID: $apid (message sent by $source_apid)");
-				err = true;
-			}
-		} else {
-			this.Iterations++;
-			buf=tobin(source_apid, 32)+tobin(msg_id, 32)+tobin(length msg, 32)+msg;
-
-			var clients=this.Connections;
-			var len=length clients;
-			for (var i=0;i<len;i++) {
-				connection=clients[i];
-				if ((connection) && (connection.APID!=source_apid) && (connection.Hash==hash))
-					connection.Send(buf);
-			}
-		}
-	}
-
-	ProcessMessage(apid, hash, var buf, var err) {
-		err = false;
-		while ((true) && (!err)) {
-			var lbuf = length buf;
-			if (lbuf >= 12) {
-				var target_apid=tonumber(buf[0]+buf[1]+buf[2]+buf[3], 32);
-				var msg_id=tonumber(buf[4]+buf[5]+buf[6]+buf[7], 32);
-				var len=tonumber(buf[8]+buf[9]+buf[10]+buf[11], 32);
-				if (lbuf >= len + 12) {
-					var msg = SubStr(buf, 12, len);
-					buf = SubStr(buf, 12 + len, lbuf);
-					this.RouteMessage(apid, hash, target_apid, msg_id, msg, err);
-				} else
-					break;
-			} else
-				break;
-		}
-		return buf;
-	}
-
-	public Clean() {
-		if (this.PlaceHolders >= 50) {
-			this.PlaceHolders = 0;
-			var clients = this.Connections;
-			var len = length clients;
-			var res = new [];
-			var cleaned = 0;
-			for (var i = 0;i < len;i ++) {
-				var c = clients[i];
-				if (c)
-					res["" + c.APID] = c;
-				else
-					cleaned ++;
-			}
-			if (cleaned) {
-				console.trace(LOG_THIS, "$cleaned placeholders cleaned");
-				this.Connections = res;
-			}
-		}
-	}
-
-	Iterate() {
-		this.Iterations = 0;
-		for (var i = 0; i < length this.Connections; i ++) {
-			var child = this.Connections[i];
-			if (child) {
-				try {
-					child.Iterate();
-				} catch (var exc) {
-					console.warn(LOG_THIS, exc);
-					child.Done();
-					this.Connections[i] = null;
-				}
-			}
-		}
-		this.Clean();
-		return this.Iterations;
-	}
-
-	GetCookie(key, cookie_str) {
-		var arr = StrSplit(cookie_str, ";");
-		for (var i = 0; i < length arr; i++) {
-			var k = arr[i];
-			var a2 = StrSplit(k, "=");
-			if ((a2) && (length a2 == 2)) {
-				if (trim(a2[0]) == key)
-					return trim(a2[1]);
-			}
-		}
-		return "";
-	}
-
-	Restore(child, tls, socket) {
-		if ((child) && (child.DirectPipe > 0)) {
-			var size = DescriptorWrite(child.DirectPipe, this.Socket.Socket, child.UsingPID);
-			if (size > 0) {
-				var buf = "";
-				var tls_buf = "";
-				if (tls)
-					tls_buf = tls;
-				buf = pack("U32", length tls_buf) + tls_buf;
-
-				while (buf) {
-					var written = write(child.DirectPipe, buf);
-					if (written <= 0) {
-						console.warn(LOG_THIS, "Error in DirectPipe write");
-						return false;
-					}
-
-					buf = SubStr(buf, written);
-				}
-				child.Socket = new TCPSocket(socket);
-				return true;
-			}
-		}
-		return false;
-	}
-
-	ConceptAppWorker(ini_file) {
-		this.IniFile = ini_file;
-		var sleep_value = 50;
+		var empty_iterations = 0;
+		var sleep_value = 0;
 		while (true) {
-			var child;
-			if (Worker::PendingAll(var data, sleep_value, 100)) {
-				for (var i = 0; i < length data; i++) {
-					var job = UnBinarizeObject(data[i]);
-					if (job) {
-						switch (job["job"]) {
-							case 1:
-								try {
-									var headers = job["headers"];
-									var socket = job["socket"];
-									if ((WS_SESSION_RESTORE) && (headers) && (job["tls"])) {
-										var sec_websocket_protocol = headers["sec-websocket-protocol"];
-										if ((sec_websocket_protocol) && (sec_websocket_protocol == "restore")) {
-											var cookies = headers["cookie"];
-											if (cookies) {
-												var session_to_restore = "";
-												var cookie = this.GetCookie("_s", cookies);
-												if (cookie)
-													session_to_restore = cookie;
-
-												if (session_to_restore) {
-													child = this.GetSession(session_to_restore);
-													if ((child) && (child.DirectPipe > 0)) {
-														this.Restore(child, job["tls_data"], socket);
-														console.log(LOG_THIS, "session $session_to_restore restored");
-													} else {
-														console.log(LOG_THIS, "invalid session to restore: $session_to_restore");
-														SocketSetBlocking(socket, false);
-														SocketClose(socket, true);
-													}
-													continue;
-												}
-											}
-										}
-									}
-									child = new ConceptChild(this, socket, job["tls_data"], job["session"]);
-									child.RunApplication(headers, job["filename"]);
-									Connections[length Connections] = child;
-								} catch (var exc) {
-									console.error(LOG_THIS, exc);
-								}
-								break;
-							default:
-								console.error(LOG_THIS, "unknown job type: " + job["job"]);
-						}
-					}
-					i ++;
-				}
-			}
-			if (this.Iterate())
-				sleep_value = 5;
-			else
-				sleep_value = 50;
+			Loop(empty_iterations, sleep_value);
+			// if (!work_count)
+			//	Sleep(IDLE_SLEEP_MS);
 		}
 	}
 }
 
-class ConceptH2Worker extends ConceptBaseWorker {
+class ConceptH2Worker extends RewriteContainer extends ConceptBaseWorker extends IniCache {
 pragma used
-	public var[] CGIChildren;
+	protected var WorkerName;
+	protected var[] Children;
+	protected var[] CGIChildren;
+	protected var Placeholders;
 	protected var CGIPlaceholders;
+	protected var ConceptClient;
+	protected var mimetypes;
+	protected var conceptcgi;
+	protected var cgiother;
 	protected var Framework;
 
 	GetHeader(key, headers) {
@@ -2494,7 +3629,7 @@ pragma used
 				"SERVER_ADMIN": "",
 				"SERVER_NAME": hostname,
 				"SERVER_PORT": local_port,
-				"SERVER_PROTOCOL": "HTTP/2.0",
+				"SERVER_PROTOCOL": "HTTP/1.1",
 				"SERVER_SOFTWARE":  SERVER_SOFTWARE,
 				"REDIRECT_STATUS": 200,
 				"REDIRECT_STATUS": "CGI",
@@ -2524,10 +3659,21 @@ pragma used
 		return cgi;
 	}
 
-	CreateCGI(h2, stream, cgi_handler_path, root, path, app, query, hostname, local_port, javascript, default_header) {
+	CreateCGI(h2, stream, cgi_handler_path, root, path, app, query, hostname_port, var err_text, javascript, default_header) {
 		var cgi;
+		var host_arr = StrSplit(hostname_port, ":");
+		var local_port = 443;
+		var hostname;
 		var headers = stream.Headers;
 		var Socket = h2.GetSocket();
+		if (length host_arr > 1) {
+			var tmp = value host_arr[length host_arr - 1];
+			if (tmp) {
+				local_port = tmp;
+				hostname = SubStr(hostname_port, 0, (length hostname_port) - (length ":$tmp"));
+			}
+		} else
+			hostname = hostname_port;
 
 		if (javascript == 2) {
 			cgi = this.CreateCAS(Socket, h2, stream, this.GetHeader(":method", headers) ?? "GET", root, path, app, query, hostname, local_port, default_header);
@@ -2542,7 +3688,7 @@ pragma used
 			return cgi;
 		}
 
-		if (ConceptCGIChild::CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w))
+		if (ConceptCGIChild::CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w, err_text))
 			return null;
 
 		var info = Socket.Info;
@@ -2593,6 +3739,8 @@ pragma used
 		if (pid <= 0) {
 			close(std_out_r);
 			close(std_in_w);
+			if (!err_text)
+				err_text = "ConceptWorker: Error creating process\n";
 			return null;
 		}
 
@@ -2605,46 +3753,1620 @@ pragma used
 		return cgi;
 	}
 
-	ConceptH2Worker(owner) {
-		Framework = owner.IniGetPath("Paths", "Include") + JS_FRAMEWORK;
+	AddChild(child) {
+		child.MaxErrorTimeout = CGI_MAX_RETRY_SECONDS;
+		if (Placeholders > 0) {
+			for (var i = 0; i < length Children; i++) {
+				if (!Children[i]) {
+					Children[i] = child;
+					Placeholders--;
+					return;
+				}
+			}
+		}
+		Children[length Children] = child;
+	}
+
+	Clean(children, var pholders) {
+		var new_children = new [];
+
+		if (pholders == length children) {
+			pholders = 0;
+			return new_children;
+		}
+
+		for (var i = 0; i < length children; i++) {
+			var child = children[i];
+			if (child)
+				new_children[length new_children] = child;
+		}
+		pholders = 0;
+		return new_children;
+	}
+
+	GetRoot(servername) {
+		var host_root="";
+
+		if (servername)
+			host_root = IniGetPath("Paths", "HostRoot($servername)", "");
+
+		if (!host_root)
+			host_root = IniGetPath("Paths", "ServerRoot", "");
+
+		return host_root;
+	}
+
+	static SplitPath(var path) {
+		var pparam = Pos(path, "?");
+		var params = "";
+		if (pparam > 0) {
+			params = SubStr(path, pparam, length path - pparam);
+			path = SubStr(path, 0, pparam - 1);
+		}
+		return params;
+	}
+
+	EmptyRequest(app) {
+		if (FileExists(app + "/start.con"))
+			return "start.con";
+		else
+		if (FileExists(app + "/index.csp"))
+			return "index.csp";
+		else
+		if (FileExists(app + "/index.cas"))
+			return "index.cas";
+		else
+		if (FileExists(app + "/index.ess"))
+			return "index.ess";
+		else
+			return "index.html";
+		return "";
+	}
+
+	IsCGI(content_type, var javascript = null) {
+		var is_server_page = false;
+		javascript = false;
+		var cgi;
+		if (content_type == "application/concept-server-page") {
+			is_server_page = true;
+			cgi = conceptcgi;
+		} else
+		if (content_type == "application/javascript-server-page") {
+			is_server_page = true;
+			javascript = true;
+			cgi = conceptcgi;
+		} else
+		if (content_type == "application/concept-async-page") {
+			is_server_page = true;
+			javascript = 2;
+			cgi = conceptcgi;
+		} else
+		if (cgiother) {
+			if (IsSet(cgiother, content_type)) {
+				is_server_page = true;
+				cgi = cgiother[content_type];
+			}
+		}
+		if (is_server_page)
+			return cgi;
+
+		return "";
+	}
+
+	InternalError(h2, stream, err_code) {
+		stream.Response(h2, [
+			":status" => "$err_code",
+			"server" => "CAS5WS",
+			"content-type" => "text/html"
+		]);
+
+		var data =  ReadFile(ConceptClient + "/errors/$err_code.html");
+		if (!data)
+			data = "Error $err_code in processing your request.";			
+		stream.Write(h2, data, true);
+	}
+
+	Redirect(h2, stream, url, params) {
+		if (params)
+			url += "?" + params;
+		var headers = [
+			":status" => 302,
+			"server" => "CAS5WS",
+			H2_EXTRA_HEADER,
+			"location" => url
+		];
+		stream.Response(h2, headers, true);
+	}
+
+	MaxAge() {
+		return value this.IniKey("Server", "MaxAge", "604800");
+	}
+
+	CheckRange(stream, headers, var file, var no_content) {
+		// range support
+		headers["accept-ranges"] = "bytes";
+		var range = stream.Headers["range"];
+		if (range) {
+			range = ConceptServerUtils::ParseRange(range);
+			var range_start = range[0];
+			var range_end = range[1];
+			if (!range_end)
+				range_end = file.Size - 1;
+
+			if ((range_start > file.Size) || (range_end > file.Size) || (range_start < 0) || (range_end < 0) || (range_start > range_end) || (!file.Seek(range_start))) {
+				headers[":status"] = 416;
+				no_content = true;
+				file.Close();
+				file = null;
+				headers["content-length"] = 0;
+			} else {
+				headers[":status"] = 206;
+				headers["content-length"] = range_end - range_start + 1;
+				headers["content-range"] = "bytes $range_start-$range_end/${file.Size}";
+				stream.ResponseFileLimit = range_end + 1;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	CheckGzip(var root_buffer, stream, headers) {
+		var encoding = stream.Headers["accept-encoding"];
+		if ((encoding) && (Pos(encoding, "gzip") > 0)) {
+			root_buffer = gzip(root_buffer);
+			headers["content-encoding"] = "gzip";
+		}
+	}
+
+	CheckGzipFile(directory, filename, var file, stream, headers, var file_size, create_cache_dir = false) {
+		if ((file_size < MIN_GZIP_AUTOCACHE_SIZE) || (file_size > MAX_GZIP_AUTOCACHE_SIZE))
+			return;
+		var encoding = stream.Headers["accept-encoding"];
+		if ((encoding) && (Pos(encoding, "gzip") > 0)) {
+			var cache_dir = directory + ".gzipcache/";
+			if (create_cache_dir)
+				_mkdir(cache_dir);
+			if (DirectoryExists(cache_dir)) {
+				var path = cache_dir + filename + ".gz";
+				var timestamp = filelast_mod(file.Name);
+				if ((FileExists(path)) && (filelast_mod(path) == timestamp)) {
+					file.Close();
+					var old_name = file.Name;
+					file.Name = path;
+					if (file.Open()) {
+						file_size = file.Size;
+						headers["content-encoding"] = "gzip";
+					} else {
+						file.Name = old_name;
+						file.Open();
+					}
+				} else {
+					var gzipped = gzip(ReadFile(file.Name), 9);
+					if (gzipped) {
+						WriteFile(gzipped, path);
+						utime(path, timestamp, timestamp);
+					}
+				}					
+			}
+		}
+	}
+
+	OnRequest(h2, stream) {
+		if (stream.Headers) {
+			var method = stream.Headers[":method"];
+			var path = stream.Headers[":path"];
+			if (!path)
+				return InternalError(h2, stream, 503);
+			path = URIDecode(path);
+			var server = stream.Headers[":authority"] ?? "";
+			var app;
+			var params = SplitPath(path);
+			var empty_request = false;
+			var orig_path = path;
+			ConceptChild::CleanApp(path);
+			switch (method) {
+				case "GET":
+				case "POST":
+				case "PUT":
+					if (this.Rewrite)
+						path = this.Rewrite(path, params);
+
+					if (!path)
+						throw "Invalid request";
+
+					console.info(LOG_THIS, "${h2.GetSocket().Info["address"]}: $method $path");
+					var root = GetRoot(server);
+
+					if (path[length path - 1] == "/")
+						empty_request = true;
+
+					path = ConceptChild::NormalizeFilename(path, var directory);
+
+					var client_resource = (directory[0] + directory[1] + directory[2] == "/@/");
+					var root_buffer = "";
+					var content_type = "application/octet-stream";
+
+					app = root + directory + path;
+					if ((app) && (DirectoryExists(app))) {
+						empty_request = true;
+						if (path[length path - 1] != "/") {
+							path += "/";
+							// auto redirect if no / is present
+							if ((orig_path) && (orig_path[length orig_path - 1] != "/")) {
+								this.Redirect(h2, stream, directory + path, params);
+								return;
+							}
+						}
+					}
+					if ((!client_resource) && (empty_request)) {
+						path += this.EmptyRequest(app);
+						path = ConceptChild::NormalizeFilename(path, var directory_empty);
+						directory += directory_empty;
+					}
+
+					var ext = ToLower(Ext(path));
+					if ((ext) && (IsSet(this.mimetypes, ext))) {
+						content_type = this.mimetypes[ext];
+						if (content_type == "application/concept-private")
+							return InternalError(h2, stream, 403);
+					}
+
+					if (client_resource) {
+						directory = SubStr(directory, 2);
+						app = ConceptClient + directory + path;
+					} else {
+						app = root + directory + path;
+						if (content_type == "application/concept") {
+							if (FileExists(app)) {
+								var local_app_index = root + directory + "/@index.html";
+								if (FileExists(local_app_index))
+									app = local_app_index;
+								else
+									app = ConceptClient + "/index.html";
+								content_type = "text/html";
+								root_buffer = ReadFile(app);
+								root_buffer = StrReplace(root_buffer, "{PROTOCOL}", "wss");
+								root_buffer = StrReplace(root_buffer, "{HOST}", server);
+								var concept_app = directory + path;
+								if (concept_app[0] == "/")
+									concept_app = SubStr(concept_app, 1);
+								if (params)
+									concept_app += "?" + params;
+								root_buffer = StrReplace(root_buffer, "{APP}", concept_app);
+								client_resource = true;
+							} else
+								return InternalError(h2, stream, 404);
+						}
+					}
+
+					var exists = FileExists(app);
+					if ((!exists) && (path[0] == "@")) {
+						app = this.ConceptClient + "/" + SubStr(path, 1);
+						exists = FileExists(app);
+					}
+					var is_cgi = this.IsCGI(content_type, var javascript);
+					if (is_cgi) {
+						if (Pos(app, ".."))
+							app = ConceptWorker::RealPath(StrReplace(app, "\\", "/"));
+						else
+							app = StrReplace(app, "\\", "/");
+
+						if (exists) {
+							var default_header = [
+								":status" => "200",
+								"server" => "CAS5WS",
+								"content-type" => "text/html"
+							];
+							var cgi = this.CreateCGI(h2, stream, is_cgi, root, orig_path, app, params, server, var err_text, javascript, default_header);
+							if (!cgi)
+								throw err_text;
+							return;
+						}
+					}
+
+					var tstamp = StrReplace(StrReplace(asctime(time()), "\r", ""), "\n", "")+" GMT";
+					var last_mod = rtrim(asctime(_filelast_mod(app))) + " GMT";
+					var file = new File("rb");
+					file.Name = app;
+
+					if ((!is_cgi) && ((root_buffer) || (file.Open()))) {
+						var headers = [
+							":status" => 200,
+							"server" => "CAS5WS",
+							"cache-control" => "max-age=${this.MaxAge()}",
+							"date" => tstamp,
+							"last-modified" => last_mod,
+							H2_EXTRA_HEADER,
+							"content-type" => content_type
+						];
+						var no_content = false;
+						var if_modified = stream.Headers["if-modified-since"];
+						if (if_modified) {
+							var cache_control = stream.Headers["cache-control"];
+							if ((cache_control) && (cache_control == "no-cache"))
+								if_modified = null;
+						}
+						if (root_buffer) {
+							if ((!params) && (last_mod == if_modified)) {
+								headers[":status"] = 304;
+								stream.Response(h2, headers, true);
+							} else {
+IF_CHECK_GZIP							this.CheckGzip(root_buffer, stream, headers);
+								stream.Response(h2, headers, no_content);
+								stream.Write(h2, root_buffer, true);
+							}
+						} else {
+							if (last_mod == if_modified) {
+								headers[":status"] = 304;
+								file.Close();
+								delete file;
+								no_content = true;
+							} else
+IF_CHECK_RANGE 						if (!this.CheckRange(stream, headers, file, no_content)) {
+								var file_size = file.Size;
+
+IF_CHECK_GZIP							if ((content_type == "application/javascript") || (SubStr(content_type, 0, 5) == "text/")) {
+IF_CHECK_GZIP								var used_root = root;
+IF_CHECK_GZIP								if (client_resource)
+IF_CHECK_GZIP									used_root = ConceptClient;
+IF_CHECK_GZIP								CheckGzipFile(used_root + directory, path, file, stream, headers, file_size);
+IF_CHECK_GZIP							}
+
+								headers["content-length"] = file_size;
+							}
+							stream.Response(h2, headers, no_content);
+							if (file)
+								stream.ResponseFile = file;
+						}
+					} else {
+						stream.Response(h2, [
+							":status" => "404",
+							"server" => "CAS5WS",
+							"date" => tstamp,
+							"content-type" => "text/html"
+						]);
+						var data = ReadFile(ConceptClient + "/errors/404.html");
+						if (!data)
+							data = "Error 404 in processing your request.";
+						
+						stream.Write(h2, data, true);
+						delete file;
+					}
+					break;
+				default:
+					InternalError(h2, stream, 501);
+					throw "Unsupported method";
+					break;
+			}
+		} else {
+			InternalError(h2, stream, 503);
+		}
+	}
+	
+	IterateCGI() {
+		var children = this.CGIChildren;
+		var res = 0;
+		var exc;
+		for (var i = 0; i < length children; i++) {
+			var child = children[i];
+			if (child) {
+				try {
+					if (child.Iterate(res)) {
+						this.ClearCache(child);
+						child.Close();
+						children[i] = null;
+						CGIPlaceholders ++;
+					}
+				} catch (exc) {
+					this.ClearCache(child);
+					child.Close();
+					children[i] = null;
+					CGIPlaceholders ++;
+				}
+			}
+		}
+		if (CGIPlaceholders >= 20)
+			this.CGIChildren = this.Clean(this.CGIChildren, CGIPlaceholders);
+		return res;
+	}
+
+	CleanCGIChildren(h2) {
+		var children = this.CGIChildren;
+		var exc;
+		for (var i = 0; i < length children; i++) {
+			var child = children[i];
+			if ((child) && (child.h2 == h2)) {
+				try {
+					child.Close();
+					children[i] = null;
+					CGIPlaceholders++;
+				} catch (exc) {
+					// nothing
+				}
+			}
+		}
+		if (CGIPlaceholders >= 20)
+			this.CGIChildren = this.Clean(this.CGIChildren, CGIPlaceholders);
+	}
+
+	Iterate() {
+		var children = this.Children;
+		var res = 0;
+		var exc;
+		var t = time();
+
+		for (var i = 0; i < length children; i++) {
+			var child = children[i];
+			if (child) {
+				try {
+					if (child.Iterate(this.OnRequest))
+						res++;
+					else
+					if ((t - child.IdleSince > H2_MAX_IDLE_SECONDS) && (child.UserData <= 0))
+						throw "Dropping connection (idle for maximum seconds)";
+				} catch (exc) {
+					console.warn(LOG_THIS, exc);
+					CleanCGIChildren(child);
+					child.Close();
+					children[i] = null;
+					Placeholders ++;
+				}
+			}
+		}
+		if (Placeholders >= 20)
+			this.Children = this.Clean(this.Children, Placeholders);
+		return res;
+	}
+
+	ConceptH2Worker(n) {
+		RewriteContainer();
+
+		var init_data = UnBinarizeObject(n);
+		IniFile = init_data[0];
+		ConceptClient = init_data[1];
+		mimetypes = init_data[2];
+		conceptcgi = init_data[3];
+		cgiother = init_data[4];
+		var exc;
+		var empty_iterations = 0;
+		var sleep_value = 0;
+		Framework = this.IniGetPath("Paths", "Include") + JS_FRAMEWORK;
+		while (true) {
+			var work_count = 0;
+			var Socket = null;
+			if (Worker::PendingAll(var data, sleep_value, 100)) {
+				for (var i = 0; i < length data; i++) {
+					work_count++;
+					var job = UnBinarizeObject(data[i]);
+					if (job) {
+						try {
+							if (job.tls) {
+								Socket = new TLSESocket(job.socket);
+								if (!Socket.Restore(job.tls))
+									Socket = null;
+							} else
+								Socket = new TCPSocket(job.socket);
+
+							if (Socket) {
+								SocketSetBlocking(Socket.Socket, false);
+								this.AddChild(HTTP2::Socket(Socket));
+							}
+						} catch (exc) {
+							delete Socket;
+						}
+					}
+				}
+			}
+			work_count += this.Iterate();
+			work_count += this.IterateCGI();
+			work_count += this.IterateAsyncWorkers(CGIChildren);
+			if (work_count) {
+				empty_iterations = 0;
+				sleep_value = 0;
+			} else {
+				empty_iterations++;
+				if (empty_iterations > IDLE_SLEEP_THRESHOLD)
+					sleep_value = IDLE_SLEEP_MS2; // Sleep(IDLE_SLEEP_MS2);
+				else
+					sleep_value = IDLE_SLEEP_MS; // Sleep(IDLE_SLEEP_MS);
+			}
+		}
 	}
 }
 
-class ConceptServer extends IniCache {
-	var httpserver;
-	var ClientCount;
-	var appworker;
-	var h2worker;
-	var LogRequests = true;
-	var[] Workers;
-	var TargetWorker = 0;
-	var port;
-	var tlsport;
-	var cgi;
-	var[] cgiother;
+class ConceptServer extends RewriteContainer extends IniCache {
+	protected var Socket;
+	protected var WSSocket;
+	protected var TLSWSSocket;
+	protected var SSLWSSocket;
+	protected var SSLWSSocketName = "";
 
-	get_root_by_host(host) {
-		return this.IniKey("Paths", "HostRoot($host)", "");
-	}
+	public var Port;
+	public var WSPort;
+	public var SSLWSPort;
 
-	function log_request(http_version, tls, method, headers, socket, extra = "") {
-		if (!headers)
-			return;
-		socket = socket.Socket;
-		var info = socket.Info;
-		if (extra)
-			extra = " " + extra;
-		if (tls)
-			console.info(info[0], info[1], "hs${http_version} $method ${headers[":path"]}$extra");
-		else
-			console.info(info[0], info[1], "h$http_version $method ${headers[":path"]}$extra");
-	}
+	protected var Loop;
 
-	GenerateSession(string seed = "") {
-		var common = sha256(CryptoRandom(80));
-		if (seed)
-			return SubStr(seed, 0, length seed - length common) + common;
-		return sha1(""+NumberToHex(ClsPtr(this))+"#"+CryptoRandom(80)) + "-" + common;
+	public var APID;
+	public var Iterations;
+	public var ClientCount=0;
+	public var[] Connections;
+	public var PlaceHolders;
+	public var LogFile;
+	public var LogFileHandle;
+	public var ConceptClient=".ConceptClient.js";
+
+	public var mimetypes;
+	public var threads=0;
+	public var Running = true;
+	public var ShuttingDown = false;
+	public var cgi = "";
+	public var[] cgiother;
+
+	protected var[] Workers;
+	protected var TargetWorker = 0;
+	protected var[] H2Workers;
+	protected var TargetH2Worker = 0;
+
+	public var AcceptWorkers = false;
+
+	ConceptServer(inifile="") {
+		RewriteContainer();
+		this.IniFile = inifile;
+
+		this.mimetypes = [
+				"ez" => "application/andrew-inset",
+				"aw" => "application/applixware",
+				"atom" => "application/atom+xml",
+				"atomcat" => "application/atomcat+xml",
+				"atomsvc" => "application/atomsvc+xml",
+				"ccxml" => "application/ccxml+xml",
+				"cdmia" => "application/cdmi-capability",
+				"cdmic" => "application/cdmi-container",
+				"cdmid" => "application/cdmi-domain",
+				"cdmio" => "application/cdmi-object",
+				"cdmiq" => "application/cdmi-queue",
+				"cu" => "application/cu-seeme",
+				"davmount" => "application/davmount+xml",
+				"dbk" => "application/docbook+xml",
+				"dssc" => "application/dssc+der",
+				"xdssc" => "application/dssc+xml",
+				"ecma" => "application/ecmascript",
+				"emma" => "application/emma+xml",
+				"epub" => "application/epub+zip",
+				"exi" => "application/exi",
+				"pfr" => "application/font-tdpfr",
+				"gml" => "application/gml+xml",
+				"gpx" => "application/gpx+xml",
+				"gxf" => "application/gxf",
+				"stk" => "application/hyperstudio",
+				"ink" => "application/inkml+xml",
+				"inkml" => "application/inkml+xml",
+				"ipfix" => "application/ipfix",
+				"jar" => "application/java-archive",
+				"ser" => "application/java-serialized-object",
+				"class" => "application/java-vm",
+				"js" => "application/javascript",
+				"json" => "application/json",
+				"jsonml" => "application/jsonml+json",
+				"lostxml" => "application/lost+xml",
+				"hqx" => "application/mac-binhex40",
+				"cpt" => "application/mac-compactpro",
+				"mads" => "application/mads+xml",
+				"mrc" => "application/marc",
+				"mrcx" => "application/marcxml+xml",
+				"ma" => "application/mathematica",
+				"nb" => "application/mathematica",
+				"mb" => "application/mathematica",
+				"mathml" => "application/mathml+xml",
+				"mbox" => "application/mbox",
+				"mscml" => "application/mediaservercontrol+xml",
+				"metalink" => "application/metalink+xml",
+				"meta4" => "application/metalink4+xml",
+				"mets" => "application/mets+xml",
+				"mods" => "application/mods+xml",
+				"m21" => "application/mp21",
+				"mp21" => "application/mp21",
+				"mp4s" => "application/mp4",
+				"doc" => "application/msword",
+				"dot" => "application/msword",
+				"mxf" => "application/mxf",
+				"bin" => "application/octet-stream",
+				"dms" => "application/octet-stream",
+				"lrf" => "application/octet-stream",
+				"mar" => "application/octet-stream",
+				"so" => "application/octet-stream",
+				"dist" => "application/octet-stream",
+				"distz" => "application/octet-stream",
+				"pkg" => "application/octet-stream",
+				"bpk" => "application/octet-stream",
+				"dump" => "application/octet-stream",
+				"elc" => "application/octet-stream",
+				"deploy" => "application/octet-stream",
+				"oda" => "application/oda",
+				"opf" => "application/oebps-package+xml",
+				"ogx" => "application/ogg",
+				"omdoc" => "application/omdoc+xml",
+				"onetoc" => "application/onenote",
+				"onetoc2" => "application/onenote",
+				"onetmp" => "application/onenote",
+				"onepkg" => "application/onenote",
+				"oxps" => "application/oxps",
+				"xer" => "application/patch-ops-error+xml",
+				"pdf" => "application/pdf",
+				"pgp" => "application/pgp-encrypted",
+				"asc" => "application/pgp-signature",
+				"sig" => "application/pgp-signature",
+				"prf" => "application/pics-rules",
+				"p10" => "application/pkcs10",
+				"p7m" => "application/pkcs7-mime",
+				"p7c" => "application/pkcs7-mime",
+				"p7s" => "application/pkcs7-signature",
+				"p8" => "application/pkcs8",
+				"ac" => "application/pkix-attr-cert",
+				"cer" => "application/pkix-cert",
+				"crl" => "application/pkix-crl",
+				"pkipath" => "application/pkix-pkipath",
+				"pki" => "application/pkixcmp",
+				"pls" => "application/pls+xml",
+				"ai" => "application/postscript",
+				"eps" => "application/postscript",
+				"ps" => "application/postscript",
+				"cww" => "application/prs.cww",
+				"pskcxml" => "application/pskc+xml",
+				"rdf" => "application/rdf+xml",
+				"rif" => "application/reginfo+xml",
+				"rnc" => "application/relax-ng-compact-syntax",
+				"rl" => "application/resource-lists+xml",
+				"rld" => "application/resource-lists-diff+xml",
+				"rs" => "application/rls-services+xml",
+				"gbr" => "application/rpki-ghostbusters",
+				"mft" => "application/rpki-manifest",
+				"roa" => "application/rpki-roa",
+				"rsd" => "application/rsd+xml",
+				"rss" => "application/rss+xml",
+				"rtf" => "application/rtf",
+				"sbml" => "application/sbml+xml",
+				"scq" => "application/scvp-cv-request",
+				"scs" => "application/scvp-cv-response",
+				"spq" => "application/scvp-vp-request",
+				"spp" => "application/scvp-vp-response",
+				"sdp" => "application/sdp",
+				"setpay" => "application/set-payment-initiation",
+				"setreg" => "application/set-registration-initiation",
+				"shf" => "application/shf+xml",
+				"smi" => "application/smil+xml",
+				"smil" => "application/smil+xml",
+				"rq" => "application/sparql-query",
+				"srx" => "application/sparql-results+xml",
+				"gram" => "application/srgs",
+				"grxml" => "application/srgs+xml",
+				"sru" => "application/sru+xml",
+				"ssdl" => "application/ssdl+xml",
+				"ssml" => "application/ssml+xml",
+				"tei" => "application/tei+xml",
+				"teicorpus" => "application/tei+xml",
+				"tfi" => "application/thraud+xml",
+				"tsd" => "application/timestamped-data",
+				"plb" => "application/vnd.3gpp.pic-bw-large",
+				"psb" => "application/vnd.3gpp.pic-bw-small",
+				"pvb" => "application/vnd.3gpp.pic-bw-var",
+				"tcap" => "application/vnd.3gpp2.tcap",
+				"pwn" => "application/vnd.3m.post-it-notes",
+				"aso" => "application/vnd.accpac.simply.aso",
+				"imp" => "application/vnd.accpac.simply.imp",
+				"acu" => "application/vnd.acucobol",
+				"atc" => "application/vnd.acucorp",
+				"acutc" => "application/vnd.acucorp",
+				"air" => "application/vnd.adobe.air-application-installer-package+zip",
+				"fcdt" => "application/vnd.adobe.formscentral.fcdt",
+				"fxp" => "application/vnd.adobe.fxp",
+				"fxpl" => "application/vnd.adobe.fxp",
+				"xdp" => "application/vnd.adobe.xdp+xml",
+				"xfdf" => "application/vnd.adobe.xfdf",
+				"ahead" => "application/vnd.ahead.space",
+				"azf" => "application/vnd.airzip.filesecure.azf",
+				"azs" => "application/vnd.airzip.filesecure.azs",
+				"azw" => "application/vnd.amazon.ebook",
+				"acc" => "application/vnd.americandynamics.acc",
+				"ami" => "application/vnd.amiga.ami",
+				"apk" => "application/vnd.android.package-archive",
+				"cii" => "application/vnd.anser-web-certificate-issue-initiation",
+				"fti" => "application/vnd.anser-web-funds-transfer-initiation",
+				"atx" => "application/vnd.antix.game-component",
+				"mpkg" => "application/vnd.apple.installer+xml",
+				"m3u8" => "application/vnd.apple.mpegurl",
+				"swi" => "application/vnd.aristanetworks.swi",
+				"iota" => "application/vnd.astraea-software.iota",
+				"aep" => "application/vnd.audiograph",
+				"mpm" => "application/vnd.blueice.multipass",
+				"bmi" => "application/vnd.bmi",
+				"rep" => "application/vnd.businessobjects",
+				"cdxml" => "application/vnd.chemdraw+xml",
+				"mmd" => "application/vnd.chipnuts.karaoke-mmd",
+				"cdy" => "application/vnd.cinderella",
+				"cla" => "application/vnd.claymore",
+				"rp9" => "application/vnd.cloanto.rp9",
+				"c4g" => "application/vnd.clonk.c4group",
+				"c4d" => "application/vnd.clonk.c4group",
+				"c4f" => "application/vnd.clonk.c4group",
+				"c4p" => "application/vnd.clonk.c4group",
+				"c4u" => "application/vnd.clonk.c4group",
+				"c11amc" => "application/vnd.cluetrust.cartomobile-config",
+				"c11amz" => "application/vnd.cluetrust.cartomobile-config-pkg",
+				"cdbcmsg" => "application/vnd.contact.cmsg",
+				"cmc" => "application/vnd.cosmocaller",
+				"clkx" => "application/vnd.crick.clicker",
+				"clkk" => "application/vnd.crick.clicker.keyboard",
+				"clkp" => "application/vnd.crick.clicker.palette",
+				"clkt" => "application/vnd.crick.clicker.template",
+				"clkw" => "application/vnd.crick.clicker.wordbank",
+				"wbs" => "application/vnd.criticaltools.wbs+xml",
+				"pml" => "application/vnd.ctc-posml",
+				"ppd" => "application/vnd.cups-ppd",
+				"car" => "application/vnd.curl.car",
+				"pcurl" => "application/vnd.curl.pcurl",
+				"dart" => "application/vnd.dart",
+				"rdz" => "application/vnd.data-vision.rdz",
+				"uvf" => "application/vnd.dece.data",
+				"uvvf" => "application/vnd.dece.data",
+				"uvd" => "application/vnd.dece.data",
+				"uvvd" => "application/vnd.dece.data",
+				"uvt" => "application/vnd.dece.ttml+xml",
+				"uvvt" => "application/vnd.dece.ttml+xml",
+				"uvx" => "application/vnd.dece.unspecified",
+				"uvvx" => "application/vnd.dece.unspecified",
+				"uvz" => "application/vnd.dece.zip",
+				"uvvz" => "application/vnd.dece.zip",
+				"fe_launch" => "application/vnd.denovo.fcselayout-link",
+				"dna" => "application/vnd.dna",
+				"mlp" => "application/vnd.dolby.mlp",
+				"dpg" => "application/vnd.dpgraph",
+				"dfac" => "application/vnd.dreamfactory",
+				"kpxx" => "application/vnd.ds-keypoint",
+				"ait" => "application/vnd.dvb.ait",
+				"svc" => "application/vnd.dvb.service",
+				"geo" => "application/vnd.dynageo",
+				"mag" => "application/vnd.ecowin.chart",
+				"nml" => "application/vnd.enliven",
+				"esf" => "application/vnd.epson.esf",
+				"msf" => "application/vnd.epson.msf",
+				"qam" => "application/vnd.epson.quickanime",
+				"slt" => "application/vnd.epson.salt",
+				"ssf" => "application/vnd.epson.ssf",
+				"es3" => "application/vnd.eszigno3+xml",
+				"et3" => "application/vnd.eszigno3+xml",
+				"ez2" => "application/vnd.ezpix-album",
+				"ez3" => "application/vnd.ezpix-package",
+				"fdf" => "application/vnd.fdf",
+				"mseed" => "application/vnd.fdsn.mseed",
+				"seed" => "application/vnd.fdsn.seed",
+				"dataless" => "application/vnd.fdsn.seed",
+				"gph" => "application/vnd.flographit",
+				"ftc" => "application/vnd.fluxtime.clip",
+				"fm" => "application/vnd.framemaker",
+				"frame" => "application/vnd.framemaker",
+				"maker" => "application/vnd.framemaker",
+				"book" => "application/vnd.framemaker",
+				"fnc" => "application/vnd.frogans.fnc",
+				"ltf" => "application/vnd.frogans.ltf",
+				"fsc" => "application/vnd.fsc.weblaunch",
+				"oas" => "application/vnd.fujitsu.oasys",
+				"oa2" => "application/vnd.fujitsu.oasys2",
+				"oa3" => "application/vnd.fujitsu.oasys3",
+				"fg5" => "application/vnd.fujitsu.oasysgp",
+				"bh2" => "application/vnd.fujitsu.oasysprs",
+				"ddd" => "application/vnd.fujixerox.ddd",
+				"xdw" => "application/vnd.fujixerox.docuworks",
+				"xbd" => "application/vnd.fujixerox.docuworks.binder",
+				"fzs" => "application/vnd.fuzzysheet",
+				"txd" => "application/vnd.genomatix.tuxedo",
+				"ggb" => "application/vnd.geogebra.file",
+				"ggt" => "application/vnd.geogebra.tool",
+				"gex" => "application/vnd.geometry-explorer",
+				"gre" => "application/vnd.geometry-explorer",
+				"gxt" => "application/vnd.geonext",
+				"g2w" => "application/vnd.geoplan",
+				"g3w" => "application/vnd.geospace",
+				"gmx" => "application/vnd.gmx",
+				"kml" => "application/vnd.google-earth.kml+xml",
+				"kmz" => "application/vnd.google-earth.kmz",
+				"gqf" => "application/vnd.grafeq",
+				"gqs" => "application/vnd.grafeq",
+				"gac" => "application/vnd.groove-account",
+				"ghf" => "application/vnd.groove-help",
+				"gim" => "application/vnd.groove-identity-message",
+				"grv" => "application/vnd.groove-injector",
+				"gtm" => "application/vnd.groove-tool-message",
+				"tpl" => "application/vnd.groove-tool-template",
+				"vcg" => "application/vnd.groove-vcard",
+				"hal" => "application/vnd.hal+xml",
+				"zmm" => "application/vnd.handheld-entertainment+xml",
+				"hbci" => "application/vnd.hbci",
+				"les" => "application/vnd.hhe.lesson-player",
+				"hpgl" => "application/vnd.hp-hpgl",
+				"hpid" => "application/vnd.hp-hpid",
+				"hps" => "application/vnd.hp-hps",
+				"jlt" => "application/vnd.hp-jlyt",
+				"pcl" => "application/vnd.hp-pcl",
+				"pclxl" => "application/vnd.hp-pclxl",
+				"sfd-hdstx" => "application/vnd.hydrostatix.sof-data",
+				"mpy" => "application/vnd.ibm.minipay",
+				"afp" => "application/vnd.ibm.modcap",
+				"listafp" => "application/vnd.ibm.modcap",
+				"list3820" => "application/vnd.ibm.modcap",
+				"irm" => "application/vnd.ibm.rights-management",
+				"sc" => "application/vnd.ibm.secure-container",
+				"icc" => "application/vnd.iccprofile",
+				"icm" => "application/vnd.iccprofile",
+				"igl" => "application/vnd.igloader",
+				"ivp" => "application/vnd.immervision-ivp",
+				"ivu" => "application/vnd.immervision-ivu",
+				"igm" => "application/vnd.insors.igm",
+				"xpw" => "application/vnd.intercon.formnet",
+				"xpx" => "application/vnd.intercon.formnet",
+				"i2g" => "application/vnd.intergeo",
+				"qbo" => "application/vnd.intu.qbo",
+				"qfx" => "application/vnd.intu.qfx",
+				"rcprofile" => "application/vnd.ipunplugged.rcprofile",
+				"irp" => "application/vnd.irepository.package+xml",
+				"xpr" => "application/vnd.is-xpr",
+				"fcs" => "application/vnd.isac.fcs",
+				"jam" => "application/vnd.jam",
+				"rms" => "application/vnd.jcp.javame.midlet-rms",
+				"jisp" => "application/vnd.jisp",
+				"joda" => "application/vnd.joost.joda-archive",
+				"ktz" => "application/vnd.kahootz",
+				"ktr" => "application/vnd.kahootz",
+				"karbon" => "application/vnd.kde.karbon",
+				"chrt" => "application/vnd.kde.kchart",
+				"kfo" => "application/vnd.kde.kformula",
+				"flw" => "application/vnd.kde.kivio",
+				"kon" => "application/vnd.kde.kontour",
+				"kpr" => "application/vnd.kde.kpresenter",
+				"kpt" => "application/vnd.kde.kpresenter",
+				"ksp" => "application/vnd.kde.kspread",
+				"kwd" => "application/vnd.kde.kword",
+				"kwt" => "application/vnd.kde.kword",
+				"htke" => "application/vnd.kenameaapp",
+				"kia" => "application/vnd.kidspiration",
+				"kne" => "application/vnd.kinar",
+				"knp" => "application/vnd.kinar",
+				"skp" => "application/vnd.koan",
+				"skd" => "application/vnd.koan",
+				"skt" => "application/vnd.koan",
+				"skm" => "application/vnd.koan",
+				"sse" => "application/vnd.kodak-descriptor",
+				"lasxml" => "application/vnd.las.las+xml",
+				"lbd" => "application/vnd.llamagraphics.life-balance.desktop",
+				"lbe" => "application/vnd.llamagraphics.life-balance.exchange+xml",
+				"123" => "application/vnd.lotus-1-2-3",
+				"apr" => "application/vnd.lotus-approach",
+				"pre" => "application/vnd.lotus-freelance",
+				"nsf" => "application/vnd.lotus-notes",
+				"org" => "application/vnd.lotus-organizer",
+				"scm" => "application/vnd.lotus-screencam",
+				"lwp" => "application/vnd.lotus-wordpro",
+				"portpkg" => "application/vnd.macports.portpkg",
+				"mcd" => "application/vnd.mcd",
+				"mc1" => "application/vnd.medcalcdata",
+				"cdkey" => "application/vnd.mediastation.cdkey",
+				"mwf" => "application/vnd.mfer",
+				"mfm" => "application/vnd.mfmp",
+				"flo" => "application/vnd.micrografx.flo",
+				"igx" => "application/vnd.micrografx.igx",
+				"mif" => "application/vnd.mif",
+				"daf" => "application/vnd.mobius.daf",
+				"dis" => "application/vnd.mobius.dis",
+				"mbk" => "application/vnd.mobius.mbk",
+				"mqy" => "application/vnd.mobius.mqy",
+				"msl" => "application/vnd.mobius.msl",
+				"plc" => "application/vnd.mobius.plc",
+				"txf" => "application/vnd.mobius.txf",
+				"mpn" => "application/vnd.mophun.application",
+				"mpc" => "application/vnd.mophun.certificate",
+				"xul" => "application/vnd.mozilla.xul+xml",
+				"cil" => "application/vnd.ms-artgalry",
+				"cab" => "application/vnd.ms-cab-compressed",
+				"xls" => "application/vnd.ms-excel",
+				"xlm" => "application/vnd.ms-excel",
+				"xla" => "application/vnd.ms-excel",
+				"xlc" => "application/vnd.ms-excel",
+				"xlt" => "application/vnd.ms-excel",
+				"xlw" => "application/vnd.ms-excel",
+				"xlam" => "application/vnd.ms-excel.addin.macroenabled.12",
+				"xlsb" => "application/vnd.ms-excel.sheet.binary.macroenabled.12",
+				"xlsm" => "application/vnd.ms-excel.sheet.macroenabled.12",
+				"xltm" => "application/vnd.ms-excel.template.macroenabled.12",
+				"eot" => "application/vnd.ms-fontobject",
+				"chm" => "application/vnd.ms-htmlhelp",
+				"ims" => "application/vnd.ms-ims",
+				"lrm" => "application/vnd.ms-lrm",
+				"thmx" => "application/vnd.ms-officetheme",
+				"cat" => "application/vnd.ms-pki.seccat",
+				"stl" => "application/vnd.ms-pki.stl",
+				"ppt" => "application/vnd.ms-powerpoint",
+				"pps" => "application/vnd.ms-powerpoint",
+				"pot" => "application/vnd.ms-powerpoint",
+				"ppam" => "application/vnd.ms-powerpoint.addin.macroenabled.12",
+				"pptm" => "application/vnd.ms-powerpoint.presentation.macroenabled.12",
+				"sldm" => "application/vnd.ms-powerpoint.slide.macroenabled.12",
+				"ppsm" => "application/vnd.ms-powerpoint.slideshow.macroenabled.12",
+				"potm" => "application/vnd.ms-powerpoint.template.macroenabled.12",
+				"mpp" => "application/vnd.ms-project",
+				"mpt" => "application/vnd.ms-project",
+				"docm" => "application/vnd.ms-word.document.macroenabled.12",
+				"dotm" => "application/vnd.ms-word.template.macroenabled.12",
+				"wps" => "application/vnd.ms-works",
+				"wks" => "application/vnd.ms-works",
+				"wcm" => "application/vnd.ms-works",
+				"wdb" => "application/vnd.ms-works",
+				"wpl" => "application/vnd.ms-wpl",
+				"xps" => "application/vnd.ms-xpsdocument",
+				"mseq" => "application/vnd.mseq",
+				"mus" => "application/vnd.musician",
+				"msty" => "application/vnd.muvee.style",
+				"taglet" => "application/vnd.mynfc",
+				"nlu" => "application/vnd.neurolanguage.nlu",
+				"ntf" => "application/vnd.nitf",
+				"nitf" => "application/vnd.nitf",
+				"nnd" => "application/vnd.noblenet-directory",
+				"nns" => "application/vnd.noblenet-sealer",
+				"nnw" => "application/vnd.noblenet-web",
+				"ngdat" => "application/vnd.nokia.n-gage.data",
+				"n-gage" => "application/vnd.nokia.n-gage.symbian.install",
+				"rpst" => "application/vnd.nokia.radio-preset",
+				"rpss" => "application/vnd.nokia.radio-presets",
+				"edm" => "application/vnd.novadigm.edm",
+				"edx" => "application/vnd.novadigm.edx",
+				"ext" => "application/vnd.novadigm.ext",
+				"odc" => "application/vnd.oasis.opendocument.chart",
+				"otc" => "application/vnd.oasis.opendocument.chart-template",
+				"odb" => "application/vnd.oasis.opendocument.database",
+				"odf" => "application/vnd.oasis.opendocument.formula",
+				"odft" => "application/vnd.oasis.opendocument.formula-template",
+				"odg" => "application/vnd.oasis.opendocument.graphics",
+				"otg" => "application/vnd.oasis.opendocument.graphics-template",
+				"odi" => "application/vnd.oasis.opendocument.image",
+				"oti" => "application/vnd.oasis.opendocument.image-template",
+				"odp" => "application/vnd.oasis.opendocument.presentation",
+				"otp" => "application/vnd.oasis.opendocument.presentation-template",
+				"ods" => "application/vnd.oasis.opendocument.spreadsheet",
+				"ots" => "application/vnd.oasis.opendocument.spreadsheet-template",
+				"odt" => "application/vnd.oasis.opendocument.text",
+				"odm" => "application/vnd.oasis.opendocument.text-master",
+				"ott" => "application/vnd.oasis.opendocument.text-template",
+				"oth" => "application/vnd.oasis.opendocument.text-web",
+				"xo" => "application/vnd.olpc-sugar",
+				"dd2" => "application/vnd.oma.dd2+xml",
+				"oxt" => "application/vnd.openofficeorg.extension",
+				"pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+				"sldx" => "application/vnd.openxmlformats-officedocument.presentationml.slide",
+				"ppsx" => "application/vnd.openxmlformats-officedocument.presentationml.slideshow",
+				"potx" => "application/vnd.openxmlformats-officedocument.presentationml.template",
+				"xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+				"xltx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.template",
+				"docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+				"dotx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.template",
+				"mgp" => "application/vnd.osgeo.mapguide.package",
+				"dp" => "application/vnd.osgi.dp",
+				"esa" => "application/vnd.osgi.subsystem",
+				"pdb" => "application/vnd.palm",
+				"pqa" => "application/vnd.palm",
+				"oprc" => "application/vnd.palm",
+				"paw" => "application/vnd.pawaafile",
+				"str" => "application/vnd.pg.format",
+				"ei6" => "application/vnd.pg.osasli",
+				"efif" => "application/vnd.picsel",
+				"wg" => "application/vnd.pmi.widget",
+				"plf" => "application/vnd.pocketlearn",
+				"pbd" => "application/vnd.powerbuilder6",
+				"box" => "application/vnd.previewsystems.box",
+				"mgz" => "application/vnd.proteus.magazine",
+				"qps" => "application/vnd.publishare-delta-tree",
+				"ptid" => "application/vnd.pvi.ptid1",
+				"qxd" => "application/vnd.quark.quarkxpress",
+				"qxt" => "application/vnd.quark.quarkxpress",
+				"qwd" => "application/vnd.quark.quarkxpress",
+				"qwt" => "application/vnd.quark.quarkxpress",
+				"qxl" => "application/vnd.quark.quarkxpress",
+				"qxb" => "application/vnd.quark.quarkxpress",
+				"bed" => "application/vnd.realvnc.bed",
+				"mxl" => "application/vnd.recordare.musicxml",
+				"musicxml" => "application/vnd.recordare.musicxml+xml",
+				"cryptonote" => "application/vnd.rig.cryptonote",
+				"cod" => "application/vnd.rim.cod",
+				"rm" => "application/vnd.rn-realmedia",
+				"rmvb" => "application/vnd.rn-realmedia-vbr",
+				"link66" => "application/vnd.route66.link66+xml",
+				"st" => "application/vnd.sailingtracker.track",
+				"see" => "application/vnd.seemail",
+				"sema" => "application/vnd.sema",
+				"semd" => "application/vnd.semd",
+				"semf" => "application/vnd.semf",
+				"ifm" => "application/vnd.shana.informed.formdata",
+				"itp" => "application/vnd.shana.informed.formtemplate",
+				"iif" => "application/vnd.shana.informed.interchange",
+				"ipk" => "application/vnd.shana.informed.package",
+				"twd" => "application/vnd.simtech-mindmapper",
+				"twds" => "application/vnd.simtech-mindmapper",
+				"mmf" => "application/vnd.smaf",
+				"teacher" => "application/vnd.smart.teacher",
+				"sdkm" => "application/vnd.solent.sdkm+xml",
+				"sdkd" => "application/vnd.solent.sdkm+xml",
+				"dxp" => "application/vnd.spotfire.dxp",
+				"sfs" => "application/vnd.spotfire.sfs",
+				"sdc" => "application/vnd.stardivision.calc",
+				"sda" => "application/vnd.stardivision.draw",
+				"sdd" => "application/vnd.stardivision.impress",
+				"smf" => "application/vnd.stardivision.math",
+				"sdw" => "application/vnd.stardivision.writer",
+				"vor" => "application/vnd.stardivision.writer",
+				"sgl" => "application/vnd.stardivision.writer-global",
+				"smzip" => "application/vnd.stepmania.package",
+				"sm" => "application/vnd.stepmania.stepchart",
+				"sxc" => "application/vnd.sun.xml.calc",
+				"stc" => "application/vnd.sun.xml.calc.template",
+				"sxd" => "application/vnd.sun.xml.draw",
+				"std" => "application/vnd.sun.xml.draw.template",
+				"sxi" => "application/vnd.sun.xml.impress",
+				"sti" => "application/vnd.sun.xml.impress.template",
+				"sxm" => "application/vnd.sun.xml.math",
+				"sxw" => "application/vnd.sun.xml.writer",
+				"sxg" => "application/vnd.sun.xml.writer.global",
+				"stw" => "application/vnd.sun.xml.writer.template",
+				"sus" => "application/vnd.sus-calendar",
+				"susp" => "application/vnd.sus-calendar",
+				"svd" => "application/vnd.svd",
+				"sis" => "application/vnd.symbian.install",
+				"sisx" => "application/vnd.symbian.install",
+				"xsm" => "application/vnd.syncml+xml",
+				"bdm" => "application/vnd.syncml.dm+wbxml",
+				"xdm" => "application/vnd.syncml.dm+xml",
+				"tao" => "application/vnd.tao.intent-module-archive",
+				"pcap" => "application/vnd.tcpdump.pcap",
+				"cap" => "application/vnd.tcpdump.pcap",
+				"dmp" => "application/vnd.tcpdump.pcap",
+				"tmo" => "application/vnd.tmobile-livetv",
+				"tpt" => "application/vnd.trid.tpt",
+				"mxs" => "application/vnd.triscape.mxs",
+				"tra" => "application/vnd.trueapp",
+				"ufd" => "application/vnd.ufdl",
+				"ufdl" => "application/vnd.ufdl",
+				"utz" => "application/vnd.uiq.theme",
+				"umj" => "application/vnd.umajin",
+				"unityweb" => "application/vnd.unity",
+				"uoml" => "application/vnd.uoml+xml",
+				"vcx" => "application/vnd.vcx",
+				"vsd" => "application/vnd.visio",
+				"vst" => "application/vnd.visio",
+				"vss" => "application/vnd.visio",
+				"vsw" => "application/vnd.visio",
+				"vis" => "application/vnd.visionary",
+				"vsf" => "application/vnd.vsf",
+				"wbxml" => "application/vnd.wap.wbxml",
+				"wmlc" => "application/vnd.wap.wmlc",
+				"wmlsc" => "application/vnd.wap.wmlscriptc",
+				"wtb" => "application/vnd.webturbo",
+				"nbp" => "application/vnd.wolfram.player",
+				"wpd" => "application/vnd.wordperfect",
+				"wqd" => "application/vnd.wqd",
+				"stf" => "application/vnd.wt.stf",
+				"xar" => "application/vnd.xara",
+				"xfdl" => "application/vnd.xfdl",
+				"hvd" => "application/vnd.yamaha.hv-dic",
+				"hvs" => "application/vnd.yamaha.hv-script",
+				"hvp" => "application/vnd.yamaha.hv-voice",
+				"osf" => "application/vnd.yamaha.openscoreformat",
+				"osfpvg" => "application/vnd.yamaha.openscoreformat.osfpvg+xml",
+				"saf" => "application/vnd.yamaha.smaf-audio",
+				"spf" => "application/vnd.yamaha.smaf-phrase",
+				"cmp" => "application/vnd.yellowriver-custom-menu",
+				"zir" => "application/vnd.zul",
+				"zirz" => "application/vnd.zul",
+				"zaz" => "application/vnd.zzazz.deck+xml",
+				"vxml" => "application/voicexml+xml",
+				"wgt" => "application/widget",
+				"hlp" => "application/winhlp",
+				"wsdl" => "application/wsdl+xml",
+				"wspolicy" => "application/wspolicy+xml",
+				"7z" => "application/x-7z-compressed",
+				"abw" => "application/x-abiword",
+				"ace" => "application/x-ace-compressed",
+				"dmg" => "application/x-apple-diskimage",
+				"aab" => "application/x-authorware-bin",
+				"x32" => "application/x-authorware-bin",
+				"u32" => "application/x-authorware-bin",
+				"vox" => "application/x-authorware-bin",
+				"aam" => "application/x-authorware-map",
+				"aas" => "application/x-authorware-seg",
+				"bcpio" => "application/x-bcpio",
+				"torrent" => "application/x-bittorrent",
+				"blb" => "application/x-blorb",
+				"blorb" => "application/x-blorb",
+				"bz" => "application/x-bzip",
+				"bz2" => "application/x-bzip2",
+				"boz" => "application/x-bzip2",
+				"cbr" => "application/x-cbr",
+				"cba" => "application/x-cbr",
+				"cbt" => "application/x-cbr",
+				"cbz" => "application/x-cbr",
+				"cb7" => "application/x-cbr",
+				"vcd" => "application/x-cdlink",
+				"cfs" => "application/x-cfs-compressed",
+				"chat" => "application/x-chat",
+				"pgn" => "application/x-chess-pgn",
+				"nsc" => "application/x-conference",
+				"cpio" => "application/x-cpio",
+				"csh" => "application/x-csh",
+				"deb" => "application/x-debian-package",
+				"udeb" => "application/x-debian-package",
+				"dgc" => "application/x-dgc-compressed",
+				"dir" => "application/x-director",
+				"dcr" => "application/x-director",
+				"dxr" => "application/x-director",
+				"cst" => "application/x-director",
+				"cct" => "application/x-director",
+				"cxt" => "application/x-director",
+				"w3d" => "application/x-director",
+				"fgd" => "application/x-director",
+				"swa" => "application/x-director",
+				"wad" => "application/x-doom",
+				"ncx" => "application/x-dtbncx+xml",
+				"dtb" => "application/x-dtbook+xml",
+				"res" => "application/x-dtbresource+xml",
+				"dvi" => "application/x-dvi",
+				"evy" => "application/x-envoy",
+				"eva" => "application/x-eva",
+				"bdf" => "application/x-font-bdf",
+				"gsf" => "application/x-font-ghostscript",
+				"psf" => "application/x-font-linux-psf",
+				"otf" => "application/x-font-otf",
+				"pcf" => "application/x-font-pcf",
+				"snf" => "application/x-font-snf",
+				"ttf" => "application/x-font-ttf",
+				"ttc" => "application/x-font-ttf",
+				"pfa" => "application/x-font-type1",
+				"pfb" => "application/x-font-type1",
+				"pfm" => "application/x-font-type1",
+				"afm" => "application/x-font-type1",
+				"woff" => "application/x-font-woff",
+				"arc" => "application/x-freearc",
+				"spl" => "application/x-futuresplash",
+				"gca" => "application/x-gca-compressed",
+				"ulx" => "application/x-glulx",
+				"gnumeric" => "application/x-gnumeric",
+				"gramps" => "application/x-gramps-xml",
+				"gtar" => "application/x-gtar",
+				"hdf" => "application/x-hdf",
+				"install" => "application/x-install-instructions",
+				"iso" => "application/x-iso9660-image",
+				"jnlp" => "application/x-java-jnlp-file",
+				"latex" => "application/x-latex",
+				"lzh" => "application/x-lzh-compressed",
+				"lha" => "application/x-lzh-compressed",
+				"mie" => "application/x-mie",
+				"prc" => "application/x-mobipocket-ebook",
+				"mobi" => "application/x-mobipocket-ebook",
+				"application" => "application/x-ms-application",
+				"lnk" => "application/x-ms-shortcut",
+				"wmd" => "application/x-ms-wmd",
+				"wmz" => "application/x-ms-wmz",
+				"xbap" => "application/x-ms-xbap",
+				"mdb" => "application/x-msaccess",
+				"obd" => "application/x-msbinder",
+				"crd" => "application/x-mscardfile",
+				"clp" => "application/x-msclip",
+				"exe" => "application/x-msdownload",
+				"dll" => "application/x-msdownload",
+				"com" => "application/x-msdownload",
+				"bat" => "application/x-msdownload",
+				"msi" => "application/x-msdownload",
+				"mvb" => "application/x-msmediaview",
+				"m13" => "application/x-msmediaview",
+				"m14" => "application/x-msmediaview",
+				"wmf" => "application/x-msmetafile",
+				"wmz" => "application/x-msmetafile",
+				"emf" => "application/x-msmetafile",
+				"emz" => "application/x-msmetafile",
+				"mny" => "application/x-msmoney",
+				"pub" => "application/x-mspublisher",
+				"scd" => "application/x-msschedule",
+				"trm" => "application/x-msterminal",
+				"wri" => "application/x-mswrite",
+				"nc" => "application/x-netcdf",
+				"cdf" => "application/x-netcdf",
+				"nzb" => "application/x-nzb",
+				"p12" => "application/x-pkcs12",
+				"pfx" => "application/x-pkcs12",
+				"p7b" => "application/x-pkcs7-certificates",
+				"spc" => "application/x-pkcs7-certificates",
+				"p7r" => "application/x-pkcs7-certreqresp",
+				"rar" => "application/x-rar-compressed",
+				"ris" => "application/x-research-info-systems",
+				"sh" => "application/x-sh",
+				"shar" => "application/x-shar",
+				"swf" => "application/x-shockwave-flash",
+				"xap" => "application/x-silverlight-app",
+				"sql" => "application/x-sql",
+				"sit" => "application/x-stuffit",
+				"sitx" => "application/x-stuffitx",
+				"srt" => "application/x-subrip",
+				"sv4cpio" => "application/x-sv4cpio",
+				"sv4crc" => "application/x-sv4crc",
+				"t3" => "application/x-t3vm-image",
+				"gam" => "application/x-tads",
+				"tar" => "application/x-tar",
+				"tcl" => "application/x-tcl",
+				"tex" => "application/x-tex",
+				"tfm" => "application/x-tex-tfm",
+				"texinfo" => "application/x-texinfo",
+				"texi" => "application/x-texinfo",
+				"obj" => "application/x-tgif",
+				"ustar" => "application/x-ustar",
+				"src" => "application/x-wais-source",
+				"der" => "application/x-x509-ca-cert",
+				"crt" => "application/x-x509-ca-cert",
+				"fig" => "application/x-xfig",
+				"xlf" => "application/x-xliff+xml",
+				"xpi" => "application/x-xpinstall",
+				"xz" => "application/x-xz",
+				"z1" => "application/x-zmachine",
+				"z2" => "application/x-zmachine",
+				"z3" => "application/x-zmachine",
+				"z4" => "application/x-zmachine",
+				"z5" => "application/x-zmachine",
+				"z6" => "application/x-zmachine",
+				"z7" => "application/x-zmachine",
+				"z8" => "application/x-zmachine",
+				"xaml" => "application/xaml+xml",
+				"xdf" => "application/xcap-diff+xml",
+				"xenc" => "application/xenc+xml",
+				"xhtml" => "application/xhtml+xml",
+				"xht" => "application/xhtml+xml",
+				"xml" => "application/xml",
+				"xsl" => "application/xml",
+				"dtd" => "application/xml-dtd",
+				"xop" => "application/xop+xml",
+				"xpl" => "application/xproc+xml",
+				"xslt" => "application/xslt+xml",
+				"xspf" => "application/xspf+xml",
+				"mxml" => "application/xv+xml",
+				"xhvml" => "application/xv+xml",
+				"xvml" => "application/xv+xml",
+				"xvm" => "application/xv+xml",
+				"yang" => "application/yang",
+				"yin" => "application/yin+xml",
+				"zip" => "application/zip",
+				"adp" => "audio/adpcm",
+				"au" => "audio/basic",
+				"snd" => "audio/basic",
+				"mid" => "audio/midi",
+				"midi" => "audio/midi",
+				"kar" => "audio/midi",
+				"rmi" => "audio/midi",
+				"mp4a" => "audio/mp4",
+				"mpga" => "audio/mpeg",
+				"mp2" => "audio/mpeg",
+				"mp2a" => "audio/mpeg",
+				"mp3" => "audio/mpeg",
+				"m2a" => "audio/mpeg",
+				"m3a" => "audio/mpeg",
+				"oga" => "audio/ogg",
+				"ogg" => "audio/ogg",
+				"spx" => "audio/ogg",
+				"s3m" => "audio/s3m",
+				"sil" => "audio/silk",
+				"uva" => "audio/vnd.dece.audio",
+				"uvva" => "audio/vnd.dece.audio",
+				"eol" => "audio/vnd.digital-winds",
+				"dra" => "audio/vnd.dra",
+				"dts" => "audio/vnd.dts",
+				"dtshd" => "audio/vnd.dts.hd",
+				"lvp" => "audio/vnd.lucent.voice",
+				"pya" => "audio/vnd.ms-playready.media.pya",
+				"ecelp4800" => "audio/vnd.nuera.ecelp4800",
+				"ecelp7470" => "audio/vnd.nuera.ecelp7470",
+				"ecelp9600" => "audio/vnd.nuera.ecelp9600",
+				"rip" => "audio/vnd.rip",
+				"weba" => "audio/webm",
+				"aac" => "audio/x-aac",
+				"aif" => "audio/x-aiff",
+				"aiff" => "audio/x-aiff",
+				"aifc" => "audio/x-aiff",
+				"caf" => "audio/x-caf",
+				"flac" => "audio/x-flac",
+				"mka" => "audio/x-matroska",
+				"m3u" => "audio/x-mpegurl",
+				"wax" => "audio/x-ms-wax",
+				"wma" => "audio/x-ms-wma",
+				"ram" => "audio/x-pn-realaudio",
+				"ra" => "audio/x-pn-realaudio",
+				"rmp" => "audio/x-pn-realaudio-plugin",
+				"wav" => "audio/x-wav",
+				"xm" => "audio/xm",
+				"cdx" => "chemical/x-cdx",
+				"cif" => "chemical/x-cif",
+				"cmdf" => "chemical/x-cmdf",
+				"cml" => "chemical/x-cml",
+				"csml" => "chemical/x-csml",
+				"xyz" => "chemical/x-xyz",
+				"bmp" => "image/bmp",
+				"cgm" => "image/cgm",
+				"g3" => "image/g3fax",
+				"gif" => "image/gif",
+				"ief" => "image/ief",
+				"jpeg" => "image/jpeg",
+				"jpg" => "image/jpeg",
+				"jpe" => "image/jpeg",
+				"ktx" => "image/ktx",
+				"png" => "image/png",
+				"btif" => "image/prs.btif",
+				"sgi" => "image/sgi",
+				"svg" => "image/svg+xml",
+				"svgz" => "image/svg+xml",
+				"tiff" => "image/tiff",
+				"tif" => "image/tiff",
+				"psd" => "image/vnd.adobe.photoshop",
+				"uvi" => "image/vnd.dece.graphic",
+				"uvvi" => "image/vnd.dece.graphic",
+				"uvg" => "image/vnd.dece.graphic",
+				"uvvg" => "image/vnd.dece.graphic",
+				"sub" => "image/vnd.dvb.subtitle",
+				"djvu" => "image/vnd.djvu",
+				"djv" => "image/vnd.djvu",
+				"dwg" => "image/vnd.dwg",
+				"dxf" => "image/vnd.dxf",
+				"fbs" => "image/vnd.fastbidsheet",
+				"fpx" => "image/vnd.fpx",
+				"fst" => "image/vnd.fst",
+				"mmr" => "image/vnd.fujixerox.edmics-mmr",
+				"rlc" => "image/vnd.fujixerox.edmics-rlc",
+				"mdi" => "image/vnd.ms-modi",
+				"wdp" => "image/vnd.ms-photo",
+				"npx" => "image/vnd.net-fpx",
+				"wbmp" => "image/vnd.wap.wbmp",
+				"xif" => "image/vnd.xiff",
+				"webp" => "image/webp",
+				"3ds" => "image/x-3ds",
+				"ras" => "image/x-cmu-raster",
+				"cmx" => "image/x-cmx",
+				"fh" => "image/x-freehand",
+				"fhc" => "image/x-freehand",
+				"fh4" => "image/x-freehand",
+				"fh5" => "image/x-freehand",
+				"fh7" => "image/x-freehand",
+				"ico" => "image/x-icon",
+				"sid" => "image/x-mrsid-image",
+				"pcx" => "image/x-pcx",
+				"pic" => "image/x-pict",
+				"pct" => "image/x-pict",
+				"pnm" => "image/x-portable-anymap",
+				"pbm" => "image/x-portable-bitmap",
+				"pgm" => "image/x-portable-graymap",
+				"ppm" => "image/x-portable-pixmap",
+				"rgb" => "image/x-rgb",
+				"tga" => "image/x-tga",
+				"xbm" => "image/x-xbitmap",
+				"xpm" => "image/x-xpixmap",
+				"xwd" => "image/x-xwindowdump",
+				"eml" => "message/rfc822",
+				"mime" => "message/rfc822",
+				"igs" => "model/iges",
+				"iges" => "model/iges",
+				"msh" => "model/mesh",
+				"mesh" => "model/mesh",
+				"silo" => "model/mesh",
+				"dae" => "model/vnd.collada+xml",
+				"dwf" => "model/vnd.dwf",
+				"gdl" => "model/vnd.gdl",
+				"gtw" => "model/vnd.gtw",
+				"mts" => "model/vnd.mts",
+				"vtu" => "model/vnd.vtu",
+				"wrl" => "model/vrml",
+				"vrml" => "model/vrml",
+				"x3db" => "model/x3d+binary",
+				"x3dbz" => "model/x3d+binary",
+				"x3dv" => "model/x3d+vrml",
+				"x3dvz" => "model/x3d+vrml",
+				"x3d" => "model/x3d+xml",
+				"x3dz" => "model/x3d+xml",
+				"appcache" => "text/cache-manifest",
+				"ics" => "text/calendar",
+				"ifb" => "text/calendar",
+				"css" => "text/css",
+				"csv" => "text/csv",
+				"html" => "text/html",
+				"htm" => "text/html",
+				"n3" => "text/n3",
+				"txt" => "text/plain",
+				"text" => "text/plain",
+				"conf" => "text/plain",
+				"def" => "text/plain",
+				"list" => "text/plain",
+				"log" => "text/plain",
+				"in" => "text/plain",
+				"dsc" => "text/prs.lines.tag",
+				"rtx" => "text/richtext",
+				"sgml" => "text/sgml",
+				"sgm" => "text/sgml",
+				"tsv" => "text/tab-separated-values",
+				"t" => "text/troff",
+				"tr" => "text/troff",
+				"roff" => "text/troff",
+				"man" => "text/troff",
+				"me" => "text/troff",
+				"ms" => "text/troff",
+				"ttl" => "text/turtle",
+				"uri" => "text/uri-list",
+				"uris" => "text/uri-list",
+				"urls" => "text/uri-list",
+				"vcard" => "text/vcard",
+				"curl" => "text/vnd.curl",
+				"dcurl" => "text/vnd.curl.dcurl",
+				"scurl" => "text/vnd.curl.scurl",
+				"mcurl" => "text/vnd.curl.mcurl",
+				"sub" => "text/vnd.dvb.subtitle",
+				"fly" => "text/vnd.fly",
+				"flx" => "text/vnd.fmi.flexstor",
+				"gv" => "text/vnd.graphviz",
+				"3dml" => "text/vnd.in3d.3dml",
+				"spot" => "text/vnd.in3d.spot",
+				"jad" => "text/vnd.sun.j2me.app-descriptor",
+				"wml" => "text/vnd.wap.wml",
+				"wmls" => "text/vnd.wap.wmlscript",
+				"s" => "text/x-asm",
+				"asm" => "text/x-asm",
+				"c" => "text/x-c",
+				"cc" => "text/x-c",
+				"cxx" => "text/x-c",
+				"cpp" => "text/x-c",
+				"h" => "text/x-c",
+				"hh" => "text/x-c",
+				"dic" => "text/x-c",
+				"f" => "text/x-fortran",
+				"for" => "text/x-fortran",
+				"f77" => "text/x-fortran",
+				"f90" => "text/x-fortran",
+				"java" => "text/x-java-source",
+				"opml" => "text/x-opml",
+				"p" => "text/x-pascal",
+				"pas" => "text/x-pascal",
+				"nfo" => "text/x-nfo",
+				"etx" => "text/x-setext",
+				"sfv" => "text/x-sfv",
+				"uu" => "text/x-uuencode",
+				"vcs" => "text/x-vcalendar",
+				"vcf" => "text/x-vcard",
+				"3gp" => "video/3gpp",
+				"3g2" => "video/3gpp2",
+				"h261" => "video/h261",
+				"h263" => "video/h263",
+				"h264" => "video/h264",
+				"jpgv" => "video/jpeg",
+				"jpm" => "video/jpm",
+				"jpgm" => "video/jpm",
+				"mj2" => "video/mj2",
+				"mjp2" => "video/mj2",
+				"mp4" => "video/mp4",
+				"mp4v" => "video/mp4",
+				"mpg4" => "video/mp4",
+				"mpeg" => "video/mpeg",
+				"mpg" => "video/mpeg",
+				"mpe" => "video/mpeg",
+				"m1v" => "video/mpeg",
+				"m2v" => "video/mpeg",
+				"ogv" => "video/ogg",
+				"qt" => "video/quicktime",
+				"mov" => "video/quicktime",
+				"uvh" => "video/vnd.dece.hd",
+				"uvvh" => "video/vnd.dece.hd",
+				"uvm" => "video/vnd.dece.mobile",
+				"uvvm" => "video/vnd.dece.mobile",
+				"uvp" => "video/vnd.dece.pd",
+				"uvvp" => "video/vnd.dece.pd",
+				"uvs" => "video/vnd.dece.sd",
+				"uvvs" => "video/vnd.dece.sd",
+				"uvv" => "video/vnd.dece.video",
+				"uvvv" => "video/vnd.dece.video",
+				"dvb" => "video/vnd.dvb.file",
+				"fvt" => "video/vnd.fvt",
+				"mxu" => "video/vnd.mpegurl",
+				"m4u" => "video/vnd.mpegurl",
+				"pyv" => "video/vnd.ms-playready.media.pyv",
+				"uvu" => "video/vnd.uvvu.mp4",
+				"uvvu" => "video/vnd.uvvu.mp4",
+				"viv" => "video/vnd.vivo",
+				"webm" => "video/webm",
+				"f4v" => "video/x-f4v",
+				"fli" => "video/x-fli",
+				"flv" => "video/x-flv",
+				"m4v" => "video/x-m4v",
+				"mkv" => "video/x-matroska",
+				"mk3d" => "video/x-matroska",
+				"mks" => "video/x-matroska",
+				"mng" => "video/x-mng",
+				"asf" => "video/x-ms-asf",
+				"asx" => "video/x-ms-asf",
+				"vob" => "video/x-ms-vob",
+				"wm" => "video/x-ms-wm",
+				"wmv" => "video/x-ms-wmv",
+				"wmx" => "video/x-ms-wmx",
+				"wvx" => "video/x-ms-wvx",
+				"avi" => "video/x-msvideo",
+				"movie" => "video/x-sgi-movie",
+				"smv" => "video/x-smv",
+				"ice" => "x-conference/x-cooltalk",
+				"php" => "application/php",
+				"rb" => "application/ruby",
+				"ess" => "application/javascript-server-page",
+				"con" => "application/concept",
+				"csp" => "application/concept-server-page",
+				"cas" => "application/concept-async-page",
+				"accel" => "application/concept-private",
+				"package" => "application/concept-private",
+				"ini" => "application/concept-private"
+		];
+
+		var v6only=value this.IniKey("Server", "IPv6", "0");
+		if (v6only) {
+			this.Socket = new TCPSocket(-1, true);
+			this.Socket.SetOption(IPPROTO_IPV6, IPV6_V6ONLY, 0);
+
+			this.WSSocket = new TCPSocket(-1, true);
+			this.WSSocket.SetOption(IPPROTO_IPV6, IPV6_V6ONLY, 0);
+
+			if (!USE_TLS_PROXY) {
+				this.TLSWSSocket = new TLSESocket(-1, null, true);
+				this.TLSWSSocket.SetOption(IPPROTO_IPV6, IPV6_V6ONLY, 0);
+			}
+		} else {
+			this.Socket = new TCPSocket();
+			this.WSSocket = new TCPSocket();
+			this.TLSWSSocket = new TLSESocket();
+		}
+		if (!this.Socket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128)) {
+			this.WSSocket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
+			if (this.TLSWSSocket)
+				this.TLSWSSocket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
+			console.info(LOG_THIS, "TCP fast open enabled");
+		}
+		this.SSLWSSocketName = this.IniKey("Server", "SecureProxyUnixSocket", "");
+		if (this.SSLWSSocketName) {
+			_unlink(this.SSLWSSocketName);
+			this.SSLWSSocket = new UNIXSocket();
+			this.SSLWSSocket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
+		}
+
+
+		this.Socket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
+		this.WSSocket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
+		if (this.TLSWSSocket)
+			this.TLSWSSocket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
+
+		this.Port = value this.IniKey("Server", "Port", "2662");
+		this.WSPort = value this.IniKey("Server", "WebPort", "2680");
+		this.SSLWSPort = value this.IniKey("Server", "SecureWebPort", "2681");
+
+		if (ACCEPT_WORKERS) {
+			// MS Windows has no SO_REUSEPORT
+			// if (ON_MSWINDOWS)
+			//	this.AcceptWorkers = true;
+
+			if (!SocketReusePort(Socket.Socket))
+				this.AcceptWorkers = true;
+			if (!SocketReusePort(WSSocket.Socket))
+				this.AcceptWorkers = true;
+			if (TLSWSSocket) {
+				if (!SocketReusePort(TLSWSSocket.Socket))
+					this.AcceptWorkers = true;
+			}
+		}
+
+		var workers_count = this.WorkerCount(DEFAULT_CGI_WORKERS);
+		console.info(LOG_THIS, "Initializing $workers_count CGI workers");
+		for (var i = 0; i < workers_count; i++)
+			Workers[i] = new Worker("ConceptWorker", BinarizeObject(["Worker${i+1}", inifile]));
 	}
 
 	static WorkerCount(workers_count) {
@@ -2652,6 +5374,188 @@ class ConceptServer extends IniCache {
 		if (cgi_workers > workers_count)
 			workers_count = cgi_workers;
 		return workers_count;
+	}
+
+	LoadKeys() {
+		var public_key = this.IniKey("Server", "WebSocketCertificate", "ssl/publickey.cer");
+		var private_key = this.IniKey("Server", "WebSocketPrivateKey", "ssl/privatekey.pem");
+
+		if (!this.TLSWSSocket.LoadKeys(public_key, private_key))
+			console.warn(LOG_THIS, "Warning: Error loading TLS/SSL keys. HTTPS/WSS will not be supported.");
+	}
+
+	NormalizeName(name, var hash_base) {
+		name=StrReplace(name, "\\", "/");
+		hash_base=name;
+
+		var arr=StrSplit(name, "/");
+		var len=length arr;
+		var res="";
+		for (var i=0;i<len;i++) {
+			var e=arr[i];
+			var e_next=arr[i+1];
+			if ((e_next) && (e_next=="..")) {
+				i++;
+			} else
+			if ((e != "..") && (e != ".")) {
+				if (res)
+					res+="/";
+				else
+					hash_base=e;
+				res+=e;
+			}
+		}
+		return res;
+	}
+
+	RouteMessage(source_apid, hash, apid, msg_id, msg, var err) {
+		if (apid>0) {
+			var connection=this.GetConnection(apid);
+			if (connection) {
+				this.Iterations++;
+				var buf=tobin(source_apid, 32)+tobin(msg_id, 32)+tobin(length msg, 32)+msg;
+				connection.Send(buf);
+			} else {
+				console.warn(LOG_THIS, "Unknown APID: $apid (message sent by $source_apid)");
+				err = true;
+			}
+		} else {
+			this.Iterations++;
+			buf=tobin(source_apid, 32)+tobin(msg_id, 32)+tobin(length msg, 32)+msg;
+
+			var clients=this.Connections;
+			var len=length clients;
+			for (var i=0;i<len;i++) {
+				connection=clients[i];
+				if ((connection) && (connection.APID!=source_apid) && (connection.Hash==hash))
+					connection.Send(buf);
+			}
+		}
+	}
+
+	ProcessMessage(apid, hash, var buf, var err) {
+		err = false;
+		while ((true) && (!err)) {
+			var lbuf = length buf;
+			if (lbuf >= 12) {
+				var target_apid=tonumber(buf[0]+buf[1]+buf[2]+buf[3], 32);
+				var msg_id=tonumber(buf[4]+buf[5]+buf[6]+buf[7], 32);
+				var len=tonumber(buf[8]+buf[9]+buf[10]+buf[11], 32);
+				if (lbuf >= len + 12) {
+					var msg = SubStr(buf, 12, len);
+					buf = SubStr(buf, 12 + len, lbuf);
+					this.RouteMessage(apid, hash, target_apid, msg_id, msg, err);
+				} else
+					break;
+			} else
+				break;
+		}
+		return buf;
+	}
+
+	public GetConnection(apid) {
+		var key=""+apid;
+		if (IsSet(this.Connections, key))
+			return this.Connections[key];
+		return null;
+	}
+
+	public GetSession(session) {
+		var clients=this.Connections;
+		var len=length clients;
+		for (var i=0;i<len;i++) {
+			var c=clients[i];
+			if ((c) && (c.Session==session))
+				return c;
+		}
+		return null;
+	}
+
+	public GetHost(host) {
+		var clients=this.Connections;
+		var len=length clients;
+		for (var i=0;i<len;i++) {
+			var c=clients[i];
+			if ((c) && (c.HostID == host) && (c.ChildCount < c.MaxChilds) && (c.ChildCount >= 0))
+				return c;
+		}
+		return null;
+	}
+
+	public CloseChildren(apid) {
+		var clients=this.Connections;
+		var len=length clients;
+		for (var i=0;i<len;i++) {
+			var c=clients[i];
+			if ((c) && (c.UsingHost==apid))
+				c.PID = -3;
+		}
+	}
+
+
+
+	public Statistics() {
+		var clients = this.Connections;
+		var len = length clients;
+		var cpu = 0;
+		var t = 0;
+		var f = 0;
+		var real_len = 0;
+		for (var i = 0;i < len; i++) {
+			var c = clients[i];
+			if (c) {
+				real_len++;
+				if (c.PID>0) {
+					var ru = getrusage(c.PID);
+					if (ru) {
+						cpu += (ru["ru_utime"] + ru["ru_stime"]) / 1000;
+						t += ru["ru_maxrss"];
+						f += ru["ru_majflt"];
+					}
+				}
+			}
+		}
+		var file = new File("a+");
+		file.Name = "statistics.txt";
+		file.Open();
+		file.Write("$real_len\t$cpu\t$t\t$f\n");
+		file.Close();
+	}
+
+	public Clean() {
+		if (this.PlaceHolders>=50) {
+			this.PlaceHolders=0;
+			var clients=this.Connections;
+			var len=length clients;
+			var res=new [];
+			var cleaned=0;
+			for (var i=0;i<len;i++) {
+				var c=clients[i];
+				if (c)
+					res[""+c.APID]=c;
+				else
+					cleaned++;
+			}
+			if (cleaned) {
+				console.trace(LOG_THIS, "$cleaned placeholders cleaned");
+				this.Connections=res;
+			}
+		}
+	}
+
+	private AcceptChild(loop, socket, websocket=false, tls=false) {
+		var child = new ConceptChild(this, socket);
+		if (tls)
+			child.TLS = tls;
+		child.IsWebSocket = websocket;
+		threads++;
+		loop.Add(child.Iterate);
+	}
+
+	private RunService(loop, servicename) {
+		var child = new ConceptChild(this, null);
+		child.ServerName = servicename;
+		loop.Add(child.IterateService);
 	}
 
 	ChooseWorker() {
@@ -2663,34 +5567,166 @@ class ConceptServer extends IniCache {
 		return null;
 	}
 
-	getPort(tls = false) {
-		if (tls)
-			return this.tlsport;
-		return this.port;
+	ChooseH2Worker() {
+		if (H2Workers) {
+			if (TargetH2Worker >= length H2Workers)
+				TargetH2Worker = 0;
+			return H2Workers[TargetH2Worker++];
+		}
+		return null;
 	}
 
-	ConceptServer(ini_file) {
-		this.IniFile = ini_file;
+	BackgroundTasks() {
+		var loop = this.Loop;
 
-		var user = this.IniKey("Server", "User", "concept");
-		var pwd  = this.IniKey("Server", "UserPassword", "");
+		this.RunService(loop, "ServiceManager.con");
 
-		if (!SetCurrentUser(user, pwd))
-			console.warn(LOG_THIS, "cannot change user to $user");
-		pwd = "";
+		var socket = this.Socket;
+		var wsocket =  this.WSSocket;
+		var sslwsocket = this.SSLWSSocket;
+		var tlswssocket = this.TLSWSSocket;
 
-		var log_file = this.IniGetPath("Paths", "LogFile", "");
-		if (log_file)
-			console.use_file(log_file);
-
-		var max_connections = value this.IniKey("Server", "MaxConnections", "1024");
-		var max_fd = max_connections * 5 + 10;
-		if (setrlimit(RLIMIT_NOFILE, max_fd)) {
-			// try to set it as super user
-			if (setrlimit(RLIMIT_NOFILE, max_fd, max_fd))
-				console.warn(LOG_THIS, "cannot set the maximum connection count to $max_fd");
+		var iterations;
+		var timeout = 0;
+		var empty_iterations = 0;
+		var sock_fd = socket.Socket;
+		var wsock_fd = wsocket.Socket;
+		var sockets = [sock_fd, wsock_fd];
+		var sslsock_fd = -1;
+		var tlssock_fd = -1;
+		if (tlswssocket) {
+			tlssock_fd = tlswssocket.Socket;
+			sockets[2] = tlssock_fd;
 		}
+		if (sslwsocket) {
+			sslsock_fd = sslwsocket.Socket;
+			sockets[3] = sslsock_fd;
+		}
+		while (Running) {
+			try {
+				if ((SocketPoll(sockets, var outsockets, timeout)) && (outsockets)) {
+					// check for connection
+					var o0 = outsockets[0];
+					var o1 = outsockets[1];
+					var o2 = outsockets[2];
+					var o3 = outsockets[3];
 
+					this.Iterations++;
+					timeout = 0;
+					if ((o0 == sock_fd) || (o1 == sock_fd) || (o2 == sock_fd) || (o3 == sock_fd)) {
+						var s = socket.Accept();
+						if ((s) && (s.Socket > 0))
+							AcceptChild(loop, s);
+						else
+							console.error(LOG_THIS, "Invalid socket in accept");
+					}
+					if ((o0 == wsock_fd) || (o1 == wsock_fd) || (o2 == wsock_fd) || (o3 == wsock_fd)) {
+						s = wsocket.Accept();
+						if ((s) && (s.Socket>0))
+							AcceptChild(loop, s, true);
+						else
+							console.error(LOG_THIS, "Invalid socket in accept (websocket)");
+					}
+					if ((o0 == tlssock_fd) || (o1 == tlssock_fd) || (o2 == tlssock_fd) || (o3 == tlssock_fd)) {
+						s = tlswssocket.AcceptTCP();
+						if ((s) && (s.Socket > 0))
+							AcceptChild(loop, s, true, 2);
+						else
+							console.error(LOG_THIS, "Invalid socket in accept (websocket)");
+					}
+					if (sslsock_fd > 0) {
+						if ((o0 == sslsock_fd) || (o1 == sslsock_fd) || (o2 == sslsock_fd) || (o3 == sslsock_fd)) {
+							s = sslwsocket.Accept();
+							if ((s) && (s.Socket>0))
+								AcceptChild(loop, s, true, true);
+							else
+								console.error(LOG_THIS, "Invalid socket in accept (websocket)");
+						}
+					}
+				}
+				if (iterations == this.Iterations) {
+					// nothing happened, give CPU a chance to do something else
+					timeout = 5;
+					empty_iterations++;
+				} else {
+					this.Iterations = 0;
+					iterations = 0;
+					empty_iterations = 0;
+					timeout = 0;
+				}
+
+				if (empty_iterations > 1000) {
+					// help the CPU
+					//Sleep(50);
+					timeout = 100;
+				} else
+				if (empty_iterations > 100) {
+					// help the CPU
+					//Sleep(10);
+					timeout = 20;
+				}
+			} catch (var exc) {
+				console.error(LOG_THIS, exc);
+			}
+		}
+		this.CloseClients();
+	}
+
+	ServerCloses(signum) {
+		Running = false;
+	}
+
+	CloseClients() {
+		if (ShuttingDown) {
+			console.info(LOG_THIS, "Please wait while shutting down ...");
+			return;
+		}
+		ShuttingDown = true;
+		var connections = this.Connections;
+		for (var i = 0; i < length connections; i++) {
+			var client = connections[i];	
+			if (client) {
+				try {
+					client.Disconnect("Server shutdown");
+				} catch (var exc) {
+					console.error(LOG_THIS, "Uncaught exception: $exc");
+				}
+				if (client.PID > 0) {
+					kill(__PID(client.PID), SIGTERM);
+					client.PID = -1;
+				}
+			}	
+		}
+		console.info(LOG_THIS, "Clean shut down ...");
+		console.info(LOG_THIS, "Shutting down ...");
+	}
+
+	BrokenPipe(signum) {
+		console.debug(LOG_THIS, "Broken pipe received $signum");
+		// nothing
+	}
+
+	RedirectHeader(var orig_app, var ServerName) {
+		var tstamp = StrReplace(StrReplace(asctime(time()), "\r", ""), "\n", "")+" GMT";
+		var location = "https://" + ServerName;
+		if (SSLWSPort != 443)
+			location += ":" + SSLWSPort;
+		if ((orig_app) && (orig_app[0] != "/"))
+			location += "/";
+		location += orig_app;
+		return "HTTP/1.1 302 Found\r\nDate: $tstamp\r\nConnection: close\r\nLocation: $location\r\nServer: " + SERVER_NAME + "\r\n\r\n";
+	}
+
+	Redirect(location, params) {
+		if (params)
+			location += "?" + params;
+		return "HTTP/1.1 302 Found\r\nConnection: close\r\nLocation: $location\r\nServer: " + SERVER_NAME + "\r\n\r\n";
+	}
+
+	Start() {
+		var max_connections = value this.IniKey("Server", "MaxConnections", "1024");
+		var interface = this.IniKey("Server", "Interface", "");
+		this.ConceptClient = this.IniGetPath("Paths", "ConceptClient", "./ConceptClient.js");
 		this.cgi = this.IniGetPath("Paths", "CGIHandler", "conceptcgi");
 		var cgi_other = this.IniKey("Paths", "OtherCGI", "");
 		if (cgi_other) {
@@ -2703,154 +5739,69 @@ class ConceptServer extends IniCache {
 					this.cgiother[type] = val;
 			}
 		}
+		var max_fd=max_connections*5+10;
+		if (setrlimit(RLIMIT_NOFILE, max_fd)) {
+			// try to set it as super user
+			if (setrlimit(RLIMIT_NOFILE, max_fd, max_fd))
+				console.warn(LOG_THIS, "cannot set the maximum connection count to $max_fd");
+		}
 
-		h2worker = new ConceptH2Worker(this);
-		appworker = new Worker("ConceptAppWorker", ini_file);
+		if (Socket.Listen(this.Port, max_connections, interface))
+			throw "Error initializing Concept server (port ${this.Port} already in use)";
 
-		var workers_count = this.WorkerCount(DEFAULT_CGI_WORKERS);
-		console.info(LOG_THIS, "Initializing $workers_count CGI workers");
+		WSSocket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
 
-		for (i = 0; i < workers_count; i++)
-			Workers[i] = new Worker("ConceptWorker", BinarizeObject(["Worker${i+1}", ini_file]));
+		if (WSSocket.Listen(this.WSPort, max_connections, interface))
+			throw "Error initializing Concept server WS socket (port ${this.WSPort} already in use)";
 
-		port = value this.IniKey("Server", "WebPort", "2680");
-		tlsport = value this.IniKey("Server", "SecureWebPort", "2681");
-		httpserver = new H2Server(this.IniGetPath("Paths", "ServerRoot", ""), get_root_by_host, this.IniKey("Server", "WebSocketCertificate", ""), this.IniKey("Server", "WebSocketPrivateKey", ""), port, tlsport, value this.IniKey("Server", "MaxAge", "604800"), value this.IniKey("Server", "MaxInitialIDLE", "10"), max_connections, this.IniKey("Server", "Interface", ""));
-		httpserver.TLSOnly = value this.IniKey("Server", "WebTLSOnly", "0");
-		httpserver.CommonRoot = this.IniGetPath("Paths", "ConceptClient", "./ConceptClient.js");
+		if ((SSLWSSocket) && (SSLWSSocket.Listen(this.SSLWSSocketName, max_connections)))
+			throw "Error initializing Concept server SSL WS socket (port ${this.SSLWSSocketName} already in use)";
 
-		httpserver.getLoop().schedule(function(loop) {
-			h2worker.IterateAsyncWorkers(h2worker.CGIChildren);
-		}, 10);
-
-		httpserver.OnRequest = function(loop, http_version, tls, method, var filename, headers, socket, stream, var data, pending_buffer) {
-			if (this.LogRequests)
-				this.log_request(http_version, tls, method, headers, socket);
-			var content_type = httpserver.mimeType(filename);
-			switch (content_type) {
-				case "application/concept":
-					if ((http_version == 1) && (ToLower("" + headers["upgrade"]) == "websocket")) {
-						var key = headers["sec-websocket-key"];
-						if (key) {
-							var ret_key = WebSocket::AcceptKey(key);
-							if (ret_key) {
-								var origin = headers["origin"] ?? "";
-								var extra_header = "";
-								if (origin)
-									extra_header = "Access-Control-Allow-Credentials: true\r\nAccess-Control-Allow-Headers: content-type\r\nAccess-Control-Allow-Headers: authorization\r\nAccess-Control-Allow-Headers: x-websocket-extensions\r\nAccess-Control-Allow-Headers: x-websocket-version\r\nAccess-Control-Allow-Headers: x-websocket-protocol\r\nAccess-Control-Allow-Origin: $origin\r\n";
-								var session = "";
-								var sec_proto = headers["sec-websocket-protocol"];
-								if ((!sec_proto) || (sec_proto != "restore")) {
-									session = this.GenerateSession();
-									var expires = StrReplace(StrReplace(asctime(time() + 259200), "\r", ""), "\n", "")+" GMT";
-									extra_header += "Set-Cookie: _s=$session;Expires=$expires\r\n";
-								}
-								httpserver.upgradeWebsocket(socket, ret_key, extra_header);
-								// is an application !!!
-								var tls_data = "";
-								if (tls)
-									tls_data = socket.Socket.Save();
-								appworker.AddData(BinarizeObject(["job" => 1, "tls" => tls, "socket" => socket.Socket.Socket, "tls_data" => tls_data, "filename" => filename, "headers" => headers, "session" => session]));
-								return REQUEST_DETACH;	
-							}
-						}
-					}
-					data = ReadFile(http_directory(filename) + "@index.html");
-					if (!data)
-						data = httpserver.readCommon("index.html");
-					if (tls)
-						data = StrReplace(data, "{PROTOCOL}", "wss");
-					else
-						data = StrReplace(data, "{PROTOCOL}", "ws");
-					data = StrReplace(data, "{HOST}", headers["host"] ?? headers[":authority"]);
-					var app = headers[":app"] ?? headers[":path"];
-					var query = httpserver.getQuery(headers);
-					if (query)
-						app += "?" + query;
-					data = StrReplace(data, "{APP}", app);
-					filename = "index.html";
-					return;
-				case "application/concept-async-page":
-					if (http_version == 2) {
-						var cgi_child = h2worker.CreateCGI(socket, stream, "", headers[":root"] ?? "", headers[":path"], filename, query, headers["host"] ?? "", this.port, 2, httpserver.defaultHeaders(http_version));
-						if (cgi_child) {
-							httpserver.addEvent(cgi_child.IterateEventLoop);
-							return REQUEST_HANDLED;
-						} else
-							return REQUEST_CGI_ERROR;
-					} else {
-						var worker = this.ChooseWorker();
-						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), "", headers[":root"], 2)));
-					}
-					return REQUEST_DETACH;
-				case "application/concept-server-page":
-					if (http_version == 2) {
-						cgi_child = h2worker.CreateCGI(socket, stream, this.cgi, headers[":root"] ?? "", headers[":path"], filename, query, headers["host"] ?? "", this.port, 0, httpserver.defaultHeaders(http_version));
-						if (cgi_child) {
-							httpserver.addEvent(cgi_child.IterateEventLoop);
-							return REQUEST_HANDLED;
-						} else
-							return REQUEST_CGI_ERROR;
-					} else {
-						worker = this.ChooseWorker();
-						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), this.cgi, headers[":root"], false)));
-					}
-					return REQUEST_DETACH;
-				case "application/javascript-server-page":
-					if (http_version == 2) {
-						cgi_child = h2worker.CreateCGI(socket, stream, "", headers[":root"] ?? "", headers[":path"], filename, query, headers["host"] ?? "", this.port, 1, httpserver.defaultHeaders(http_version));
-						if (cgi_child) {
-							httpserver.addEvent(cgi_child.IterateEventLoop);
-							return REQUEST_HANDLED;
-						} else
-							return REQUEST_CGI_ERROR;
-					} else {
-						worker = this.ChooseWorker();
-						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), "", headers[":root"], 1)));
-					}
-					return REQUEST_DETACH;
-				case "application/concept-private":
-					// drop request
-					this.log_request(http_version, tls, method, headers, socket, "silently dropped");
-					return REQUEST_STOP;
-				default:
-					if ((this.cgiother) && (IsSet(this.cgiother, content_type))) {
-						if (http_version == 2) {
-							cgi_child = h2worker.CreateCGI(socket, stream, this.Owner.cgiother[content_type], headers[":root"] ?? "", headers[":path"], filename, query, headers["host"] ?? "", this.port, 1, httpserver.defaultHeaders(http_version));
-							if (cgi_child) {
-								httpserver.addEvent(cgi_child.IterateEventLoop);
-								return REQUEST_HANDLED;
-							} else
-								return REQUEST_CGI_ERROR;
-						} else {
-							worker = this.ChooseWorker();
-							worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), "", headers[":method"], headers[":host"] ?? "", headers[":path"], this.getPort(tls), this.Owner.cgiother[content_type], headers[":root"], false)));
-							return REQUEST_DETACH;
-						}
-					}
+		if (TLSWSSocket) {
+			TLSWSSocket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
+			if (TLSWSSocket.Listen(this.SSLWSPort, max_connections, interface)) {
+				throw "Error initializing Concept server TLS WS socket (port ${this.SSLWSPort} already in use)";
+			} else {
+				this.LoadKeys();
+				if (value this.IniKey("Server", "HTTP2", "1")) {
+					TLSWSSocket.AddALPN("h2");
+					var h2worker_init_parameters = BinarizeObject([this.IniFile, this.ConceptClient, this.mimetypes, this.cgi, this.cgiother]);
+					var workers_count = this.WorkerCount(DEFAULT_H2_WORKERS);
+					console.info(LOG_THIS, "Initializing $workers_count HTTP/2 workers");
+					for (i = 0; i < workers_count; i++)
+						H2Workers[i] = new Worker("ConceptH2Worker", h2worker_init_parameters);
+				}
 			}
-		};
-		httpserver.OnEmptyRequest = function(path) {
-			if (FileExists(path + "start.con"))
-				return "start.con";
-			if (FileExists(path + "index.cas"))
-				return "index.cas";
-			if (FileExists(path + "index.csp"))
-				return "index.csp";
-			return "index.html";
-		};
-		httpserver.useStatistics(function(data) {
-			console.info(LOG_THIS, "${data["events"]} events, ${data["sockets"]} sockets, ${data["iotimeoutobjects"]} I/O timeout");
-		}, 60000);
-	}
+		}
 
-	Run() {
-		httpserver.LogHTTPErrors = this.LogRequests;
-		httpserver.run();
-	}
+		var user = this.IniKey("Server", "User", "concept");
+		var pwd  = this.IniKey("Server", "UserPassword", "");
 
-	Stop() {
-		httpserver.stop();
+		if (!SetCurrentUser(user, pwd))
+			console.warn(LOG_THIS, "cannot change user to $user");
+		pwd = "";
+
+		this.LogFile = IniGetPath("Paths", "LogFile", "");
+		if (this.LogFile)
+			console.use_file(this.LogFile);
+		var loop = new Greenloop();
+		this.Loop = loop;
+
+		// signal(SIGINT, this.ServerCloses);
+		// signal(SIGQUIT, this.ServerCloses);
+		// signal(SIGHUP, this.ServerCloses);
+		// signal(SIGTERM, this.ServerCloses);
+		signal(SIGPIPE, this.BrokenPipe);
+		loop.Run([this.BackgroundTasks]);
+		if (Running)
+			throw "Broken socket";
+	}
+}
+
+class ConceptServerWorker extends ConceptServer {
+	ConceptServerWorker(ini_file) {
+		super(ini_file);
+		this.Start();
 	}
 }
 
@@ -2870,8 +5821,17 @@ class ConceptPingWorker {
 }
 
 class Main {
+	protected var[] AcceptWorkers;
+
+	protected CreateSharedPortWorkers(ini_file, sharedport_workers) {
+		for (var i = 0; i < sharedport_workers; i++) {
+			AcceptWorkers[i] = new Worker("ConceptServerWorker", ini_file);		
+			// Sleep(100);
+		}
+	}
+
 	Main() {
-		console.level(LOG_LEVEL);
+		RandomSeed(unpack("u32", CryptoRandom(4))[0]);
 
 		var ini_file = "/usr/local/etc/concept.ini";
 		if (!FileExists(ini_file))
@@ -2879,9 +5839,14 @@ class Main {
 		if (!FileExists(ini_file))
 			ini_file = "/etc/concept.ini";
 		if (!FileExists(ini_file))
-			ini_file = "concept.ini";
+			ini_file = getcwd()+"/concept.ini";
 
-		var server = new ConceptServer(ini_file);
+		console.level(LOG_LEVEL);		
+		var s = new ConceptServer(ini_file);
+		if (USE_TLS_PROXY) {
+			if (ExecuteProcess("concept", ".", ["-mt", "ConceptTLSProxyServer.con"], [ ], false) < 0)
+				console.error(LOG_THIS, "Error initializing Concept SSL proxy");
+		}
 		if (USE_DB_SERVICE) {
 			if (ExecuteProcess("concept", ".", ["TinDB.con"], [ ], false) < 0) {
 				if (ExecuteProcess(getcwd() + "/concept", ".", ["TinDB.con"], [ ], false) < 0)
@@ -2899,7 +5864,14 @@ class Main {
 
 			new Worker("ConceptPingWorker", BinarizeObject([ping, timeout]));
 		}
-		server.LogRequests = true;
-		server.Run();
+
+		try {
+			if ((ACCEPT_WORKERS) && (s.AcceptWorkers))
+				CreateSharedPortWorkers(ini_file, ACCEPT_WORKERS);
+			s.Start();
+		} catch (var exc) {
+			console.error(LOG_THIS, exc);
+			return -1;
+		}
 	}
 }

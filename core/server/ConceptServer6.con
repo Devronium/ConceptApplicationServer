@@ -2665,8 +2665,8 @@ class ConceptServer extends IniCache {
 
 	getPort(tls = false) {
 		if (tls)
-			return this.port;
-		return this.tlsport;
+			return this.tlsport;
+		return this.port;
 	}
 
 	ConceptServer(ini_file) {
