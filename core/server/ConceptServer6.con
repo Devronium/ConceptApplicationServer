@@ -8,7 +8,7 @@ include JSFramework.con
 
 import standard.lang.cli
 
-define LOG_LEVEL		LOG_WARN
+define LOG_LEVEL		LOG_DEBUG
 define WS_SESSION_RESTORE	true
 define CONCEPT_STRICT_EXECUTE	false
 define SERVER_NAME		"cas"
@@ -586,7 +586,7 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 		return headers;
 	}
 
-	baseiterate(var ops) {
+	baseiterate(var ops, can_write = true) {
 		try {
 			if (stream) {
 				if (stream.HasData()) {
@@ -611,8 +611,7 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 			this.reset();
 			return true;
 		}
-
-		if ((std_out_buffer) || (write_headers)) {
+		if (((std_out_buffer) || (write_headers)) && (can_write)) {
 			if (stream) {
 				var stream_write = true;
 				try {
@@ -624,7 +623,7 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 						var close_stream = false;
 						if ((!running) && (stream.AtomicWriteSize(length std_out_buffer) == length std_out_buffer))
 							close_stream = true;
-						var res = stream.SafeWrite(h2, std_out_buffer, close_stream);
+						var res = stream.Write(h2, std_out_buffer, close_stream);
 						if (res > 0) {
 							std_out_buffer = SubStr(std_out_buffer, res);
 							ops ++;
@@ -797,7 +796,7 @@ class ConceptJSChild extends ConceptAsyncChild {
 		}
 	}
 
-	Iterate(var ops) {
+	Iterate(var ops, can_write = true) {
 		// timed out
 		if (time() > timeout) {
 			if (js.js.call("ontimedout", [ ])) {
@@ -807,10 +806,11 @@ class ConceptJSChild extends ConceptAsyncChild {
 				running = false;
 			}
 		}
+
 		if (!running)
 			this.reset();
 
-		if (this.baseiterate(ops))
+		if (this.baseiterate(ops, can_write))
 			return true;
 
 		if ((js) && ((!ops) || (microseconds() - last_idle_call > 1000000))) {
@@ -818,6 +818,11 @@ class ConceptJSChild extends ConceptAsyncChild {
 			js.js.call("onidle", [ ]);
 		}
 		return false;
+	}
+
+	IterateEventLoop(socket, loop, is_write) {
+		if (this.Iterate(null, is_write))
+			return LOOP_EVENT_REMOVE;
 	}
 }
 
@@ -926,7 +931,7 @@ class ConceptCASChild extends ConceptAsyncChild {
 		}
 	}
 
-	Iterate(var ops) {
+	Iterate(var ops, can_write = true) {
 		// timed out
 		if (time() > timeout) {
 			this.remotenotify("timedout");
@@ -936,7 +941,12 @@ class ConceptCASChild extends ConceptAsyncChild {
 		if (!running)
 			this.reset();
 
-		return this.baseiterate(ops);
+		return this.baseiterate(ops, can_write);
+	}
+
+	IterateEventLoop(socket, loop, is_write) {
+		if (this.Iterate(null, is_write))
+			return LOOP_EVENT_REMOVE;
 	}
 }
 
@@ -1005,7 +1015,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 		}
 	}
 
-	Iterate(var ops) {
+	Iterate(var ops, can_write = true) {
 		var running = ExecuteIsRunning(pid);
 		if (running) {
 			try {
@@ -1052,7 +1062,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 				}
 			}
 		}
-		if (std_out) {
+		if ((std_out) && (can_write)) {
 			// pipesocket code (splice/sendfile/TransmitFile)
 			var err = -2;
 			if (!is_tls) {
@@ -1137,7 +1147,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 						var close_stream = false;
 						if ((!running) && (stream.AtomicWriteSize(length std_out_buffer) == length std_out_buffer))
 							close_stream = true;
-						res = stream.SafeWrite(h2, std_out_buffer, close_stream);
+						res = stream.Write(h2, std_out_buffer, close_stream);
 						if (res > 0) {
 							std_out_buffer = SubStr(std_out_buffer, res);
 							ops ++;
@@ -1181,15 +1191,18 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 		return false;
 	}
 
-	static CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w, var err_text) {
+	IterateEventLoop(socket, loop, is_write) {
+		if (this.Iterate(null, is_write))
+			return LOOP_EVENT_REMOVE;
+	}
+
+	static CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w) {
 		if (/*socketpair*/pipe(std_out_r, std_out_w)) {
-			err_text = "ConceptCGIChild: Error creating pipe (stdout)";
 			return -1;
 		}
 		if (/*socketpair*/pipe(std_in_r, std_in_w)) {
 			close(std_out_r);
 			close(std_out_w);
-			err_text = "ConceptCGIChild: Error creating pipe (stdin)";
 			return -1;
 		}
 		return 0;
@@ -1343,11 +1356,11 @@ class ConceptBaseWorker {
 		for (var i = 0; i < length workers; i++) {
 			var worker = workers[i];
 			if (worker) {
-				var worker_get = worker.GetResult(var data_arr);//worker.GetAll(var data_arr);
+				var worker_get = worker.GetResult(var data_arr);
 				if ((data_arr) && (worker_get > 0)) {
 					data_arr = UnBinarizeObject(data_arr);
 					for (var j = 0; j < length data_arr; j++) {
-						var data = data_arr[j]; // UnBinarizeObject(data_arr[j]);
+						var data = data_arr[j];
 						if (data) {
 							ops++;
 							var request = data["q"];
@@ -1489,14 +1502,14 @@ pragma used
 		return cgi;
 	}
 
-	Create(Socket, job, var err_text) {
+	Create(Socket, job) {
 		if (job.javascript == 2)
 			return CreateCAS(Socket, job);
 		if (job.javascript)
 			return CreateJavascript(Socket, job);
 
 
-		if (ConceptCGIChild::CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w, err_text))
+		if (ConceptCGIChild::CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w))
 			return null;
 
 		var cgi_handler_path = job.cgihandler;
@@ -1548,8 +1561,6 @@ pragma used
 		if (pid <= 0) {
 			close(std_out_r);
 			close(std_in_w);
-			if (!err_text)
-				err_text = "ConceptWorker: Error creating process\n";
 			return null;
 		}
 		return new ConceptCGIChild(job.method, Socket, std_out_r, std_in_w, pid, job.snippet);
@@ -1648,13 +1659,13 @@ pragma used
 							Socket.Restore(job.tls);
 						} else
 							Socket = new TCPSocket(job.socket);
-						var child = this.Create(Socket, job, var err_text);
+						var child = this.Create(Socket, job);
 						if (child) {
 							if (!job.javascript)
 								Socket.Write("HTTP/1.1 200 OK\r\nServer: " + SERVER_NAME + "\r\n");
 							AddChild(child);
 						} else {
-							Socket.Write("HTTP/1.1 503 Service unavailable\r\nServer: " + SERVER_NAME + "\r\nContent-Type: text/html\r\n\r\n<html><head><title>HTTP 503 Service unavailable</title></head><body><h1>HTTP 503 Service unavailable</h1><br/>$err_text</body></html>");
+							Socket.Write("HTTP/1.1 503 Service unavailable\r\nServer: " + SERVER_NAME + "\r\nContent-Type: text/html\r\n\r\n<html><head><title>HTTP 503 Service unavailable</title></head><body><h1>HTTP 503 Service unavailable</h1><br/></body></html>");
 							Socket.Close(true);
 						}
 					} catch (var exc) {
@@ -2435,10 +2446,175 @@ class ConceptAppWorker extends IniCache {
 	}
 }
 
+class ConceptH2Worker extends ConceptBaseWorker {
+pragma used
+	public var[] CGIChildren;
+	protected var CGIPlaceholders;
+	protected var Framework;
+
+	GetHeader(key, headers) {
+		if ((!headers) || (!IsSet(headers, key)))
+			return "";
+		var val = headers[key];
+		if (typeof val == "array") {
+			var res = "";
+			for (var i = 0; i < length val; i++) {
+				if (res)
+					res += ";";
+				res += val[i];
+			}
+			return res;
+		}
+		return val;
+	}
+
+	CreateEnv(Socket, stream, method, root, path, app, query, hostname, local_port, default_header, scriptname = "javascript") {
+		var info = Socket.Info;
+		var address = info["address"];
+		var port = info["port"];
+		var headers = stream.Headers;
+
+		var env = [
+				"DOCUMENT_ROOT": root,
+				"GATEWAY_INTERFACE": "CGI/1.1",
+				"HTTP_COOKIE": this.GetHeader("cookie", headers),
+				"HTTP_HOST": hostname,
+				"HTTP_USER_AGENT": this.GetHeader("user-agent", headers),
+				"PATH_INFO": path,
+				"PATH_TRANSLATED": app,
+				"QUERY_STRING": query,
+				"REMOTE_ADDR": address,
+				"REMOTE_HOST": address,
+				"REMOTE_PORT": port,
+				"REMOTE_USER": "",
+				"REQUEST_METHOD": method,
+				"REQUEST_URI": path,
+				"SCRIPT_FILENAME":  app,
+				"SCRIPT_NAME": scriptname,
+				"SERVER_ADMIN": "",
+				"SERVER_NAME": hostname,
+				"SERVER_PORT": local_port,
+				"SERVER_PROTOCOL": "HTTP/2.0",
+				"SERVER_SOFTWARE":  SERVER_SOFTWARE,
+				"REDIRECT_STATUS": 200,
+				"REDIRECT_STATUS": "CGI",
+				"CONTENT_LENGTH": this.GetHeader("content-length", headers),
+				"CONTENT_TYPE": this.GetHeader("content-type", headers),
+				"HTTP_ACCEPT_LANGUAGE": this.GetHeader("accept-language", headers),
+				"HTTP_ACCEPT_ENCODING": this.GetHeader("accept-encoding", headers),
+				"HTTP_REFERER": this.GetHeader("referer", headers)
+		];
+		if (classof Socket == "TLSESocket") {
+			env["HTTPS"] = "on";
+			env["HTTPS_CIPHER"] = Socket.CipherName;
+		}
+		return env;
+	}
+
+	CreateJavascript(Socket, h2, stream, method, root, path, app, query, hostname, local_port, default_header) {
+		var env = CreateEnv(Socket, stream, method, root, path, app, query, hostname, local_port, default_header);
+		return new ConceptJSChild(this.Framework, method, Socket, env, "", h2, stream, default_header);
+	}
+
+	CreateCAS(Socket, h2, stream, method, root, path, app, query, hostname, local_port, default_header) {
+		var env = CreateEnv(Socket, stream, method, root, path, app, query, hostname, local_port, default_header, "conceptasync");
+		var cgi = new ConceptCASChild(CGIAsyncWorker::Create(this.cgiworkers, app, null, var err), err, method, Socket, env, "", h2, stream, default_header);
+		if (cgi.reqid)
+			this.childcache[cgi.reqid] = cgi;
+		return cgi;
+	}
+
+	CreateCGI(h2, stream, cgi_handler_path, root, path, app, query, hostname, local_port, javascript, default_header) {
+		var cgi;
+		var headers = stream.Headers;
+		var Socket = h2.GetSocket();
+
+		if (javascript == 2) {
+			cgi = this.CreateCAS(Socket, h2, stream, this.GetHeader(":method", headers) ?? "GET", root, path, app, query, hostname, local_port, default_header);
+			CGIChildren[length CGIChildren] = cgi;
+			h2.UserData++;
+			return cgi;
+		} else
+		if (javascript) {
+			cgi = this.CreateJavascript(Socket, h2, stream, this.GetHeader(":method", headers) ?? "GET", root, path, app, query, hostname, local_port, default_header);
+			CGIChildren[length CGIChildren] = cgi;
+			h2.UserData++;
+			return cgi;
+		}
+
+		if (ConceptCGIChild::CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w))
+			return null;
+
+		var info = Socket.Info;
+		var address = info["address"];
+		var port = info["port"];
+		var method = this.GetHeader(":method", headers) ?? "GET";
+		var env = [
+				"DOCUMENT_ROOT=" + root,
+				"GATEWAY_INTERFACE=CGI/1.1",
+				"HTTP_COOKIE=" + this.GetHeader("cookie", headers),
+				"HTTP_HOST=" + hostname,
+				"HTTP_USER_AGENT=" + this.GetHeader("user-agent", headers),
+				"PATH_INFO=" + path,
+				"PATH_TRANSLATED=" + app,
+				"QUERY_STRING=" + query,
+				"REMOTE_ADDR=" + address,
+				"REMOTE_HOST=" + address,
+				"REMOTE_PORT=" + port,
+				"REMOTE_USER=",
+				"REQUEST_METHOD=" + method,
+				"REQUEST_URI=" + path,
+				"SCRIPT_FILENAME=" + app,
+				"SCRIPT_NAME=" + cgi_handler_path,
+				"SERVER_ADMIN=",
+				"SERVER_NAME=" + hostname,
+				"SERVER_PORT=" + local_port,
+				"SERVER_PROTOCOL=HTTP/2.0",
+				"SERVER_SOFTWARE=" + SERVER_SOFTWARE,
+				"REDIRECT_STATUS=200",
+				"REDIRECT_STATUS=CGI",
+				"CONTENT_LENGTH=" + this.GetHeader("content-length", headers),
+				"CONTENT_TYPE=" + this.GetHeader("content-type", headers),
+				"HTTP_ACCEPT_LANGUAGE=" + this.GetHeader("accept-language", headers),
+				"HTTP_ACCEPT_ENCODING=" + this.GetHeader("accept-encoding", headers),
+				"HTTP_REFERER=" + this.GetHeader("referer", headers)
+		];
+
+		if (classof Socket == "TLSESocket") {
+			env[length env] = "HTTPS=on";
+			env[length env] = "HTTPS_CIPHER=" + Socket.CipherName;
+		}
+
+		var pid = ExecuteProcess(cgi_handler_path, "", [app], env, false, std_out_w, std_in_r);
+
+		close(std_out_w);
+		close(std_in_r);
+
+		if (pid <= 0) {
+			close(std_out_r);
+			close(std_in_w);
+			return null;
+		}
+
+		cgi = new ConceptCGIChild(method, Socket, std_out_r, std_in_w, pid, "", h2, stream);
+		if (cgi) {
+			cgi.h2headers = default_header;
+			CGIChildren[length CGIChildren] = cgi;
+			h2.UserData++;
+		}
+		return cgi;
+	}
+
+	ConceptH2Worker(owner) {
+		Framework = owner.IniGetPath("Paths", "Include") + JS_FRAMEWORK;
+	}
+}
+
 class ConceptServer extends IniCache {
 	var httpserver;
 	var ClientCount;
 	var appworker;
+	var h2worker;
 	var LogRequests = true;
 	var[] Workers;
 	var TargetWorker = 0;
@@ -2487,6 +2663,12 @@ class ConceptServer extends IniCache {
 		return null;
 	}
 
+	getPort(tls = false) {
+		if (tls)
+			return this.port;
+		return this.tlsport;
+	}
+
 	ConceptServer(ini_file) {
 		this.IniFile = ini_file;
 
@@ -2522,6 +2704,7 @@ class ConceptServer extends IniCache {
 			}
 		}
 
+		h2worker = new ConceptH2Worker(this);
 		appworker = new Worker("ConceptAppWorker", ini_file);
 
 		var workers_count = this.WorkerCount(DEFAULT_CGI_WORKERS);
@@ -2535,6 +2718,10 @@ class ConceptServer extends IniCache {
 		httpserver = new H2Server(this.IniGetPath("Paths", "ServerRoot", ""), get_root_by_host, this.IniKey("Server", "WebSocketCertificate", ""), this.IniKey("Server", "WebSocketPrivateKey", ""), port, tlsport, value this.IniKey("Server", "MaxAge", "604800"), value this.IniKey("Server", "MaxInitialIDLE", "10"), max_connections, this.IniKey("Server", "Interface", ""));
 		httpserver.TLSOnly = value this.IniKey("Server", "WebTLSOnly", "0");
 		httpserver.CommonRoot = this.IniGetPath("Paths", "ConceptClient", "./ConceptClient.js");
+
+		httpserver.getLoop().schedule(function(loop) {
+			h2worker.IterateAsyncWorkers(h2worker.CGIChildren);
+		}, 10);
 
 		httpserver.OnRequest = function(loop, http_version, tls, method, var filename, headers, socket, stream, var data, pending_buffer) {
 			if (this.LogRequests)
@@ -2583,17 +2770,44 @@ class ConceptServer extends IniCache {
 					data = StrReplace(data, "{APP}", app);
 					filename = "index.html";
 					return;
+				case "application/concept-async-page":
+					if (http_version == 2) {
+						var cgi_child = h2worker.CreateCGI(socket, stream, "", headers[":root"] ?? "", headers[":path"], filename, query, headers["host"] ?? "", this.port, 2, httpserver.defaultHeaders(http_version));
+						if (cgi_child) {
+							httpserver.addEvent(cgi_child.IterateEventLoop);
+							return REQUEST_HANDLED;
+						} else
+							return REQUEST_CGI_ERROR;
+					} else {
+						var worker = this.ChooseWorker();
+						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), "", headers[":root"], 2)));
+					}
+					return REQUEST_DETACH;
 				case "application/concept-server-page":
-					var worker = this.ChooseWorker();
-					worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.port, this.cgi, headers[":root"], false)));
+					if (http_version == 2) {
+						cgi_child = h2worker.CreateCGI(socket, stream, this.cgi, headers[":root"] ?? "", headers[":path"], filename, query, headers["host"] ?? "", this.port, 0, httpserver.defaultHeaders(http_version));
+						if (cgi_child) {
+							httpserver.addEvent(cgi_child.IterateEventLoop);
+							return REQUEST_HANDLED;
+						} else
+							return REQUEST_CGI_ERROR;
+					} else {
+						worker = this.ChooseWorker();
+						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), this.cgi, headers[":root"], false)));
+					}
 					return REQUEST_DETACH;
 				case "application/javascript-server-page":
-					worker = this.ChooseWorker();
-					worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.port, "", headers[":root"], 1)));
-					return REQUEST_DETACH;
-				case "application/concept-async-page":
-					worker = this.ChooseWorker();
-					worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.port, "", headers[":root"], 2)));
+					if (http_version == 2) {
+						cgi_child = h2worker.CreateCGI(socket, stream, "", headers[":root"] ?? "", headers[":path"], filename, query, headers["host"] ?? "", this.port, 1, httpserver.defaultHeaders(http_version));
+						if (cgi_child) {
+							httpserver.addEvent(cgi_child.IterateEventLoop);
+							return REQUEST_HANDLED;
+						} else
+							return REQUEST_CGI_ERROR;
+					} else {
+						worker = this.ChooseWorker();
+						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), "", headers[":root"], 1)));
+					}
 					return REQUEST_DETACH;
 				case "application/concept-private":
 					// drop request
@@ -2601,9 +2815,18 @@ class ConceptServer extends IniCache {
 					return REQUEST_STOP;
 				default:
 					if ((this.cgiother) && (IsSet(this.cgiother, content_type))) {
-						worker = this.ChooseWorker();
-						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), "", headers[":method"], headers[":host"] ?? "", headers[":path"], this.port, this.Owner.cgiother[content_type], headers[":root"], false)));
-						return REQUEST_DETACH;
+						if (http_version == 2) {
+							cgi_child = h2worker.CreateCGI(socket, stream, this.Owner.cgiother[content_type], headers[":root"] ?? "", headers[":path"], filename, query, headers["host"] ?? "", this.port, 1, httpserver.defaultHeaders(http_version));
+							if (cgi_child) {
+								httpserver.addEvent(cgi_child.IterateEventLoop);
+								return REQUEST_HANDLED;
+							} else
+								return REQUEST_CGI_ERROR;
+						} else {
+							worker = this.ChooseWorker();
+							worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), "", headers[":method"], headers[":host"] ?? "", headers[":path"], this.getPort(tls), this.Owner.cgiother[content_type], headers[":root"], false)));
+							return REQUEST_DETACH;
+						}
 					}
 			}
 		};
@@ -2659,7 +2882,6 @@ class Main {
 			ini_file = "concept.ini";
 
 		var server = new ConceptServer(ini_file);
-		server.LogRequests = false;
 		if (USE_DB_SERVICE) {
 			if (ExecuteProcess("concept", ".", ["TinDB.con"], [ ], false) < 0) {
 				if (ExecuteProcess(getcwd() + "/concept", ".", ["TinDB.con"], [ ], false) < 0)

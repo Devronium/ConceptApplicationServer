@@ -59,6 +59,10 @@ class H2Server {
 
 	public var LogHTTPErrors = false;
 
+	public getLoop() {
+		return loop;
+	}
+
 	parseFilename(var path, header) {
 		var filename = "";
 		var root;
@@ -476,9 +480,19 @@ class H2Server {
 		if (err <= 0) {
 			if ((!err) && (socket.file))
 				return;
-			loop.onWrite(null);
+			if (!loop.callbackEvents())
+				loop.onWrite(null);
 		}
 		loop.updateTimeout(this.timeout_ms);
+	}
+
+	consume(loop) {
+		loop.onWrite(__h2_write_consume);
+	}
+
+	addEvent(deleg) {
+		loop.addEvent(deleg);
+		loop.onWrite(__h2_write_consume);
 	}
 
 	protected __consume_tls_established_h2(socket, loop) {
@@ -713,6 +727,13 @@ class H2Server {
 		if (pos > 0)
 			return SubStr(path, pos);
 		return "";
+	}
+
+	defaultHeaders(version = 2) {
+		if (version >= 2)
+			return DEFAULT_HTTP2_HEADERS;
+
+		return DEFAULT_HTTP1_HEADERS;
 	}
 
 	useStatistics(deleg, interval = 1000) {

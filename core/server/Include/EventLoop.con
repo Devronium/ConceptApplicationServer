@@ -3,6 +3,11 @@ import standard.net.poll
 
 define MAX_CPU_SLEEP	1000
 
+define LOOP_EVENT_QUIT		true
+define LOOP_EVENT_HANDLED	-1
+define LOOP_EVENT_REMOVE	-2
+define LOOP_EVENT_REMOVE_ALL	-3
+
 class __EventEvent {
 	var deleg;
 	var when;
@@ -11,6 +16,8 @@ class __EventEvent {
 	var data;
 	var deleg2;
 	var data2;
+	var notifyEvents;
+	var events_len;
 
 	__EventEvent(deleg, when, rerun = 0) {
 		this.deleg = deleg;
@@ -39,6 +46,14 @@ class __EventEvent {
 	}
 
 	runRead(loop) {
+		var code = this.runCallbacks(loop, false);
+		switch (code) {
+			case LOOP_EVENT_QUIT:
+				return true;
+			case LOOP_EVENT_HANDLED:
+				return false;
+		}
+
 		if (!this.deleg) {
 			if (this.deleg2)
 				return false;
@@ -50,12 +65,46 @@ class __EventEvent {
 	}
 
 	runWrite(loop) {
+		var code = this.runCallbacks(loop, true);
+		switch (code) {
+			case LOOP_EVENT_QUIT:
+				return true;
+			case LOOP_EVENT_HANDLED:
+				return false;
+		}
+
 		if (!this.deleg2) {
 			if (this.deleg)
 				return false;
 			return true;
 		}
 		return this.deleg2(this.data, loop);
+	}
+
+	runCallbacks(loop, is_write) {
+		if ((notifyEvents) && (events_len)) {
+			for (var i = 0; i < length notifyEvents; i ++) {
+				var callback = notifyEvents[i];
+				if (callback) {
+					switch (callback(this.data, loop, is_write)) {
+						case LOOP_EVENT_HANDLED:
+							return LOOP_EVENT_HANDLED;
+						case LOOP_EVENT_REMOVE:
+							events_len --;
+							notifyEvents[i] = null;
+							break;
+						case LOOP_EVENT_REMOVE_ALL:
+							events_len = 0;
+							notifyEvents = null;
+							return false;
+						case LOOP_EVENT_QUIT:
+							events_len = 0;
+							notifyEvents = null;
+							return true;
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -106,6 +155,41 @@ class EventLoop {
 		events[length events] = new __EventEvent(e, 0, 0);
 	}
 
+	callbackEvents() {
+		if (!__currentevent)
+			throw new Error(@class + "." + @member + " must be called from a loop event", 1, @filename, @line);
+		return __currentevent.events_len;
+	}
+
+	addEvent(deleg) {
+		if (!__currentevent)
+			throw new Error(@class + "." + @member + " must be called from a loop event", 1, @filename, @line);
+		if (!deleg)
+			return;
+
+		if ((!__currentevent.events_len) && (!__currentevent.deleg2)) {
+			var flags;
+			if (__currentevent.deleg)
+				flags = POLL_READ;
+			flags |= POLL_WRITE;
+
+			PollUpdate(pollfd, __currentevent.socket, flags);
+		}
+
+		__currentevent.events_len ++;
+		if (__currentevent.notifyEvents) {
+			for (var i = 0; i < length __currentevent.notifyEvents; i ++) {
+				if (!__currentevent.notifyEvents[i]) {
+					__currentevent.notifyEvents[i] = deleg;
+					return;
+				}
+			}
+			__currentevent.notifyEvents[length __currentevent.notifyEvents] = deleg;
+		} else {
+			__currentevent.notifyEvents = [ deleg ];
+		}
+	}
+
 	object() {
 		if (!__currentevent)
 			throw new Error(@class + "." + @member + " must be called from a loop event", 1, @filename, @line);
@@ -134,7 +218,7 @@ class EventLoop {
 				var flags;
 				if (__currentevent.deleg)
 					flags = POLL_READ;
-				if (deleg)
+				if ((deleg) || (__currentevent.events_len))
 					flags |= POLL_WRITE;
 
 				PollUpdate(pollfd, __currentevent.socket, flags);
