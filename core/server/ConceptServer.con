@@ -2490,6 +2490,7 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 		} else
 		if (Socket) {
 			try {
+				SetNonBlocking(Socket.Socket, true);
 				Socket.Close(true);
 				delete Socket;
 			} catch (exc) {
@@ -3416,6 +3417,7 @@ pragma used
 				"HTTP_ACCEPT_ENCODING=" + this.GetHeader(job, "accept-encoding", headers_lowercase),
 				"HTTP_REFERER=" + this.GetHeader(job, "referer", headers_lowercase)
 		];
+
 		if (classof Socket == "TLSESocket") {
 			env[length env] = "HTTPS=on";
 			env[length env] = "HTTPS_CIPHER=" + Socket.CipherName;
@@ -3450,10 +3452,12 @@ pragma used
 	}
 
 	Clean() {
+		if (Placeholders < 10)
+			return;
 		var new_children = new [];
 		var children = this.Children;
+		this.Children = new_children;
 		if (Placeholders == length children) {
-			this.Children = new_children;
 			Placeholders = 0;
 			return;
 		}
@@ -3481,7 +3485,7 @@ pragma used
 			}
 		}
 		this.IterateAsyncWorkers(children);
-		if (Placeholders >= 20)
+		if (Placeholders >= 50)
 			this.Clean();
 		return res;
 	}

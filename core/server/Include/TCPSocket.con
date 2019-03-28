@@ -63,12 +63,16 @@ class TCPSocket {
 
 	public function Close(force=false) {
 		if (Socket>0) {
-			if (force)
-				var res=SocketClose(Socket, true);
-			else
-				res=SocketClose(Socket);
-			Socket=-1;
-			_islisten=false;
+			if (force) {
+				var res = SocketClose(Socket, true);
+			} else {
+				res = SocketClose(Socket);
+				// on error, force close (no linger)
+				if (res)
+					res = SocketClose(Socket, true);
+			}
+			Socket = -1;
+			_islisten = false;
 			return res;
 		}
 		return 0;

@@ -10,6 +10,7 @@ class __EventEvent {
 	var socket;
 	var data;
 	var deleg2;
+	var data2;
 
 	__EventEvent(deleg, when, rerun = 0) {
 		this.deleg = deleg;
@@ -109,6 +110,18 @@ class EventLoop {
 		if (!__currentevent)
 			throw new Error(@class + "." + @member + " must be called from a loop event", 1, @filename, @line);
 		return __currentevent.data;
+	}
+
+	data() {
+		if (!__currentevent)
+			throw new Error(@class + "." + @member + " must be called from a loop event", 1, @filename, @line);
+		return __currentevent.data2;
+	}
+
+	setData(data) {
+		if (!__currentevent)
+			throw new Error(@class + "." + @member + " must be called from a loop event", 1, @filename, @line);
+		__currentevent.data2 = data;
 	}
 
 	onWrite(deleg) {

@@ -8,7 +8,7 @@ include JSFramework.con
 
 import standard.lang.cli
 
-define LOG_LEVEL		LOG_TRACE
+define LOG_LEVEL		LOG_WARN
 define WS_SESSION_RESTORE	true
 define CONCEPT_STRICT_EXECUTE	false
 define SERVER_NAME		"cas"
@@ -190,28 +190,7 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 	var content_length = -1;
 
 	GetPath(filename) {
-		var arr = StrSplit(filename, "/");
-		var len = length arr;
-		var directory = "";
-
-		var arr2 = new [];
-		for (var i = len - 1; i >= 0; i--) {
-			var d = arr[i];
-			if (d == "..") {
-				// jump one directory
-				i--;
-			} else
-			if (d != ".")
-				arr2[length arr2] = d;
-		}
-		len = length arr2;
-		for (i = len - 1; i >= 0; i--) {
-			d = arr2[i];
-			if (d) {
-				if (i)
-					directory += d + "/";
-			}
-		}
+		var directory = http_directory(filename);
 		if ((!ON_MSWINDOWS) && (filename) && (filename[0] == "/") && (directory[0] != "/"))
 			return "/" + directory;
 
@@ -527,7 +506,8 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 		} else
 		if (Socket) {
 			try {
-				Socket.Close(true);
+				SetNonBlocking(Socket.Socket, true);
+				Socket.Close(/* true */);
 				delete Socket;
 			} catch (exc) {
 				console.warn(LOG_THIS, "ConceptJSChild/Socket close error: $exc");
@@ -1084,11 +1064,11 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 						if (!pipe_err)
 							pipe_err = SocketErrno();
 						if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22) && (pipe_err != 10035) && (err)) {
-							console.error(LOG_THIS, "CGI pipe read error: $pipe_err");
+							console.debug(LOG_THIS, "CGI pipe read error: $pipe_err");
 							return true;
 						}
 						if ((last_pipe_err_time_read) && (time() - last_pipe_err_time_read >= CGI_MAX_RETRY_SECONDS)) {
-							console.warn(LOG_THIS, "CGI pipe congestion");
+							console.debug(LOG_THIS, "CGI pipe congestion");
 							return true;
 						}
 						if (!last_pipe_err_time_read)
@@ -1117,7 +1097,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 				if (res <= 0) {
 					pipe_err = _errno();
 					if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22) && (res)) {
-						console.error(LOG_THIS, "CGI pipe read error: $pipe_err");
+						console.debug(LOG_THIS, "CGI pipe read error: $pipe_err");
 						return true;
 					}
 					if ((last_pipe_err_time_read) && (time() - last_pipe_err_time_read >= CGI_MAX_RETRY_SECONDS)) {
@@ -1174,7 +1154,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 						std_out_buffer = SubStr(std_out_buffer, res);
 						ops ++;
 						if (length std_out_buffer > CGI_MAX_STDOUT_BUFFER) {
-							console.error(LOG_THIS, "CGI stdout buffer overflow");
+							console.info(LOG_THIS, "CGI stdout buffer overflow");
 							return true;
 						}
 						last_err_time = 0;
@@ -1226,29 +1206,8 @@ class ContainerWorker extends Worker {
 	var idx;
 	var[] cache;
 
-	static GetPath(filename) {
-		var arr = StrSplit(filename, "/");
-		var len = length arr;
-		var directory = "";
-
-		var arr2 = new [];
-		for (var i = len - 1; i >= 0; i--) {
-			var d = arr[i];
-			if (d == "..") {
-				// jump one directory
-				i--;
-			} else
-			if (d != ".")
-				arr2[length arr2] = d;
-		}
-		len = length arr2;
-		for (i = len - 1; i >= 0; i--) {
-			d = arr2[i];
-			if (d) {
-				if (i)
-					directory += d + "/";
-			}
-		}
+	GetPath(filename) {
+		var directory = http_directory(filename);
 		if ((!ON_MSWINDOWS) && (filename) && (filename[0] == "/") && (directory[0] != "/"))
 			return "/" + directory;
 
@@ -1367,7 +1326,7 @@ class ConceptBaseWorker {
 		if ((child) && (child.reqid)) {
 			if (IsSet(childcache, child.reqid)) {
 				childcache[child.reqid] = null;
-				cacheholders++;
+				cacheholders ++;
 			}
 		}
 	}
@@ -1388,7 +1347,7 @@ class ConceptBaseWorker {
 				if ((data_arr) && (worker_get > 0)) {
 					data_arr = UnBinarizeObject(data_arr);
 					for (var j = 0; j < length data_arr; j++) {
-						var data = data_arr[j];//UnBinarizeObject(data_arr[j]);
+						var data = data_arr[j]; // UnBinarizeObject(data_arr[j]);
 						if (data) {
 							ops++;
 							var request = data["q"];
@@ -1610,10 +1569,13 @@ pragma used
 	}
 
 	Clean() {
+		if (Placeholders < 10)
+			return;
+
 		var new_children = new [];
 		var children = this.Children;
+		this.Children = new_children;
 		if (Placeholders == length children) {
-			this.Children = new_children;
 			Placeholders = 0;
 			return;
 		}
@@ -1641,7 +1603,7 @@ pragma used
 			}
 		}
 		this.IterateAsyncWorkers(children);
-		if (Placeholders >= 20)
+		if (Placeholders >= 50)
 			this.Clean();
 		return res;
 	}
@@ -1696,7 +1658,7 @@ pragma used
 							Socket.Close(true);
 						}
 					} catch (var exc) {
-						console.error(LOG_THIS, "Exc: $exc");
+						console.debug(LOG_THIS, "Exc: $exc");
 						delete Socket;
 					}
 				}
@@ -1709,24 +1671,20 @@ pragma used
 		} else {
 			empty_iterations++;
 			if (empty_iterations > IDLE_SLEEP_THRESHOLD)
-				sleep_value = IDLE_SLEEP_MS2; // Sleep(IDLE_SLEEP_MS2);
+				sleep_value = IDLE_SLEEP_MS2;
 			else
-				sleep_value = IDLE_SLEEP_MS; // Sleep(IDLE_SLEEP_MS);
+				sleep_value = IDLE_SLEEP_MS;
 		}
-		// return work_count;
 	}
 
 	ConceptWorker(n) {
 		n = UnBinarizeObject(n);
 		WorkerName = n[0];
 		Framework = this.IniGetPath(n[1], "Paths", "Include") + JS_FRAMEWORK;
-		var empty_iterations = 0;
-		var sleep_value = 0;
-		while (true) {
+		var empty_iterations;
+		var sleep_value;
+		while (true)
 			Loop(empty_iterations, sleep_value);
-			// if (!work_count)
-			//	Sleep(IDLE_SLEEP_MS);
-		}
 	}
 }
 
@@ -2568,6 +2526,7 @@ class ConceptServer extends IniCache {
 
 		var workers_count = this.WorkerCount(DEFAULT_CGI_WORKERS);
 		console.info(LOG_THIS, "Initializing $workers_count CGI workers");
+
 		for (i = 0; i < workers_count; i++)
 			Workers[i] = new Worker("ConceptWorker", BinarizeObject(["Worker${i+1}", ini_file]));
 
@@ -2577,7 +2536,7 @@ class ConceptServer extends IniCache {
 		httpserver.TLSOnly = value this.IniKey("Server", "WebTLSOnly", "0");
 		httpserver.CommonRoot = this.IniGetPath("Paths", "ConceptClient", "./ConceptClient.js");
 
-		httpserver.OnRequest = function(http_version, tls, method, var filename, headers, socket, stream, var data, pending_buffer) {
+		httpserver.OnRequest = function(loop, http_version, tls, method, var filename, headers, socket, stream, var data, pending_buffer) {
 			if (this.LogRequests)
 				this.log_request(http_version, tls, method, headers, socket);
 			var content_type = httpserver.mimeType(filename);

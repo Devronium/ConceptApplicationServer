@@ -19,6 +19,8 @@ define DEFAULT_HTTP2_HEADERS	[":status" => "200", "date" => "${__utc_string()} G
 define REQUEST_CONTINUE		0
 define REQUEST_STOP		1
 define REQUEST_DETACH		2
+define REQUEST_HANDLED		3
+define REQUEST_CGI_ERROR	4
 
 define MIN_GZIP_AUTOCACHE_SIZE	1024
 // 8M limit on text file autocache
@@ -390,11 +392,15 @@ class H2Server {
 
 		var data;
 		if (this.OnRequest) {
-			switch (this.OnRequest(2, true, method, filename, header, h2, stream, data, "")) {
+			switch (this.OnRequest(loop, 2, true, method, filename, header, h2, stream, data, "")) {
 				case REQUEST_STOP:
 					__error_h2(h2, stream, 403, "Forbidden", method, path);
 					return;
 				case REQUEST_DETACH:
+				case REQUEST_HANDLED:
+					return;
+				case REQUEST_CGI_ERROR:
+					__error_h2(h2, stream, 503, "Service unavailable", method, path);
 					return;
 			}
 		}
@@ -513,7 +519,7 @@ class H2Server {
 		return true;
 	}
 
-	protected __consume_buffer(buf, socket, loop) {
+	protected __consume_buffer(var buf, socket, loop) {
 		if (buf) {
 			var filename = this.parseRequest(buf, var header, var offset);
 			if (!header) {
@@ -544,7 +550,7 @@ class H2Server {
 				var remaining_buffer = "";
 				if ((offset > 0) && (offset < length buf))
 					remaining_buffer = SubStr(buf, offset);
-				switch (this.OnRequest(1, socket.tls, method, filename, header, socket, null, data, remaining_buffer)) {
+				switch (this.OnRequest(loop, 1, socket.tls, method, filename, header, socket, null, data, remaining_buffer)) {
 					case REQUEST_STOP:
 						__error(socket, 403, "Forbidden", method, header[":path"]);
 						return true;
@@ -552,6 +558,12 @@ class H2Server {
 						socket.Socket.Socket = 0;
 						socket.Socket = null;
 						return true;
+					case REQUEST_HANDLED:
+						// do nothing
+						return false;
+					case REQUEST_CGI_ERROR:
+						__error(socket, 503, "Service unavailable", method, header[":path"]);
+						return;
 				}
 			}
 			var response_headers = __create_headers(filename, header);
