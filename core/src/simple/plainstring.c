@@ -320,8 +320,14 @@ void plainstring_set(struct plainstring *this_string, const char *value) {
         this_string->LENGTH = len;
         if (len) {
             if (len + 1 >= this_string->DATA_SIZE) {
-                this_string->DATA_SIZE = ((len + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
+                this_string->DATA_SIZE  = ((len + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
+                char *orig_data         = this_string->DATA;
                 this_string->DATA       = (char *)realloc(this_string->DATA, this_string->DATA_SIZE);
+                if (!this_string->DATA) {
+                    this_string->DATA_SIZE = 0;
+                    this_string->LENGTH = 0;
+                    free(orig_data);
+                }
             }
             if (this_string->DATA) {
                 MEMCPY(this_string->DATA, value, len + 1);
@@ -387,7 +393,14 @@ void plainstring_add(struct plainstring *this_string, const char *value) {
         this_string->LENGTH   = len + len_value;
         if (this_string->DATA_SIZE < this_string->LENGTH + 1) {
             this_string->DATA_SIZE = ((this_string->LENGTH + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
+            char *orig_data = this_string->DATA;
             this_string->DATA = (char *)realloc(this_string->DATA, this_string->DATA_SIZE);
+            if (!this_string->DATA) {
+                this_string->DATA_SIZE = 0;
+                this_string->LENGTH = 0;
+                free(orig_data);
+                return;
+            }
             MEMCPY(this_string->DATA + len, value, len_value + 1);
         } else {
             MEMCPY(this_string->DATA + len, value, len_value + 1);
@@ -539,11 +552,13 @@ void plainstring_addbuffer(struct plainstring *this_string, const char *buffer, 
         if (this_string->DATA_SIZE < this_string->LENGTH + 1) {
             this_string->DATA_SIZE = ((this_string->LENGTH + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
 
+            char *orig_data = this_string->DATA;
             this_string->DATA = (char *)realloc(this_string->DATA, this_string->DATA_SIZE);
             if (this_string->DATA) {
                 MEMCPY(this_string->DATA + len, buffer, size);
                 this_string->DATA[this_string->LENGTH] = 0;
             } else {
+                free(orig_data);
                 this_string->LENGTH    = 0;
                 this_string->DATA_SIZE = 0;
             }
@@ -583,7 +598,17 @@ void plainstring_increasebuffer(struct plainstring *this_string, int size) {
 
         this_string->DATA_SIZE = (new_len / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
 
+        char *orig_data = this_string->DATA;
         this_string->DATA = (char *)realloc(this_string->DATA, this_string->DATA_SIZE);
+        if (!this_string->DATA) {
+            this_string->DATA_SIZE = ((this_string->LENGTH + size + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
+            this_string->DATA = (char *)realloc(orig_data, this_string->DATA_SIZE);
+            if (!this_string->DATA) {
+                this_string->DATA_SIZE = 0;
+                this_string->LENGTH = 0;
+                free(orig_data);
+            }
+        }
     }
 }
 
@@ -636,7 +661,13 @@ void plainstring_replace_char_with_string(struct plainstring *this_string, const
         }
         if (len > (uintptr_t)this_string->DATA_SIZE) {
             this_string->DATA_SIZE = (len / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
+            char *orig_data        = this_string->DATA;
             this_string->DATA      = (char *)realloc(this_string->DATA, this_string->DATA_SIZE);
+            if (!this_string->DATA) {
+                this_string->DATA_SIZE = 0;
+                this_string->LENGTH = 0;
+                free(orig_data);
+            }
         }
         if (this_string->DATA) {
             memmove(this_string->DATA + index + ptr_len, this_string->DATA + index + 1, this_string->LENGTH - index - 1);
