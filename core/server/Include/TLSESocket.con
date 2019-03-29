@@ -387,7 +387,7 @@ class TLSESocket extends TCPSocket {
 		return 0;
 	}
 
-	public TLSWrite(var string buffer) {
+	public TLSWrite(var string buffer, offset = 0) {
 		if (Socket<=0)
 			throw "Invalid TLS socket (Write)";
 		if (_islisten)
@@ -399,7 +399,7 @@ class TLSESocket extends TCPSocket {
 			throw "Broken TLS socket (Write)\n";
 
 		if (length buffer) {
-			var written = 0;
+			var written = offset;
 			written = TLSEWrite(tls, buffer, written);
 			if (written < 0)
 				throw "Broken TLS socket (Write)";

@@ -972,6 +972,31 @@ class HTTP2Socket {
 		return length OutBuffer;
 	}
 
+	protected WriteChunk() {
+		var offset = 0;
+		var timestamp = Date.now();
+		do {
+			var len = this.Socket.TLSWrite(OutBuffer, offset);
+			if (len > 0) {
+				offset += len;
+				IdleSince = time();
+				last_err_time = 0;
+				// don't call WriteIterate (WriteOnce will call it)
+				// it is important for WriteOnce to return true, while data is pending
+				/* try {
+					this.Socket.WriteIterate();
+				} catch (var exc) {
+					console.debug(LOG_THIS, exc);
+					break;
+				} */
+			}
+		} while ((len > 0) && (Date.now() - timestamp < 50));
+		if (offset >= length OutBuffer)
+			OutBuffer = "";
+		else
+			OutBuffer = SubStr(OutBuffer, offset);
+	}
+
 	WriteOnce() {
 		if (Status < 0)
 			return -1;
@@ -983,16 +1008,7 @@ class HTTP2Socket {
 			return 1;
 
 		if (OutBuffer) {
-			var len = this.Socket.TLSWrite(OutBuffer);
-			if (len > 0) {
-				IdleSince = time();
-				this.Socket.WriteIterate();
-				if (len >= length OutBuffer)
-					OutBuffer = "";
-				else
-					OutBuffer = SubStr(OutBuffer, len);
-				last_err_time = 0;
-			}
+			this.WriteChunk();
 			return 1;
 		}
 		return 0;

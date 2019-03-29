@@ -23,7 +23,7 @@ int StaticList::EnsureSpace() {
         char **old_data = data;
         data = (char **)realloc(data, new_size * sizeof(char *));
         if (!data) {
-            free(old_data)
+            free(old_data);
             return 0;
         }
 

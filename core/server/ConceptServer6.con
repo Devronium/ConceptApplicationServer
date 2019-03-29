@@ -8,12 +8,12 @@ include JSFramework.con
 
 import standard.lang.cli
 
-define LOG_LEVEL		LOG_DEBUG
+define LOG_LEVEL		LOG_INFO
 define WS_SESSION_RESTORE	true
 define CONCEPT_STRICT_EXECUTE	false
 define SERVER_NAME		"cas"
 define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/cgi1.1/http2/ess/async)"
-define USE_DB_SERVICE		!true
+define USE_DB_SERVICE		true
 define DEFAULT_CGI_WORKERS	2
 define JS_CGI_DONE_TIMEOUT	30
 define JS_MAX_TIMEOUT		1200
@@ -358,6 +358,10 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 		if (typeof buffer == "array")
 			buffer = this.obj_to_string(buffer, true);
 		print_started = true;
+		if (length std_out_buffer > H2_MAX_STDOUT_BUFFER) {
+			console.warn(LOG_THIS, "CGI stdout buffer overflow");
+			return;
+		}
 		std_out_buffer += buffer;
 	}
 
@@ -677,6 +681,8 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 					last_err_time = time();
 				}
 			}
+			if (!std_out_buffer)
+				this.notify_buffer();
 		}
 		if ((!std_out_buffer) && (!running)) {
 			H2Close();
@@ -813,6 +819,11 @@ class ConceptJSChild extends ConceptAsyncChild {
 		}
 	}
 
+	notify_buffer() {
+		if (js)
+			js.js.call("onoutput", [length std_out_buffer]);
+	}
+
 	Iterate(var ops, can_write = true) {
 		// timed out
 		if (time() > timeout) {
@@ -930,9 +941,12 @@ class ConceptCASChild extends ConceptAsyncChild {
 			timeout = time() + JS_CGI_DONE_TIMEOUT;
 			if (checkpostdata)
 				this.parsepostdata(data);
-
 			this.remotenotify("data", data);
 		}
+	}
+
+	notify_buffer() {
+		this.remotenotify("output", "" + length std_out_buffer, -1);
 	}
 
 	onmessage(data) {

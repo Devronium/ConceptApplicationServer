@@ -368,6 +368,11 @@ class H2Server {
 	}
 
 	protected __h2_request(h2, stream) {
+		if (stream.Status != 1) {
+			console.warn(LOG_THIS, "ignoring POST/PUT data");
+			return;
+		}
+
 		var header = stream.Headers;
 		if (!header) {
 			__error_h2(h2, stream, 400, "Bad Request");
@@ -475,6 +480,7 @@ class H2Server {
 					socket.file = new_files;
 				}
 			}
+			loop.updateTimeout(this.timeout_ms);
 		}
 		var err = socket.Socket.WriteOnce();
 		if (err <= 0) {
@@ -482,8 +488,9 @@ class H2Server {
 				return;
 			if (!loop.callbackEvents())
 				loop.onWrite(null);
+		} else {
+			loop.updateTimeout(this.timeout_ms);
 		}
-		loop.updateTimeout(this.timeout_ms);
 	}
 
 	consume(loop) {

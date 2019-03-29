@@ -255,11 +255,13 @@ class _webrequest {
 	protected var _ontimedout;
 	protected var _ondone;
 	protected var _registered;
+	protected var _onoutput;
 
 	property onpost { get _onpost, set setonpost }
 	property ondata { get _ondata, set setondata }
 	property ontimedout { get _ontimedout, set setontimedout }
 	property ondone { get _ondone, set setondone }
+	property onoutput { get _onoutput, set setonoutput }
 
 	_webrequest(owner, id, data, timestamp) {
 		this.web = owner;
@@ -440,6 +442,12 @@ class _webrequest {
 		return deleg;
 	}
 
+	setonoutput(deleg) {
+		this.register();
+		this._onoutput = deleg;
+		return deleg;
+	}
+
 	finalize() {
 		this.sync();
 		web.requests--;
@@ -547,6 +555,13 @@ class web {
 						obj.ondone();
 				}
 				this.done(id);
+				break;
+			case "output":
+				if ((id) && (typeof id == "string") && (IsSet(requestdata, id))) {
+					obj = requestdata[id];
+					if ((obj) && (obj.onoutput))
+						obj.onoutput();
+				}
 				break;
 			default:
 				this.done(id);

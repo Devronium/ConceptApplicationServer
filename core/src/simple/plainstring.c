@@ -536,7 +536,10 @@ void plainstring_loadbuffer(struct plainstring *this_string, const char *buffer,
     if (this_string->DATA) {
         MEMCPY(this_string->DATA, buffer, size);
         this_string->DATA[size] = 0;
-    }   
+    } else {
+        this_string->DATA_SIZE = 0;
+        this_string->LENGTH = 0;
+    }
     free(free_after);
 }
 
