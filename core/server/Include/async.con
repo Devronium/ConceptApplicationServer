@@ -500,12 +500,12 @@ class web {
 				for (var i = 0; i < length keys; i++) {
 					var k = keys[i];
 					if (k) {
-						var e = this.requests[k];
+						var e = this.requestdata[k];
 						if (e)
 							new_requests[k] = e;
 					}
 				}
-				this.requests = new_requests;
+				this.requestdata = new_requests;
 			}
 		}
 	}
