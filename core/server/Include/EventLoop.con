@@ -81,6 +81,11 @@ class __EventEvent {
 		return this.deleg2(this.data, loop);
 	}
 
+	resetFlags(loop) {
+		if ((!events_len) && (!deleg2) && (socket > 0))
+			PollUpdate(loop.pollfd, socket, POLL_READ);
+	}
+
 	runCallbacks(loop, is_write) {
 		if ((notifyEvents) && (events_len)) {
 			for (var i = 0; i < length notifyEvents; i ++) {
@@ -92,15 +97,32 @@ class __EventEvent {
 						case LOOP_EVENT_REMOVE:
 							events_len --;
 							notifyEvents[i] = null;
+							resetFlags(loop);
 							break;
 						case LOOP_EVENT_REMOVE_ALL:
 							events_len = 0;
 							notifyEvents = null;
+							resetFlags(loop);
 							return false;
 						case LOOP_EVENT_QUIT:
 							events_len = 0;
 							notifyEvents = null;
 							return true;
+					}
+				}
+			}
+		}
+	}
+
+	close(loop) {
+		if ((notifyEvents) && (events_len)) {
+			for (var i = 0; i < length notifyEvents; i ++) {
+				var callback = notifyEvents[i];
+				if (callback) {
+					try {
+						callback(this.data, loop, -1);
+					} catch (var exc) {
+						// nothing
 					}
 				}
 			}
@@ -114,14 +136,14 @@ class EventLoop {
 	protected var running;
 	protected var cpu_sleep;
 	protected var iotimeout_objects;
-	protected var pollfd;
+	public var pollfd;
 
 	public var minSleep = 0;
-	// dummy variable
-	private var Socket;
 	private var __currentevent;
 
-	public var userData;
+	// dummy variable
+	private var Socket;
+	private var Close;
 
 	EventLoop() {
 		this.pollfd = PollOpen();
@@ -314,6 +336,21 @@ class EventLoop {
 		this.events = events2;
 	}
 
+	protected __close_socketevent(e) {
+		if (e.socket > 0) {
+			PollRemove(pollfd, e.socket);
+			e.close(this);
+			e.socket = 0;
+			if ((e.data) && (e.data.Socket)) {
+				try {
+					e.data.Socket.Close();
+				} catch (var exc) {
+					console.debug(LOG_THIS, exc);
+				}
+			}
+		}
+	}
+
 	protected __remove_sockets() {
 		var socketevents2 = new [];
 		var iotimeout_objects2 = 0;
@@ -325,7 +362,7 @@ class EventLoop {
 					iotimeout_objects2 ++;
 			} else
 			if ((e) && (e.socket > 0))
-				PollRemove(pollfd, e.socket);
+				this.__close_socketevent(e);
 		}
 		this.socketevents = socketevents2;
 		this.iotimeout_objects = iotimeout_objects2;
@@ -358,12 +395,12 @@ class EventLoop {
 				try {
 					if ((!e) || (((write_event) && (e.runWrite(this))) || ((!write_event) && (e.runRead(this))))) {
 						if (e)
-							PollRemove(pollfd, e.socket);
+							this.__close_socketevent(e);
 						socketevents[key] = null;
 						remove_sockets ++;
 					}
 				} catch (var exc) {
-					PollRemove(pollfd, e.socket);
+					this.__close_socketevent(e);
 					socketevents[key] = null;
 					remove_sockets ++;
 					console.error(LOG_THIS, exc);

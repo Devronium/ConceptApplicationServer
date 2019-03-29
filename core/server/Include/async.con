@@ -562,6 +562,7 @@ class web {
 				headercache = new [];
 			} else
 				Worker::Result(BinarizeObject(buffercache));
+
 			buffercache = new [];
 		}
 	}

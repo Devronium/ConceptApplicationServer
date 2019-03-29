@@ -13,7 +13,7 @@ define WS_SESSION_RESTORE	true
 define CONCEPT_STRICT_EXECUTE	false
 define SERVER_NAME		"cas"
 define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/cgi1.1/http2/ess/async)"
-define USE_DB_SERVICE		true
+define USE_DB_SERVICE		!true
 define DEFAULT_CGI_WORKERS	2
 define JS_CGI_DONE_TIMEOUT	30
 define JS_MAX_TIMEOUT		1200
@@ -38,6 +38,7 @@ define H2_MAX_FILE_BUFFER	0x200000
 define H1_MAX_FILE_BUFFER	0x20000
 
 class ConceptCGIChildBase {
+	var owner;
 	var h2;
 	var stream;
 	var h2headers;
@@ -339,7 +340,10 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 		}
 	}
 
-	print(buffer) {
+	print(var buffer) {
+		// is closed ?
+		if ((!h2) && (!Socket))
+			return;
 		timeout = time() + JS_CGI_DONE_TIMEOUT;
 		if ((!header_started) && (!h2)) {
 			std_out_buffer += "HTTP/1.1 200 OK\r\nServer: " + SERVER_NAME + "\r\n";
@@ -497,27 +501,37 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 		if ((h2) && (stream)) {
 			try {
 				stream.Close(h2);
-				delete h2;
-				delete stream;
-				delete Socket;
 			} catch (var exc) {
-				console.warn(LOG_THIS, "ConceptJSChild/HTTP/2 Socket close error: $exc");
+				console.debug(LOG_THIS, "${@class}/HTTP/2 Socket close error: $exc");
 			}
 		} else
 		if (Socket) {
 			try {
 				SetNonBlocking(Socket.Socket, true);
 				Socket.Close(/* true */);
-				delete Socket;
 			} catch (exc) {
 				console.warn(LOG_THIS, "ConceptJSChild/Socket close error: $exc");
 			}
+			delete Socket;
+		}
+		try {
+			delete h2;
+		} catch (exc) {
+		}
+		try {
+			delete stream;
+		} catch (exc) {
+		}
+		try {
+			delete Socket;
+		} catch (exc) {
 		}
 		std_out_buffer = "";
 		std_in_buffer = "";
 	}
 
-	ConceptAsyncChild(Socket, buffer, h2 = null, stream = null, default_h2_header = null) {
+	ConceptAsyncChild(owner, Socket, buffer, h2 = null, stream = null, default_h2_header = null) {
+		this.owner = owner;
 		this.Socket = Socket;
 		this.std_in_buffer = buffer;
 		this.h2 = h2;
@@ -623,7 +637,8 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 						var close_stream = false;
 						if ((!running) && (stream.AtomicWriteSize(length std_out_buffer) == length std_out_buffer))
 							close_stream = true;
-						var res = stream.Write(h2, std_out_buffer, close_stream);
+
+						var res = stream.SafeWrite(h2, std_out_buffer, close_stream);
 						if (res > 0) {
 							std_out_buffer = SubStr(std_out_buffer, res);
 							ops ++;
@@ -709,8 +724,8 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 class ConceptJSChild extends ConceptAsyncChild {
 	var js;
 
-	ConceptJSChild(framework, method, Socket, env, buffer, h2 = null, stream = null, default_h2_header = null, headers = null) {
-		super(Socket, buffer, h2, stream, default_h2_header);
+	ConceptJSChild(owner, framework, method, Socket, env, buffer, h2 = null, stream = null, default_h2_header = null, headers = null) {
+		super(owner, Socket, buffer, h2, stream, default_h2_header);
 		var app = env["SCRIPT_FILENAME"];
 
 		js = new JSCode(this.GetPath(app), null, framework);
@@ -759,6 +774,8 @@ class ConceptJSChild extends ConceptAsyncChild {
 			js.js = null;
 			js = null;
 		}
+		if (owner)
+			owner.ClearCache(this);
 	}
 
 	done() {
@@ -821,16 +838,24 @@ class ConceptJSChild extends ConceptAsyncChild {
 	}
 
 	IterateEventLoop(socket, loop, is_write) {
-		if (this.Iterate(null, is_write))
-			return LOOP_EVENT_REMOVE;
+		if (is_write < 0) {
+			this.reset();
+		} else {
+			if (owner)
+				owner.IterateAsyncWorkers(null);
+			if (this.Iterate(null, is_write)) {
+				this.reset();
+				return LOOP_EVENT_REMOVE;
+			}
+		}
 	}
 }
 
 class ConceptCASChild extends ConceptAsyncChild {
 	var worker;
 
-	ConceptCASChild(worker, err_buffer, method, Socket, env, buffer, h2 = null, stream = null, default_h2_header = null, headers = null) {
-		super(Socket, buffer, h2, stream, default_h2_header);
+	ConceptCASChild(owner, worker, err_buffer, method, Socket, env, buffer, h2 = null, stream = null, default_h2_header = null, headers = null) {
+		super(owner, Socket, buffer, h2, stream, default_h2_header);
 
 		worker.idx++;
 		this.reqid = "" + worker.idx + "." + sha1(CryptoRandom(32));
@@ -862,6 +887,8 @@ class ConceptCASChild extends ConceptAsyncChild {
 	reset() {
 		this.remotenotify("done", null, -1);
 		worker = null;
+		if (owner)
+			owner.ClearCache(this);
 	}
 
 	remotenotify(action, data = null, priority = 0) {
@@ -944,12 +971,23 @@ class ConceptCASChild extends ConceptAsyncChild {
 		return this.baseiterate(ops, can_write);
 	}
 
+	finalize() {
+		baseclosesocket();
+	}
+
 	IterateEventLoop(socket, loop, is_write) {
-		if (this.Iterate(null, is_write))
-			return LOOP_EVENT_REMOVE;
+		if (is_write < 0) {
+			this.reset();
+		} else {
+			if (owner)
+				owner.IterateAsyncWorkers(null);
+			if (this.Iterate(null, is_write)) {
+				this.reset();
+				return LOOP_EVENT_REMOVE;
+			}
+		}
 	}
 }
-
 
 class ConceptCGIChild extends ConceptCGIChildBase {
 	var std_out;
@@ -958,7 +996,8 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 	var last_pipe_err_time_read;
 	var is_tls;
 
-	ConceptCGIChild(method, Socket, std_out, std_in, pid, buffer, h2 = null, stream = null, default_h2_header = null) {
+	ConceptCGIChild(owner, method, Socket, std_out, std_in, pid, buffer, h2 = null, stream = null, default_h2_header = null) {
+		this.owner = owner;
 		this.is_post = true;//(method != "GET");
 		this.std_out = 	std_out;
 		this.std_in = std_in;
@@ -1147,7 +1186,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 						var close_stream = false;
 						if ((!running) && (stream.AtomicWriteSize(length std_out_buffer) == length std_out_buffer))
 							close_stream = true;
-						res = stream.Write(h2, std_out_buffer, close_stream);
+						res = stream.SafeWrite(h2, std_out_buffer, close_stream);
 						if (res > 0) {
 							std_out_buffer = SubStr(std_out_buffer, res);
 							ops ++;
@@ -1192,6 +1231,9 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 	}
 
 	IterateEventLoop(socket, loop, is_write) {
+		if (is_write < 0)
+			this.Close();
+		else
 		if (this.Iterate(null, is_write))
 			return LOOP_EVENT_REMOVE;
 	}
@@ -1346,11 +1388,12 @@ class ConceptBaseWorker {
 
 	IterateAsyncWorkers(children) {
 		if (cacheholders > 100)
-			this.UpdateChildCache(children);
+			this.UpdateChildCache(children ?? childcache);
 
 		var workers = cgiworkers;
 		if (!workers)
 			return 0;
+
 		var ops = 0;
 		var removed_workers = 0;
 		for (var i = 0; i < length workers; i++) {
@@ -1491,12 +1534,12 @@ pragma used
 
 	CreateJavascript(Socket, job) {
 		var env = this.CreateEnv(Socket, job);
-		return new ConceptJSChild(this.Framework, job.method, Socket, env, job.snippet, null, null, null, job.headers);
+		return new ConceptJSChild(null, this.Framework, job.method, Socket, env, job.snippet, null, null, null, job.headers);
 	}
 
 	CreateCAS(Socket, job) {
 		var env = this.CreateEnv(Socket, job, "conceptasync");
-		var cgi = new ConceptCASChild(CGIAsyncWorker::Create(this.cgiworkers, job.app, null, var err), err, job.method, Socket, env, job.snippet, null, null, null, job.headers);
+		var cgi = new ConceptCASChild(null, CGIAsyncWorker::Create(this.cgiworkers, job.app, null, var err), err, job.method, Socket, env, job.snippet, null, null, null, job.headers);
 		if (cgi.reqid)
 			this.childcache[cgi.reqid] = cgi;
 		return cgi;
@@ -1563,7 +1606,7 @@ pragma used
 			close(std_in_w);
 			return null;
 		}
-		return new ConceptCGIChild(job.method, Socket, std_out_r, std_in_w, pid, job.snippet);
+		return new ConceptCGIChild(null, job.method, Socket, std_out_r, std_in_w, pid, job.snippet);
 	}
 
 	AddChild(child) {
@@ -2448,7 +2491,6 @@ class ConceptAppWorker extends IniCache {
 
 class ConceptH2Worker extends ConceptBaseWorker {
 pragma used
-	public var[] CGIChildren;
 	protected var CGIPlaceholders;
 	protected var Framework;
 
@@ -2513,12 +2555,12 @@ pragma used
 
 	CreateJavascript(Socket, h2, stream, method, root, path, app, query, hostname, local_port, default_header) {
 		var env = CreateEnv(Socket, stream, method, root, path, app, query, hostname, local_port, default_header);
-		return new ConceptJSChild(this.Framework, method, Socket, env, "", h2, stream, default_header);
+		return new ConceptJSChild(this, this.Framework, method, Socket, env, "", h2, stream, default_header);
 	}
 
 	CreateCAS(Socket, h2, stream, method, root, path, app, query, hostname, local_port, default_header) {
 		var env = CreateEnv(Socket, stream, method, root, path, app, query, hostname, local_port, default_header, "conceptasync");
-		var cgi = new ConceptCASChild(CGIAsyncWorker::Create(this.cgiworkers, app, null, var err), err, method, Socket, env, "", h2, stream, default_header);
+		var cgi = new ConceptCASChild(this, CGIAsyncWorker::Create(this.cgiworkers, app, null, var err), err, method, Socket, env, "", h2, stream, default_header);
 		if (cgi.reqid)
 			this.childcache[cgi.reqid] = cgi;
 		return cgi;
@@ -2531,13 +2573,11 @@ pragma used
 
 		if (javascript == 2) {
 			cgi = this.CreateCAS(Socket, h2, stream, this.GetHeader(":method", headers) ?? "GET", root, path, app, query, hostname, local_port, default_header);
-			CGIChildren[length CGIChildren] = cgi;
 			h2.UserData++;
 			return cgi;
 		} else
 		if (javascript) {
 			cgi = this.CreateJavascript(Socket, h2, stream, this.GetHeader(":method", headers) ?? "GET", root, path, app, query, hostname, local_port, default_header);
-			CGIChildren[length CGIChildren] = cgi;
 			h2.UserData++;
 			return cgi;
 		}
@@ -2596,10 +2636,9 @@ pragma used
 			return null;
 		}
 
-		cgi = new ConceptCGIChild(method, Socket, std_out_r, std_in_w, pid, "", h2, stream);
+		cgi = new ConceptCGIChild(this, method, Socket, std_out_r, std_in_w, pid, "", h2, stream);
 		if (cgi) {
 			cgi.h2headers = default_header;
-			CGIChildren[length CGIChildren] = cgi;
 			h2.UserData++;
 		}
 		return cgi;
@@ -2719,9 +2758,10 @@ class ConceptServer extends IniCache {
 		httpserver.TLSOnly = value this.IniKey("Server", "WebTLSOnly", "0");
 		httpserver.CommonRoot = this.IniGetPath("Paths", "ConceptClient", "./ConceptClient.js");
 
+		// cleaning service
 		httpserver.getLoop().schedule(function(loop) {
-			h2worker.IterateAsyncWorkers(h2worker.CGIChildren);
-		}, 10);
+			h2worker.IterateAsyncWorkers(null);
+		}, 500);
 
 		httpserver.OnRequest = function(loop, http_version, tls, method, var filename, headers, socket, stream, var data, pending_buffer) {
 			if (this.LogRequests)

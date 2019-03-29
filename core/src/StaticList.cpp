@@ -20,9 +20,12 @@ StaticList::StaticList() {
 int StaticList::EnsureSpace() {
     if (count >= allocated) {
         int new_size = allocated + STATICLIST_BLOCKSIZE;
+        char **old_data = data;
         data = (char **)realloc(data, new_size * sizeof(char *));
-        if (!data)
+        if (!data) {
+            free(old_data)
             return 0;
+        }
 
         allocated += STATICLIST_BLOCKSIZE;
         return 1;

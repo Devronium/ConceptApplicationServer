@@ -554,8 +554,11 @@ class HTTP2Stream {
 
 	SafeWrite(socket, var buf, close = false) {
 		var max_len = this.WindowAdjusted(socket.WindowAdjusted(length buf));
-		if (max_len <= 0)
+		if (max_len <= 0) {
+			if ((this.Status != 2) || (!socket.StreamCount))
+				throw "HTTP2Stream/SafeWrite: Cannot write on a closed stream";
 			return 0;
+		}
 		return this.Write(socket, buf, close, max_len);
 	}
 	
@@ -629,7 +632,7 @@ class HTTP2Socket {
 	public var Socket;
 	protected var Negotiated = false;
 	protected var IsClient = false;
-	protected var OutBuffer = "";
+	/*protected*/ var OutBuffer = "";
 	protected var InBuffer = "";
 	protected var Status = 0;
 	public var[] Streams;
@@ -679,7 +682,9 @@ class HTTP2Socket {
 
 	RemoveStream(streamid) {
 		var key = "" + streamid;
-		if (Streams[key]) {
+		var stream = Streams[key];
+		if (stream) {
+			stream.Status = 3;
 			Streams[key] = null;
 			this.StreamCount--;
 		}
@@ -719,20 +724,6 @@ class HTTP2Socket {
 		return length buf;
 	}
 
-	AddBuffer2(buf, is_data = false, size_hint = 0) {
-		if (is_data)
-			TotalSent += length buf;
-		WindowSize -= size_hint;
-		if (Status < 0)
-			throw "HTTP2Socket/AddBuffer2: Connection is no longer active";
-		do {
-			var len = this.Socket.TLSWrite(buf);
-			if ((len == length buf) || (len <= 0))
-				break;
-			buf = SubStr(buf, len);
-		} while (buf);
-	}
-
 	Headers(streamid, array header, has_content = true) {
 		var flags = 0;
 		if (has_content)
@@ -761,6 +752,7 @@ class HTTP2Socket {
 
 	Reset(status = -1) {
 		Streams = [ ];
+		StreamCount = 0;
 		Status = status;
 		InBuffer = "";
 		OutBuffer = "";
@@ -1113,6 +1105,12 @@ class HTTP2Socket {
 			} catch (var e) {
 			}
 		}
+		Streams = [ ];
+		StreamCount = 0;
+		Status = -1;
+		InBuffer = "";
+		OutBuffer = "";
+
 		this.Socket.Close();
 	}
 }
