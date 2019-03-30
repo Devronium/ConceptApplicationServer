@@ -311,15 +311,7 @@ class H2Server {
 				response_headers["content-type"] = content_type;
 		}
 		if (max_age)
-			response_headers["cache_control"] = "max-age=${max_age}";
-		var keep_alive = true;
-		var connection_ka = header["connection"];
-		if ((connection_ka) && (connection_ka == "close"))
-			keep_alive = false;
-		if (keep_alive) {
-			response_headers["connection"] = "keep-alive";
-			response_headers["keep-alive"] = "timeout=${timeout}";
-		}
+			response_headers["cache-control"] = "max-age=${max_age}";
 		return response_headers;
 	}
 
