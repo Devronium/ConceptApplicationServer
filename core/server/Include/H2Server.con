@@ -349,7 +349,7 @@ class H2Server {
 		}
 	}
 
-	protected __redirect_h2(h2, stream, header) {
+	protected __redirect_h2(h2, stream, header, add_dir = true) {
 		var path = header[":path"];
 		var redirect = http_normalize_path(path);
 		var query = "";
@@ -357,11 +357,14 @@ class H2Server {
 		if (pos > 0)
 			query = SubStr(path, pos - 1);
 		var host = header[":authority"];
-		if ((host) && (redirect)) {
+		if (host) {
+			if ((add_dir) || (!redirect) || (query))
+				redirect += "/";
+
 			stream.Response(h2, [
 				":status" => "301",
 				"server" => "cas",
-				"location" => "https://$host$redirect/$query"
+				"location" => "https://$host$redirect$query"
 			], true);
 			return false;
 		}
@@ -522,7 +525,7 @@ class H2Server {
 		}
 	}
 
-	protected __redirect(socket, header) {
+	protected __redirect(socket, header, add_dir = true) {
 		var redirect = http_normalize_path(header[":path"]);
 		var query = this.getQuery(header);
 		if (query)
@@ -533,8 +536,10 @@ class H2Server {
 		else
 			proto = "http";
 		var host = header["host"];
-		if ((host) && (redirect)) {
-			__socket_fast_write(socket, "HTTP/1.1 301 Moved Permanently\r\nLocation: $proto://$host$redirect/$query\r\nContent-Length: 0\r\n\r\n");
+		if (host) {
+			if ((add_dir) || (!redirect) || (query))
+				redirect += "/";
+			__socket_fast_write(socket, "HTTP/1.1 301 Moved Permanently\r\nLocation: $proto://$host$redirect$query\r\nContent-Length: 0\r\n\r\n");
 			return false;
 		}
 		return true;
@@ -548,7 +553,7 @@ class H2Server {
 				return true;
 			}
 			if (this.TLSOnly)
-				return __redirect(socket, header);
+				return __redirect(socket, header, false);
 			var method = header[":method"];
 			switch (method) {
 				case "GET":

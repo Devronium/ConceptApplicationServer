@@ -2725,13 +2725,6 @@ class ConceptServer extends IniCache {
 	ConceptServer(ini_file) {
 		this.IniFile = ini_file;
 
-		var user = this.IniKey("Server", "User", "concept");
-		var pwd  = this.IniKey("Server", "UserPassword", "");
-
-		if (!SetCurrentUser(user, pwd))
-			console.warn(LOG_THIS, "cannot change user to $user");
-		pwd = "";
-
 		var log_file = this.IniGetPath("Paths", "LogFile", "");
 		if (log_file)
 			console.use_file(log_file);
@@ -2758,6 +2751,15 @@ class ConceptServer extends IniCache {
 		}
 
 		h2worker = new ConceptH2Worker(this);
+
+		// need to set user after bind (ports 80 and 443 are privileged)
+		var user = this.IniKey("Server", "User", "concept");
+		var pwd  = this.IniKey("Server", "UserPassword", "");
+
+		if (!SetCurrentUser(user, pwd))
+			console.warn(LOG_THIS, "cannot change user to $user");
+		pwd = "";
+
 		appworker = new Worker("ConceptAppWorker", ini_file);
 
 		var workers_count = this.WorkerCount(DEFAULT_CGI_WORKERS);

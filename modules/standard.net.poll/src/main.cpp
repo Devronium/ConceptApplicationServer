@@ -511,7 +511,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollWait, 1, 3)
                     if (events[i].events & EPOLLOUT)
                         Invoke(INVOKE_SET_ARRAY_ELEMENT, PARAMETER(2), out_index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)events[i].data.fd);
 
-                    if ((events[i].events & EPOLLIN) || (events[i].events & EPOLLHUP) || (events[i].events & EPOLLRDHUP))
+                    if ((events[i].events & EPOLLIN) || (events[i].events & EPOLLHUP) || (events[i].events & EPOLLRDHUP) || (events[i].events & EPOLLERR))
                         Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)events[i].data.fd);
                 } else {
                     Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)events[i].data.fd);
