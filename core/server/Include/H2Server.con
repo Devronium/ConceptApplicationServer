@@ -552,7 +552,7 @@ class H2Server {
 				__error(socket, 400, "Bad Request");
 				return true;
 			}
-			if (this.TLSOnly)
+			if ((!socket.tls) && (this.TLSOnly))
 				return __redirect(socket, header, false);
 			var method = header[":method"];
 			switch (method) {

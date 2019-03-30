@@ -2752,14 +2752,6 @@ class ConceptServer extends IniCache {
 
 		h2worker = new ConceptH2Worker(this);
 
-		// need to set user after bind (ports 80 and 443 are privileged)
-		var user = this.IniKey("Server", "User", "concept");
-		var pwd  = this.IniKey("Server", "UserPassword", "");
-
-		if (!SetCurrentUser(user, pwd))
-			console.warn(LOG_THIS, "cannot change user to $user");
-		pwd = "";
-
 		appworker = new Worker("ConceptAppWorker", ini_file);
 
 		var workers_count = this.WorkerCount(DEFAULT_CGI_WORKERS);
@@ -2773,6 +2765,14 @@ class ConceptServer extends IniCache {
 		httpserver = new H2Server(this.IniGetPath("Paths", "ServerRoot", ""), get_root_by_host, this.IniKey("Server", "WebSocketCertificate", ""), this.IniKey("Server", "WebSocketPrivateKey", ""), port, tlsport, value this.IniKey("Server", "MaxAge", "604800"), value this.IniKey("Server", "MaxInitialIDLE", "10"), max_connections, this.IniKey("Server", "Interface", ""));
 		httpserver.TLSOnly = value this.IniKey("Server", "WebTLSOnly", "0");
 		httpserver.CommonRoot = this.IniGetPath("Paths", "ConceptClient", "./ConceptClient.js");
+
+		// need to set user after bind (ports 80 and 443 are privileged)
+		var user = this.IniKey("Server", "User", "concept");
+		var pwd  = this.IniKey("Server", "UserPassword", "");
+
+		if (!SetCurrentUser(user, pwd))
+			console.warn(LOG_THIS, "cannot change user to $user");
+		pwd = "";
 
 		// cleaning service
 		httpserver.getLoop().schedule(function(loop) {
