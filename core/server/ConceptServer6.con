@@ -1285,6 +1285,8 @@ class ContainerWorker extends Worker {
 
 	ContainerWorker(sharedcontext, app, var err) {
 		super("web", this.GetPath(app), sharedcontext, app, err);
+		console.info(LOG_THIS, "Created worker for $app");
+		this.app = app;
 		this.timestamp = filelast_mod(app);
 	}
 
@@ -1308,6 +1310,10 @@ class ContainerWorker extends Worker {
 
 	ClearCache() {
 		cache = new [];
+	}
+
+	finalize() {
+		console.info(LOG_THIS, "Removed worker for $app");
 	}
 }
 

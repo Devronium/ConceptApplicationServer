@@ -344,6 +344,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollAdd, 2, 3)
         err = kevent(efd, events, num_events, NULL, 0, NULL);
 #else
         struct epoll_event event;
+        // supress valgrind warning
+        event.data.u64 = 0;
         event.data.fd = fd;
         switch (mode) {
             case 1:
@@ -403,6 +405,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollUpdate, 2, 3)
         err = kevent(efd, events, num_events, NULL, 0, NULL);
 #else
         struct epoll_event event;
+        // supress valgrind warning
+        event.data.u64 = 0;
         event.data.fd = fd;
         switch (mode) {
             case 1:
@@ -442,6 +446,8 @@ CONCEPT_FUNCTION_IMPL(PollRemove, 2)
         err = kevent(efd, &event, 1, NULL, 0, NULL);
 #else
         struct epoll_event event;
+        // supress valgrind warning
+        event.data.u64 = 0;
         event.data.fd = fd;
         event.events = EPOLLIN | EPOLLPRI | EPOLLHUP | EPOLLRDHUP;// | EPOLLET;
         err = epoll_ctl (efd, EPOLL_CTL_DEL, fd, &event);

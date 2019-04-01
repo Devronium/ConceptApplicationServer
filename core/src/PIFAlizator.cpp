@@ -136,12 +136,18 @@ void log_log(PIFAlizator *pif, int level, const char *file, int line, const char
 
 int log_use_file(PIFAlizator *pif, const char *filename) {
     ConceptLogContext *log_context = get_log_context(pif);
-    if (!log_context)
+    if ((!log_context) || (!filename))
         return 0;
 #ifdef USE_SYSLOG
     if (log_context->logfile)
         closelog();
-    openlog(filename, LOG_PID | LOG_NDELAY, LOG_LOCAL0);
+    static char logname[0x100];
+    int len = strlen(filename);
+    if (len > sizeof(logname) - 1)
+        len = sizeof(logname) - 1;
+    memcpy(logname, filename, len);
+    logname[len] = 0;
+    openlog(logname, LOG_PID | LOG_NDELAY, LOG_LOCAL0);
     log_context->logfile = 1;
 #else
     if (log_context->logfile)

@@ -3613,6 +3613,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DescriptorWrite, 2, 3)
     msg.msg_namelen = 0;
     msg.msg_iov     = &iov;
     msg.msg_iovlen  = 1;
+    msg.msg_flags   = 0;
 
     if (fd != -1) {
         msg.msg_control    = cmsgu.control;
