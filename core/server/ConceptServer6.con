@@ -2827,6 +2827,7 @@ class ConceptServer extends IniCache {
 					filename = "index.html";
 					return;
 				case "application/concept-async-page":
+					query = httpserver.getQuery(headers);
 					if (http_version == 2) {
 						var cgi_child = h2worker.CreateCGI(socket, stream, "", headers[":root"] ?? "", headers[":path"], filename, query, headers["host"] ?? "", this.port, 2, httpserver.defaultHeaders(http_version));
 						if (cgi_child) {
@@ -2836,10 +2837,11 @@ class ConceptServer extends IniCache {
 							return REQUEST_CGI_ERROR;
 					} else {
 						var worker = this.ChooseWorker();
-						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), "", headers[":root"], 2)));
+						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, query, pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), "", headers[":root"], 2)));
 					}
 					return REQUEST_DETACH;
 				case "application/concept-server-page":
+					query = httpserver.getQuery(headers);
 					if (http_version == 2) {
 						cgi_child = h2worker.CreateCGI(socket, stream, this.cgi, headers[":root"] ?? "", headers[":path"], filename, query, headers["host"] ?? "", this.port, 0, httpserver.defaultHeaders(http_version));
 						if (cgi_child) {
@@ -2849,10 +2851,11 @@ class ConceptServer extends IniCache {
 							return REQUEST_CGI_ERROR;
 					} else {
 						worker = this.ChooseWorker();
-						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), this.cgi, headers[":root"], false)));
+						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, query, pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), this.cgi, headers[":root"], false)));
 					}
 					return REQUEST_DETACH;
 				case "application/javascript-server-page":
+					query = httpserver.getQuery(headers);
 					if (http_version == 2) {
 						cgi_child = h2worker.CreateCGI(socket, stream, "", headers[":root"] ?? "", headers[":path"], filename, query, headers["host"] ?? "", this.port, 1, httpserver.defaultHeaders(http_version));
 						if (cgi_child) {
@@ -2862,7 +2865,7 @@ class ConceptServer extends IniCache {
 							return REQUEST_CGI_ERROR;
 					} else {
 						worker = this.ChooseWorker();
-						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), "", headers[":root"], 1)));
+						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, query, pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), "", headers[":root"], 1)));
 					}
 					return REQUEST_DETACH;
 				case "application/concept-private":
@@ -2871,6 +2874,7 @@ class ConceptServer extends IniCache {
 					return REQUEST_STOP;
 				default:
 					if ((this.cgiother) && (IsSet(this.cgiother, content_type))) {
+						query = httpserver.getQuery(headers);
 						if (http_version == 2) {
 							cgi_child = h2worker.CreateCGI(socket, stream, this.Owner.cgiother[content_type], headers[":root"] ?? "", headers[":path"], filename, query, headers["host"] ?? "", this.port, 1, httpserver.defaultHeaders(http_version));
 							if (cgi_child) {
@@ -2880,7 +2884,7 @@ class ConceptServer extends IniCache {
 								return REQUEST_CGI_ERROR;
 						} else {
 							worker = this.ChooseWorker();
-							worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, httpserver.getQuery(headers), "", headers[":method"], headers[":host"] ?? "", headers[":path"], this.getPort(tls), this.Owner.cgiother[content_type], headers[":root"], false)));
+							worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, query, "", headers[":method"], headers[":host"] ?? "", headers[":path"], this.getPort(tls), this.Owner.cgiother[content_type], headers[":root"], false)));
 							return REQUEST_DETACH;
 						}
 					}
