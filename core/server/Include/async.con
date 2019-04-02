@@ -9,6 +9,8 @@ include Loop.con
 include Worker.con
 include JWT.con
 
+define ASYNC_CGI_TIMEOUT_S	3600
+
 class __asynctimer {
 	protected var timeout;
 	protected var _delegate;
@@ -537,6 +539,7 @@ class web {
 				}
 				break;
 			case "drop":
+				console.debug(LOG_THIS, "drop request for ${this.path}");
 				requestdata = new [];
 				drop = true;
 				QuitLoop();
@@ -603,6 +606,7 @@ class web {
 			timeout = 1000;
 			idle++;
 		}
+
 		this.flush();
 		if (Worker::Pending(var data_arr, timeout)) {
 			idle = 0;
@@ -620,9 +624,9 @@ class web {
 			if (!requests)
 				timeout = 1000;
 		}
-		if ((timeout) && (idle >= timeout)) {
+		if ((timeout) && (idle >= ASYNC_CGI_TIMEOUT_S)) {
+			console.debug(LOG_THIS, "idle drop for ${this.path}");
 			this.drop = true;
-			web::exit();
 			return true;
 		}
 		return false;
