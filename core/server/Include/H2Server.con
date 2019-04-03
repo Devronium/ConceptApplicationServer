@@ -653,7 +653,7 @@ class H2Server {
 		this.__socket_fast_write(socket, "HTTP/1.1 101 Switching Protocols\r\n${extra_header}Connection: Upgrade\r\nDate: ${__utc_string()} GMT\r\nSec-WebSocket-Accept: $key\r\nServer: cas\r\nUpgrade: websocket\r\n\r\n");
 	}
 
-	H2Server(string default_root, get_root_by_host = null, public_key = "", private_key = "", port = 80, tls_port = 443, max_age = 604800, timeout = 10, max_connections = 8192, interface = "", ipv6 = true) {
+	H2Server(string default_root, get_root_by_host = null, public_key = "", private_key = "", port = 80, tls_port = 443, max_age = 604800, timeout = 10, max_connections = 8192, interface = "", ipv6 = true, use_http2 = true) {
 		if ((default_root) && (default_root[length default_root - 1] != "/") && (default_root[length default_root - 1] != "\\"))
 			default_root += "/";
 		this.root = default_root;
@@ -682,7 +682,8 @@ class H2Server {
 			SocketSetBlocking(tls.Socket, false);
 			tls.Listen(tls_port, max_connections, interface);
 			if (tls.LoadKeys(public_key, private_key)) {
-				tls.AddALPN("h2");
+				if (use_http2)
+					tls.AddALPN("h2");
 			} else {
 				this.TLSOnly = false;
 				console.warn(LOG_THIS, "Warning: Error loading TLS/SSL keys. HTTPS/WSS will not be supported.");

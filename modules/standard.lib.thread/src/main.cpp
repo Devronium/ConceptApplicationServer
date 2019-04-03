@@ -12,7 +12,7 @@
  #include <unistd.h>
  #include <sched.h>
  #include <sys/time.h>
- #define DWORD     long
+ #define DWORD     uintptr_t
  #define LPVOID    void *
  #define POSIX_SEMAPHORES
 #endif
@@ -820,13 +820,14 @@ CONCEPT_DLL_API CONCEPT_RunThread CONCEPT_API_PARAMETERS {
     cdc->CONTEXT  = context;
     cdc->SPINLOCK = &spin_lock;
 #ifdef _WIN32
-    DWORD  threadID = 0;
-    HANDLE thandle  = CreateThread(NULL, 0, ThreadFunction, (LPVOID)cdc, 0, &threadID);
+    DWORD threadID2 = 0;
+    uintptr_t threadID;
+    HANDLE thandle = CreateThread(NULL, 0, ThreadFunction, (LPVOID)cdc, 0, &threadID2);
     if (!thandle)
         spin_lock = 0;
     if ((thandle) && ((int)ndetachable))
         CloseHandle(thandle);
-    threadID = (long)thandle;
+    threadID = (uintptr_t)thandle;
 #else
     pthread_t threadID = 0;
     if ((int)ndetachable) {
@@ -854,7 +855,7 @@ CONCEPT_DLL_API CONCEPT_RunThread CONCEPT_API_PARAMETERS {
 #endif
     }
 
-    RETURN_NUMBER((double)(long)threadID);
+    RETURN_NUMBER((double)(uintptr_t)threadID);
     return 0;
 }
 //---------------------------------------------------------------------------
@@ -867,9 +868,9 @@ CONCEPT_DLL_API CONCEPT_KillThread CONCEPT_API_PARAMETERS {
     GET_CHECK_NUMBER(0, nThreadID, "KillThread : threadID should be of STATIC NUMBER type");
 
 #ifdef _WIN32
-    TerminateThread((HANDLE)(long)nThreadID, 0);
+    TerminateThread((HANDLE)(uintptr_t)nThreadID, 0);
 #else
-    pthread_cancel((pthread_t)(long)nThreadID);
+    pthread_cancel((pthread_t)(uintptr_t)nThreadID);
 #endif
     RETURN_NUMBER(0);
     return 0;
@@ -884,7 +885,7 @@ CONCEPT_DLL_API CONCEPT_ThreadIsActive CONCEPT_API_PARAMETERS {
     GET_CHECK_NUMBER(0, nThreadID, "ThreadIsActive : threadID should be of STATIC NUMBER type");
 
 #ifdef _WIN32
-    DWORD result = WaitForSingleObject((HANDLE)(long)nThreadID, 0);
+    DWORD result = WaitForSingleObject((HANDLE)(uintptr_t)nThreadID, 0);
     if (result == WAIT_OBJECT_0) {
         RETURN_NUMBER(0);
     } else
@@ -894,7 +895,7 @@ CONCEPT_DLL_API CONCEPT_ThreadIsActive CONCEPT_API_PARAMETERS {
         RETURN_NUMBER(-1);
     }
 #else
-    int res = pthread_kill((pthread_t)(long)nThreadID, 0);
+    int res = pthread_kill((pthread_t)(uintptr_t)nThreadID, 0);
     if (res == 0) {
         RETURN_NUMBER(1);
     } else {
@@ -913,11 +914,11 @@ CONCEPT_DLL_API CONCEPT_WaitThread CONCEPT_API_PARAMETERS {
     GET_CHECK_NUMBER(0, nThreadID, "WaitThread : threadID should be of STATIC NUMBER type");
 
 #ifdef _WIN32
-    WaitForSingleObject((HANDLE)(long)nThreadID, INFINITE);
-    CloseHandle((HANDLE)(long)nThreadID);
+    WaitForSingleObject((HANDLE)(uintptr_t)nThreadID, INFINITE);
+    CloseHandle((HANDLE)(uintptr_t)nThreadID);
 #else
     void *data;
-    pthread_join((pthread_t)(long)nThreadID, &data);
+    pthread_join((pthread_t)(uintptr_t)nThreadID, &data);
 #endif
     RETURN_NUMBER(0);
     return 0;
@@ -1177,9 +1178,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(CreateWorker, 3, 6)
             cdc->data.LoadBuffer(PARAM(2), PARAM_LEN(2));
             cdc->Invoke = Invoke;
 #ifdef _WIN32
-            DWORD  threadID = 0;
-            HANDLE thandle  = CreateThread(NULL, 0, WorkerFunction, (LPVOID)cdc, 0, &threadID);
-            threadID = (long)thandle;
+            DWORD threadID2 = 0;
+            uintptr_t threadID;
+            HANDLE thandle  = CreateThread(NULL, 0, WorkerFunction, (LPVOID)cdc, 0, &threadID2);
+            threadID = (uintptr_t)thandle;
             if (!thandle) {
                 delete cdc;
                 cdc = NULL;
@@ -1194,6 +1196,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(CreateWorker, 3, 6)
                 cdc = NULL;
                 //LocalInvoker(INVOKE_FREE_VARIABLE, variable);
                 //variable = NULL;
+            } else {
+                pthread_setname_np(threadID, PARAM(0));
             }
 #endif
             SET_NUMBER(1, (uintptr_t)threadID);
@@ -1419,7 +1423,7 @@ CONCEPT_FUNCTION_IMPL(RemoveWorkerData, 2)
     if (!tmc)
         return (void *)"Using a worker function on a non-worker";
     
-    int deleted = tmc->RemoveInputKey((intptr_t)PARAM(1));
+    int deleted = tmc->RemoveInputKey((intptr_t)PARAM(1)) + tmc->RemoveOutputKey((intptr_t)PARAM(1));
     RETURN_NUMBER(deleted);
 END_IMPL
 //---------------------------------------------------------------------------

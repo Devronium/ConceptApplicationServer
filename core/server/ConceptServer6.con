@@ -2777,7 +2777,7 @@ class ConceptServer extends IniCache {
 
 		port = value this.IniKey("Server", "WebPort", "2680");
 		tlsport = value this.IniKey("Server", "SecureWebPort", "2681");
-		httpserver = new H2Server(this.IniGetPath("Paths", "ServerRoot", ""), get_root_by_host, this.IniKey("Server", "WebSocketCertificate", ""), this.IniKey("Server", "WebSocketPrivateKey", ""), port, tlsport, value this.IniKey("Server", "MaxAge", "604800"), value this.IniKey("Server", "MaxInitialIDLE", "10"), max_connections, this.IniKey("Server", "Interface", ""));
+		httpserver = new H2Server(this.IniGetPath("Paths", "ServerRoot", ""), get_root_by_host, this.IniKey("Server", "WebSocketCertificate", ""), this.IniKey("Server", "WebSocketPrivateKey", ""), port, tlsport, value this.IniKey("Server", "MaxAge", "604800"), value this.IniKey("Server", "MaxInitialIDLE", "10"), max_connections, this.IniKey("Server", "Interface", ""), value this.IniKey("Server", "IPv6", "0"), value this.IniKey("Server", "HTTP2", "1"));
 		httpserver.TLSOnly = value this.IniKey("Server", "WebTLSOnly", "0");
 		httpserver.CommonRoot = this.IniGetPath("Paths", "ConceptClient", "./ConceptClient.js");
 
