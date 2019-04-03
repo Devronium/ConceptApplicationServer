@@ -130,7 +130,6 @@ class ConceptServerUtils {
 
 class ContainerWorker extends Worker {
 	var timestamp;
-	var app;
 	var idx;
 	var[] cache;
 
@@ -3256,10 +3255,12 @@ class ConceptBaseWorker {
 		}
 		if (removed_workers) {
 			var new_workers = new [];
-			for (i = 0; i < length workers; i++) {
-				worker = workers[i];	
+			var keys = GetKeys(workers);
+			for (i = 0; i < length keys; i++) {
+				var k = keys[i];
+				worker = workers[k];
 				if (worker)
-					new_workers[length new_workers] = worker;
+					new_workers[k] = worker;
 			}
 			cgiworkers = new_workers;
 		}
