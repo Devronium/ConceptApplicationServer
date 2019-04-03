@@ -852,8 +852,10 @@ class ConceptJSChild extends ConceptAsyncChild {
 		if (is_write < 0) {
 			this.reset();
 		} else {
-			if (owner)
+			if ((owner) && (loop.iteration != owner.loop_iteration)) {
+				owner.loop_iteration = loop.iteration;
 				owner.IterateAsyncWorkers(null);
+			}
 			if (this.Iterate(null, is_write)) {
 				this.reset();
 				return LOOP_EVENT_REMOVE;
@@ -993,8 +995,10 @@ class ConceptCASChild extends ConceptAsyncChild {
 		if (is_write < 0) {
 			this.reset();
 		} else {
-			if (owner)
+			if ((owner) && (loop.iteration != owner.loop_iteration)) {
+				owner.loop_iteration = loop.iteration;
 				owner.IterateAsyncWorkers(null);
+			}
 			if (this.Iterate(null, is_write)) {
 				this.reset();
 				return LOOP_EVENT_REMOVE;
@@ -1285,7 +1289,7 @@ class ContainerWorker extends Worker {
 
 	ContainerWorker(sharedcontext, app, var err) {
 		super("web", this.GetPath(app), sharedcontext, app, err);
-		console.info(LOG_THIS, "Created worker for $app");
+		console.info(LOG_THIS, "created worker for $app");
 		this.app = app;
 		this.timestamp = filelast_mod(app);
 	}
@@ -1313,7 +1317,7 @@ class ContainerWorker extends Worker {
 	}
 
 	finalize() {
-		console.info(LOG_THIS, "Removed worker for $app");
+		console.info(LOG_THIS, "removed worker for $app");
 	}
 }
 
@@ -1333,6 +1337,7 @@ class CGIAsyncWorker {
 
 		worker = new ContainerWorker(sharedcontext, app, err);
 		if (err) {
+			console.error(LOG_THIS, "error creating worker for \"$app\"");
 			worker.Join();
 			return worker;
 		}
@@ -1385,6 +1390,8 @@ class ConceptBaseWorker {
 	protected var[] cgiworkers;
 	protected var[] childcache;
 	protected var cacheholders;
+
+	public var loop_iteration;
 
 	UpdateChildCache(children) {
 		var[] new_cache;
@@ -1454,10 +1461,12 @@ class ConceptBaseWorker {
 		}
 		if (removed_workers) {
 			var new_workers = new [];
-			for (i = 0; i < length workers; i++) {
-				worker = workers[i];	
+			var keys = GetKeys(workers);
+			for (i = 0; i < length keys; i++) {
+				var k = keys[i];
+				worker = workers[k];
 				if (worker)
-					new_workers[length new_workers] = worker;
+					new_workers[k] = worker;
 			}
 			cgiworkers = new_workers;
 		}
@@ -2782,7 +2791,10 @@ class ConceptServer extends IniCache {
 
 		// cleaning service
 		httpserver.getLoop().schedule(function(loop) {
-			h2worker.IterateAsyncWorkers(null);
+			if (h2worker.loop_iteration != loop.iteration) {
+				h2worker.loop_iteration = loop.iteration;
+				h2worker.IterateAsyncWorkers(null);
+			}
 		}, 500);
 
 		httpserver.OnRequest = function(loop, http_version, tls, method, var filename, headers, socket, stream, var data, pending_buffer) {

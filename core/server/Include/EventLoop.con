@@ -137,6 +137,7 @@ class EventLoop {
 	protected var cpu_sleep;
 	protected var iotimeout_objects;
 	public var pollfd;
+	public var iteration = 1;
 
 	public var minSleep = 0;
 	private var __currentevent;
@@ -334,6 +335,9 @@ class EventLoop {
 				cpu_sleep = MAX_CPU_SLEEP;
 		}
 		this.events = events2;
+		iteration ++;
+		if (iteration > 1000000)
+			iteration = 1;
 	}
 
 	protected __close_socketevent(e) {
