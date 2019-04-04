@@ -398,8 +398,12 @@ class EventLoop {
 				this.__currentevent = e;
 				try {
 					if ((!e) || (((write_event) && (e.runWrite(this))) || ((!write_event) && (e.runRead(this))))) {
-						if (e)
+						if (e) {
 							this.__close_socketevent(e);
+						} else {
+							console.error(LOG_THIS, "invalid socket $socket");
+							PollRemove(pollfd, socket);
+						}
 						socketevents[key] = null;
 						remove_sockets ++;
 					}
