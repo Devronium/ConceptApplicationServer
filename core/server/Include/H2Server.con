@@ -692,6 +692,7 @@ class H2Server {
 		}
 
 		loop = new EventLoop();
+		loop.minSleep = 100;
 		loop.addSocket(tcp, function(tcp, loop) {
 			var socket = tcp.Accept();
 			if (socket) {

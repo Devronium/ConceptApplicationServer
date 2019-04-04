@@ -32,12 +32,11 @@ class __EventEvent {
 			return true;
 		if (!this.when)
 			return this.deleg(loop);
-		var now = Date.now();
-		if (this.when <= now) {
+		if (this.when <= Date.now()) {
 			if (this.deleg(loop))
 				return true;
 			if (this.rerun > 0) {
-				this.when = now + this.rerun;
+				this.when = Date.now() + this.rerun;
 				return false;
 			}
 			return true;
@@ -420,8 +419,8 @@ class EventLoop {
 	}
 
 	protected __poll(timeout) {
-		if (timeout < 0)
-			timeout = 0;
+		if (timeout < this.minSleep)
+			timeout = this.minSleep;
 		var outsockets = PollWait(pollfd, timeout, var write_sockets);
 		if ((outsockets) || (write_sockets)) {
 			var remove_sockets = 0;
