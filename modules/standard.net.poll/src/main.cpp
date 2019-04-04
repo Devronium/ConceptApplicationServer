@@ -124,8 +124,12 @@ public:
         struct kevent *events = (struct kevent *)malloc(sizeof(struct kevent) * maxevents);
         if (!events)
             return -1;
-
-        int nev = kevent(fd, NULL, 0, events, maxevents, NULL);
+        struct timespec timeout_spec;
+        if (timeout > 0) {
+            timeout_spec.tv_sec = timeout / 1000;
+            timeout_spec.tv_nsec = (timeout % 1000) * 1000;
+        }
+        int nev = kevent(fd, NULL, 0, events, maxevents, (timeout > 0) ? &timeout_spec : NULL);
         INTEGER index = 0;
         INTEGER out_index = 0;
         for (INTEGER i = 0; i < nev; i++) {
@@ -490,7 +494,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollWait, 1, 3)
             return (void *)"PollWait: Out of memory";
         }
 
-        int nev = kevent(efd, NULL, 0, events, maxevents, NULL);
+        struct timespec timeout_spec;
+        if (timeout > 0) {
+            timeout_spec.tv_sec = timeout / 1000;
+            timeout_spec.tv_nsec = (timeout % 1000) * 1000;
+        }
+        int nev = kevent(efd, NULL, 0, events, maxevents, (timeout > 0) ? &timeout_spec : NULL);
         INTEGER out_index = 0;
         INTEGER index = 0;
         for (INTEGER i = 0; i < nev; i++) {
