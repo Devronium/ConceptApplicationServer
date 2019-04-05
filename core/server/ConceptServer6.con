@@ -1445,6 +1445,7 @@ class ConceptBaseWorker {
 								worker.Join();
 								workers[i] = null;
 								removed_workers ++;
+								continue;
 							}
 						}
 					}
@@ -1455,6 +1456,7 @@ class ConceptBaseWorker {
 					worker.Join();
 					workers[i] = null;
 					removed_workers ++;
+					continue;
 				}
 				worker.SendCached();
 			}
