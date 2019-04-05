@@ -32,11 +32,12 @@ class __EventEvent {
 			return true;
 		if (!this.when)
 			return this.deleg(loop);
-		if (this.when <= Date.now()) {
+		var now = Date.now();
+		if (this.when <= now) {
 			if (this.deleg(loop))
 				return true;
 			if (this.rerun > 0) {
-				this.when = Date.now() + this.rerun;
+				this.when = now + this.rerun;
 				return false;
 			}
 			return true;
@@ -94,7 +95,8 @@ class __EventEvent {
 						case LOOP_EVENT_HANDLED:
 							return LOOP_EVENT_HANDLED;
 						case LOOP_EVENT_REMOVE:
-							events_len --;
+							if (events_len > 0)
+								events_len --;
 							notifyEvents[i] = null;
 							resetFlags(loop);
 							break;
@@ -135,6 +137,8 @@ class EventLoop {
 	protected var running;
 	protected var cpu_sleep;
 	protected var iotimeout_objects;
+	protected var __recreate_timestamp;
+
 	public var pollfd;
 	public var iteration = 1;
 
@@ -150,7 +154,7 @@ class EventLoop {
 	}
 
 	stat() {
-		return ["events" => length events, "sockets" => length socketevents, "iotimeoutobjects" => iotimeout_objects, "cpu_sleep" => cpu_sleep];
+		return ["events" => length events, "sockets" => length socketevents, "iotimeoutobjects" => iotimeout_objects, "cpu_sleep" => cpu_sleep, "iteration" => iteration];
 	}
 
 	schedule(delegate e, interval = 0) {
@@ -339,9 +343,14 @@ class EventLoop {
 			iteration = 1;
 	}
 
-	protected __close_socketevent(e) {
+	protected __close_socketevent(e, socket = 0) {
+		if (socket <= 0)
+			socket = e.socket;
+
+		if (PollRemove(pollfd, socket))
+			console.error(LOG_THIS, "error in PollRemove");
+
 		if (e.socket > 0) {
-			PollRemove(pollfd, e.socket);
 			e.close(this);
 			e.socket = 0;
 			if ((e.data) && (e.data.Socket)) {
@@ -398,16 +407,23 @@ class EventLoop {
 				try {
 					if ((!e) || (((write_event) && (e.runWrite(this))) || ((!write_event) && (e.runRead(this))))) {
 						if (e) {
-							this.__close_socketevent(e);
+							this.__close_socketevent(e, socket);
 						} else {
 							console.error(LOG_THIS, "invalid socket $socket");
-							PollRemove(pollfd, socket);
+							if (PollRemove(pollfd, socket))
+								console.error(LOG_THIS, "error in PollRemove");
 						}
 						socketevents[key] = null;
 						remove_sockets ++;
 					}
 				} catch (var exc) {
-					this.__close_socketevent(e);
+					console.error(LOG_THIS, "uncaught exception, removing socket");
+					if (e.socket > 0)
+						this.__close_socketevent(e, socket);
+					else
+					if (PollRemove(pollfd, socket))
+						console.error(LOG_THIS, "error in PollRemove");
+					
 					socketevents[key] = null;
 					remove_sockets ++;
 					console.error(LOG_THIS, exc);
@@ -421,7 +437,10 @@ class EventLoop {
 	protected __poll(timeout) {
 		if (timeout < this.minSleep)
 			timeout = this.minSleep;
-		var outsockets = PollWait(pollfd, timeout, var write_sockets);
+		var outsockets = PollWait(pollfd, timeout, var write_sockets, var err);
+		if (err < 0)
+			console.error(LOG_THIS, "error in PollWait");
+
 		if ((outsockets) || (write_sockets)) {
 			var remove_sockets = 0;
 			if (outsockets)
@@ -433,6 +452,8 @@ class EventLoop {
 		} else
 		if (this.iotimeout_objects)
 			this.__timedout();
+		if (Date.now() - this.__recreate_timestamp >= 600000)
+			this.__recreate();
 	}
 
 	run() {
@@ -449,6 +470,7 @@ class EventLoop {
 		this.__close();
 		// enable restarting the queue
 		this.pollfd = PollOpen();
+		this.__recreate_timestamp = Date.now();
 	}
 
 	quit() {
@@ -460,6 +482,26 @@ class EventLoop {
 			PollClose(this.pollfd);
 			this.pollfd = 0;
 		}
+	}
+
+	protected __recreate() {
+		if (this.pollfd) {
+			PollClose(this.pollfd);
+			this.pollfd = 0;
+		}
+		this.pollfd = PollOpen();
+		for (var i = 0; i < length socketevents; i ++) {
+			var e = socketevents[i];
+			if ((e) && (e.socket > 0)) {
+				var flags = POLL_READ;
+				if ((e.deleg2) || (e.events_len))
+					flags |= POLL_WRITE;
+
+				PollAdd(this.pollfd, e.socket, flags);
+			}
+		}
+		this.__recreate_timestamp = Date.now();
+		console.debug(LOG_THIS, "recreated poll object");
 	}
 
 	finalize() {

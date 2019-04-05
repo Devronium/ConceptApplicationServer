@@ -142,8 +142,7 @@ public:
 
         free(events);
 
-        if (nev < 0)
-            return nev;
+        return nev;
 #endif
 #ifdef WITH_SELECT
         struct timeval tout;
@@ -193,6 +192,7 @@ public:
                 }
             }
         }
+        return err;
 #endif
 #ifdef WITH_POLL
         INTEGER index = 0;
@@ -209,6 +209,7 @@ public:
             }
             chlist[i].revents = 0;
         }
+        return q;
 #endif
         return 0;
     }
@@ -462,7 +463,7 @@ CONCEPT_FUNCTION_IMPL(PollRemove, 2)
     RETURN_NUMBER(err);
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollWait, 1, 3)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollWait, 1, 4)
     int timeout = 0;
     if (PARAMETERS_COUNT > 1) {
         T_NUMBER(PollWait, 1);
@@ -476,10 +477,14 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollWait, 1, 3)
     T_HANDLE(PollWait, 0);
     PollContainer *efd = (PollContainer *)(SYS_INT)PARAM(0);
     CREATE_ARRAY(RESULT);
+    int err;
     if (PARAMETERS_COUNT > 2)
-        efd->Wait(Invoke, RESULT, timeout, PARAMETER(2));
+        err = efd->Wait(Invoke, RESULT, timeout, PARAMETER(2));
     else
-        efd->Wait(Invoke, RESULT, timeout, NULL);
+        err = efd->Wait(Invoke, RESULT, timeout, NULL);
+    if (PARAMETERS_COUNT > 3) {
+        SET_NUMBER(3, err);
+    }
 #else
 #if defined(WITH_EPOLL) || defined(WITH_KQUEUE)
     T_NUMBER(PollWait, 0);
@@ -500,6 +505,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollWait, 1, 3)
             timeout_spec.tv_nsec = (timeout % 1000) * 1000;
         }
         int nev = kevent(efd, NULL, 0, events, maxevents, (timeout > 0) ? &timeout_spec : NULL);
+        if (PARAMETERS_COUNT > 3) {
+            SET_NUMBER(3, nev);
+        }
         INTEGER out_index = 0;
         INTEGER index = 0;
         for (INTEGER i = 0; i < nev; i++) {
@@ -519,6 +527,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollWait, 1, 3)
         if (events) {
             CREATE_ARRAY(RESULT);
             int nfds = epoll_wait(efd, events, maxevents, timeout);
+            if(PARAMETERS_COUNT > 3) {
+                SET_NUMBER(3, nfds);
+            }
             INTEGER index = 0;
             INTEGER out_index = 0;
             for (int i = 0; i < nfds; i++) {
@@ -534,11 +545,17 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollWait, 1, 3)
             }
             free(events);
         } else {
+            if (PARAMETERS_COUNT > 3) {
+                SET_NUMBER(3, 0);
+            }
             RETURN_NUMBER(0);
             return (void *)"PollWait: Out of memory";
         }
 #endif
     } else {
+        if (PARAMETERS_COUNT > 3) {
+            SET_NUMBER(3, 0);
+        }
         RETURN_NUMBER(0);
     }
 #endif
