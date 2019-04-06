@@ -213,7 +213,18 @@ void PIFAlizator::AcknoledgeRunTimeError(SCStack *STACK_TRACE, AnsiException *Ex
             buf_size = 0;
         memcpy(buf + buf_size, plainstring_c_str(&cstack), plainstring_len(&cstack));
         out->ClientError(buf);
-        if (this->log_context) {
+
+        ConceptLogContext *log_context = this->log_context;
+        if (!log_context) {
+            PIFAlizator *parentPIF = (PIFAlizator *)this->parentPIF;
+            while (parentPIF) {
+                log_context = parentPIF->log_context;
+                if (log_context)
+                    break;
+                parentPIF = (PIFAlizator *)parentPIF->parentPIF;
+            }
+        }
+        if (log_context) {
             Exc->ToString(buf, &buf_size, 1);
             // remove new line at the end
             if (buf_size > 0)
