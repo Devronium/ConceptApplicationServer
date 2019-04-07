@@ -40,6 +40,7 @@ extern "C" {
     CONCEPT_FUNCTION(GetWorkerResultData)
     CONCEPT_FUNCTION(GetWorkerResultDataAll)
     CONCEPT_FUNCTION(RemoveWorkerData)
+    CONCEPT_FUNCTION(SetWorkerName)
 
     CONCEPT_FUNCTION(WorkerSharedGet)
     CONCEPT_FUNCTION(WorkerSharedSet)

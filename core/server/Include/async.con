@@ -627,6 +627,8 @@ class web {
 		if ((timeout) && (idle >= ASYNC_CGI_TIMEOUT_S)) {
 			console.debug(LOG_THIS, "idle drop for ${this.path}");
 			this.drop = true;
+			requestdata = new [];
+			QuitLoop();
 			return true;
 		}
 		return false;

@@ -1427,6 +1427,14 @@ CONCEPT_FUNCTION_IMPL(RemoveWorkerData, 2)
     RETURN_NUMBER(deleted);
 END_IMPL
 //---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(SetWorkerName, 1)
+    T_STRING(SetWorkerName, 0)
+#ifndef _WIN32
+    pthread_setname_np(pthread_self(), PARAM(0));
+#endif
+    RETURN_NUMBER(0)
+END_IMPL
+//---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetWorkerData, 1, 2)
     ThreadMetaContainer * tmc = NULL;
     Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
