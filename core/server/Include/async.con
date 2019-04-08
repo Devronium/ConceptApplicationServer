@@ -597,8 +597,10 @@ class web {
 
 	iterate() {
 		var timeout = 0;
-		if (drop)
+		if (drop) {
+			QuitLoop();
 			return true;
+		}
 
 		if (requests) {
 			idle = 0;
