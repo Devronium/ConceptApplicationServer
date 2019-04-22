@@ -263,16 +263,15 @@ class H2Server {
 			var range_end = range[1];
 			if (!range_end)
 				range_end = file.Size - 1;
-
 			if ((range_start > file.Size) || (range_end > file.Size) || (range_start < 0) || (range_end < 0) || (range_start > range_end) || (!file.Seek(range_start))) {
-				headers[":status"] = 416;
+				response_headers[":status"] = 416;
 				file.Close();
 				file = null;
-				headers["content-length"] = 0;
+				response_headers["content-length"] = 0;
 			} else {
-				headers[":status"] = 206;
-				headers["content-length"] = range_end - range_start + 1;
-				headers["content-range"] = "bytes $range_start-$range_end/${file.Size}";
+				response_headers[":status"] = 206;
+				response_headers["content-length"] = range_end - range_start + 1;
+				response_headers["content-range"] = "bytes $range_start-$range_end/${file.Size}";
 				stream.ResponseFileLimit = range_end + 1;
 			}
 			return true;
