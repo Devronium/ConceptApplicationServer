@@ -682,14 +682,14 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 					last_err_time = time();
 				}
 			}
-			if (!std_out_buffer)
-				this.notify_buffer();
 		}
 		if ((!std_out_buffer) && (!running)) {
 			H2Close();
 			this.reset();
 			return true;
 		}
+		if ((!std_out_buffer) && (can_write))
+			this.notify_buffer();
 		return false;
 	}
 

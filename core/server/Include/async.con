@@ -331,6 +331,8 @@ class _webrequest {
 		delete this._ondata;
 		delete this._ontimedout;
 		delete this._ondone;
+		delete this._onoutput;
+
 		this._registered = null;
 		this.web.done(id);
 		this.web.__buffer(["q" => id, "do" => "done"]);
