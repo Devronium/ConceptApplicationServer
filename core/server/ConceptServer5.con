@@ -5339,13 +5339,14 @@ class ConceptServer extends RewriteContainer extends IniCache {
 				this.TLSWSSocket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
 			console.info(LOG_THIS, "TCP fast open enabled");
 		}
-		this.SSLWSSocketName = this.IniKey("Server", "SecureProxyUnixSocket", "");
-		if (this.SSLWSSocketName) {
-			_unlink(this.SSLWSSocketName);
-			this.SSLWSSocket = new UNIXSocket();
-			this.SSLWSSocket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
+		if (all_protocols) {
+			this.SSLWSSocketName = this.IniKey("Server", "SecureProxyUnixSocket", "");
+			if (this.SSLWSSocketName) {
+				_unlink(this.SSLWSSocketName);
+				this.SSLWSSocket = new UNIXSocket();
+				this.SSLWSSocket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
+			}
 		}
-
 
 		this.Socket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
 		if (all_protocols) {
@@ -5609,18 +5610,19 @@ class ConceptServer extends RewriteContainer extends IniCache {
 		var sock_fd = socket.Socket;
 		var wsock_fd = -1;
 		var sockets = [sock_fd];
-		if (wsocket)
+		if (wsocket) {
 			wsock_fd = wsocket.Socket;
-			sockets[1] = wsock_fd;
+			sockets[length sockets] = wsock_fd;
+		}
 		var sslsock_fd = -1;
 		var tlssock_fd = -1;
 		if (tlswssocket) {
 			tlssock_fd = tlswssocket.Socket;
-			sockets[2] = tlssock_fd;
+			sockets[length sockets] = tlssock_fd;
 		}
 		if (sslwsocket) {
 			sslsock_fd = sslwsocket.Socket;
-			sockets[3] = sslsock_fd;
+			sockets[length sockets] = sslsock_fd;
 		}
 		while (Running) {
 			try {
