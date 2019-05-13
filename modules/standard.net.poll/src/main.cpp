@@ -218,7 +218,12 @@ public:
 #ifdef WITH_KQUEUE
         struct kevent event;
         EV_SET(&event, efd, EVFILT_READ, EV_DELETE, 0, 0, 0);
-        return kevent(fd, &event, 1, NULL, 0, NULL);
+        int err1 = kevent(fd, &event, 1, NULL, 0, NULL);
+        EV_SET(&event, efd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+        int err2 = kevent(fd, &event, 1, NULL, 0, NULL);
+        if ((err1) && (err2))
+            return -1;
+        return 0;
 #endif
 #ifdef WITH_POLL
         if ((chlist_pos) && (chlist)) {

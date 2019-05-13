@@ -141,6 +141,7 @@ class SIPSession {
 
 	var OnMessage;
 	var OnReferError;
+	var OnDTMF;
 
 	var _private_data;
 	var Referred;
@@ -655,7 +656,7 @@ class SIPSession {
 				if (Parent) {
 					Parent.Write(data, 10);
 				} else
-				if (s.OnDTMF) {
+				if ((s.OnDTMF) || (this.OnDTMF)) {
 					if (!d) {
 						d = new DTMFDetector();
 						d.Threshold = 1000;
@@ -669,7 +670,10 @@ class SIPSession {
 					var buttons = d.Buttons;
 					if ((buttons) && (buttons != DTMFHistory)) {
 						DTMFHistory = buttons;
-						s.OnDTMF(this, buttons[length buttons - 1]);
+						if (this.OnDTMF)
+							this.OnDTMF(this, buttons[length buttons - 1]);
+						else
+							s.OnDTMF(this, buttons[length buttons - 1]);
 					}
 				}
 			}
@@ -1326,6 +1330,9 @@ class SIPStack {
 		msg.Destination = destination;
 		if ((length destination > 2) && (destination[0] == "<") && (destination[length destination - 1] == ">"))
 			msg.Destination = SubStr(destination, 1, (length destination) - 2);
+		else
+		if ((destination) && (destination[0] == "<"))
+			msg.Destination = SubStr(destination, 1);
 
 		msg.Method = ToUpper(method);
 		if (extra_headers)
@@ -2027,6 +2034,10 @@ class SIPStack {
 			}
 			this.ParseHost(arr[1], server, port);
 			return true;
+		} else
+		if ((length arr == 1) && (destination[0] == "<")) {
+			user = "Anonymous";
+			this.ParseHost(SubStr(destination, 1), server, port);
 		}
 		return false;
 	}

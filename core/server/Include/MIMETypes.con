@@ -983,6 +983,7 @@ class MIMETypes {
 				"movie" => "video/x-sgi-movie",
 				"smv" => "video/x-smv",
 				"ice" => "x-conference/x-cooltalk",
+				"ts" => "video/mp2t",
 				"php" => "application/php",
 				"rb" => "application/ruby",
 				"ess" => "application/javascript-server-page",

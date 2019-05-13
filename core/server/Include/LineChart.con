@@ -22,7 +22,7 @@ class LineChart {
 		var result="<?xml version=\"1.0\" standalone=\"no\" ?>\n"+
 		"<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\"\n"+
 		"	\"http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd\">\n"+
-		"<svg width=\"$width\" height=\"$height\">\n"+
+		"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"$width\" height=\"$height\">\n"+
 		"<defs>\n"+
 		"<style type=\"text/css\">\n"+
 		"<![CDATA[\n";
