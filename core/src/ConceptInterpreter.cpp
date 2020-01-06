@@ -5310,7 +5310,6 @@ int ConceptInterpreter_JIT(INTEGER &INSTRUCTION_POINTER, INTEGER INSTRUCTION_COU
 
 VariableDATA *ConceptInterpreter_Interpret(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE) {
     Optimizer        *OPT = (struct Optimizer *)self->OWNER->OPTIMIZER;
-    INTEGER INSTRUCTION_POINTER = 0;
     INTEGER INSTRUCTION_COUNT   = OPT->codeCount;
     char             *STATIC_ERROR       = 0;
     ParamList        *FORMAL_PARAMETERS;
@@ -5349,6 +5348,8 @@ VariableDATA *ConceptInterpreter_Interpret(struct ConceptInterpreter *self, PIFA
     int              relocation;
     bool             not_executed;
 #endif
+tail_call:
+    INTEGER INSTRUCTION_POINTER = 0;
     INTEGER CATCH_INSTRUCTION_POINTER = 0;
     INTEGER CATCH_VARIABLE            = 0;
     INTEGER PREVIOUS_TRY = 0;
@@ -5556,26 +5557,43 @@ sel_label:
                 not_executed = true;
                 relocation = CCTEMP->_Class->Relocation(OE->OperandRight_ID - 1);
                 pMEMBER_i = relocation ? CCTEMP->_Class->pMEMBERS [relocation - 1] : 0;
-                if ((pMEMBER_i) && ((CCTEMP->_Class == self->OWNER->Defined_In) || (pMEMBER_i->ACCESS == 1))) {
-                    if (FORMAL_PARAMETERS) {
-                        if (pMEMBER_i->IS_FUNCTION == 1) {
-                            if ((FORMAL_PARAMETERS->COUNT == pMEMBER_i->MUST_PARAMETERS_COUNT)) {
-                                not_executed = false;
-                                WRITE_UNLOCK
-                                RESULT = pMEMBER_i->Execute(PIF, CCTEMP->_Class->CLSID, (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, FORMAL_PARAMETERS, LOCAL_CONTEXT, THROW_DATA, STACK_TRACE, LOCAL_CONTEXT [OE->Result_ID - 1], OE->Operator_FLAGS);
-                                WRITE_LOCK
-                            }
+                if (pMEMBER_i) {
+#ifndef NO_TCO
+                    // tail call optimization
+                    if ((pMEMBER_i == self->OWNER) && ((LOCAL_CONTEXT [OE->Result_ID - 1]->LINKS == 1) || (OE->Operator_FLAGS == MAY_IGNORE_RESULT)) && 
+                        ((INSTRUCTION_POINTER == INSTRUCTION_COUNT) ||
+                        ((INSTRUCTION_POINTER == INSTRUCTION_COUNT - 1) && (CODE[INSTRUCTION_POINTER].Operator_ID == KEY_OPTIMIZED_RETURN) && 
+                        (OE->Result_ID == CODE[INSTRUCTION_POINTER].OperandRight_ID)))) {
+                        bool can_run;
+                        ConceptInterpreter_CreateEnvironment(self, PIF, CCTEMP, FORMAL_PARAMETERS, LOCAL_CONTEXT, STACK_TRACE, LOCAL_CONTEXT, can_run);
+                        if (can_run) {
+                            goto tail_call;
+                        } else {
+                            continue;
                         }
-                    } else {
-                        if (!pMEMBER_i->IS_FUNCTION) {
-                            // not_executed = false;
-                            relocation = CCTEMP->_Class->RELOCATIONS2 [relocation - 1];
-                            RESULT = CCTEMP->_CONTEXT [relocation - 1];
-                            if (!RESULT) {
-                                RESULT = CompiledClass_CreateVariable(CCTEMP, relocation - 1, pMEMBER_i);
-                                goto here;
+                    }
+#endif
+                    if ((CCTEMP->_Class == self->OWNER->Defined_In) || (pMEMBER_i->ACCESS == 1)) {
+                        if (FORMAL_PARAMETERS) {
+                            if (pMEMBER_i->IS_FUNCTION == 1) {
+                                if ((FORMAL_PARAMETERS->COUNT == pMEMBER_i->MUST_PARAMETERS_COUNT)) {
+                                    not_executed = false;
+                                    WRITE_UNLOCK
+                                    RESULT = pMEMBER_i->Execute(PIF, CCTEMP->_Class->CLSID, (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, FORMAL_PARAMETERS, LOCAL_CONTEXT, THROW_DATA, STACK_TRACE, LOCAL_CONTEXT [OE->Result_ID - 1], OE->Operator_FLAGS);
+                                    WRITE_LOCK
+                                }
                             }
-                            goto nothrow;
+                        } else {
+                            if (!pMEMBER_i->IS_FUNCTION) {
+                                // not_executed = false;
+                                relocation = CCTEMP->_Class->RELOCATIONS2 [relocation - 1];
+                                RESULT = CCTEMP->_CONTEXT [relocation - 1];
+                                if (!RESULT) {
+                                    RESULT = CompiledClass_CreateVariable(CCTEMP, relocation - 1, pMEMBER_i);
+                                    goto here;
+                                }
+                                goto nothrow;
+                            }
                         }
                     }
                 }
@@ -6214,7 +6232,7 @@ void ConceptInterpreter_CheckParameters(struct ConceptInterpreter *self, PIFAliz
 }
 #endif
 
-VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *self, PIFAlizator *PIF, struct CompiledClass *Sender, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *STACK_TRACE, bool& can_run) {
+VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *self, PIFAlizator *PIF, struct CompiledClass *Sender, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *STACK_TRACE, VariableDATA **TAIL_CALL, bool& can_run) {
     VariableDATA **LOCAL_CONTEXT;
     struct Optimizer *OPT = (struct Optimizer *)self->OWNER->OPTIMIZER;
 
@@ -6222,35 +6240,41 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
     INTEGER ParamCount = FORMAL_PARAM ? FORMAL_PARAM->COUNT : 0;
     INTEGER data_count = OPT->dataCount;
 
-    SCStack *STACK_ROOT = (SCStack *)(STACK_TRACE ? STACK_TRACE->ROOT : NULL);
-    if ((STACK_ROOT) && (STACK_ROOT->STACK_CONTEXT) && (STACK_ROOT->stack_pos + data_count < BLOCK_STACK_SIZE)) {
-        LOCAL_CONTEXT                 = ((VariableDATA **)STACK_ROOT->STACK_CONTEXT) + STACK_ROOT->stack_pos;
-        STACK_ROOT->stack_pos        += data_count;
-        STACK_TRACE->alloc_from_stack = 1;
+#ifndef NO_TCO
+    if (TAIL_CALL) {
+        LOCAL_CONTEXT = TAIL_CALL;
     } else
-        LOCAL_CONTEXT = (VariableDATA **)FAST_MALLOC(PIF, sizeof(VariableDATA *) * OPT->dataCount);
-#ifdef POOL_BLOCK_ALLOC
- #ifdef POOL_STACK
-    if (STACK_TRACE->alloc_from_stack) {
-        if (!LOCAL_CONTEXT[0])
-            LOCAL_CONTEXT[0] = (VariableDATA *)VAR_ALLOC(PIF);
-    } else
- #endif
-    BLOCK_VAR_ALLOC(LOCAL_CONTEXT, PIF, data_count, 0);
-    VariableDATA *this_ref = LOCAL_CONTEXT[0];
-#else
-    VariableDATA *this_ref = (VariableDATA *)VAR_ALLOC(PIF);
-    LOCAL_CONTEXT [0] = this_ref;
 #endif
-    this_ref->TYPE               = VARIABLE_CLASS;
-    this_ref->CLASS_DATA         = Sender;
-    this_ref->LINKS              = 1;
-    this_ref->IS_PROPERTY_RESULT = -1;
+    {
+        SCStack *STACK_ROOT = (SCStack *)(STACK_TRACE ? STACK_TRACE->ROOT : NULL);
+        if ((STACK_ROOT) && (STACK_ROOT->STACK_CONTEXT) && (STACK_ROOT->stack_pos + data_count < BLOCK_STACK_SIZE)) {
+            LOCAL_CONTEXT                 = ((VariableDATA **)STACK_ROOT->STACK_CONTEXT) + STACK_ROOT->stack_pos;
+            STACK_ROOT->stack_pos        += data_count;
+            STACK_TRACE->alloc_from_stack = 1;
+        } else
+            LOCAL_CONTEXT = (VariableDATA **)FAST_MALLOC(PIF, sizeof(VariableDATA *) * OPT->dataCount);
+    #ifdef POOL_BLOCK_ALLOC
+     #ifdef POOL_STACK
+        if (STACK_TRACE->alloc_from_stack) {
+            if (!LOCAL_CONTEXT[0])
+                LOCAL_CONTEXT[0] = (VariableDATA *)VAR_ALLOC(PIF);
+        } else
+     #endif
+        BLOCK_VAR_ALLOC(LOCAL_CONTEXT, PIF, data_count, 0);
+        VariableDATA *this_ref = LOCAL_CONTEXT[0];
+    #else
+        VariableDATA *this_ref = (VariableDATA *)VAR_ALLOC(PIF);
+        LOCAL_CONTEXT [0] = this_ref;
+    #endif
+        this_ref->TYPE               = VARIABLE_CLASS;
+        this_ref->CLASS_DATA         = Sender;
+        this_ref->LINKS              = 1;
+        this_ref->IS_PROPERTY_RESULT = -1;
 
-    CC_WRITE_LOCK(PIF)
-    if (this_ref->CLASS_DATA)
-        ((struct CompiledClass *)this_ref->CLASS_DATA)->LINKS++;
-
+        CC_WRITE_LOCK(PIF)
+        if (this_ref->CLASS_DATA)
+            ((struct CompiledClass *)this_ref->CLASS_DATA)->LINKS++;
+    }
     INTEGER i;
     RuntimeVariableDESCRIPTOR *DATA = OPT->DATA;
     for (i = 1; i <= ParamCount; i++) {
@@ -6295,7 +6319,14 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
         // if IS_PROPERTY_RESULT is -1 => is constant !
         if ((TARGET->BY_REF) && (sndr->IS_PROPERTY_RESULT != -1)) {
 #ifdef POOL_BLOCK_ALLOC
-            VAR_FREE(LOCAL_CONTEXT [i]);
+#ifndef NO_TCO
+            if (TAIL_CALL) {
+                FREE_VARIABLE(LOCAL_CONTEXT [i], STACK_TRACE);
+            } else
+#endif
+            {
+                VAR_FREE(LOCAL_CONTEXT [i]);
+            }
 #endif
             LOCAL_CONTEXT [i] = sndr;
             LOCAL_CONTEXT [i]->LINKS++;
@@ -6331,7 +6362,7 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
     }
     while (i < data_count) {
 #ifdef USE_JIT_TRACE
-        if ((self->initcode.code) && (i > self->OWNER->PARAMETERS_COUNT)) {
+        if ((!TAIL_CALL) && (self->initcode.code) && (i > self->OWNER->PARAMETERS_COUNT)) {
             self->initcode.func2((sljit_sw)LOCAL_CONTEXT, (sljit_sw)PIF);
             CC_WRITE_UNLOCK(PIF)
             return LOCAL_CONTEXT;
@@ -6339,18 +6370,22 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
 #endif
         // variable descriptor
         RuntimeVariableDESCRIPTOR *TARGET = &DATA [i];
+#ifndef NO_TCO
+        if ((TAIL_CALL) && (LOCAL_CONTEXT[i]) && (LOCAL_CONTEXT[i]->LINKS > 1)) {
+            LOCAL_CONTEXT[i]->LINKS --;
+            LOCAL_CONTEXT[i] = (VariableDATA *)VAR_ALLOC(PIF);
+        }
+#endif
 #ifdef POOL_STACK
         if ((STACK_TRACE->alloc_from_stack) && (!LOCAL_CONTEXT[i]))
             LOCAL_CONTEXT[i] = (VariableDATA *)VAR_ALLOC(PIF);
 #endif
-
 #ifdef POOL_BLOCK_ALLOC
         VariableDATA *LOCAL_CONTEXT_i = LOCAL_CONTEXT[i];
 #else
         VariableDATA *LOCAL_CONTEXT_i = (VariableDATA *)VAR_ALLOC(PIF);
         LOCAL_CONTEXT [i] = LOCAL_CONTEXT_i;
 #endif
-
         i++;
         LOCAL_CONTEXT_i->TYPE = (TARGET->TYPE < 0) ? -TARGET->TYPE : TARGET->TYPE;
         LOCAL_CONTEXT_i->IS_PROPERTY_RESULT = (TARGET->BY_REF == 2) ? -1 : 0;

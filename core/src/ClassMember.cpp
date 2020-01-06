@@ -340,7 +340,7 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct 
 
     bool         can_run;
 #ifdef NO_FORCED_INLINE_CODE
-    VariableDATA **CONTEXT = ConceptInterpreter_CreateEnvironment((struct ConceptInterpreter *)INTERPRETER, (PIFAlizator *)PIF, Owner, FORMAL_PARAM, SenderCTX, &STACK_TRACE, can_run);
+    VariableDATA **CONTEXT = ConceptInterpreter_CreateEnvironment((struct ConceptInterpreter *)INTERPRETER, (PIFAlizator *)PIF, Owner, FORMAL_PARAM, SenderCTX, &STACK_TRACE, NULL, can_run);
 #else
     VariableDATA **CONTEXT;
     struct Optimizer *OPT = (struct Optimizer *)this->OPTIMIZER;
@@ -631,7 +631,7 @@ GreenThreadCycle *ClassMember::CreateThread(void *PIF, intptr_t CONCEPT_CLASS_ID
     gtc->STACK_TRACE.LOCAL_CONTEXT    = 0;
     gtc->STACK_TRACE.len              = 0;
     bool         can_be_run;
-    VariableDATA **CONTEXT = ConceptInterpreter_CreateEnvironment((struct ConceptInterpreter *)INTERPRETER, (PIFAlizator *)PIF, (struct CompiledClass *)Owner->CLASS_DATA, &FORMAL_PARAM, 0, &gtc->STACK_TRACE, can_be_run);
+    VariableDATA **CONTEXT = ConceptInterpreter_CreateEnvironment((struct ConceptInterpreter *)INTERPRETER, (PIFAlizator *)PIF, (struct CompiledClass *)Owner->CLASS_DATA, &FORMAL_PARAM, 0, &gtc->STACK_TRACE, NULL, can_be_run);
     gtc->LOCAL_CONTEXT             = CONTEXT;
     gtc->STACK_TRACE.LOCAL_CONTEXT = (void **)CONTEXT;
     if (CONTEXT)

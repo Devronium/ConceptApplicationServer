@@ -1,0 +1,57 @@
+import standard.arch.mp3
+import standard.lib.str
+
+class MP3Encoder {
+	protected var encoder;
+	protected var _buffer = "";
+	protected var _channels = 1;
+	protected var _samples;
+	protected var _mp3 = "";
+
+	public property Channels { get _channels }
+	public property Data { get _mp3 }
+
+	MP3Encoder(parameters = null) {
+		if (!parameters)
+			parameters = ["channels" => 1, "bitrate" => 16, "samplerate" => 8000];
+		_channels = parameters["channels"];
+		if (_channels < 1)
+			_channels = 1;
+		if (_channels > 2)
+			_channels = 2;
+
+		encoder = MP3EncoderCreate();
+
+		_samples = MP3EncoderSamples(encoder) * _channels;
+	}
+
+	close() {
+		if (encoder) {
+			_mp3 += MP3EncoderFlush(encoder);
+			MP3EncoderDone(encoder);
+			encoder = null;
+		}
+	}
+
+	clear() {
+		_mp3 = "";
+	}
+
+	encode(var buf) {
+		_buffer += buf;
+		var buf_len = _samples * 2;
+		while (length _buffer >= buf_len) {
+			if (_channels > 1) {
+				_mp3 += MP3EncoderEncode(encoder, _buffer, SubStr(_buffer, buf_len, buf_len));
+				_buffer = SubStr(_buffer, buf_len * 2);
+			} else {
+				_mp3 += MP3EncoderEncode(encoder, _buffer);
+				_buffer = SubStr(_buffer, buf_len);
+			}
+		}
+	}
+
+	finalize() {
+		this.close();
+	}
+}

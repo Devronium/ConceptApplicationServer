@@ -261,3 +261,4 @@ accel JWT.con
 accel U2F.con
 accel EventLoop.con
 accel MIMETypes.con
+accel MP3.con
