@@ -7,8 +7,8 @@
 #include <string.h>
 extern "C" {
 //#include <my_global.h>
-#include <mysql.h>
-//#include "mysql/mysql.h"
+//#include <mysql.h>
+#include <mysql/mysql.h>
 }
 
 #define SEND_BUF_SIZE    0x4000 //256k buffer
@@ -123,10 +123,10 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     DEFINE_ECONSTANT(GROUP_FLAG)
     DEFINE_ECONSTANT(UNIQUE_FLAG)
     DEFINE_ECONSTANT(BINCMP_FLAG)
-    DEFINE_ECONSTANT(GET_FIXED_FIELDS_FLAG)
-    DEFINE_ECONSTANT(FIELD_IN_PART_FUNC_FLAG)
-    DEFINE_ECONSTANT(FIELD_IN_ADD_INDEX)
-    DEFINE_ECONSTANT(FIELD_IS_RENAMED)
+    // DEFINE_ECONSTANT(GET_FIXED_FIELDS_FLAG)
+    // DEFINE_ECONSTANT(FIELD_IN_PART_FUNC_FLAG)
+    // DEFINE_ECONSTANT(FIELD_IN_ADD_INDEX)
+    // DEFINE_ECONSTANT(FIELD_IS_RENAMED)
 
     DEFINE_ECONSTANT(REFRESH_GRANT)
     DEFINE_ECONSTANT(REFRESH_LOG)
@@ -139,12 +139,12 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     DEFINE_ECONSTANT(REFRESH_READ_LOCK)
     DEFINE_ECONSTANT(REFRESH_FAST)
 
-    DEFINE_ECONSTANT(REFRESH_QUERY_CACHE)
-    DEFINE_ECONSTANT(REFRESH_QUERY_CACHE_FREE)
-    DEFINE_ECONSTANT(REFRESH_DES_KEY_FILE)
-    DEFINE_ECONSTANT(REFRESH_USER_RESOURCES)
+    // DEFINE_ECONSTANT(REFRESH_QUERY_CACHE)
+    // DEFINE_ECONSTANT(REFRESH_QUERY_CACHE_FREE)
+    // DEFINE_ECONSTANT(REFRESH_DES_KEY_FILE)
+    // DEFINE_ECONSTANT(REFRESH_USER_RESOURCES)
 
-    DEFINE_ECONSTANT(CLIENT_LONG_PASSWORD)
+    // DEFINE_ECONSTANT(CLIENT_LONG_PASSWORD)
     DEFINE_ECONSTANT(CLIENT_FOUND_ROWS)
     DEFINE_ECONSTANT(CLIENT_LONG_FLAG)
     DEFINE_ECONSTANT(CLIENT_CONNECT_WITH_DB)
@@ -165,13 +165,13 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
 
     DEFINE_ECONSTANT(CLIENT_SSL_VERIFY_SERVER_CERT)
     DEFINE_ECONSTANT(CLIENT_REMEMBER_OPTIONS)
-    DEFINE_ECONSTANT(CLIENT_ALL_FLAGS)
+    // DEFINE_ECONSTANT(CLIENT_ALL_FLAGS)
 
-    DEFINE_ECONSTANT(CLIENT_BASIC_FLAGS)
+    // DEFINE_ECONSTANT(CLIENT_BASIC_FLAGS)
 
     DEFINE_ECONSTANT(SERVER_STATUS_IN_TRANS)
     DEFINE_ECONSTANT(SERVER_STATUS_AUTOCOMMIT)
-    DEFINE_ECONSTANT(SERVER_MORE_RESULTS_EXISTS)
+    // DEFINE_ECONSTANT(SERVER_MORE_RESULTS_EXISTS)
     DEFINE_ECONSTANT(SERVER_QUERY_NO_GOOD_INDEX_USED)
     DEFINE_ECONSTANT(SERVER_QUERY_NO_INDEX_USED)
     DEFINE_ECONSTANT(SERVER_STATUS_CURSOR_EXISTS)
@@ -179,13 +179,13 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     DEFINE_ECONSTANT(SERVER_STATUS_DB_DROPPED)
     DEFINE_ECONSTANT(SERVER_STATUS_NO_BACKSLASH_ESCAPES)
     DEFINE_ECONSTANT(SERVER_STATUS_METADATA_CHANGED)
-    DEFINE_ECONSTANT(SERVER_STATUS_CLEAR_SET)
+    // DEFINE_ECONSTANT(SERVER_STATUS_CLEAR_SET)
     DEFINE_ECONSTANT(MYSQL_ERRMSG_SIZE)
     DEFINE_ECONSTANT(NET_READ_TIMEOUT)
     DEFINE_ECONSTANT(NET_WRITE_TIMEOUT)
     DEFINE_ECONSTANT(NET_WAIT_TIMEOUT)
 
-    DEFINE_ECONSTANT(ONLY_KILL_QUERY)
+    // DEFINE_ECONSTANT(ONLY_KILL_QUERY)
     DEFINE_ECONSTANT(MAX_TINYINT_WIDTH)
     DEFINE_ECONSTANT(MAX_SMALLINT_WIDTH)
     DEFINE_ECONSTANT(MAX_MEDIUMINT_WIDTH)
@@ -587,7 +587,6 @@ CONCEPT_FUNCTION_IMPL(MySQLDescribeCol, 7)
     T_NUMBER(MySQLDescribeCol, 6) // mysql result
 
     if (PARAM_INT(6)) {
-        int  res        = 0;
         long num_fields = mysql_num_fields((MYSQL_RES *)(SYS_INT)PARAM(6));
         int  index      = PARAM_INT(0);
 
@@ -615,7 +614,6 @@ CONCEPT_FUNCTION_IMPL(MySQLDescribeCol2, 7)
     T_NUMBER(MySQLDescribeCol2, 6) // mysql result
 
     if (PARAM_INT(6)) {
-        int  res        = 0;
         long num_fields = mysql_num_fields((MYSQL_RES *)(SYS_INT)PARAM(6));
         int  index      = PARAM_INT(0);
 
@@ -769,7 +767,6 @@ CONCEPT_FUNCTION_IMPL(MySQLBindParameters, 2)
         long unsigned int len = 0;
         for (int i = 0; i < parameters; i++) {
             ws->mylens[i] = 0;
-            void    *newpData = 0;
             char    *szData;
             INTEGER type;
             NUMBER  nData;
@@ -821,7 +818,6 @@ CONCEPT_FUNCTION_IMPL(MySQLBindParameters, 2)
         if (has_long_data) {
             for (int i = 0; i < parameters; i++) {
                 long unsigned int len       = 0;
-                void              *newpData = 0;
                 char              *szData;
                 INTEGER           type;
                 NUMBER            nData;
@@ -831,9 +827,8 @@ CONCEPT_FUNCTION_IMPL(MySQLBindParameters, 2)
                 if ((type == VARIABLE_STRING) && (len > SEND_BUF_SIZE)) {
                     has_long_data = 1;
                     int buf_size = SEND_BUF_SIZE;
-                    int res      = 0;
                     do {
-                        res     = mysql_stmt_send_long_data(((WrappedSTMT *)(SYS_INT)PARAM(0))->stmt, i, szData, buf_size);
+                        mysql_stmt_send_long_data(((WrappedSTMT *)(SYS_INT)PARAM(0))->stmt, i, szData, buf_size);
                         szData += buf_size;
                         len    -= buf_size;
                         if ((len > 0) && (len < buf_size))
@@ -988,73 +983,6 @@ CONCEPT_FUNCTION_IMPL(MySQLFetchForward, 1)
         RETURN_NUMBER(0)
     }
 END_IMPL
-
-/*
-   //-----------------------------------------------------//
-   CONCEPT_FUNCTION_IMPL(MySQLQuery,2)
-    T_STRING(MySQLQuery, 0) // query
-    T_NUMBER(MySQLQuery, 1) // mysql
-
-    if (PARAM_INT(1)) {
-        int result=mysql_real_query(((MYSQL *)PARAM_INT(1)), PARAM(0), PARAM_LEN(0));
-        RETURN_NUMBER(result);
-    } else {
-        RETURN_NUMBER(-1)
-    }
-   END_IMPL
-   //-----------------------------------------------------//
-
-   CONCEPT_FUNCTION_IMPL(MySQLColumnGet, 2)
-    T_NUMBER(MySQLColumnGet, 0) // col index
-    T_NUMBER(MySQLColumnGet, 1) // stmt
-
-    if (PARAM_INT(1)) {
-        INTEGER index=PARAM_INT(0);
-        MYSQL_STMT *stmt=(MYSQL_STMT *)PARAM_INT(1);
-        mysql_stmt_fetch(stmt);
-        MYSQL_RES *res=mysql_stmt_result_metadata(stmt);
-        if (!res) {
-            RETURN_STRING(0);
-            return 0;
-        }
-        int total=mysql_num_fields(res);
-
-        if ((index<0) || (index>=total)) {
-            RETURN_STRING("")
-            return 0;
-        }
-
-        long unsigned real_length= 0;
-        MYSQL_BIND bind;
-        bind.buffer_type=
-        bind.length=&real_length;
-        bind.buffer_length=0;
-        bind.buffer=0;
-   std::cout << "Before !\n";
-   std::cout.flush();
-        mysql_stmt_fetch_column(stmt, &bind, index, 0);
-   std::cout << "After !\n";
-   std::cout.flush();
-        /*int current=mysql_field_tell(res);
-
-        if (current!=index)
-            mysql_field_seek(res, index);
-
-        MYSQL_ROW row;
-        MYSQL_FIELD *field=mysql_fetch_field(res);
-        if (field) {
-            int data=new char [field.length];
-            mysql_
-
-            RETURN_BUFFER(data, field.length);
-            delete[] data;
-        }
-    } else {
-        RETURN_STRING("")
-    }
-   END_IMPL
-   //-----------------------------------------------------//
- */
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLQuery, 2)
     T_STRING(MySQLQuery, 0) // query
