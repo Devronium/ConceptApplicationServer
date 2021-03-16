@@ -79,7 +79,7 @@ struct CachedTemplate {
 };
 
 
-static char *flowkeys[] = {
+static const char *flowkeys[] = {
     0,                       "IN_BYTES",                "IN_PKTS",                   "FLOWS",                   "PROTOCOL",              "SRC_TOS",                      "TCP_FLAGS",          "L4_SRC_PORT",
     "IPV4_SRC_ADDR",         "SRC_MASK",                "INPUT_SNMP",                "L4_DST_PORT",             "IPV4_DST_ADDR",         "DST_MASK",
     "OUTPUT_SNMP",           "IPV4_NEXT_HOP",           "SRC_AS",                    "DST_AS",                  "BGP_IPV4_NEXT_HOP",     "MUL_DST_PKTS",
@@ -256,7 +256,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ParseNetflowPacket, 1, 2)
     char macbuf[20];
     buf[15] = 0;
     unsigned short version = ntohs(*(unsigned short *)buf);
-    if ((version == 5) && (PARAM_LEN(0) >= sizeof(NetFlow5Header))) {
+    if ((version == 5) && ((size_t)PARAM_LEN(0) >= sizeof(NetFlow5Header))) {
         NetFlow5Header header;
         NetFlow5Record record;
         memcpy(&header, buf, sizeof(NetFlow5Header));
@@ -282,7 +282,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ParseNetflowPacket, 1, 2)
         int len = PARAM_LEN(0) - sizeof(NetFlow5Header);
         buf += sizeof(NetFlow5Header);
         int flows = header.flows;
-        if (len >= header.flows * sizeof(NetFlow5Record)) {
+        if (len >= (int)(header.flows * sizeof(NetFlow5Record))) {
             newpData = 0;
             Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, (char *)"flows", &newpData);
             if (newpData) {
@@ -339,7 +339,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ParseNetflowPacket, 1, 2)
             }
         }
     } else
-    if ((version == 9) && (PARAM_LEN(0) >= sizeof(NetFlow9Header))) {
+    if ((version == 9) && (PARAM_LEN(0) >= (int)sizeof(NetFlow9Header))) {
         NetFlow9Header   header;
         NetFlow9Template tpl;
         NetFlow9Record   record;
@@ -379,7 +379,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ParseNetflowPacket, 1, 2)
 
         int  sets  = header.flows;
         char cache = 0;
-        while ((len > sizeof(unsigned short)) && (sets)) {
+        while ((len > (int)sizeof(unsigned short)) && (sets)) {
             memcpy(&record, buf, sizeof(NetFlow9Record));
             record.flowset_id = ntohs(record.flowset_id);
             record.length     = ntohs(record.length);
@@ -407,7 +407,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ParseNetflowPacket, 1, 2)
                 }
                 int datalen = record.length - sizeof(NetFlow9Record);
                 do {
-                    if (len < sizeof(NetFlow9Template))
+                    if (len < (int)sizeof(NetFlow9Template))
                         return 0;
                     memcpy(&tpl, buf, sizeof(NetFlow9Template));
                     tpl.template_id = ntohs(tpl.template_id);
@@ -424,7 +424,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ParseNetflowPacket, 1, 2)
                         Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData, "field_count", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)tpl.field_count);
 
                         int len2 = len - sizeof(NetFlow9Template);
-                        if (len2 < tpl.field_count * sizeof(unsigned short) * 2)
+                        if (len2 < (int)(tpl.field_count * sizeof(unsigned short) * 2))
                             return 0;
 
                         void *fields = 0;
@@ -488,7 +488,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ParseNetflowPacket, 1, 2)
                         CREATE_ARRAY(newpData);
 
                         int     len2  = t->fields_count;
-                        INTEGER index = 0;
                         for (int i = 0; i < len2; i++) {
                             int field_len  = t->fields[i].field_length;
                             int field_type = t->fields[i].field_type;
@@ -499,7 +498,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ParseNetflowPacket, 1, 2)
                             unsigned int   ival;
                             unsigned short sval;
                             unsigned char  cval;
-                            char           *key;
+                            const char     *key;
                             switch (field_type) {
                                 case 8:
                                 case 12:

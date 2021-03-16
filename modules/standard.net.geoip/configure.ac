@@ -15,7 +15,7 @@ AC_PROG_CC
 # FIXME: Replace `main' with a function in `-lxml2':
 # AC_CHECK_LIB([xml2], [xmlReaderForFile])
 
-pkg_modules="libgeoip >= 1.4.0"
+pkg_modules="geoip >= 1.4.0"
 PKG_CHECK_MODULES(GEOIP, [$pkg_modules])
 
 AC_SUBST(GEOIP_CFLAGS)

@@ -30,12 +30,12 @@ typedef struct {
 INVOKE_CALL InvokePtr = 0;
 //=====================================================================================//
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
-    DEFINE_ECONSTANT(HTTPPOST_FILENAME)
-    DEFINE_ECONSTANT(HTTPPOST_READFILE)
-    DEFINE_ECONSTANT(HTTPPOST_PTRNAME)
-    DEFINE_ECONSTANT(HTTPPOST_PTRCONTENTS)
-    DEFINE_ECONSTANT(HTTPPOST_BUFFER)
-    DEFINE_ECONSTANT(HTTPPOST_PTRBUFFER)
+    // DEFINE_ECONSTANT(HTTPPOST_FILENAME)
+    // DEFINE_ECONSTANT(HTTPPOST_READFILE)
+    // DEFINE_ECONSTANT(HTTPPOST_PTRNAME)
+    // DEFINE_ECONSTANT(HTTPPOST_PTRCONTENTS)
+    // DEFINE_ECONSTANT(HTTPPOST_BUFFER)
+    // DEFINE_ECONSTANT(HTTPPOST_PTRBUFFER)
 
     DEFINE_ECONSTANT(CURL_READFUNC_ABORT)
 
@@ -507,13 +507,13 @@ struct curl_httppost *GetForm(ConceptCURLHandle *handle, void *arr, INVOKE_CALL 
     for (int i = 0; i < count; i++) {
         _Invoke(INVOKE_ARRAY_VARIABLE, arr, i, &newpData);
         if (newpData) {
-            char    *szData;
+            const char *szData;
             INTEGER type;
             NUMBER  nData;
 
             _Invoke(INVOKE_GET_VARIABLE, newpData, &type, &szData, &nData);
 
-            char *key = 0;
+            const char *key = NULL;
             _Invoke(INVOKE_GET_ARRAY_KEY, arr, (INTEGER)i, &key);
 
             AnsiString temp((long)i);
@@ -528,8 +528,6 @@ struct curl_httppost *GetForm(ConceptCURLHandle *handle, void *arr, INVOKE_CALL 
             curl_formadd(&handle->post, &last,
                          CURLFORM_COPYNAME, key,
                          CURLFORM_COPYCONTENTS, szData, CURLFORM_CONTENTSLENGTH, (long)nData, CURLFORM_END);
-
-            //curl_formadd (&post, &last, CURLFORM_COPYNAME, key, CURLFORM_COPYCONTENTS, szData, CURLFORM_END);
         }
     }
     return handle->post;
@@ -1540,7 +1538,7 @@ CONCEPT_FUNCTION_IMPL(_curl_formnew, 1)
     void *pData = PARAMETER(0);
     int  count  = Invoke(INVOKE_GET_ARRAY_COUNT, pData);
     for (int i = 0; i < count; i++) {
-        char    *key      = 0;
+        const char  *key      = 0;
         void    *newpData = 0;
         char    *szData;
         INTEGER type;

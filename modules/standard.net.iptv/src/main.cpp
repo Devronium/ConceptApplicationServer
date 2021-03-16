@@ -271,8 +271,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSTable, 4, 7)
                         service_id = (INTEGER)nr;
 
                     if (service_id > 0) {
-                        char *network = "Concept";
-                        char *service = "Service01";
+                        const char *network = "Concept";
+                        const char *service = "Service01";
                         int service_type = 1;
 
                         Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, newpData, "network", &type, &str, &nr);
@@ -586,7 +586,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSPeek, 1, 4)
     const unsigned char *str = (unsigned char *)PARAM(0) + offset;
     if (len >= 188) {
         if (str[0] == 'G') {
-            int index = 0;
             int buf_len = 0;
             unsigned short prec_pid = 0;
             unsigned short pusi  = 0;
@@ -1004,7 +1003,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                         payload_len = remaining;
                                     }
                                 }
-                                int payload_start = start;
                                 int payload_offset = payload_len;
 
                                 switch (pid) {
@@ -1127,7 +1125,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                                         break;
                                                     if (es_info_len > 2) {
                                                         unsigned int es_len = ref_str[1];
-                                                        if (es_len > es_info_len - 2)
+                                                        if ((int)es_len > es_info_len - 2)
                                                             es_len = es_info_len - 2;
                                                         int es_offset = 0;
                                                         int do_break = 0;
@@ -1140,7 +1138,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                                                     if (es_len < 0)
                                                                         es_len = 0;
                                                                     es_offset += ref_str[start + es_offset + 1] + 2;
-                                                                    if (es_offset > es_len)
+                                                                    if (es_offset > (int)es_len)
                                                                         es_offset = 0;
                                                                     break;
                                                                 case 0x0A:

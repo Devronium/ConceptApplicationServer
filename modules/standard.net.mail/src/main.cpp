@@ -51,11 +51,11 @@ CONCEPT_DLL_API CONCEPT_mail CONCEPT_API_PARAMETERS {
 
     LOCAL_INIT;
 
-    char   *from    = "";
-    char   *to      = "";
-    char   *headers = "";
-    char   *content = "";
-    char   *server  = "localhost";
+    char   *from    = (char *)empty_string;
+    char   *to      = (char *)empty_string;
+    char   *headers = (char *)empty_string;
+    char   *content = (char *)empty_string;
+    char   *server  = (char *)"localhost";
     NUMBER port     = 25;
 
     GET_CHECK_STRING(0, from, "mail : parameter 0 should be a string (STATIC STRING)");
@@ -75,7 +75,6 @@ CONCEPT_DLL_API CONCEPT_mail CONCEPT_API_PARAMETERS {
     return 0;
 }
 //---------------------------------------------------------------------------
-
 /*CONCEPT_DLL_API CONCEPT_mail_login CONCEPT_API_PARAMETERS {
     PARAMETERS_CHECK_MIN_MAX(6,8,"mail_login takes 6 to 8 parameters: static integer mail_login(string from, string to, string headers, string content, string username, string password[, string smtp_server=\"localhost\"][,number smtp_port=25])");
 
@@ -114,16 +113,16 @@ CONCEPT_DLL_API CONCEPT_newsletter CONCEPT_API_PARAMETERS {
 
     LOCAL_INIT;
 
-    char *from = "";
+    char *from = (char *)empty_string;
 
     char *to      = 0;
     char *headers = 0;
     char *content = 0;
 
-    char *headers_s = "";
-    char *content_s = "";
+    char *headers_s = (char *)empty_string;
+    char *content_s = (char *)empty_string;
 
-    char   *server = "localhost";
+    char   *server = (char *)"localhost";
     NUMBER port    = 25;
     NUMBER fast    = 0;
 
@@ -258,7 +257,7 @@ CONCEPT_DLL_API CONCEPT_mail_error CONCEPT_API_PARAMETERS {
 
     LOCAL_INIT;
 
-    RETURN_STRING(send_mail_error());
+    RETURN_STRING(send_mail_error().c_str());
     return 0;
 }
 //---------------------------------------------------------------------------

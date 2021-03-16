@@ -475,7 +475,7 @@ CONCEPT_FUNCTION_IMPL(osip_transaction_init, 4)
     osip_transaction_t * t = NULL;
     osip_t         *osip    = (osip_t *)PARAM_INT(2);
     osip_message_t *request = (osip_message_t *)PARAM_INT(3);
-    if ((request) && (request->allows)) {
+    if ((request) /* && (request->allows) */) {
         int res = osip_transaction_init(&t, (osip_fsm_type_t)PARAM_INT(1), osip, request);
         SET_NUMBER(0, (SYS_INT)t);
         RETURN_NUMBER(res);
@@ -522,7 +522,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(osip_transaction_get_destination, 3)
     T_HANDLE(osip_transaction_get_destination, 0)
 
-    char *ip = "";
+    char *ip = (char *)"";
     int port = 0;
     int res  = osip_transaction_get_destination((osip_transaction_t *)PARAM_INT(0), &ip, &port);
     SET_STRING(1, ip);
@@ -612,7 +612,7 @@ void do_osip_set_message_callback(int type, osip_transaction_t *tr, osip_message
         return;
     void *RES       = 0;
     void *EXCEPTION = 0;
-    int  res        = InvokePtr(INVOKE_CALL_DELEGATE, DELEGATE, &RES, &EXCEPTION, (INTEGER)3, (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)type, (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)(SYS_INT)tr, (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)(SYS_INT)msg);
+    InvokePtr(INVOKE_CALL_DELEGATE, DELEGATE, &RES, &EXCEPTION, (INTEGER)3, (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)type, (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)(SYS_INT)tr, (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)(SYS_INT)msg);
     InvokePtr(INVOKE_FREE_VARIABLE, EXCEPTION);
     InvokePtr(INVOKE_FREE_VARIABLE, RES);
 }
@@ -1114,7 +1114,9 @@ END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_set_scheme, 2)
     T_HANDLE(osip_uri_set_scheme, 0)
+    T_STRING(osip_uri_set_scheme, 1)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
+    osip_uri_set_scheme(url, PARAM(1));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_get_scheme, 1)
@@ -2209,7 +2211,6 @@ CONCEPT_FUNCTION_IMPL(osip_from_to_str, 2)
 
     osip_from_t *from  = (osip_from_t *)PARAM_INT(0);
     char        *msgP  = 0;
-    size_t      msgLen = 0;
     int         res    = osip_from_to_str(from, &msgP);
     if (msgP) {
         SET_STRING(1, msgP);
@@ -2339,7 +2340,6 @@ CONCEPT_FUNCTION_IMPL(osip_to_to_str, 2)
 
     osip_to_t *to    = (osip_to_t *)PARAM_INT(0);
     char      *msgP  = 0;
-    size_t    msgLen = 0;
     int       res    = osip_to_to_str(to, &msgP);
     if (msgP) {
         SET_STRING(1, msgP);
@@ -3295,7 +3295,6 @@ CONCEPT_FUNCTION_IMPL(sdp_message_to_str, 2)
     SET_STRING(1, "");
     sdp_message_t *to    = (sdp_message_t *)PARAM_INT(0);
     char          *msgP  = 0;
-    size_t        msgLen = 0;
     int           res    = sdp_message_to_str(to, &msgP);
     if (msgP) {
         SET_STRING(1, msgP);
@@ -3977,7 +3976,6 @@ CONCEPT_FUNCTION_IMPL(osip_contact_to_str, 2)
 
     osip_contact_t *from  = (osip_contact_t *)PARAM_INT(0);
     char           *msgP  = 0;
-    size_t         msgLen = 0;
     int            res    = osip_contact_to_str(from, &msgP);
     if (msgP) {
         SET_STRING(1, msgP);
@@ -4789,7 +4787,6 @@ CONCEPT_FUNCTION_IMPL(osip_cseq_to_str, 2)
     SET_STRING(1, "");
     osip_cseq_t *to    = (osip_cseq_t *)PARAM_INT(0);
     char        *msgP  = 0;
-    size_t      msgLen = 0;
     int         res    = osip_cseq_to_str(to, &msgP);
     if (msgP) {
         SET_STRING(1, msgP);
@@ -4803,7 +4800,6 @@ CONCEPT_FUNCTION_IMPL(osip_call_id_to_str, 2)
     SET_STRING(1, "");
     osip_call_id_t *to    = (osip_call_id_t *)PARAM_INT(0);
     char           *msgP  = 0;
-    size_t         msgLen = 0;
     int            res    = osip_call_id_to_str(to, &msgP);
     if (msgP) {
         SET_STRING(1, msgP);

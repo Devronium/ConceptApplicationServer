@@ -76,7 +76,7 @@ int Connect(char *server, int PORT) {
     return sock;
 }
 
-int Send(int sock, char *data) {
+int Send(int sock, const char *data) {
     int        len  = strlen(data);
     AnsiString DATA = data;
 
@@ -157,10 +157,9 @@ AnsiString GetResponse2(int socket) {
 
             total_rec += rec;
             if (total_rec >= 5) {
-                char *ptr = response.c_str() + (total_rec - 5);
+                char *ptr = (char *)response.c_str() + (total_rec - 5);
                 if ((ptr[0] == '\r') && (ptr[1] == '\n') && (ptr[2] == '.') && (ptr[3] == '\r') && (ptr[4] == '\n')) {
                     ptr[0] = 0;
-                    //response=buffer;
                     return AnsiString(response.c_str());
                 }
             }
@@ -221,7 +220,7 @@ AnsiString GetResponseByByte(int socket) {
 int GetID(AnsiString response) {
     int  ID   = 0;
     int  pos  = response.Pos(" ");
-    char *ptr = response.c_str();
+    char *ptr = (char *)response.c_str();
 
     if (pos > 0) {
         ptr[pos - 1] = 0;
@@ -233,7 +232,7 @@ int GetID(AnsiString response) {
 AnsiString GetPROTO(AnsiString response) {
     AnsiString proto;
     int        pos  = response.Pos("250-AUTH ");
-    char       *ptr = response.c_str();
+    const char *ptr = response.c_str();
 
     if (pos > 0) {
         proto = AnsiString(ptr + pos + 8);
@@ -241,7 +240,7 @@ AnsiString GetPROTO(AnsiString response) {
     return proto;
 }
 
-int Close(int sock) {
+void Close(int sock) {
     CLOSE_SOCKET(sock);
 }
 
@@ -507,7 +506,7 @@ int GET_FIRST_COUNT(AnsiString *response) {
         AnsiString partial = response->c_str() + pos;
         int        pos2    = partial.Pos(" ");
         if (pos2 > 0) {
-            partial.c_str()[pos2] = 0;
+            ((char *)partial.c_str())[pos2] = 0;
             AnsiString value = partial.c_str();
             return value.ToInt();
         } else
@@ -617,7 +616,7 @@ AnsiString pop3_get_message(int handle, int index) {
     int pos  = response.Pos("+OK ");
 
     if (pos > 0) {
-        char       *ptr   = response.c_str() + 4;
+        char *ptr = (char *)response.c_str() + 4;
         AnsiString substr = ptr;
         pos = substr.Pos(" ");
 

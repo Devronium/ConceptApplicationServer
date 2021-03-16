@@ -66,7 +66,6 @@ CONCEPT_FUNCTION_IMPL(ROSQuery, 2)
     T_ARRAY(ROSQuery, 1)
 
     struct Sentence stSentence;
-    struct Block    stBlock;
 
     int sock = PARAM_INT(0);
     if (sock < 0) {

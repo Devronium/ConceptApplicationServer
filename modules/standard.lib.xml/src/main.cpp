@@ -974,7 +974,7 @@ CONCEPT_DLL_API CONCEPT__xmlDocDumpFormatMemoryEnc CONCEPT_API_PARAMETERS {
 
     NUMBER _nptr;
     NUMBER format;
-    char   *enc = "UTF-8";
+    char *enc = (char *)"UTF-8";
 
     GET_CHECK_NUMBER(0, _nptr, "xmlDocDumpFormatMemoryEnc : parameter 0 should be a number (STATIC NUMBER)");
     GET_CHECK_NUMBER(1, format, "xmlDocDumpFormatMemoryEnc : parameter 1 should be a number (STATIC NUMBER)");
@@ -1768,14 +1768,11 @@ CONCEPT_DLL_API CONCEPT__xmlNewPI CONCEPT_API_PARAMETERS {
     PARAMETERS_CHECK(2, "xmlNewPI takes 2 parameters: name,content");
     LOCAL_INIT;
 
-    NUMBER _nptr;
     char   *name;
     char   *content;
 
     GET_CHECK_STRING(0, name, "xmlNewPI : parameter 1 should be a string (STATIC STRING)");
     GET_CHECK_STRING(1, content, "xmlNewPI : parameter 1 should be a string (STATIC STRING)");
-
-    xmlNsPtr ptr = (xmlNsPtr)(SYS_INT)_nptr;
 
     RETURN_NUMBER((SYS_INT)xmlNewPI(BAD_CAST name, BAD_CAST content));
     return 0;
@@ -1806,7 +1803,6 @@ CONCEPT_DLL_API CONCEPT__xmlNewDocPI CONCEPT_API_PARAMETERS {
     LOCAL_INIT;
 
     NUMBER _nptr;
-    NUMBER _nptr2;
 
     char *name;
     char *content;
@@ -2206,7 +2202,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(xmlSetStructuredErrorFunc, 2)
     T_NUMBER(xmlSetStructuredErrorFunc, 0)
 
-    char *dclass = 0;
+    char *dclass = NULL;
     NUMBER dmember = 0;
     GET_DELEGATE(1, dclass, dmember)
 
@@ -2233,7 +2229,7 @@ END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(xmlURIEscapeStr, 1, 2)
     T_STRING(xmlURIEscapeStr, 0)
-    char *exceptions = "";
+    const char *exceptions = "";
     if (PARAMETERS_COUNT > 1) {
         T_STRING(xmlURIEscapeStr, 1)
         exceptions = PARAM(0);

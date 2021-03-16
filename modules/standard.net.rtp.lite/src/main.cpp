@@ -232,7 +232,7 @@ CONCEPT_FUNCTION_IMPL(RTP_Receive, 4)
     struct sockaddr_storage addr;
     char        msg[MAX_PACKET_LEN];
     char        ipstr[INET6_ADDRSTRLEN];
-    static char *unknown = "unknown";
+    static const char *unknown = "unknown";
     int         len      = 0;
     int         res      = RTP_Receive(PARAM_INT(0), (int)PARAM(1), msg, &len, (sockaddr *)&addr);
 

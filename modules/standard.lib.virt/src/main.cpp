@@ -759,7 +759,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainSnapshotCreate, 1, 3)
     T_HANDLE(virDomainSnapshotCreate, 0)
     int flags = 0;
-    char *str = "<domainsnapshot/>";
+    const char *str = "<domainsnapshot/>";
     if (PARAMETERS_COUNT > 1) {
         T_STRING(virDomainSnapshotCreate, 1)
         if (PARAM_LEN(1) > 0)

@@ -151,7 +151,6 @@ static const char *inet_ntop4(int add_type, const unsigned char *src, char *dst,
 void dns_callback2(void *arg, int status, int timeouts, struct hostent *host) {
     if (status == ARES_SUCCESS) {
         char **p;
-        char addr_buf[46] = "??";
         for (p = host->h_addr_list; *p; p++) {
             char addr_buf[0xFFF] = "??";
 
@@ -162,27 +161,25 @@ void dns_callback2(void *arg, int status, int timeouts, struct hostent *host) {
 }
 
 static void callback_ns(void *arg, int status, int timeouts, unsigned char *abuf, int alen) {
-    struct hostent *host = NULL;
-
-    int                 id, qr, opcode, aa, tc, rd, ra, rcode;
-    unsigned int        qdcount, ancount, nscount, arcount, i;
-    const unsigned char *aptr;
+    // int                 id, qr, opcode, aa, tc, rd, ra, rcode;
+    // unsigned int        qdcount, ancount, nscount, arcount, i;
+    // const unsigned char *aptr;
 
     if (abuf) {
         if (alen < HFIXEDSZ)
             return;
-        id      = DNS_HEADER_QID(abuf);
-        qr      = DNS_HEADER_QR(abuf);
-        opcode  = DNS_HEADER_OPCODE(abuf);
-        aa      = DNS_HEADER_AA(abuf);
-        tc      = DNS_HEADER_TC(abuf);
-        rd      = DNS_HEADER_RD(abuf);
-        ra      = DNS_HEADER_RA(abuf);
-        rcode   = DNS_HEADER_RCODE(abuf);
-        qdcount = DNS_HEADER_QDCOUNT(abuf);
-        ancount = DNS_HEADER_ANCOUNT(abuf);
-        nscount = DNS_HEADER_NSCOUNT(abuf);
-        arcount = DNS_HEADER_ARCOUNT(abuf);
+        // id      = DNS_HEADER_QID(abuf);
+        // qr      = DNS_HEADER_QR(abuf);
+        // opcode  = DNS_HEADER_OPCODE(abuf);
+        // aa      = DNS_HEADER_AA(abuf);
+        // tc      = DNS_HEADER_TC(abuf);
+        // rd      = DNS_HEADER_RD(abuf);
+        // ra      = DNS_HEADER_RA(abuf);
+        // rcode   = DNS_HEADER_RCODE(abuf);
+        // qdcount = DNS_HEADER_QDCOUNT(abuf);
+        // ancount = DNS_HEADER_ANCOUNT(abuf);
+        // nscount = DNS_HEADER_NSCOUNT(abuf);
+        // arcount = DNS_HEADER_ARCOUNT(abuf);
 
         struct hostent       *host = 0;
         struct ares_addrttl  addrttls[0xFF];
