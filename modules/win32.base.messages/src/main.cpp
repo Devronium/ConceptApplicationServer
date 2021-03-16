@@ -680,7 +680,7 @@ int deturnated_recv(MetaContainer *mc, int CLIENT_SOCKET, char *buffer, int size
     return res;
 }
 
-int deturnated_send(MetaContainer *mc, int CLIENT_SOCKET, char *buffer, int size, int extra = 0, int is_udp = 0, int encrypted = 0) {
+int deturnated_send(MetaContainer *mc, int CLIENT_SOCKET, const char *buffer, int size, int extra = 0, int is_udp = 0, int encrypted = 0) {
     int ssize     = 0;
     int orig_size = size;
 
@@ -823,7 +823,7 @@ int FlushCache(MetaContainer *mc, int CLIENT_SOCKET) {
 
 //-----------------------------------------------------------------------------------
 static char *empty_char = (char *)"\0";
-static char *def_msg    = "350";
+static char *def_msg    = (char *)"350";
 int DeSerializeBuffer2(char *buffer, int size, char **Owner, int *owner_len, int *message, char **Target, int *len_target, char **Value, int *len_value, unsigned int compressed = 0, char *buf_owner = 0) {
     int available_bytes =  size;
 
@@ -2328,7 +2328,7 @@ CONCEPT_DLL_API CONCEPT_send_message CONCEPT_API_PARAMETERS {
 
     if ((MESSAGE_ID == 0x1001) && (MESSAGE_TARGET == (char *)"350")) {
         MESSAGE_ID     = 0x110;
-        MESSAGE_TARGET = "";
+        MESSAGE_TARGET = (char *)empty_string;
     }
 
     INTEGER res             = 0;
@@ -3587,7 +3587,7 @@ CONCEPT_DLL_API CONCEPT_raw_deturnated_send CONCEPT_API_PARAMETERS {
     GET_METACONTAINER
     int size = htonl(SERVER_QUERY.Length() + 1);
     deturnated_send(mc, CLIENT_SOCKET, (char *)&size, sizeof(int), 0);
-    INTEGER res = deturnated_send(mc, CLIENT_SOCKET, SERVER_QUERY, size, 0);
+    INTEGER res = deturnated_send(mc, CLIENT_SOCKET, SERVER_QUERY.c_str(), size, 0);
     SetVariable(RESULT, VARIABLE_NUMBER, "", res);
     return 0;
 }
@@ -3844,7 +3844,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetRemoteIP, 0, 1)
     struct sockaddr_storage addr;
     char        ipstr[INET6_ADDRSTRLEN];
     int         port     = 0;
-    static char *unknown = "unknown";
+    static const char *unknown = "unknown";
 
 #ifdef _WIN32
     int peerlen = sizeof(addr);
@@ -4307,7 +4307,7 @@ AnsiString GenerateCode(int level, void *THIS_REF, void *THIS_VAR, void *pifHand
     int        len = mname.Length();
     for (int i = 0; i < len; i++) {
         if (member_name[i] == '#')
-            mname.c_str()[i] = '_';
+            ((char *)mname.c_str())[i] = '_';
     }
     code += mname;
     code += "(";

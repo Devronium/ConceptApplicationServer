@@ -135,14 +135,14 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     DEFINE_ECONSTANT(FID_CLUSTER8x8)
     DEFINE_ECONSTANT(FID_CLUSTER16x16)
 
-    DEFINE_ECONSTANT(FIJPEG_OP_NONE)
-    DEFINE_ECONSTANT(FIJPEG_OP_FLIP_H)
-    DEFINE_ECONSTANT(FIJPEG_OP_FLIP_V)
-    DEFINE_ECONSTANT(FIJPEG_OP_TRANSPOSE)
-    DEFINE_ECONSTANT(FIJPEG_OP_TRANSVERSE)
-    DEFINE_ECONSTANT(FIJPEG_OP_ROTATE_90)
-    DEFINE_ECONSTANT(FIJPEG_OP_ROTATE_180)
-    DEFINE_ECONSTANT(FIJPEG_OP_ROTATE_270)
+    // DEFINE_ECONSTANT(FIJPEG_OP_NONE)
+    // DEFINE_ECONSTANT(FIJPEG_OP_FLIP_H)
+    // DEFINE_ECONSTANT(FIJPEG_OP_FLIP_V)
+    // DEFINE_ECONSTANT(FIJPEG_OP_TRANSPOSE)
+    // DEFINE_ECONSTANT(FIJPEG_OP_TRANSVERSE)
+    // DEFINE_ECONSTANT(FIJPEG_OP_ROTATE_90)
+    // DEFINE_ECONSTANT(FIJPEG_OP_ROTATE_180)
+    // DEFINE_ECONSTANT(FIJPEG_OP_ROTATE_270)
 
     DEFINE_ECONSTANT(FITMO_DRAGO03)
     DEFINE_ECONSTANT(FITMO_REINHARD05)
@@ -198,7 +198,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_Initialise CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_Initialise' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -223,16 +222,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_DeInitialise CONCEPT_API_PARAMETERS {
     if (PARAMETERS->COUNT != 0)
         return (void *)": 'FreeImage_DeInitialise' parameters error. This fuction takes  no parameters.";
 
-    // General variables
-    NUMBER  NUMBER_DUMMY;
-    char    *STRING_DUMMY;
-    INTEGER TYPE;
-
-    // Result
-    // Specific variables
-
-    // Variable type check
-
     // function call
     FreeImage_DeInitialise();
 
@@ -244,16 +233,8 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetVersion CONCEPT_API_PARAMETERS {
     if (PARAMETERS->COUNT != 0)
         return (void *)": 'FreeImage_GetVersion' parameters error. This fuction takes  no parameters.";
 
-    // General variables
-    NUMBER  NUMBER_DUMMY;
-    char    *STRING_DUMMY;
-    INTEGER TYPE;
-
     // Result
     char *_C_call_result;
-    // Specific variables
-
-    // Variable type check
 
     // function call
     _C_call_result = (char *)FreeImage_GetVersion();
@@ -266,16 +247,8 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetCopyrightMessage CONCEPT_API_PARAMETERS {
     if (PARAMETERS->COUNT != 0)
         return (void *)": 'FreeImage_GetCopyrightMessage' parameters error. This fuction takes  no parameters.";
 
-    // General variables
-    NUMBER  NUMBER_DUMMY;
-    char    *STRING_DUMMY;
-    INTEGER TYPE;
-
     // Result
     char *_C_call_result;
-    // Specific variables
-
-    // Variable type check
 
     // function call
     _C_call_result = (char *)FreeImage_GetCopyrightMessage();
@@ -289,7 +262,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_Allocate CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_Allocate' parameters error. This fuction takes 6 parameters.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -341,7 +313,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_AllocateT CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_AllocateT' parameters error. This fuction takes 6 parameters.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -558,7 +529,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_Unload CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_Unload' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -584,7 +554,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_SetPixelColor CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_SetPixelColor' parameters error. This fuction takes 6 parameters.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -641,7 +610,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetPixelColor CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_GetPixelColor' parameters error. This fuction takes 6 parameters.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -702,7 +670,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetImageType CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_GetImageType' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -729,7 +696,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetColorsUsed CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_GetColorsUsed' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -756,7 +722,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetBPP CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_GetBPP' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -783,7 +748,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetWidth CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_GetWidth' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -810,7 +774,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetHeight CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_GetHeight' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -837,7 +800,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetLine CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_GetLine' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -864,7 +826,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetPitch CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_GetPitch' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -891,7 +852,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetDIBSize CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_GetDIBSize' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -918,7 +878,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetDotsPerMeterX CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_GetDotsPerMeterX' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -945,7 +904,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetDotsPerMeterY CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_GetDotsPerMeterY' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -972,7 +930,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_SetDotsPerMeterX CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_SetDotsPerMeterX' parameters error. This fuction takes 2 parameters.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -1003,7 +960,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_SetDotsPerMeterY CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_SetDotsPerMeterY' parameters error. This fuction takes 2 parameters.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -1034,7 +990,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetColorType CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_GetColorType' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -1061,7 +1016,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetRedMask CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_GetRedMask' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -1088,7 +1042,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetGreenMask CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_GetGreenMask' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -1115,7 +1068,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetBlueMask CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_GetBlueMask' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -1142,7 +1094,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetTransparencyCount CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_GetTransparencyCount' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -1169,7 +1120,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_SetTransparent CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_SetTransparent' parameters error. This fuction takes 2 parameters.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -1200,7 +1150,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_IsTransparent CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_IsTransparent' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -1227,7 +1176,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_HasBackgroundColor CONCEPT_API_PARAMETERS {
         return (void *)": 'FreeImage_HasBackgroundColor' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -1345,9 +1293,6 @@ CONCEPT_DLL_API CONCEPT__FreeImage_Composite CONCEPT_API_PARAMETERS {
 
     NUMBER dst;
     NUMBER src;
-    NUMBER left;
-    NUMBER top;
-    NUMBER alpha;
 
     GET_CHECK_NUMBER(0, dst, "FreeImage_Paste: parameter 1 should be a valid handle");
     GET_CHECK_NUMBER(1, src, "FreeImage_Paste: parameter 2 should be a valid handle");
