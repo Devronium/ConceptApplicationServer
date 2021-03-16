@@ -8,8 +8,6 @@ int WINAPI DllEntryPoint(HINSTANCE hinst, unsigned long reason, void *lpReserved
 #endif
 //-----------------------------------------------------------------------------------
 float *GetFloatList(void *arr, INVOKE_CALL _Invoke) {
-    INTEGER type      = 0;
-    NUMBER  nr        = 0;
     void    *newpData = 0;
     float   *ret      = 0;
 
@@ -37,8 +35,6 @@ float *GetFloatList(void *arr, INVOKE_CALL _Invoke) {
 
 //-----------------------------------------------------//
 char **GetCharList(void *arr, INVOKE_CALL _Invoke) {
-    INTEGER type      = 0;
-    NUMBER  nr        = 0;
     void    *newpData = 0;
     char    **ret     = 0;
 
@@ -66,8 +62,6 @@ char **GetCharList(void *arr, INVOKE_CALL _Invoke) {
 
 //-----------------------------------------------------//
 int *GetIntList(void *arr, INVOKE_CALL _Invoke) {
-    INTEGER type      = 0;
-    NUMBER  nr        = 0;
     void    *newpData = 0;
     int     *ret      = 0;
 
@@ -95,8 +89,6 @@ int *GetIntList(void *arr, INVOKE_CALL _Invoke) {
 
 //-----------------------------------------------------//
 double *GetDoubleList(void *arr, INVOKE_CALL _Invoke) {
-    INTEGER type      = 0;
-    NUMBER  nr        = 0;
     void    *newpData = 0;
     double  *ret      = 0;
 
@@ -124,8 +116,6 @@ double *GetDoubleList(void *arr, INVOKE_CALL _Invoke) {
 
 //-----------------------------------------------------//
 bool *GetBoolList(void *arr, INVOKE_CALL _Invoke) {
-    INTEGER type      = 0;
-    NUMBER  nr        = 0;
     void    *newpData = 0;
     bool    *ret      = 0;
 

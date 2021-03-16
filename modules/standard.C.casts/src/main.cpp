@@ -31,7 +31,6 @@ CONCEPT_DLL_API CONCEPT__int8 CONCEPT_API_PARAMETERS {
         return (void *)": '_int8' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -58,7 +57,6 @@ CONCEPT_DLL_API CONCEPT__int16 CONCEPT_API_PARAMETERS {
         return (void *)": '_int16' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -85,7 +83,6 @@ CONCEPT_DLL_API CONCEPT__int32 CONCEPT_API_PARAMETERS {
         return (void *)": '_int32' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -112,7 +109,6 @@ CONCEPT_DLL_API CONCEPT__float CONCEPT_API_PARAMETERS {
         return (void *)": '_float' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -139,7 +135,6 @@ CONCEPT_DLL_API CONCEPT__int64 CONCEPT_API_PARAMETERS {
         return (void *)": '_int64' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -170,7 +165,6 @@ CONCEPT_DLL_API CONCEPT__uint8 CONCEPT_API_PARAMETERS {
         return (void *)": '_uint8' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -197,7 +191,6 @@ CONCEPT_DLL_API CONCEPT__uint16 CONCEPT_API_PARAMETERS {
         return (void *)": '_uint16' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -224,7 +217,6 @@ CONCEPT_DLL_API CONCEPT__uint32 CONCEPT_API_PARAMETERS {
         return (void *)": '_uint32' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -251,7 +243,6 @@ CONCEPT_DLL_API CONCEPT__uint64 CONCEPT_API_PARAMETERS {
         return (void *)": '_uint64' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 

@@ -5562,7 +5562,7 @@ sel_label:
                     // tail call optimization
                     if ((pMEMBER_i == self->OWNER) && ((LOCAL_CONTEXT [OE->Result_ID - 1]->LINKS == 1) || (OE->Operator_FLAGS == MAY_IGNORE_RESULT)) && 
                         ((INSTRUCTION_POINTER == INSTRUCTION_COUNT) ||
-                        ((INSTRUCTION_POINTER == INSTRUCTION_COUNT - 1) && (CODE[INSTRUCTION_POINTER].Operator_ID == KEY_OPTIMIZED_RETURN) && 
+                        ((INSTRUCTION_POINTER <= INSTRUCTION_COUNT - 1) && (CODE[INSTRUCTION_POINTER].Operator_ID == KEY_OPTIMIZED_RETURN) && 
                         (OE->Result_ID == CODE[INSTRUCTION_POINTER].OperandRight_ID)))) {
                         bool can_run;
                         ConceptInterpreter_CreateEnvironment(self, PIF, CCTEMP, FORMAL_PARAMETERS, LOCAL_CONTEXT, STACK_TRACE, LOCAL_CONTEXT, can_run);

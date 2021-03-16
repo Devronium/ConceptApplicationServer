@@ -12484,6 +12484,7 @@ window.mobileAndTabletcheck = function() {
 							var self = this;;
 							this.EmulateUserEvent = function(e) { if (self.MasterAudioContext.state === "suspended") { self.MasterAudioContext.resume(); console.log("iOS fix"); } delete self.EmulateUserEvent};
 							document.addEventListener('touchstart', this.EmulateUserEvent);
+							document.addEventListener('click', this.EmulateUserEvent);
 						}
 					}
 					control = { ref: this.MasterAudioContext };

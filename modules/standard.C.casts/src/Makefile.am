@@ -7,7 +7,6 @@ AM_LDFLAGS = -shared
 # the previous manual Makefile
 libexecdir=@libexecdir@/concept
 libexec_PROGRAMS = standard.C.casts.so
-standard_C_casts_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h AnsiString.cpp AnsiString.h
-
+standard_C_casts_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h
 
 

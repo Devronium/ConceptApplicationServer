@@ -8,6 +8,7 @@
 
 #include "AnsiTypes.h"
 
+static const char empty_string[] = "";
 
 #define INVOKE_SET_VARIABLE                   0x01
 #define INVOKE_GET_VARIABLE                   0x02
@@ -122,6 +123,8 @@
  #define CONCEPT_DLL_API      void *
 #endif
 
+#define CONCEPT_SUPRESS_UNUSED_WARNING(x)   (void)(x)
+
 #define ON_CREATE_CONTEXT     __CONCEPT_MEMORY_MANAGEMENT_CreateContext
 #define ON_DESTROY_CONTEXT    __CONCEPT_MEMORY_MANAGEMENT_DestroyContext
 
@@ -156,7 +159,7 @@ typedef POINTER (*CONCEPT_MANAGEMENT_CALL) MANAGEMENT_PARAMETERS;
 #define TO_STRING(STRING_DATA)                     #STRING_DATA
 
 
-typedef INTEGER (*CALL_BACK_VARIABLE_SET)(VariableDATA *VD, INTEGER TYPE, char *STRING_VALUE, NUMBER NUMBER_VALUE);
+typedef INTEGER (*CALL_BACK_VARIABLE_SET)(VariableDATA *VD, INTEGER TYPE, const char *STRING_VALUE, NUMBER NUMBER_VALUE);
 typedef INTEGER (*CALL_BACK_VARIABLE_GET)(VariableDATA *VD, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE);
 typedef INTEGER (*CALL_BACK_CLASS_MEMBER_GET)(void *CLASS_PTR, char *class_member_name, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE);
 typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_member_name, INTEGER TYPE, char *STRING_VALUE, NUMBER NUMBER_VALUE);
@@ -165,7 +168,7 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 #define PARAMETERS_CHECK(parameter_count, error_return)       if (PARAMETERS->COUNT != parameter_count) return (void *)error_return;
 #define PARAMETERS_CHECK_MIN_MAX(pmin, pmax, error_return)    if ((PARAMETERS->COUNT < pmin) || (PARAMETERS->COUNT > pmax)) return (void *)error_return;
 #define PARAMETERS_CHECK_MIN(pmin, error_return)              if (PARAMETERS->COUNT < pmin) return (void *)error_return;
-#define LOCAL_INIT          NUMBER nDUMMY_FILL = 0; char *szDUMMY_FILL = 0; INTEGER TYPE = 0
+#define LOCAL_INIT          NUMBER nDUMMY_FILL = 0; char *szDUMMY_FILL = 0; INTEGER TYPE = 0; CONCEPT_SUPRESS_UNUSED_WARNING(nDUMMY_FILL); CONCEPT_SUPRESS_UNUSED_WARNING(szDUMMY_FILL); CONCEPT_SUPRESS_UNUSED_WARNING(TYPE)
 #define PARAMETERS_COUNT    PARAMETERS->COUNT
 
 #define IS_OK(err)                                                                            ((err < 0) ? 0 : 1)
@@ -181,14 +184,14 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 
 #define PARAMETER(param_index)                                                                LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[param_index] - 1]
 
-#define RETURN_STRING(szvariable)                                                             SetVariable(RESULT, VARIABLE_STRING, (char *)(szvariable ? szvariable : ""), 0);
-#define RETURN_NUMBER(nvariable)                                                              SetVariable(RESULT, VARIABLE_NUMBER, (char *)"", nvariable);
-#define RETURN_BUFFER(szvariable, len)                                                        SetVariable(RESULT, VARIABLE_STRING, (char *)((szvariable && len) ? szvariable : ""), len);
-#define RETURN_ARRAY(ptrvariable)                                                             SetVariable(RESULT, VARIABLE_ARRAY, (char *)ptrvariable, 0);
+#define RETURN_STRING(szvariable)                                                             SetVariable(RESULT, VARIABLE_STRING, (const char *)(szvariable ? szvariable : empty_string), 0);
+#define RETURN_NUMBER(nvariable)                                                              SetVariable(RESULT, VARIABLE_NUMBER, (const char *)empty_string, nvariable);
+#define RETURN_BUFFER(szvariable, len)                                                        SetVariable(RESULT, VARIABLE_STRING, (const char *)((((void *)(szvariable) != NULL) && (len > 0)) ? szvariable : empty_string), len);
+#define RETURN_ARRAY(ptrvariable)                                                             SetVariable(RESULT, VARIABLE_ARRAY, (const char *)ptrvariable, 0);
 
-#define SET_STRING(param_index, szvariable)                                                   SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[param_index] - 1], VARIABLE_STRING, (char *)(szvariable ? szvariable : ""), 0);
-#define SET_NUMBER(param_index, nvariable)                                                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[param_index] - 1], VARIABLE_NUMBER, (char *)"", nvariable);
-#define SET_BUFFER(param_index, szvariable, len)                                              SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[param_index] - 1], VARIABLE_STRING, (char *)((szvariable && len) ? szvariable : ""), len);
+#define SET_STRING(param_index, szvariable)                                                   SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[param_index] - 1], VARIABLE_STRING, (const char *)(szvariable ? szvariable : empty_string), 0);
+#define SET_NUMBER(param_index, nvariable)                                                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[param_index] - 1], VARIABLE_NUMBER, (const char *)empty_string, nvariable);
+#define SET_BUFFER(param_index, szvariable, len)                                              SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[param_index] - 1], VARIABLE_STRING, (const char *)((szvariable && len) ? szvariable : empty_string), len);
 
 #define CHECK_STRING(error_return)                                                            if (TYPE != VARIABLE_STRING) return (void *)error_return;
 #define CHECK_NUMBER(error_return)                                                            if (TYPE != VARIABLE_NUMBER) return (void *)error_return;
@@ -221,7 +224,7 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 #define CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(function_name, parameters_count)                CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { if (PARAMETERS->COUNT < parameters_count) { return (void *)(#function_name " takes at least " #parameters_count " parameters."); } LOCAL_INIT;
 #define CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(function_name, parameters_min, parameters_max)    CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { if ((PARAMETERS->COUNT < parameters_min) || (PARAMETERS->COUNT > parameters_max)) { return (void *)(#function_name " takes at least " #parameters_min ", at most " #parameters_max " parameters."); } LOCAL_INIT;
 
-#define __INTERNAL_PARAMETER_DECL(type, name, index)                                          type name ## index = 0
+#define __INTERNAL_PARAMETER_DECL(type, name, index)                                          type name ## index = 0; CONCEPT_SUPRESS_UNUSED_WARNING(name ## index)
 #define __INTERNAL_PARAMETER(name, index)                                                     name ## index
 
 #define __PARAM_ERR_MSG(fname, param_index, type)                                             (#fname ": parameter " #param_index " should be a " type)
@@ -270,9 +273,9 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 #define CREATE_OBJECT(VARIABLE, class_name)               IS_OK(Invoke(INVOKE_CREATE_OBJECT, HANDLER, VARIABLE, class_name))
 #define GET_MEMBER_VAR(VARIABLE, member_name, MEM_PTR)    Invoke(INVOKE_GET_CLASS_VARIABLE, VARIABLE, member_name, & MEM_PTR)
 
-#define SET_STRING_VARIABLE(VARIABLE, szvariable)         SetVariable(VARIABLE, VARIABLE_STRING, (char *)(szvariable ? szvariable : ""), 0);
-#define SET_NUMBER_VARIABLE(VARIABLE, nvariable)          SetVariable(VARIABLE, VARIABLE_NUMBER, (char *)"", nvariable);
-#define SET_BUFFER_VARIABLE(VARIABLE, szvariable, len)    SetVariable(VARIABLE, VARIABLE_STRING, (char *)((szvariable && len) ? szvariable : ""), len);
+#define SET_STRING_VARIABLE(VARIABLE, szvariable)         SetVariable(VARIABLE, VARIABLE_STRING, (const char *)(szvariable ? szvariable : empty_string), 0);
+#define SET_NUMBER_VARIABLE(VARIABLE, nvariable)          SetVariable(VARIABLE, VARIABLE_NUMBER, (const char *)empty_string, nvariable);
+#define SET_BUFFER_VARIABLE(VARIABLE, szvariable, len)    SetVariable(VARIABLE, VARIABLE_STRING, (const char *)((szvariable && len) ? szvariable : empty_string), len);
 #define LOCK_VARIABLE(VARIABLE)                           Invoke(INVOKE_LOCK_VARIABLE, VARIABLE)
 
 #define CALL_DELEGATE(DELEG_VAR, ...)                                             \

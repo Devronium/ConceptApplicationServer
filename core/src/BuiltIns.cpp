@@ -280,7 +280,7 @@ CONCEPT_FUNCTION_IMPL(gmtime, 1)
     }
 END_IMPL
 
-CONCEPT_FUNCTION_IMPL(__epoch, 7)
+CONCEPT_FUNCTION_IMPL(__epoch, 8)
     T_NUMBER(__epoch, 0);
     T_NUMBER(__epoch, 1);
     T_NUMBER(__epoch, 2);
@@ -288,10 +288,18 @@ CONCEPT_FUNCTION_IMPL(__epoch, 7)
     T_NUMBER(__epoch, 4);
     T_NUMBER(__epoch, 5);
     T_NUMBER(__epoch, 6);
+    T_NUMBER(__epoch, 7);
 
     struct tm tmbuf;
     time_t tempp = 0;
-    struct tm *timeinfo = localtime_r(&tempp, &tmbuf);
+    struct tm *timeinfo;
+    int is_localtime = PARAM_INT(7);
+    if (is_localtime) {
+        timeinfo = localtime_r(&tempp, &tmbuf);
+    } else {
+        timeinfo = gmtime_r(&tempp, &tmbuf);
+        timeinfo->tm_isdst = -1;
+    }
 
     timeinfo->tm_year = PARAM_INT(0) - 1900;
     timeinfo->tm_mon = PARAM_INT(1);
@@ -299,7 +307,15 @@ CONCEPT_FUNCTION_IMPL(__epoch, 7)
     timeinfo->tm_hour = PARAM_INT(3);
     timeinfo->tm_min = PARAM_INT(4);
     timeinfo->tm_sec = PARAM_INT(5);
+
     uint64_t temp = (uint64_t)mktime(timeinfo) * 1000 + PARAM_INT(6);
+    if (is_localtime) {
+#ifdef _WIN32
+        temp -= _timezone * 1000;
+#else
+        temp -= timezone  * 1000;
+#endif
+    }
     RETURN_NUMBER((NUMBER)temp);
 END_IMPL
 
@@ -310,7 +326,7 @@ CONCEPT_FUNCTION_IMPL(formatdate, 2)
     char buffer [80];
     time_t tempp = (time_t)(PARAM(0)/1000);
     struct tm tmbuf;
-    struct tm *timeinfo = localtime_r(&tempp, &tmbuf);
+    struct tm *timeinfo = gmtime_r(&tempp, &tmbuf);
     int size = strftime(buffer, 80, PARAM(1), timeinfo);
     if (size > 0) {
         RETURN_BUFFER(buffer, size);
@@ -792,7 +808,7 @@ int BUILTINOBJECTS(void *pif, const char *classname) {
             "}"
 
             "getTime() {"
-                "return __epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms);"
+                "return __epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms, true);"
             "}"
 
             "getDate() {"
@@ -824,7 +840,7 @@ int BUILTINOBJECTS(void *pif, const char *classname) {
             "}"
 
             "getDay() {"
-                "var arr = localtime(__epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms) / 1000);"
+                "var arr = localtime(__epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms, true) / 1000);"
                 "return arr[\"tm_wday\"];"
             "}"
 
@@ -869,7 +885,7 @@ int BUILTINOBJECTS(void *pif, const char *classname) {
             "}"
 
             "UTC() {"
-                "var utc = __epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms) + timezone() * 60000;"
+                "var utc = __epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms, false);"
                 "if (utc < 0)"
                     "utc = 0;"
                 "return utc;"
@@ -929,12 +945,12 @@ int BUILTINOBJECTS(void *pif, const char *classname) {
             "}"
 
             "toDateString() {"
-                "return formatdate(__epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms), \"%a %b %d %Y\");"
+                "return formatdate(__epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms, true), \"%a %b %d %Y\");"
             "}"
 
             "toTimeString() {"
                 "var tz = -timezone();"
-                "return formatdate(__epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms), \"%H:%M:%S GMT+\") + this.L0(floor(tz / 60)) + this.L0(tz % 60);"
+                "return formatdate(__epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms, true), \"%H:%M:%S GMT+\") + this.L0(floor(tz / 60)) + this.L0(tz % 60);"
             "}"
 
             "operator-(x) {"
