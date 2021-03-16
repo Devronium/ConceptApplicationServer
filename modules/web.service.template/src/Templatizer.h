@@ -16,8 +16,6 @@ private:
     INVOKE_CALL Invoke;
 
     void *popped_for;
-    //int offset;
-
 
     char   *szData;
     int    type;
@@ -89,8 +87,8 @@ public:
         if ((members) && (!is_popped((AnsiList *)popped_for, members))) {
             int count = members->Count();
             for (int i = 0; i < count; i++) {
-                AnsiString *S     = (AnsiString *)members->Item(i);
-                char       *mname = S->c_str();
+                AnsiString *S = (AnsiString *)members->Item(i);
+                const char *mname = S->c_str();
                 type = mname[0];
                 mname++;
                 void *_data_member = 0;
@@ -122,7 +120,7 @@ public:
                         AnsiString mn = mname + 1;
                         if (mn.Length()) {
                             char c = mn.c_str()[mn.Length() - 1];
-                            mn.c_str()[mn.Length() - 1] = 0;
+                            ((char *)mn.c_str())[mn.Length() - 1] = 0;
                             if ((c == '\"') || (c == '\'')) {
                                 if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, _data, (long)-1, mn.c_str()))
                                     Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, _data, mn.c_str(), &_data_member);

@@ -147,7 +147,7 @@ CONCEPT_DLL_API CONCEPT_TExecute CONCEPT_API_PARAMETERS {
 
     CTemplatizer *T = (CTemplatizer *)(SYS_INT)index;
 
-    RETURN_STRING(T->Execute());
+    RETURN_STRING(T->Execute().c_str());
     return 0;
 }
 //---------------------------------------------------------------------------
@@ -172,7 +172,7 @@ CONCEPT_DLL_API CONCEPT_TErrors CONCEPT_API_PARAMETERS {
 
     CTemplatizer *T = (CTemplatizer *)(SYS_INT)index;
 
-    RETURN_STRING(T->GetErrors());
+    RETURN_STRING(T->GetErrors().c_str());
     return 0;
 }
 //---------------------------------------------------------------------------
