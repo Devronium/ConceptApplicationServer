@@ -150,7 +150,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ObjectDetect, 2, 8)
     int        put_roi        = 0;
     int        biggest_object = 0;
     AnsiString fmt            = (char *)".";
-    char       *format        = 0;
+    char *format              = NULL;
 
     if (PARAMETERS_COUNT > 2) {
         T_NUMBER(ObjectDetect, 2)
@@ -161,7 +161,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ObjectDetect, 2, 8)
         T_STRING(ObjectDetect, 4)
         if (PARAM_LEN(4)) {
             fmt    += PARAM(4);
-            format  = fmt.c_str();
+            format  = (char *)fmt.c_str();
             put_roi = 1;
         }
     }
@@ -305,7 +305,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FaceRecognize, 2, 6)
     T_ARRAY(FaceRecognize, 1)
     int type = OBJECT_FILE;
     IplImage *frame    = 0;
-    IplImage *training = 0;
     char     *filename = 0;
     int      i;
     int      no_xml_data = 1;
@@ -647,8 +646,9 @@ END_IMPL
 IplImage *detect_and_draw(IplImage *img, CvMemStorage *storage, CvHaarClassifierCascade *cascade, void *RESULT, int w, int h, int put_roi, char *format, int biggest_object) {
     static int jpeg_params[] = { CV_IMWRITE_JPEG_QUALITY, 99, 0 };
 
+    static char *default_format = ".png";
     if (!format)
-        format = ".png";
+        format = (char *)default_format;
     int scale = 1;
     // Create two points to represent the face locations
     CvPoint pt1, pt2;

@@ -434,7 +434,6 @@ CONCEPT_DLL_API CONCEPT__strncpy CONCEPT_API_PARAMETERS {
     PARAMETERS_CHECK(3, "'strncpy' takes 3 parameters. See help for details.");
     LOCAL_INIT;
 
-    char *_C_call_result;
     // Specific variables
     char   *szParam0;
     char   *szParam1;
@@ -448,9 +447,6 @@ CONCEPT_DLL_API CONCEPT__strncpy CONCEPT_API_PARAMETERS {
     // Parameter 3
     GET_CHECK_NUMBER(2, nParam2, "'strncpy' parameter 2 should be a number (STATIC NUMBER).");
 
-    // function call
-    //_C_call_result=(char*)strncpy((char*)szParam0, (char*)szParam1, (size_t)nParam2);
-    _C_call_result = szParam0;
     size_t len = strlen(szParam1);
     if ((size_t)nParam2 < len)
         len = (size_t)nParam2;

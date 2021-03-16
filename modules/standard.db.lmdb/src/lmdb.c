@@ -408,6 +408,9 @@ int mdb_mid2l_append(MDB_ID2L ids, MDB_ID2 *id) {
   # endif
  #endif
 #else
+ #include <unistd.h>
+ #include <limits.h>
+ #include <pthread.h>
  #include <sys/types.h>
  #include <sys/stat.h>
  #define MDB_PID_T    pid_t

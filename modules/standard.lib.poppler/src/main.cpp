@@ -286,13 +286,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFPageImage, 3, 6)
     }
 END_IMPL
 //------------------------------------------------------------------------
-const char *getVectorData(poppler::ustring buf) {
-    const char *res = buf.to_latin1().c_str();
-    if (res)
-        return res;
-    return "";
-}
-
 CONCEPT_FUNCTION_IMPL(PDFAttachments, 1)
     T_HANDLE(PDFAttachments, 0)
 
@@ -310,8 +303,12 @@ CONCEPT_FUNCTION_IMPL(PDFAttachments, 1)
             if (ARR) {
                 CREATE_ARRAY(ARR);
 
+                const char *desc_buf = attachment->description().to_latin1().c_str();
+                if (!desc_buf)
+                    desc_buf = empty_string;
+
                 Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, ARR, (char *)"name", (INTEGER)VARIABLE_STRING, (char *)(attachment->name().size() ? attachment->name().c_str() : "Unknown"), (NUMBER)0);
-                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, ARR, (char *)"description", (INTEGER)VARIABLE_STRING, getVectorData(attachment->description()), (NUMBER)0);
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, ARR, (char *)"description", (INTEGER)VARIABLE_STRING, desc_buf, (NUMBER)0);
                 Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, ARR, (char *)"size", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)attachment->size());
                 Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, ARR, (char *)"ctime", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)attachment->creation_date());
                 Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, ARR, (char *)"mtime", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)attachment->modification_date());

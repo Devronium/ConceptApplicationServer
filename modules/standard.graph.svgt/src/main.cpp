@@ -135,7 +135,7 @@ int create_cairo(svgtiny_diagram *diagram, float scale, AnsiString *res) {
             render_path(cr, scale, &diagram->shape[i]);
         } else if (diagram->shape[i].text) {
             AnsiString text;
-            char       *ptr = diagram->shape[i].text;
+            const char *ptr = diagram->shape[i].text;
             while (*ptr) {
                 switch (*ptr) {
                     case '\n':

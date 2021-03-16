@@ -5,7 +5,7 @@
 #include <string.h>
 #include "AnsiString.h"
 
-static char *profile_callback = "__profile";
+static const char *profile_callback = "__profile";
 
 #define PROFILER_CALL_START    0
 #define PROFILER_CALL_END      1

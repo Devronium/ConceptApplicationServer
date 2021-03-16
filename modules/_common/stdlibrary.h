@@ -8,7 +8,7 @@
 
 #include "AnsiTypes.h"
 
-static const char empty_string[] = "";
+static const char *empty_string = "";
 
 #define INVOKE_SET_VARIABLE                   0x01
 #define INVOKE_GET_VARIABLE                   0x02
@@ -124,6 +124,7 @@ static const char empty_string[] = "";
 #endif
 
 #define CONCEPT_SUPRESS_UNUSED_WARNING(x)   (void)(x)
+static inline void no_warning_on_empty_string() { CONCEPT_SUPRESS_UNUSED_WARNING(empty_string); }
 
 #define ON_CREATE_CONTEXT     __CONCEPT_MEMORY_MANAGEMENT_CreateContext
 #define ON_DESTROY_CONTEXT    __CONCEPT_MEMORY_MANAGEMENT_DestroyContext

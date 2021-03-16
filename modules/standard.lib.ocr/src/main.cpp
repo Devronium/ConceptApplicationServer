@@ -39,8 +39,8 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     return 0;
 }
 //------------------------------------------------------------------------
-AnsiString GetDirectory() {
 #ifdef _WIN32
+AnsiString GetDirectory() {
     char buffer[4096];
     buffer[0] = 0;
     GetModuleFileName(NULL, buffer, 4096);
@@ -51,9 +51,8 @@ AnsiString GetDirectory() {
         }
     }
     return AnsiString(buffer);
-#endif
 }
-
+#endif
 //------------------------------------------------------------------------
 #ifdef OLD_TESSERACT
 char *run_tesseract2(const char *language,

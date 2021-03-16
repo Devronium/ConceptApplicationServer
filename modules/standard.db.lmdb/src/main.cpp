@@ -20,14 +20,6 @@
 #endif
 #define MDB_INT_VAL_TYPE    int64_t
 
-// moved into lmdb.c
-
-/*extern "C" {
-    static int mdb_cmp_int(const MDB_val *a, const MDB_val *b) {
-            return (*(MDB_INT_VAL_TYPE *)a->mv_data < *(MDB_INT_VAL_TYPE *)b->mv_data) ? -1 : *(MDB_INT_VAL_TYPE *)a->mv_data > *(MDB_INT_VAL_TYPE *)b->mv_data;
-    }
-   }*/
-
 //-----------------------------------------------------------------------------------
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     DEFINE_ECONSTANT(MDB_FIXEDMAP)
@@ -794,7 +786,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAll, 2, 8)
     res = mdb_cursor_open(txn, dbi, &cursor);
     CREATE_ARRAY(RESULT);
     if (res == MDB_SUCCESS) {
-        int rc;
+        int rc = 0;
         if (vkey.mv_size)
             rc = mdb_cursor_get(cursor, &vkey, &data, set_op);
         else {
@@ -815,20 +807,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAll, 2, 8)
                             if (mdb_cmp(txn, dbi, &limit_key, &vkey) == cmp_flag)
                                 break;
                         }
-                        //if (PARAM_LEN(1)) {
                         if ((data.mv_data) && (data.mv_size > 0))
                             Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)elements, (INTEGER)VARIABLE_STRING, (char *)data.mv_data, (NUMBER)data.mv_size);
                         else
                             Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)elements, (INTEGER)VARIABLE_STRING, (char *)"", (NUMBER)0);
 
-                        /*} else {
-                            AnsiString key;
-                            key.LoadBuffer((char *)vkey.mv_data, vkey.mv_size);
-                            if ((data.mv_data) && (data.mv_size > 0))
-                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY,RESULT,key.c_str(),(INTEGER)VARIABLE_STRING,(char *)data.mv_data,(NUMBER)data.mv_size);
-                            else
-                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY,RESULT,key.c_str(),(INTEGER)VARIABLE_STRING,(char *)"",(NUMBER)0);
-                           }*/
                         elements++;
                         if ((len > 0) && (elements >= len))
                             break;
@@ -843,7 +826,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAll, 2, 8)
     }
     mdb_txn_abort(txn);
     mdb_dbi_close(env, dbi);
-//RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumber, 2, 9)
@@ -901,7 +883,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumber, 2, 9)
 
     MDB_txn          *txn;
     MDB_dbi          dbi;
-    MDB_INT_VAL_TYPE val;
 
     MDB_env *env = (MDB_env *)(SYS_INT)PARAM(0);
 
@@ -921,8 +902,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumber, 2, 9)
         return 0;
     }
 
-//if (use_int)
-//    mdb_set_compare(txn, dbi, mdb_cmp_int64);
 
     MDB_val vkey, data;
 
@@ -936,7 +915,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumber, 2, 9)
     res = mdb_cursor_open(txn, dbi, &cursor);
     CREATE_ARRAY(RESULT);
     if (res == MDB_SUCCESS) {
-        int rc;
+        int rc = 0;
         if (vkey.mv_size)
             rc = mdb_cursor_get(cursor, &vkey, &data, set_op);
         else {
@@ -986,12 +965,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumber, 2, 9)
     }
     mdb_txn_abort(txn);
     mdb_dbi_close(env, dbi);
-//RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 char **GetCharList2(void *arr, int **lens, INVOKE_CALL _Invoke) {
-    INTEGER type      = 0;
-    NUMBER  nr        = 0;
     void    *newpData = 0;
     char    **ret     = 0;
 
@@ -1070,7 +1046,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumberMI, 3, 7)
     T_ARRAY(MapGetAllNumberMI, 2)
 
     CREATE_ARRAY(RESULT);
-//char *database = NULL;
+
     size_t        len      = 0;
     size_t        start    = 0;
     MDB_cursor_op op       = MDB_NEXT_DUP;
@@ -1078,7 +1054,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumberMI, 3, 7)
     MDB_cursor_op set_op   = MDB_SET;
     int           cmp_flag = -1;
 
-    int db_count = NULL;
+    int db_count = 0;
 
     MDB_dbi *dbi_list = NULL;
     int     array_len = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(1));
@@ -1167,14 +1143,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumberMI, 3, 7)
         }
         return 0;
     }
-// for each PARAM(1)
+
     MDB_cursor *cursor        = NULL;
     MDB_cursor **child_cursor = NULL;
     res = mdb_cursor_open(txn, dbi_list[0], &cursor);
     size_t skip = start;
-
-//if (use_int)
-//    mdb_set_compare(txn, dbi_list[0], mdb_cmp_int64);
 
     if (db_count > 1) {
         child_cursor = (MDB_cursor **)malloc(sizeof(MDB_cursor *) * db_count);
@@ -1191,7 +1164,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumberMI, 3, 7)
             has_limit_key = 1;
         vkey_saved.mv_data = vkey.mv_data;
         vkey_saved.mv_size = vkey.mv_size;
-        int rc;
+        int rc = 0;
         if (vkey.mv_size)
             rc = mdb_cursor_get(cursor, &vkey, &data, set_op);
         else {
@@ -1205,8 +1178,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumberMI, 3, 7)
                 mdb_cursor_get(cursor, &vkey, &data, MDB_LAST_DUP);
 
             size_t elements = 0;
-            //vkey.mv_size = lens[0];
-            //vkey.mv_data = keys[0];
             do {
                 if ((data.mv_data) && (data.mv_size == datasize) && ((set_op != MDB_SET) || (vkey.mv_size == lens[0]))) {
                     if (has_limit_key) {
@@ -1222,8 +1193,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumberMI, 3, 7)
 
                         MDB_cursor *target_cursor = child_cursor[i];
                         if (!target_cursor) {
-                            //if (use_int)
-                            //    mdb_set_compare(txn, dbi_list[i], mdb_cmp_int64);
 
                             mdb_cursor_open(txn, dbi_list[i], &target_cursor);
                             child_cursor[i] = target_cursor;
@@ -1275,12 +1244,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumberMI, 3, 7)
                                 break;
                             }
                         }
-
-                        /*res = mdb_get(txn, dbi_list[i], &vkey2, &data2);
-                           if (((res != MDB_SUCCESS) && (res != MDB_KEYEXIST)) || (!data.mv_size) || (!data.mv_data)) {
-                            add_item = false;
-                            break;
-                           }*/
                     }
                     if (add_item) {
                         if (skip) {
@@ -1299,9 +1262,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumberMI, 3, 7)
                             break;
                     }
                 }
-                //vkey.mv_size = lens[0];
-                //vkey.mv_data = keys[0];
-                //} while ((rc = mdb_cursor_get(cursor, &vkey, &data, op)) == 0);
             } while (((rc = mdb_cursor_get(cursor, &vkey, &data, op)) == 0) || ((set_op != MDB_SET) && ((rc = mdb_cursor_get(cursor, &vkey, &data, op2)) == 0)));
         }
         mdb_cursor_close(cursor);
@@ -1396,7 +1356,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapCount, 2, 3)
 
     size_t countp = 0;
     if (res == MDB_SUCCESS) {
-        int rc;
+        int rc = 0;
         if (vkey.mv_size)
             rc = mdb_cursor_get(cursor, &vkey, &data, MDB_SET);
         if (rc == 0)

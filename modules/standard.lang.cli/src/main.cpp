@@ -53,7 +53,7 @@ CONCEPT_DLL_API CONCEPT_GLOBALS CONCEPT_API_PARAMETERS {
 
         LOCAL_INIT;
 
-        int    res;
+        int    res = 0;
         char   append_main_body = 1;
         char   *szvariable      = 0;
         NUMBER len2             = 0;

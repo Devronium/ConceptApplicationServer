@@ -57,7 +57,6 @@ CONCEPT_DLL_API CONCEPT__abs CONCEPT_API_PARAMETERS {
         return (void *)": 'abs' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -84,7 +83,6 @@ CONCEPT_DLL_API CONCEPT__acos CONCEPT_API_PARAMETERS {
         return (void *)": 'acos' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -111,7 +109,6 @@ CONCEPT_DLL_API CONCEPT__asin CONCEPT_API_PARAMETERS {
         return (void *)": 'asin' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -138,7 +135,6 @@ CONCEPT_DLL_API CONCEPT__atan CONCEPT_API_PARAMETERS {
         return (void *)": 'atan' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -165,7 +161,6 @@ CONCEPT_DLL_API CONCEPT__ceil CONCEPT_API_PARAMETERS {
         return (void *)": 'ceil' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -192,7 +187,6 @@ CONCEPT_DLL_API CONCEPT__cos CONCEPT_API_PARAMETERS {
         return (void *)": 'cos' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -219,7 +213,6 @@ CONCEPT_DLL_API CONCEPT__exp CONCEPT_API_PARAMETERS {
         return (void *)": 'exp' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -246,7 +239,6 @@ CONCEPT_DLL_API CONCEPT__fabs CONCEPT_API_PARAMETERS {
         return (void *)": 'fabs' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -273,7 +265,6 @@ CONCEPT_DLL_API CONCEPT__floor CONCEPT_API_PARAMETERS {
         return (void *)": 'floor' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -300,7 +291,6 @@ CONCEPT_DLL_API CONCEPT__fmod CONCEPT_API_PARAMETERS {
         return (void *)": 'fmod' parameters error. This fuction takes 2 parameters.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -332,7 +322,6 @@ CONCEPT_DLL_API CONCEPT__labs CONCEPT_API_PARAMETERS {
         return (void *)": 'labs' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -359,7 +348,6 @@ CONCEPT_DLL_API CONCEPT__ldexp CONCEPT_API_PARAMETERS {
         return (void *)": 'ldexp' parameters error. This fuction takes 2 parameters.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -391,7 +379,6 @@ CONCEPT_DLL_API CONCEPT__log CONCEPT_API_PARAMETERS {
         return (void *)": 'log' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -418,7 +405,6 @@ CONCEPT_DLL_API CONCEPT__log10 CONCEPT_API_PARAMETERS {
         return (void *)": 'log10' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -445,7 +431,6 @@ CONCEPT_DLL_API CONCEPT__pow CONCEPT_API_PARAMETERS {
         return (void *)": 'pow' parameters error. This fuction takes 2 parameters.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -476,11 +461,6 @@ CONCEPT_DLL_API CONCEPT__rand CONCEPT_API_PARAMETERS {
     if (PARAMETERS->COUNT != 0)
         return (void *)": 'rand' parameters error. This fuction takes  no parameters.";
 
-    // General variables
-    NUMBER  NUMBER_DUMMY;
-    char    *STRING_DUMMY;
-    INTEGER TYPE;
-
     // Result
     int _C_call_result;
     // Specific variables
@@ -499,7 +479,6 @@ CONCEPT_DLL_API CONCEPT__sin CONCEPT_API_PARAMETERS {
         return (void *)": 'sin' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -526,7 +505,6 @@ CONCEPT_DLL_API CONCEPT__sqrt CONCEPT_API_PARAMETERS {
         return (void *)": 'sqrt' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -553,7 +531,6 @@ CONCEPT_DLL_API CONCEPT__srand CONCEPT_API_PARAMETERS {
         return (void *)": 'srand' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -579,7 +556,6 @@ CONCEPT_DLL_API CONCEPT__tan CONCEPT_API_PARAMETERS {
         return (void *)": 'tan' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -734,7 +710,8 @@ CONCEPT_FUNCTION_IMPL(_number_format, 4)
     if (PARAM(3))
         thousand_sep = PARAM(3)[0];
 
-    RETURN_STRING(math_number_format(PARAM(0), PARAM_INT(1), dec_point, thousand_sep))
+    AnsiString formated = math_number_format(PARAM(0), PARAM_INT(1), dec_point, thousand_sep).c_str();
+    RETURN_STRING(formated.c_str())
 END_IMPL
 //---------------------------------------------------------------------------
 void smbFft(float *fftBuffer, long fftFrameSize, long sign) {
@@ -808,8 +785,6 @@ void smbFft(float *fftBuffer, long fftFrameSize, long sign) {
 }
 
 float *GetFloatList2(void *arr, INVOKE_CALL _Invoke) {
-    INTEGER type      = 0;
-    NUMBER  nr        = 0;
     void    *newpData = 0;
     float   *ret      = 0;
 
@@ -896,7 +871,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Mix, 1, 2)
             if (is_char) {
                 for (int i = 0; i < max_len; i++) {
                     int b            = 0;
-                    int signal_count = 0;
                     for (int j = 0; j < idx; j++) {
                         if (i < lens[j]) {
                             int x = in[j][i];

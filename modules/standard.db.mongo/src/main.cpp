@@ -8,9 +8,12 @@
 #include <stdio.h>
 #include <math.h>
 extern "C" {
-#include <mongo.h>
-#include <bson.h>
-#include <gridfs.h>
+    #ifndef _WIN32
+        #define MONGO_HAVE_STDINT
+    #endif
+    #include <mongo.h>
+    #include <bson.h>
+    #include <gridfs.h>
 }
 
 #ifdef _WIN32
@@ -390,7 +393,7 @@ void do_object(bson *b, void *pData, bool keep_types) {
 //-----------------------------------------------------//
 void do_array(bson *b, void *arr, bool is_oid, bool as_object, bool keep_types, bool look_for_eval) {
     void *newpData;
-    char *key;
+    const char *key;
 
     int count = InvokePtr(INVOKE_GET_ARRAY_COUNT, arr);
 
@@ -405,11 +408,6 @@ void do_array(bson *b, void *arr, bool is_oid, bool as_object, bool keep_types, 
             char    *szData;
             INTEGER type;
             NUMBER  nData;
-
-            //bool loco_oid=false;
-
-            /*if ((key) && (!strcmp(key, "$oid")))
-                loco_oid=true;*/
 
             if ((key) && (!loco_oid) && (!strcmp(key, "_id")))
                 loco_oid = true;
@@ -429,14 +427,14 @@ void do_array(bson *b, void *arr, bool is_oid, bool as_object, bool keep_types, 
                     if (loco_oid) {
                         bson_oid_t oid[1];
                         if (!szData)
-                            szData = "";
+                            szData = (char *)empty_string;
                         bson_oid_from_string(oid, szData);
 
                         bson_append_oid(b, key, oid);
                     } else
                     if ((look_for_eval) && (key) && (key[0] == '%') && (key[1])) {
                         int  len    = (int)nData;
-                        char *flags = "";
+                        const char *flags = empty_string;
                         char c[2];
                         c[1] = 0;
                         char *buf = 0;
@@ -504,7 +502,6 @@ void BuildCond(bson *b, void *arr, bool as_object = false, bool look_for_eval = 
 
     if (count > 0) {
         for (int i = 0; i < count; i++) {
-            char *class_name = 0;
             void *newpData;
             InvokePtr(INVOKE_ARRAY_VARIABLE, arr, i, &newpData);
             if (newpData) {
@@ -572,7 +569,7 @@ void BuildCond(bson *b, void *arr, bool as_object = false, bool look_for_eval = 
                         if (is_oid) {
                             bson_oid_t oid[1];
                             if (!szData)
-                                szData = "";
+                                szData = (char *)empty_string;
                             bson_oid_from_string(oid, szData);
                             bson_append_oid(b, key, oid);
                         } else
@@ -581,7 +578,7 @@ void BuildCond(bson *b, void *arr, bool as_object = false, bool look_for_eval = 
                         else
                         if ((look_for_eval) && (key) && (key[0] == '%') && (key[1])) {
                             int  len    = (int)nData;
-                            char *flags = "";
+                            const char *flags = empty_string;
                             char c[2];
                             c[1] = 0;
                             char *buf = 0;
@@ -617,7 +614,6 @@ int BuildFields(bson *b, void *arr, bool as_object = false, bool add_type = fals
 
     if (count > 0) {
         for (int i = 0; i < count; i++) {
-            char *class_name = 0;
             void *newpData;
             InvokePtr(INVOKE_ARRAY_VARIABLE, arr, i, &newpData);
             if (newpData) {
@@ -665,7 +661,7 @@ int BuildFields(bson *b, void *arr, bool as_object = false, bool add_type = fals
 
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoConnect, 0, 3)
-    char *host = "127.0.0.1";
+    const char *host = "127.0.0.1";
     int port = 27017;
     if (PARAMETERS_COUNT > 1) {
         T_STRING(MongoConnect, 1)
@@ -677,7 +673,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoConnect, 0, 3)
     }
     mongo *conn = (mongo *)malloc(sizeof(mongo));
     mongo_init(conn);
-    int res = mongo_client(conn, host, port);
+    mongo_client(conn, host, port);
     if (PARAMETERS_COUNT > 0) {
         SET_NUMBER(0, conn->err);
     }
@@ -715,7 +711,7 @@ CONCEPT_FUNCTION_IMPL(MongoConnectReplica, 3)
             Invoke(INVOKE_GET_VARIABLE, newpData, &type, &szData, &nData);
             if (type == VARIABLE_ARRAY) {
                 void *newpData2;
-                char *server = "127.0.0.1";
+                const char *server = "127.0.0.1";
                 int  port    = 27017;
                 Invoke(INVOKE_ARRAY_VARIABLE, newpData, (int)0, &newpData2);
                 Invoke(INVOKE_GET_VARIABLE, newpData2, &type, &szData, &nData);
@@ -735,11 +731,9 @@ CONCEPT_FUNCTION_IMPL(MongoConnectReplica, 3)
         }
     }
 
-//int res=mongo_replset_connect(conn);
-    int res = mongo_replica_set_client(conn);
+    mongo_replica_set_client(conn);
     SET_NUMBER(0, conn->err);
 
-//lasterror=(char *)conn->lasterrstr;
     switch (conn->err) {
         case MONGO_CONN_NO_SOCKET:
         case MONGO_CONN_FAIL:
@@ -827,7 +821,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoInsert, 3, 6)
     char    *szData;
     INTEGER type;
     NUMBER  nData;
-    char    *key = "_id";
+    const char *key = "_id";
     if (PARAMETERS_COUNT > 4) {
         T_STRING(MongoInsert, 4)
         key = PARAM(4);
@@ -843,7 +837,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoInsert, 3, 6)
             {
                 bson b[1];
                 bson_init(b);
-                char *class_name = 0;
+
                 if ((key) && (key[0]))
                     bson_append_new_oid(b, key);
                 do_object(b, szData, keep_object_types);
@@ -874,7 +868,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoInsert, 3, 6)
                     for (int i = 0; i < count; i++) {
                         bson *p = ( bson * )malloc(sizeof(bson));
                         bson_init(p);
-                        char *class_name = 0;
                         void *newpData;
                         Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(2), i, &newpData);
                         if (newpData) {
@@ -1579,7 +1572,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoFindOne, 3, 6)
     else
     if (TYPE != VARIABLE_STRING)
         return (void *)"MongoFindOne: parameter 3 should be an array or an id (string)";
-//T_ARRAY(2)
 
     bool use_type = false;
     if (PARAMETERS_COUNT > 5) {
@@ -1705,7 +1697,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoSimpleCommand, 4, 6)
     bool is_number = true;
 
     INTEGER type = 0;
-    double  *ret = 0;
     char    *szData;
     NUMBER  nData;
 
@@ -1850,7 +1841,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GridFSStore, 3, 4)
     T_HANDLE(GridFSStore, 0)
     T_STRING(GridFSStore, 1)
     T_STRING(GridFSStore, 2)
-    char *type = "application/octet-stream";
+    const char *type = "application/octet-stream";
 
     gridfs *gfs = (gridfs *)PARAM_INT(0);
     if (PARAMETERS_COUNT > 3) {

@@ -391,8 +391,6 @@ wchar_t *wstr(const char *utf8) {
 #endif
 //-----------------------------------------------------------------------------------
 char **GetParamList(void *arr, INVOKE_CALL _Invoke, char *command) {
-    INTEGER type      = 0;
-    NUMBER  nr        = 0;
     void    *newpData = 0;
     char    **ret     = 0;
 
@@ -413,7 +411,7 @@ char **GetParamList(void *arr, INVOKE_CALL _Invoke, char *command) {
             if (type == VARIABLE_STRING) {
                 ret[i + 1] = szData;
             } else
-                ret[i + 1] = "";
+                ret[i + 1] = (char *)empty_string;
         }
     }
     return ret;
@@ -527,7 +525,7 @@ intptr_t MyGetPrivateProfileString(
         if (filesize) {
             filebuffer = new char[filesize];
             if (filebuffer) {
-                if (fread(filebuffer, 1, filesize, in) == filesize) {
+                if (fread(filebuffer, 1, filesize, in) == (size_t)filesize) {
                     char in_name           = 0;
                     char in_quote          = 0;
                     char in_looked_section = 0;
@@ -730,7 +728,7 @@ long MySetPrivateProfileString(char *section, char *key, char *value, char *ini_
             char *buf = new char [start_pos + 1];
             buf[start_pos] = 0;
             fseek(in, 0, SEEK_SET);
-            if (fread(buf, 1, start_pos, in) == start_pos) {
+            if (fread(buf, 1, start_pos, in) == (size_t)start_pos) {
                 pre_data.LoadBuffer(buf, start_pos);
             } else {
                 delete[] buf;
@@ -749,7 +747,7 @@ long MySetPrivateProfileString(char *section, char *key, char *value, char *ini_
             buf        = new char [delta + 1];
             buf[delta] = 0;
 
-            if (fread(buf, 1, delta, in) == delta) {
+            if (fread(buf, 1, delta, in) == (size_t)delta) {
                 pre_data.AddBuffer(buf, delta);
             } else {
                 delete[] buf;
@@ -762,7 +760,7 @@ long MySetPrivateProfileString(char *section, char *key, char *value, char *ini_
             char *buf = new char [section_start + 1];
             buf[section_start] = 0;
             fseek(in, 0L, SEEK_SET);
-            if (fread(buf, 1, section_start, in) == section_start) {
+            if (fread(buf, 1, section_start, in) == (size_t)section_start) {
                 pre_data.LoadBuffer(buf, section_start);
             } else {
                 delete[] buf;
@@ -783,7 +781,7 @@ long MySetPrivateProfileString(char *section, char *key, char *value, char *ini_
             }
             buf        = new char [delta + 1];
             buf[delta] = 0;
-            if (fread(buf, 1, delta, in) == delta) {
+            if (fread(buf, 1, delta, in) == (size_t)delta) {
                 pre_data.AddBuffer(buf, delta);
             } else {
                 delete[] buf;
@@ -822,7 +820,7 @@ long MySetPrivateProfileString(char *section, char *key, char *value, char *ini_
 
 //#endif
 //-----------------------------------------------------------------------------------
-void GetKey(char *ini_name, char *section, char *key, char *def, AnsiString *val) {
+void GetKey(const char *ini_name, const char *section, const char *key, const char *def, AnsiString *val) {
     char value[4096];
 
     value[0] = 0;
@@ -1077,7 +1075,6 @@ CONCEPT_DLL_API CONCEPT__fopen CONCEPT_API_PARAMETERS {
 
     // General variables
     NUMBER  NUMBER_DUMMY;
-    char    *STRING_DUMMY;
     INTEGER TYPE;
 
     // Result
@@ -1120,7 +1117,6 @@ CONCEPT_DLL_API CONCEPT__fclose CONCEPT_API_PARAMETERS {
         return (void *)": 'fclose' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -1167,7 +1163,6 @@ CONCEPT_DLL_API CONCEPT__fread CONCEPT_API_PARAMETERS {
         return (void *)": 'fread' parameters error. This fuction takes 4 parameters.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -1229,7 +1224,7 @@ CONCEPT_DLL_API CONCEPT__fread CONCEPT_API_PARAMETERS {
 
     // function call
     _C_call_result = (size_t)fread((void *)szParam0, (size_t)nParam1, (size_t)nParam2, (FILE *)(SYS_INT)nParam3);
-    if ((_C_call_result >= 0) && (_C_call_result < len))
+    if ((_C_call_result >= 0) && (_C_call_result < (size_t)len))
         szParam0[_C_call_result] = 0;
 
 #if 0
@@ -1335,7 +1330,6 @@ CONCEPT_DLL_API CONCEPT__fseek CONCEPT_API_PARAMETERS {
         return (void *)": 'fseek' parameters error. This fuction takes 3 parameters.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -1386,7 +1380,6 @@ CONCEPT_DLL_API CONCEPT__ftell CONCEPT_API_PARAMETERS {
         return (void *)": 'ftell' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -1427,7 +1420,6 @@ CONCEPT_DLL_API CONCEPT__fsize CONCEPT_API_PARAMETERS {
         return (void *)": 'fsize' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -1476,8 +1468,6 @@ CONCEPT_DLL_API CONCEPT__fgetstring CONCEPT_API_PARAMETERS {
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
-    // Result
-    int _C_call_result;
     // Specific variables
     NUMBER nParam0;
     char   *szParam1;
@@ -1503,9 +1493,6 @@ CONCEPT_DLL_API CONCEPT__fgetstring CONCEPT_API_PARAMETERS {
     if ((nParam2 <= 0) || (nParam2 > 0xFFFF)) {
         return (void *)"fgetstring: maximum length should be between 1 and 0xFFFF";
     }
-
-    // function call
-    _C_call_result = 0;
 
     char *result = new char[(int)nParam2 + 1];
     result[0] = 0;
@@ -1547,7 +1534,6 @@ CONCEPT_DLL_API CONCEPT__feof CONCEPT_API_PARAMETERS {
         return (void *)": 'feof' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -1589,7 +1575,6 @@ CONCEPT_DLL_API CONCEPT__remove CONCEPT_API_PARAMETERS {
 
     // General variables
     NUMBER  NUMBER_DUMMY;
-    char    *STRING_DUMMY;
     INTEGER TYPE;
 
     // Result
@@ -1616,7 +1601,6 @@ CONCEPT_DLL_API CONCEPT___unlink CONCEPT_API_PARAMETERS {
 
     // General variables
     NUMBER  NUMBER_DUMMY;
-    char    *STRING_DUMMY;
     INTEGER TYPE;
 
     // Result
@@ -1643,7 +1627,6 @@ CONCEPT_DLL_API CONCEPT___rmdir CONCEPT_API_PARAMETERS {
 
     // General variables
     NUMBER  NUMBER_DUMMY;
-    char    *STRING_DUMMY;
     INTEGER TYPE;
 
     // Result
@@ -1670,7 +1653,6 @@ CONCEPT_DLL_API CONCEPT__ReadFile CONCEPT_API_PARAMETERS {
 
     // General variables
     NUMBER  NUMBER_DUMMY;
-    char    *STRING_DUMMY;
     INTEGER TYPE;
 
     // Result
@@ -1733,7 +1715,6 @@ CONCEPT_DLL_API CONCEPT__WriteFile CONCEPT_API_PARAMETERS {
     // General variables
     NUMBER  NUMBER_DUMMY;
     NUMBER  STR_LEN = 0;
-    char    *STRING_DUMMY;
     INTEGER TYPE;
 
     // Result
@@ -1779,7 +1760,6 @@ CONCEPT_DLL_API CONCEPT__FileExists CONCEPT_API_PARAMETERS {
 
     // General variables
     NUMBER  NUMBER_DUMMY;
-    char    *STRING_DUMMY;
     INTEGER TYPE;
 
     // Result
@@ -1809,12 +1789,8 @@ CONCEPT_DLL_API CONCEPT__DirectoryExists CONCEPT_API_PARAMETERS {
 
     // General variables
     NUMBER  NUMBER_DUMMY;
-    char    *STRING_DUMMY;
     INTEGER TYPE;
 
-    // Result
-    FILE *FIN;
-    // Specific variables
     char *szParam0;
 
     // Variable type check
@@ -1871,7 +1847,6 @@ CONCEPT_DLL_API CONCEPT__fgetc CONCEPT_API_PARAMETERS {
     PARAMETERS_CHECK(1, "'fgetc' takes 1 parameters. See help for details.");
     LOCAL_INIT;
 
-    int _C_call_result;
     // Specific variables
     NUMBER nParam0;
 
@@ -2294,7 +2269,6 @@ CONCEPT_DLL_API CONCEPT__dirname CONCEPT_API_PARAMETERS {
 
     LOCAL_INIT;
 
-    double _C_call_result;
     // Specific variables
     double nParam0;
 
@@ -2304,7 +2278,6 @@ CONCEPT_DLL_API CONCEPT__dirname CONCEPT_API_PARAMETERS {
     if (!dent)
         return (void *)"Parameter 0 should be a valid handle";
 
-    //RETURN_BUFFER(dent->d_name,dent->d_namlen);
     RETURN_STRING(dent->d_name);
     return 0;
 }
@@ -2340,7 +2313,6 @@ CONCEPT_DLL_API CONCEPT__filesize CONCEPT_API_PARAMETERS {
     PARAMETERS_CHECK(1, "'filesize' takes 1 parameters. See help for details.");
     LOCAL_INIT;
 
-    double _C_call_result;
     // Specific variables
     char *szParam0;
 
@@ -2365,7 +2337,6 @@ CONCEPT_DLL_API CONCEPT__filelast_acc CONCEPT_API_PARAMETERS {
 
     LOCAL_INIT;
 
-    double _C_call_result;
     // Specific variables
     char *szParam0;
 
@@ -2388,7 +2359,6 @@ CONCEPT_DLL_API CONCEPT__filelast_mod CONCEPT_API_PARAMETERS {
 
     LOCAL_INIT;
 
-    double _C_call_result;
     // Specific variables
     char *szParam0;
 
@@ -2411,7 +2381,6 @@ CONCEPT_DLL_API CONCEPT__filelast_ch CONCEPT_API_PARAMETERS {
 
     LOCAL_INIT;
 
-    double _C_call_result;
     // Specific variables
     char *szParam0;
 
@@ -2434,7 +2403,6 @@ CONCEPT_DLL_API CONCEPT__fileuid CONCEPT_API_PARAMETERS {
 
     LOCAL_INIT;
 
-    double _C_call_result;
     // Specific variables
     char *szParam0;
 
@@ -2456,7 +2424,6 @@ CONCEPT_DLL_API CONCEPT__filegid CONCEPT_API_PARAMETERS {
 
     LOCAL_INIT;
 
-    double _C_call_result;
     // Specific variables
     char *szParam0;
 
@@ -2479,7 +2446,6 @@ CONCEPT_DLL_API CONCEPT___stat CONCEPT_API_PARAMETERS {
 
     LOCAL_INIT;
 
-    double _C_call_result;
     // Specific variables
     char *szParam0;
 
@@ -2906,8 +2872,6 @@ CONCEPT_FUNCTION_IMPL(kill, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 char **GetCharList2(void *arr, INVOKE_CALL _Invoke) {
-    INTEGER type      = 0;
-    NUMBER  nr        = 0;
     void    *newpData = 0;
     char    **ret     = 0;
 
@@ -3227,14 +3191,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Duplicate, 1, 2)
     if (PARAMETERS_COUNT > 1) {
         T_NUMBER(Duplicate, 1)
         phandle = (SYS_INT)PARAM(1);
-        //if (phandle)
-        //    phandle = (SYS_INT)OpenProcess(PROCESS_DUP_HANDLE, TRUE, GetProcessId((HANDLE)phandle));
     }
 #ifdef _WIN32
     RETURN_NUMBER(-1);
     return 0;
 
-// crashes in eof function
     intptr_t to_duplicate = _get_osfhandle(PARAM_INT(0));
     HANDLE   cp           = GetCurrentProcess();
     HANDLE   out          = NULL;
@@ -3247,21 +3208,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Duplicate, 1, 2)
         return 0;
     }
 
-/*int duplicate = _open_osfhandle((intptr_t)out, _O_APPEND);
-   if (duplicate < 0)
-    duplicate = _open_osfhandle((intptr_t)out, _O_RDONLY);
-   if (duplicate < 0)
-    CloseHandle((HANDLE)out);*/
-//RETURN_NUMBER(duplicate);
     RETURN_NUMBER((intptr_t)out);
-
-//CloseHandle((HANDLE)out);
-//CloseHandle((HANDLE)to_duplicate);
-//CloseHandle((HANDLE)phandle);
-//close(duplicate);
     return 0;
 #endif
-// not supported
+    // not supported
+    CONCEPT_SUPRESS_UNUSED_WARNING(phandle);
     RETURN_NUMBER(PARAM(0));
 END_IMPL
 //---------------------------------------------------------------------------
@@ -3372,6 +3323,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SetCurrentUser, 1, 3)
     }
 
 #else
+    CONCEPT_SUPRESS_UNUSED_WARNING(passwd);
+
     struct passwd *pwd = getpwnam((const char *)PARAM(0));
     if (pwd) {
         if ((setgid(pwd->pw_gid)) || (setuid(pwd->pw_uid))) {
@@ -3410,6 +3363,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(setrlimit, 2, 3)
         RETURN_NUMBER(-1);
     }
 #else
+    CONCEPT_SUPRESS_UNUSED_WARNING(soft_limit);
+
     struct rlimit rlim;
     int           res = -1;
 
@@ -3596,6 +3551,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DescriptorWrite, 2, 3)
     long sbuf = duplicate_sock;
     size = write(sock, &sbuf, sizeof(long));
 #else
+    CONCEPT_SUPRESS_UNUSED_WARNING(refPID);
+
     ssize_t       size;
     struct msghdr msg;
     struct iovec  iov;
@@ -3606,7 +3563,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DescriptorWrite, 2, 3)
     } cmsgu;
     struct cmsghdr *cmsg;
 
-    iov.iov_base = buf.c_str();
+    iov.iov_base = (void *)buf.c_str();
     iov.iov_len  = buf.Length();
 
     msg.msg_name    = NULL;
@@ -3651,7 +3608,6 @@ CONCEPT_FUNCTION_IMPL(DescriptorRead, 2)
 #else
     ssize_t size;
     char    buf[16];
-    long    new_sock = 0;
 
     struct msghdr msg;
     struct iovec  iov;
@@ -3786,6 +3742,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(getrusage, 1, 2)
             return 0;
     }
 #endif
+    CONCEPT_SUPRESS_UNUSED_WARNING(is_process_handle);
 
     struct rusage usagedata;
     if (!getrusage(proc_pid, &usagedata)) {
@@ -4404,6 +4361,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Impersonate, 1, 3)
     }
 
 #else
+    CONCEPT_SUPRESS_UNUSED_WARNING(passwd);
+
     struct passwd *pwd = getpwnam((const char *)PARAM(0));
     if (pwd) {
 #ifdef __linux__
@@ -4652,6 +4611,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(enablevt100, 0, 1)
         RETURN_NUMBER(0);
     }
 #else
+    CONCEPT_SUPRESS_UNUSED_WARNING(enabled);
     RETURN_NUMBER(1);
 #endif
 END_IMPL

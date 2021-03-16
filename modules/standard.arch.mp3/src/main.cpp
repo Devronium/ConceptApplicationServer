@@ -36,7 +36,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MP3EncoderCreate, 0, 1)
             Invoke(INVOKE_GET_ARRAY_KEY, PARAMETER(0), i, &key);
             if (key) {
                 void *newpData = 0;
-                void *pData = 0;
                 INTEGER type = 0;
                 char *szData = 0;
                 NUMBER nData = 0;

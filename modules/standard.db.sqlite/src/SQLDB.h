@@ -63,7 +63,7 @@ public:
     }
 
     int WrapFunction(char *name, CBFunc func, void *data, int params) {
-        int res = sqlite3_create_function(db, name, params, SQLITE_UTF8, data, func, 0, 0);
+        return sqlite3_create_function(db, name, params, SQLITE_UTF8, data, func, 0, 0);
     }
 };
 #endif // __SQLDB_H

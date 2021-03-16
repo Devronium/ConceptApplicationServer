@@ -167,7 +167,6 @@ amf::amf_object *do_object(void *pData) {
 //-----------------------------------------
 amf::amf_data_ptr amf_rec(void *arr) {
     int     count = InvokePtr(INVOKE_GET_ARRAY_COUNT, arr);
-    char    *res  = "";
     INTEGER len   = 0;
 
     void *newpData = 0;

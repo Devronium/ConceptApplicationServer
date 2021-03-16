@@ -161,7 +161,7 @@ CONCEPT_DLL_API CONCEPT_regex_replace CONCEPT_API_PARAMETERS {
     }
 
     delete[] matches;
-    RETURN_STRING(replace);
+    RETURN_STRING(replace.c_str());
     return 0;
 }
 //---------------------------------------------------------------------------

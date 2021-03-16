@@ -279,13 +279,12 @@ CONCEPT_DLL_API CONCEPT_StrReplace CONCEPT_API_PARAMETERS {
     AnsiString with_st;
     with_st.LoadBuffer(with, (size_t)len_with);
 
-    //int with_len=strlen(with);
     int delta = 0;
     if (len_rep) {
         int position = 0;
-        int after    = 0;
+        size_t after    = 0;
         do {
-            char   *szParam0 = result.c_str();
+            const char *szParam0 = result.c_str();
             size_t len0      = result.Length() - delta;
 
             if (after > len0)
@@ -297,13 +296,9 @@ CONCEPT_DLL_API CONCEPT_StrReplace CONCEPT_API_PARAMETERS {
                                                                     );
             if (ptr) {
                 position = (uintptr_t)ptr - (uintptr_t)szParam0;
-                //AnsiString tmp;
-                //AnsiString tmp2;
 
                 int len_temp = len0 - position - (size_t)len_rep;
 
-                /*if (len_temp>0)
-                   tmp2.LoadBuffer((char *)ptr+(long)len_rep,len_temp);*/
                 if (len_with > len_rep) {
                     AnsiString tmp;
                     tmp.LoadBuffer(szParam0, position);
@@ -312,7 +307,6 @@ CONCEPT_DLL_API CONCEPT_StrReplace CONCEPT_API_PARAMETERS {
                         tmp += with_st;
 
                     if (len_temp) {
-                        //tmp+=tmp2;
                         tmp.AddBuffer((char *)ptr + (long)len_rep, len_temp);
                     }
 
@@ -329,27 +323,15 @@ CONCEPT_DLL_API CONCEPT_StrReplace CONCEPT_API_PARAMETERS {
                         delta += delta2;
                     }
                 }
-                after = position + (size_t)len_with;//len_rep;
-
-
-                /*AnsiString temp=result.c_str();
-                   char *ptr=temp.c_str();
-                   ptr[position-1]=0;
-                   AnsiString temp2=ptr;
-                   temp2+=with_st;
-                   temp2+=(char *)(ptr+position+rep.Length()-1);
-                   after=position+with_len-1;
-                   result=temp2;*/
+                after = position + (size_t)len_with;
             } else
                 break;
         } while (1);
     }
 
-
-    //RETURN_STRING(result);
     int len = result.Length() - delta;
     if (len) {
-        RETURN_BUFFER(result, len);
+        RETURN_BUFFER(result.c_str(), len);
     } else {
         RETURN_STRING("");
     }
@@ -375,7 +357,7 @@ CONCEPT_DLL_API CONCEPT_NumberToBin CONCEPT_API_PARAMETERS {
         result       = temp + result;
     } while (number_long);
 
-    RETURN_STRING(result);
+    RETURN_STRING(result.c_str());
     return 0;
 }
 //---------------------------------------------------------------------------
@@ -464,8 +446,6 @@ CONCEPT_DLL_API CONCEPT_SubStr CONCEPT_API_PARAMETERS {
     if (end > fill_len)
         end = fill_len;
 
-    //for (int i=(int)start;i<(int)end;i++)
-    //result+=fill_string[i];
     char *result = fill_string + (INTEGER)start;
 
     if (end - start <= 0) {
@@ -485,13 +465,8 @@ CONCEPT_DLL_API CONCEPT_String CONCEPT_API_PARAMETERS {
     NUMBER     len;
     GET_CHECK_BUFFER(0, fill_string, len, "String : parameter 1 should be a string (STATIC STRING)");
 
-    /*if ((int)len)
-        if (fill_string[(int)len-1])
-                fill_string[(int)len-1]=0;*/
-
-    //result=fill_string;
     if (((int)len) && (fill_string)) {
-        RETURN_STRING(/*result*/ fill_string);
+        RETURN_STRING(fill_string);
     } else {
         RETURN_STRING("");
     }
@@ -561,7 +536,7 @@ CONCEPT_DLL_API CONCEPT_NumberToHex CONCEPT_API_PARAMETERS {
     AnsiString    temp;
     NUMBER        nr;
     unsigned long number_long;
-    char          rest;
+    int           rest;
 
     GET_CHECK_NUMBER(0, nr, "NumberToHex : parameter 1 should be a number (STATIC NUMBER)");
     number_long = (unsigned long)nr;
@@ -572,7 +547,7 @@ CONCEPT_DLL_API CONCEPT_NumberToHex CONCEPT_API_PARAMETERS {
         result       = temp + result;
     } while (number_long);
 
-    RETURN_STRING(result);
+    RETURN_STRING(result.c_str());
     return 0;
 }
 //---------------------------------------------------------------------------
@@ -706,7 +681,7 @@ CONCEPT_DLL_API CONCEPT_NumberToOct CONCEPT_API_PARAMETERS {
     AnsiString    temp;
     NUMBER        nr;
     unsigned long number_long;
-    char          rest;
+    int           rest;
 
     GET_CHECK_NUMBER(0, nr, "NumberToOct : parameter 1 should be a number (STATIC NUMBER)");
     number_long = (unsigned long)nr;
@@ -717,7 +692,7 @@ CONCEPT_DLL_API CONCEPT_NumberToOct CONCEPT_API_PARAMETERS {
         result       = temp + result;
     } while (number_long);
 
-    RETURN_STRING(result);
+    RETURN_STRING(result.c_str());
     return 0;
 }
 //---------------------------------------------------------------------------
@@ -873,7 +848,7 @@ CONCEPT_DLL_API CONCEPT_Ext CONCEPT_API_PARAMETERS {
             ext = AnsiString(bin[i]) + ext;
         }
         if (has_ext) {
-            RETURN_STRING(ext);
+            RETURN_STRING(ext.c_str());
         } else {
             RETURN_STRING("");
         }
@@ -971,7 +946,7 @@ CONCEPT_DLL_API CONCEPT_ToHTML CONCEPT_API_PARAMETERS {
                     ext += bin[i];
             }
         }
-        RETURN_STRING(ext);
+        RETURN_STRING(ext.c_str());
     } else
         RETURN_STRING("");
     return 0;
@@ -1033,7 +1008,6 @@ CONCEPT_DLL_API CONCEPT_StrSplit CONCEPT_API_PARAMETERS {
 
     int pos   = target.Pos(sep);
     int index = 0;
-    int start = 0;
     while (pos > 0) {
         if (pos > 1) {
             if (!IS_OK(Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index++, (INTEGER)VARIABLE_STRING, target.c_str(), (double)pos - 1)))
@@ -1076,7 +1050,6 @@ CONCEPT_DLL_API CONCEPT_StrNumberSplit CONCEPT_API_PARAMETERS {
 
     int pos   = target.Pos(sep);
     int index = 0;
-    int start = 0;
     while (pos > 0) {
         if (pos > 1) {
             AnsiString number;
@@ -15313,13 +15286,13 @@ CONCEPT_FUNCTION_IMPL(Soundex, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 void phonetic(char *name, char *metaph, int metalen) {
-    char *VOWELS = "AEIOU",
-         *FRONTV = "EIY",     /* special cases for letters in FRONT of these */
-         *VARSON = "CSPTG",   /* variable sound--those modified by adding an "h"    */
-         *DOUBLE = ".";       /* let these double letters through */
+    char *VOWELS = (char *)"AEIOU",
+         *FRONTV = (char *)"EIY",     /* special cases for letters in FRONT of these */
+         *VARSON = (char *)"CSPTG",   /* variable sound--those modified by adding an "h"    */
+         *DOUBLE = (char *)".";       /* let these double letters through */
 
-    char *excpPAIR = "AGKPW", /* exceptions "ae-", "gn-", "kn-", "pn-", "wr-" */
-         *nextLTR  = "ENNNR";
+    char *excpPAIR = (char *)"AGKPW", /* exceptions "ae-", "gn-", "kn-", "pn-", "wr-" */
+         *nextLTR  = (char *)"ENNNR";
     char *chrptr, *chrptr1;
 
     int ii, jj, silent, hard, Lng, lastChr;
@@ -15403,34 +15376,34 @@ void phonetic(char *name, char *metaph, int metalen) {
 
             /*silent -sci-,-sce-,-scy-;  sci-, etc OK*/
             case 'C':
-                if (!((ii > 1) && (prevLtr == 'S') && frontvAfter))
-
+                if (!((ii > 1) && (prevLtr == 'S') && frontvAfter)) {
                     if ((ii > 0) && (nextLtr == 'I') && (nextLtr2 == 'A'))
-                        strncat(metaph, "X", 1);
+                        strcat(metaph, "X");
                     else
                     if (frontvAfter)
-                        strncat(metaph, "S", 1);
+                        strcat(metaph, "S");
                     else
                     if ((ii > 1) && (prevLtr == 'S') && (nextLtr == 'H'))
-                        strncat(metaph, "K", 1);
+                        strcat(metaph, "K");
                     else
                     if (nextLtr == 'H')
                         if ((ii == 0) && (strchr(VOWELS, nextLtr2) == NULLCHAR))
-                            strncat(metaph, "K", 1);
+                            strcat(metaph, "K");
                         else
-                            strncat(metaph, "X", 1);
+                            strcat(metaph, "X");
                     else
                     if (prevLtr == 'C')
-                        strncat(metaph, "C", 1);
+                        strcat(metaph, "C");
                     else
-                        strncat(metaph, "K", 1);
+                        strcat(metaph, "K");
+                }
                 break;
 
             case 'D':
                 if ((nextLtr == 'G') && (strchr(FRONTV, nextLtr2) != NULLCHAR))
-                    strncat(metaph, "J", 1);
+                    strcat(metaph, "J");
                 else
-                    strncat(metaph, "T", 1);
+                    strcat(metaph, "T");
                 break;
 
             case 'G':
@@ -15453,11 +15426,12 @@ void phonetic(char *name, char *metaph, int metalen) {
                 else
                     hard = (0);
 
-                if (!silent)
+                if (!silent) {
                     if (frontvAfter && (!hard))
-                        strncat(metaph, "J", 1);
+                        strcat(metaph, "J");
                     else
-                        strncat(metaph, "K", 1);
+                        strcat(metaph, "K");
+                }
                 break;
 
             case 'H':
@@ -15484,43 +15458,43 @@ void phonetic(char *name, char *metaph, int metalen) {
 
             case 'P':
                 if (nextLtr == 'H')
-                    strncat(metaph, "F", 1);
+                    strcat(metaph, "F");
                 else
-                    strncat(metaph, "P", 1);
+                    strcat(metaph, "P");
                 break;
 
             case 'Q':
-                strncat(metaph, "K", 1);
+                strcat(metaph, "K");
                 break;
 
             case 'S':
                 if ((ii > 1) && (nextLtr == 'I') &&
                     ((nextLtr2 == 'O') || (nextLtr2 == 'A')))
-                    strncat(metaph, "X", 1);
+                    strcat(metaph, "X");
                 else
                 if (nextLtr == 'H')
-                    strncat(metaph, "X", 1);
+                    strcat(metaph, "X");
                 else
-                    strncat(metaph, "S", 1);
+                    strcat(metaph, "S");
                 break;
 
             case 'T':
                 if ((ii > 1) && (nextLtr == 'I') &&
                     ((nextLtr2 == 'O') || (nextLtr2 == 'A')))
-                    strncat(metaph, "X", 1);
+                    strcat(metaph, "X");
                 else
                 if (nextLtr == 'H')             /* The=0, Tho=T, Withrow=0 */
                     if ((ii > 0) || (strchr(VOWELS, nextLtr2) != NULLCHAR))
-                        strncat(metaph, "0", 1);
+                        strcat(metaph, "0");
                     else
-                        strncat(metaph, "T", 1);
+                        strcat(metaph, "T");
                 else
                 if (!((ii < (lastChr - 2)) && (nextLtr == 'C') && (nextLtr2 == 'H')))
-                    strncat(metaph, "T", 1);
+                    strcat(metaph, "T");
                 break;
 
             case 'V':
-                strncat(metaph, "F", 1);
+                strcat(metaph, "F");
                 break;
 
             case 'W':
@@ -15529,11 +15503,11 @@ void phonetic(char *name, char *metaph, int metalen) {
                 break;
 
             case 'X':
-                strncat(metaph, "KS", 2);
+                strcat(metaph, "KS");
                 break;
 
             case 'Z':
-                strncat(metaph, "S", 1);
+                strcat(metaph, "S");
                 break;
         }
     }
@@ -15559,10 +15533,9 @@ CONCEPT_FUNCTION_IMPL(Metaphone, 1)
     RETURN_STRING(metaph);
 END_IMPL
 //---------------------------------------------------------------------------
-metastring *
-NewMetaString(char *init_str) {
+metastring *NewMetaString(const char *init_str) {
     metastring *s;
-    char       empty_string[] = "";
+    const char empty_string[] = "";
 
     META_MALLOC(s, 1, metastring);
     if (!s)
@@ -15584,8 +15557,7 @@ NewMetaString(char *init_str) {
     return s;
 }
 
-void
-DestroyMetaString(metastring *s) {
+void DestroyMetaString(metastring *s) {
     if (s == NULL)
         return;
 
@@ -15595,16 +15567,14 @@ DestroyMetaString(metastring *s) {
     META_FREE(s);
 }
 
-void
-IncreaseBuffer(metastring *s, int chars_needed) {
+void IncreaseBuffer(metastring *s, int chars_needed) {
     META_REALLOC(s->str, (s->bufsize + chars_needed + 10), char);
     if (!s->str)
         return;
     s->bufsize = s->bufsize + chars_needed + 10;
 }
 
-void
-MakeUpper(metastring *s) {
+void MakeUpper(metastring *s) {
     char *i;
 
     for (i = s->str; *i; i++) {
@@ -15612,8 +15582,7 @@ MakeUpper(metastring *s) {
     }
 }
 
-int
-IsVowel(metastring *s, int pos) {
+int IsVowel(metastring *s, int pos) {
     char c;
 
     if ((pos < 0) || (pos >= s->length))
@@ -15627,8 +15596,7 @@ IsVowel(metastring *s, int pos) {
     return 0;
 }
 
-int
-SlavoGermanic(metastring *s) {
+int SlavoGermanic(metastring *s) {
     if ((char *)strstr(s->str, "W"))
         return 1;
     else if ((char *)strstr(s->str, "K"))
@@ -15641,21 +15609,18 @@ SlavoGermanic(metastring *s) {
         return 0;
 }
 
-int
-GetLength(metastring *s) {
+int GetLength(metastring *s) {
     return s->length;
 }
 
-char
-GetAt(metastring *s, int pos) {
+char GetAt(metastring *s, int pos) {
     if ((pos < 0) || (pos >= s->length))
         return '\0';
 
     return (char)*(s->str + pos);
 }
 
-void
-SetAt(metastring *s, int pos, char c) {
+void SetAt(metastring *s, int pos, char c) {
     if ((pos < 0) || (pos >= s->length))
         return;
 
@@ -15665,8 +15630,7 @@ SetAt(metastring *s, int pos, char c) {
 /*
    Caveats: the START value is 0 based
  */
-int
-StringAt(metastring *s, int start, int length, ...) {
+int StringAt(metastring *s, int start, int length, ...) {
     char    *test;
     char    *pos;
     va_list ap;
@@ -15688,8 +15652,7 @@ StringAt(metastring *s, int start, int length, ...) {
     return 0;
 }
 
-void
-MetaphAdd(metastring *s, char *new_str) {
+void MetaphAdd(metastring *s, const char *new_str) {
     int add_length;
 
     if (new_str == NULL)
@@ -15704,8 +15667,7 @@ MetaphAdd(metastring *s, char *new_str) {
     s->length += add_length;
 }
 
-void
-DoubleMetaphone(char *str, int length, char **codes) {
+void DoubleMetaphone(char *str, int length, char **codes) {
     metastring *original;
     metastring *primary;
     metastring *secondary;
@@ -15883,7 +15845,7 @@ DoubleMetaphone(char *str, int length, char **codes) {
 
                 /* double 'C', but not if e.g. 'McClellan' */
                 if (StringAt(original, current, 2, "CC", "") &&
-                    !((current == 1) && (GetAt(original, 0) == 'M')))
+                    !((current == 1) && (GetAt(original, 0) == 'M'))) {
                     /* 'bellocchio' but not 'bacchus' */
                     if (StringAt(original, (current + 2), 1, "I", "E", "H", "") &&
                         !StringAt(original, (current + 2), 2, "HU", "")) {
@@ -15908,6 +15870,7 @@ DoubleMetaphone(char *str, int length, char **codes) {
                         current += 2;
                         break;
                     }
+                }
 
                 if (StringAt(original, current, 2, "CK", "CG", "CQ", "")) {
                     MetaphAdd(primary, "K");
@@ -16352,7 +16315,7 @@ DoubleMetaphone(char *str, int length, char **codes) {
 
                 if (StringAt(original, current, 2, "SC", "")) {
                     /* Schlesinger's rule */
-                    if (GetAt(original, current + 2) == 'H')
+                    if (GetAt(original, current + 2) == 'H') {
                         /* dutch origin, e.g. 'school', 'schooner' */
                         if (StringAt(original, (current + 3), 2, "OO", "ER", "EN",
                                      "UY", "ED", "EM", "")) {
@@ -16378,6 +16341,7 @@ DoubleMetaphone(char *str, int length, char **codes) {
                             current += 3;
                             break;
                         }
+                    }
 
                     if (StringAt(original, (current + 2), 1, "I", "E", "Y", "")) {
                         MetaphAdd(primary, "S");

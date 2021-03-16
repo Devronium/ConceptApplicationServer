@@ -1561,7 +1561,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedGetSet, 3, 4)
         T_NUMBER(WorkerSharedGet, 3);
         sharecontext = (ShareContext *)(SYS_INT)PARAM(3);
     }
-    int size = 0;
     if (!sharecontext) {
         ThreadMetaContainer * tmc = NULL;
         Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
@@ -1587,7 +1586,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedRemove, 1, 3)
     T_STRING(WorkerSharedRemove, 0)
 
     ShareContext *sharecontext = NULL;
-    void *worker = NULL;
     char *key = NULL;
     if (PARAMETERS_COUNT > 1) {
         T_STRING(WorkerSharedRemove, 1);
@@ -1622,7 +1620,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedClear, 0, 1)
         T_NUMBER(WorkerSharedClear, 0);
         sharecontext = (ShareContext *)(SYS_INT)PARAM(0);
     }
-    int size = 0;
     if (sharecontext) {
         sharecontext->ClearCache();
     } else {

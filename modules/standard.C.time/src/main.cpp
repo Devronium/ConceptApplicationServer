@@ -509,12 +509,11 @@ CONCEPT_DLL_API CONCEPT__asctime CONCEPT_API_PARAMETERS {
         return (void *)": 'asctime' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
     // Result
-    char *_C_call_result;
+    const char *_C_call_result;
     // Specific variables
     NUMBER nParam0;
 
@@ -530,9 +529,9 @@ CONCEPT_DLL_API CONCEPT__asctime CONCEPT_API_PARAMETERS {
     struct tm *ptm    = gmtime_r(&timevar, &tmbuf);
     char buffer[28];
     if (ptm) {
-        _C_call_result = (char *)asctime_r(ptm, buffer);
+        _C_call_result = asctime_r(ptm, buffer);
     } else
-        _C_call_result = "";
+        _C_call_result = empty_string;
 
     SetVariable(RESULT, VARIABLE_STRING, _C_call_result, 0);
     return 0;
@@ -543,7 +542,6 @@ CONCEPT_DLL_API CONCEPT__ctime CONCEPT_API_PARAMETERS {
         return (void *)": 'ctime' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -572,7 +570,6 @@ CONCEPT_DLL_API CONCEPT__difftime CONCEPT_API_PARAMETERS {
         return (void *)": 'difftime' parameters error. This fuction takes 2 parameters.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
@@ -604,12 +601,9 @@ CONCEPT_DLL_API CONCEPT__localtime CONCEPT_API_PARAMETERS {
         return (void *)": 'localtime' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
-    // Result
-    time_t _C_call_result;
     // Specific variables
     NUMBER nParam0;
 
@@ -647,12 +641,9 @@ CONCEPT_DLL_API CONCEPT__gmtime CONCEPT_API_PARAMETERS {
         return (void *)": 'gmtime' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
-    // Result
-    time_t _C_call_result;
     // Specific variables
     NUMBER nParam0;
 
@@ -689,18 +680,9 @@ CONCEPT_DLL_API CONCEPT__time CONCEPT_API_PARAMETERS {
     if (PARAMETERS->COUNT != 0)
         return (void *)": 'time' parameters error. This fuction takes  no parameters.";
 
-    // General variables
-    NUMBER  NUMBER_DUMMY;
-    char    *STRING_DUMMY;
-    INTEGER TYPE;
-
     // Result
     time_t _C_call_result;
-    // Specific variables
 
-    // Variable type check
-
-    // function call
     _C_call_result = (time_t)time(NULL);
 
     SetVariable(RESULT, VARIABLE_NUMBER, "", _C_call_result);
@@ -712,12 +694,9 @@ CONCEPT_DLL_API CONCEPT__mktime CONCEPT_API_PARAMETERS {
         return (void *)": 'mktime' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
-    // Result
-    time_t _C_call_result;
     // Specific variables
     NUMBER nParam0;
 
@@ -821,12 +800,9 @@ CONCEPT_DLL_API CONCEPT__slocaltime CONCEPT_API_PARAMETERS {
         return (void *)": 'localtime' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
     char    *STRING_DUMMY;
     INTEGER TYPE;
 
-    // Result
-    time_t _C_call_result;
     // Specific variables
     NUMBER nParam0;
 
@@ -909,7 +885,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(strptime, 2, 3)
         SET_NUMBER(2, has_time);
     }
 
-    time_t t = mktime(&timeinfo2);
+    mktime(&timeinfo2);
     timeinfo = &timeinfo2;
 
     CREATE_ARRAY(RESULT);
@@ -932,7 +908,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(strptime2, 2, 3)
 
     struct tm timeinfo2;
     memset(&timeinfo2, 0, sizeof(timeinfo2));
-    struct tm *timeinfo;
+
     time_t    res = 0;
     timeinfo2.tm_hour = -1;
 

@@ -2,9 +2,7 @@
 #include "stdlibrary.h"
 //------------ end of standard header ----------------------------//
 #include "AnsiString.h"
-extern "C" {
-    #include "duktape.h"
-}
+#include "duktape.h"
 #include "library.h"
 #include <time.h>
 //---------------------------------------------------------------------------
@@ -68,7 +66,7 @@ CONCEPT_FUNCTION_IMPL(JSNewRuntime, 0)
     struct duk_wrapper_container *ref = (struct duk_wrapper_container *)malloc(sizeof(struct duk_wrapper_container));
     duk_context *ctx = duk_create_heap(NULL, NULL, NULL, ref, on_error);
     if (ctx) {
-	    duk_push_c_function(ctx, native_print, DUK_VARARGS);
+        duk_push_c_function(ctx, native_print, DUK_VARARGS);
         duk_put_global_string(ctx, "print");
 
         if (ref) {

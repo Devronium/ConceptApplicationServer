@@ -67,7 +67,7 @@ public:
     AnsiString buffer;
 
     void write(const void *data, size_t size) {
-        buffer.AddBuffer((char *)data, size, 256);
+        buffer.AddBuffer((const char *)data, size, 256);
     }
 };
 #endif
@@ -168,7 +168,7 @@ int bin_write_double(RefContainer *rc, double v);
 #define CHECK_PACK_SIZE(i, len)                          if (i >= len) RAISE_PACK_ERROR(-2)
 #define CHECK_PACK_VALID_SIZE(size, min_val, max_val)    if ((size < min_val) || (size > max_val)) RAISE_PACK_ERROR(-3)
 #define PACK_BUFFER_INCREMENT    0x80
-#define PACK_ENSURE_BUFFER(data_size)                    if (buf_size - buf_index < data_size) { if (data_size > PACK_BUFFER_INCREMENT) { buf_size += data_size / PACK_BUFFER_INCREMENT * PACK_BUFFER_INCREMENT; } buf_size += PACK_BUFFER_INCREMENT; buf = (signed char *)realloc(buf, buf_size); }
+#define PACK_ENSURE_BUFFER(data_size)                    if (buf_size - buf_index < ((int)data_size)) { if (((int)data_size) > PACK_BUFFER_INCREMENT) { buf_size += ((int)data_size) / PACK_BUFFER_INCREMENT * PACK_BUFFER_INCREMENT; } buf_size += PACK_BUFFER_INCREMENT; buf = (signed char *)realloc(buf, buf_size); }
 #define PACK_PANIC               { if (buf_index) { RETURN_BUFFER((char *)buf, buf_index); } else { RETURN_STRING(""); } free(buf); return 0; }
 #define PACK_ARRAY(size, code)                                                                    \
     void *pData = LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[param_index - 1] - 1];                    \
@@ -366,7 +366,8 @@ void SerializeArray(RefContainer *rc, void *pData, void *arr_id, XML_NODE_REF pa
                 if (is_simple == 2) {
                     if ((key) && (key[0])) {
                         AnsiString parsed_key = key;
-                        char       *pkey      = parsed_key.c_str();
+                        // ugly, but safe
+                        char *pkey            = (char *)parsed_key.c_str();
                         int        len        = parsed_key.Length();
                         for (int i = 0; i < len; i++) {
                             if (!strchr("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.:-", pkey[i]))
@@ -376,7 +377,7 @@ void SerializeArray(RefContainer *rc, void *pData, void *arr_id, XML_NODE_REF pa
                         XML_ADD_CHILD(node, node2);
                     } else {
                         if (type == VARIABLE_CLASS) {
-                            char *class_name = "class";
+                            const char *class_name = "class";
                             LocalInvoker(INVOKE_GET_SERIAL_CLASS, szData, (int)0, &class_name, (char **)0, (char *)0, (char *)0, (char *)0, (char **)0, (NUMBER *)0, (char *)0, (char *)0);
                             node2 = XML_NEW_NODE(class_name, node);
                         } else
@@ -684,9 +685,10 @@ CONCEPT_DLL_API CONCEPT_SerializeObject CONCEPT_API_PARAMETERS {
 
     LOCAL_INIT;
     char *pData;
-    char *filename = "";
+    // ugly, but safe here (filename gets re-assigned), same with encoding
+    char *filename = (char *)"";
 #ifdef WITH_LIBXML2
-    char *encoding = "UTF-8";
+    char *encoding = (char *)"UTF-8";
 #else
     char *encoding = NULL;
 #endif
@@ -749,8 +751,6 @@ CONCEPT_DLL_API CONCEPT_SerializeObject CONCEPT_API_PARAMETERS {
             t_encoding = pugi::encoding_latin1;
     }
 #endif
-    //xmlDtdPtr dtd = xmlCreateIntSubset(doc, BAD_CAST "root", NULL, BAD_CAST "tree2.dtd");
-
     DEBUG("All done");
     int is_file = false;
 
@@ -775,7 +775,7 @@ CONCEPT_DLL_API CONCEPT_SerializeObject CONCEPT_API_PARAMETERS {
         SimpleWriter writer;
         doc.save(writer, PUGIXML_TEXT(""), pugi::format_raw, t_encoding);
         unsigned long size = writer.buffer.Length();
-        char          *mem = writer.buffer.c_str();
+        const char    *mem = writer.buffer.c_str();
 #endif
 
         RETURN_BUFFER((char *)mem, size);
@@ -998,7 +998,7 @@ CONCEPT_DLL_API CONCEPT_UnSerializeObject CONCEPT_API_PARAMETERS {
                                           PARAMETERS_CHECK_MIN_MAX(1, 3, "UnSerializeObject: UnSerializeObject(filename|buffer, is_raw_buffer=false, var error)");
 
     LOCAL_INIT;
-    char   *filename = "";
+    char *filename = (char *)"";
     NUMBER _is_raw;
     NUMBER len;
     bool   is_raw = false;
@@ -1096,7 +1096,6 @@ CONCEPT_DLL_API CONCEPT_CreateObject CONCEPT_API_PARAMETERS {
 
     LOCAL_INIT;
     char *class_name = 0;
-    char *pData;
 
     GET_CHECK_STRING(0, class_name, "CreateObject parameter error: szClassName must be of string type(STATIC STRING)");
 
@@ -1342,7 +1341,6 @@ CONCEPT_DLL_API CONCEPT__GetKeys CONCEPT_API_PARAMETERS {
     LOCAL_INIT;
 
     char *arr  = 0;
-    char *arr2 = 0;
 
     GET_CHECK_ARRAY(0, arr, "_GetKeys: paramter should be an array");
 
@@ -1463,7 +1461,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ToXML, 1, 3)
     else
         doc.save(writer, PUGIXML_TEXT(""), pugi::format_raw, t_encoding);
     unsigned long size = writer.buffer.Length();
-    char          *mem = writer.buffer.c_str();
+    const char    *mem = writer.buffer.c_str();
     RETURN_BUFFER((char *)mem, size);
 #endif
     if (is_file) {
@@ -1472,7 +1470,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ToXML, 1, 3)
 #ifdef WITH_LIBXML2
     DEBUG("Clean ...");
     xmlFreeDoc(doc);
-//xmlCleanupParser();
+    //xmlCleanupParser();
     xmlMemoryDump();
     DEBUG("done");
     xmlSetGenericErrorFunc(old_ctx, xmlGenericError);
@@ -2091,7 +2089,7 @@ int DoBin(RefContainer *rc, void *ConceptHandler, void *OwnerPTR = 0, int dry_ru
                             if ((!rc->filters) || (FilterContains(rc, &buf))) {
                                 if (!IS_OK(LocalInvoker(INVOKE_GET_CLASS_VARIABLE, OwnerPTR, (char *)buf.c_str(), &handler))) {
                                     rc->full_error = (char *)"Error in member serialization. Member not defined ?";
-                                    rc->err_ser    = rc->full_error.c_str();
+                                    rc->err_ser    = (void *)rc->full_error.c_str();
                                     return -1;
                                 }
                                 if (rc->filters)
@@ -2135,7 +2133,7 @@ int DoBin(RefContainer *rc, void *ConceptHandler, void *OwnerPTR = 0, int dry_ru
                     }
                 }
                 size = bin_read_size(rc);
-                for (int i = 0; i < size; i++) {
+                for (int i = 0; i < (int)size; i++) {
                     uint64_t key_size = bin_read_size(rc);
                     ref_dry_run = dry_run;
                     if (key_size) {
@@ -2198,8 +2196,6 @@ int DoBin(RefContainer *rc, void *ConceptHandler, void *OwnerPTR = 0, int dry_ru
 
 //---------------------------------------------------------------------------
 char **GetCharList2(void *arr, int *outcount, INVOKE_CALL _Invoke) {
-    INTEGER type      = 0;
-    NUMBER  nr        = 0;
     void    *newpData = 0;
     char    **ret     = 0;
 
@@ -2235,7 +2231,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UnBinarizeObject, 1, 3)
 
     RETURN_NUMBER(0);
 
-    uint64_t offset = 0;
+    int64_t offset = 0;
 
     if (PARAMETERS_COUNT > 1) {
         T_NUMBER(UnBinarizeObject, 1)
@@ -2397,7 +2393,7 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
     char        size_buf[11];
     int         size_pos;
     int         padding;
-    int         used_size;
+    unsigned int used_size;
     size_t      tmp_len;
     for (int i = 0; i < len; i++) {
         PACK_ENSURE_BUFFER(12)
@@ -2715,9 +2711,6 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                                     tmp_len = tmp.Length();
                                     padding = 0;
 
-                                    /*if ((size > 0) && (tmp_len > size))
-                                        tmp_len = size;
-                                       PACK_ENSURE_BUFFER(tmp_len)*/
                                     if (size > 0) {
                                         if (tmp_len >= size)
                                             tmp_len = size;
@@ -2755,7 +2748,7 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                 } else
                 if (TYPE == VARIABLE_NUMBER) {
                     AnsiString tmp(nDUMMY_FILL);
-                    int        tmp_len = tmp.Length();
+                    tmp_len = tmp.Length();
 
                     if (size > 0) {
                         if (tmp_len >= size)
@@ -2812,7 +2805,7 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                 } else
                 if (TYPE == VARIABLE_STRING) {
                     PACK_ENSURE_BUFFER(size + 1)
-                    used_size = (int)nDUMMY_FILL;
+                    used_size = (unsigned int)nDUMMY_FILL;
                     if (used_size > size) {
                         used_size = size;
                     } else {
@@ -3574,8 +3567,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(http_normalize_path, 1, 2)
     }
     char buffer[8192];
     int len = PARAM_LEN(0);
-    if (len > sizeof(buffer) - 1)
-        len = sizeof(buffer) - 1;
+    if (len > (int)(sizeof(buffer) - 1))
+        len = (int)(sizeof(buffer) - 1);
     char *normalized = canonical_path(PARAM(0), len, buffer, uri_decode);
     if (normalized) {
         RETURN_STRING(normalized);
@@ -3590,7 +3583,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(http_parse_header, 1, 2)
     const char *method;
     const char *path;
     int minor_version;
-    char buffer[8192];
     struct phr_header headers[0x100];
     size_t method_len, path_len, num_headers = 0x100;
 
@@ -3611,7 +3603,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(http_parse_header, 1, 2)
             Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, ":query", (INTEGER)VARIABLE_STRING, query + 1, (NUMBER)(path_len - offset));
         }
         Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, ":version", (INTEGER)VARIABLE_NUMBER, (const char *)NULL, (NUMBER)(0x10 + minor_version));
-        for (int i = 0; i < num_headers; i ++) {
+        for (int i = 0; i < (int)num_headers; i ++) {
             char name[0x100];
             int len = headers[i].name_len;
             if (len > 0xFF)
@@ -3639,14 +3631,7 @@ CONCEPT_FUNCTION_IMPL(http_parse_response, 1)
     if ((err >= 0) || (err == -2)) {
         Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, ":status", (INTEGER)VARIABLE_NUMBER, (const char *)NULL, (NUMBER)status);
         Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, ":version", (INTEGER)VARIABLE_NUMBER, (const char *)NULL, (NUMBER)(0x10 + minor_version));
-        for (int i = 0; i < num_headers; i ++) {
-            char name[0x100];
-            int len = headers[i].name_len;
-            if (len > 0xFF)
-                len = 0xFF;
-            for (int j = 0; j < len; j++)
-                name[j] = tolower(headers[i].name[j]);
-            name[len] = 0;
+        for (int i = 0; i < (int)num_headers; i ++) {
             Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, headers[i].name, (INTEGER)VARIABLE_STRING, headers[i].value, (NUMBER)headers[i].value_len);
         }
         Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, ":data", (INTEGER)VARIABLE_STRING, (msg_len > 0) && (msg) ? msg : "", (NUMBER)msg_len);
@@ -3713,9 +3698,9 @@ int SlowLookup(const HuffChar *slow_values, unsigned int val) {
 
 CONCEPT_FUNCTION_IMPL(hunpack, 1)
     T_STRING(hunpack, 0)
-    int len = PARAM_LEN(0);
-    int bit_len = len * 8;
-    int bit_pos = 0;
+    unsigned int len = (unsigned int)PARAM_LEN(0);
+    unsigned int bit_len = len * 8;
+    unsigned int bit_pos = 0;
 
     const unsigned char *in_buffer = (const unsigned char *)PARAM(0);
     char *out_buf = NULL;
@@ -3738,7 +3723,7 @@ CONCEPT_FUNCTION_IMPL(hunpack, 1)
                 }
                 if (bit_pos + read_bits > bit_len) {
                     AddBits(hufvalue, in_buffer, bit_pos, bit_len - bit_pos);
-                    if (hufvalue != ((1 << (bit_len - bit_pos)) - 1)) {
+                    if (hufvalue != ((1u << (bit_len - bit_pos)) - 1)) {
                         
                         RETURN_STRING("");
                         CORE_DELETE(out_buf);
@@ -3752,7 +3737,7 @@ CONCEPT_FUNCTION_IMPL(hunpack, 1)
                 AddBits(hufvalue, in_buffer, bit_pos, read_bits);
                 if ((read_bits <= 8) && (hufvalue < 0x100)) {
                     unsigned int c = HuffQuickVals[hufvalue];
-                    if ((c) && ((c >> 8) == read_bits)) {
+                    if ((c) && ((c >> 8) == (unsigned int)read_bits)) {
                         out_buf[data_len++] = c & 0xFF;
                         bit_pos += read_bits;
                         break;

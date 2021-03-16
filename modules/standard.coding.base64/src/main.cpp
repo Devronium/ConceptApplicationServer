@@ -2,6 +2,7 @@
 #include "stdlibrary.h"
 //------------ end of standard header ----------------------------//
 #include "library.h"
+#include <stdint.h>
 //-----------------------------------------------------------------------------------
 
 /*
@@ -68,7 +69,7 @@ long encode(char *in_buffer, int in_buffer_size, char *out_buffer) {
             blocksout = 0;
         }
     }
-    return (long)out_ptr - (long)out_buffer;
+    return (intptr_t)out_ptr - (intptr_t)out_buffer;
 }
 
 /*
@@ -122,7 +123,7 @@ int decode(char *in_buffer, int in_buffer_size, char *out_buffer) {
             }
         }
     }
-    return (long)out_ptr - (long)out_buffer;
+    return (intptr_t)out_ptr - (intptr_t)out_buffer;
 }
 
 /*
@@ -137,39 +138,12 @@ int decode(char *in_buffer, int in_buffer_size, char *out_buffer) {
 #define B64_ERROR_OUT_CLOSE     4
 #define B64_LINE_SIZE_TO_MIN    5
 
-/*
-** b64_message
-**
-** Gather text messages in one place.
-**
-*/
-char *b64_message(int errcode) {
-#define B64_MAX_MESSAGES    6
-    char *msgs[B64_MAX_MESSAGES] = {
-        "b64:000:Invalid Message Code.",
-        "b64:001:Syntax Error -- check help for usage.",
-        "b64:002:File Error Opening/Creating Files.",
-        "b64:003:File I/O Error -- Note: output file not removed.",
-        "b64:004:Error on output file close.",
-        "b64:004:linesize set to minimum."
-    };
-    char *msg = msgs[0];
-
-    if ((errcode > 0) && (errcode < B64_MAX_MESSAGES)) {
-        msg = msgs[errcode];
-    }
-
-    return msg;
-}
-
 //-----------------------------------------------------------------------------------
 CONCEPT_DLL_API CONCEPT_mime_encode CONCEPT_API_PARAMETERS {
     if (PARAMETERS->COUNT != 1)
         return (void *)": 'mime_encode' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
-    char    *STRING_DUMMY;
     INTEGER TYPE;
 
     // Specific variables
@@ -188,11 +162,11 @@ CONCEPT_DLL_API CONCEPT_mime_encode CONCEPT_API_PARAMETERS {
     }
 
     // function call
-    char *out_buffer = new char[(int)nParam0Length * 2 /*4/3*/ + 0xFF];
-    long size        = encode(szParam0, (int)nParam0Length, out_buffer);
-
-    SetVariable(RESULT, VARIABLE_STRING, out_buffer, size);
-    delete[] out_buffer;
+    char   *out_buffer = 0;
+    NUMBER s           = nParam0Length * 2 + 0xFF;
+    CORE_NEW(s, out_buffer);
+    long size = encode(szParam0, (int)nParam0Length, out_buffer);
+    SetVariable(RESULT, -1, out_buffer, size);
     return 0;
 }
 //-----------------------------------------------------------------------------------
@@ -201,8 +175,6 @@ CONCEPT_DLL_API CONCEPT_mime_decode CONCEPT_API_PARAMETERS {
         return (void *)": 'mime_decode' parameters error. This fuction takes one parameter.";
 
     // General variables
-    NUMBER  NUMBER_DUMMY;
-    char    *STRING_DUMMY;
     INTEGER TYPE;
 
     // Specific variables
@@ -221,12 +193,15 @@ CONCEPT_DLL_API CONCEPT_mime_decode CONCEPT_API_PARAMETERS {
     }
 
     // function call
-    char *out_buffer = new char[(int)nParam0Length];
-    long size        = decode(szParam0, (int)nParam0Length, out_buffer);
+    char *out_buffer = 0;
+    CORE_NEW(nParam0Length, out_buffer);
+
+    long size = decode(szParam0, (int)nParam0Length, out_buffer);
 
     //SetVariable(RESULT,VARIABLE_NUMBER,"",size);
-    SetVariable(RESULT, VARIABLE_STRING, out_buffer, size);
-    delete[] out_buffer;
+    //SetVariable(RESULT,VARIABLE_STRING,out_buffer,size);
+    SetVariable(RESULT, -1, out_buffer, size);
+    //delete[] out_buffer;
     return 0;
 }
 //-----------------------------------------------------------------------------------

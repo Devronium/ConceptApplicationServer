@@ -161,7 +161,7 @@ CONCEPT_FUNCTION_IMPL(_GDCPIE_title, 1)
 
     str = PARAM(0);
 
-    GDCPIE_title = str.c_str();
+    GDCPIE_title = (char *)str.c_str();
 
     RETURN_STRING(str.c_str());
 END_IMPL
@@ -222,7 +222,7 @@ CONCEPT_FUNCTION_IMPL(_GDC_ytitle, 1)
     T_STRING(_GDC_ytitle, 0)
 
     yt         = PARAM(0);
-    GDC_ytitle = yt.c_str();
+    GDC_ytitle = (char *)yt.c_str();
 
     RETURN_STRING(yt.c_str())
 END_IMPL
@@ -232,7 +232,7 @@ CONCEPT_FUNCTION_IMPL(_GDC_xtitle, 1)
     T_STRING(_GDC_xtitle, 0)
 
     xt         = PARAM(0);
-    GDC_xtitle = xt.c_str();
+    GDC_xtitle = (char *)xt.c_str();
 
     RETURN_STRING(xt.c_str())
 END_IMPL
@@ -242,7 +242,7 @@ CONCEPT_FUNCTION_IMPL(_GDC_ytitle2, 1)
     T_STRING(_GDC_ytitle2, 0)
 
     yt2         = PARAM(0);
-    GDC_ytitle2 = yt2.c_str();
+    GDC_ytitle2 = (char *)yt2.c_str();
 
     RETURN_STRING(yt2.c_str())
 END_IMPL
@@ -252,7 +252,7 @@ CONCEPT_FUNCTION_IMPL(_GDC_title, 1)
     T_STRING(_GDC_title, 0)
 
     title     = PARAM(0);
-    GDC_title = title.c_str();
+    GDC_title = (char *)title.c_str();
 
     RETURN_STRING(title.c_str())
 END_IMPL
@@ -292,7 +292,7 @@ CONCEPT_FUNCTION_IMPL(_GDC_ylabel_fmt, 1)
     T_STRING(_GDC_ylabel_fmt, 0)
 
     ylabel_fmt     = PARAM(0);
-    GDC_ylabel_fmt = ylabel_fmt.c_str();
+    GDC_ylabel_fmt = (char *)ylabel_fmt.c_str();
 
     RETURN_STRING(ylabel_fmt.c_str())
 END_IMPL
@@ -302,7 +302,7 @@ CONCEPT_FUNCTION_IMPL(_GDC_ylabel2_fmt, 1)
     T_STRING(_GDC_ylabel2_fmt, 0)
 
     ylabel2_fmt     = PARAM(0);
-    GDC_ylabel2_fmt = ylabel2_fmt.c_str();
+    GDC_ylabel2_fmt = (char *)ylabel2_fmt.c_str();
 
     RETURN_STRING(ylabel2_fmt.c_str())
 END_IMPL
@@ -339,12 +339,7 @@ END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_grid, 1)
     T_NUMBER(_GDC_grid, 0)
-//#ifndef _WIN32
     RETURN_NUMBER(GDC_grid = (GDC_TICK_T)PARAM_INT(0));
-
-/*#else
-    RETURN_NUMBER(GDC_grid=(char)PARAM_INT(0));
- #endif*/
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_xaxis, 1)
@@ -397,18 +392,10 @@ CONCEPT_FUNCTION_IMPL(_GDC_HLC_cap_width, 1)
     RETURN_NUMBER(GDC_HLC_cap_width = (unsigned char)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
-//EXTERND GDC_ANNOTATION_T	*GDC_annotation		DEFAULTO( (GDC_ANNOTATION_T*)NULL );
 CONCEPT_FUNCTION_IMPL(_GDC_annotation_font, 1)
-//T_NUMBER(0)
     T_STRING(_GDC_annotation_font, 0)
-//#ifndef _WIN32
     RETURN_STRING((char *)(GDC_annotation_font = PARAM(0)));
-
-/*#else
-    RETURN_STRING(AnsiString(GDC_annotation_font=(GDC_font_size)AnsiString(PARAM(0)).ToInt()));
- #endif*/
 END_IMPL
-
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_title_font, 1)
     T_STRING(_GDCPIE_title_font, 0)
@@ -515,7 +502,6 @@ CONCEPT_FUNCTION_IMPL(_GDC_num_scatter_pts, 1)
     RETURN_NUMBER(GDC_num_scatter_pts = (int)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
-//EXTERND GDC_SCATTER_T		*GDC_scatter		DEFAULTO( (GDC_SCATTER_T*)NULL );
 CONCEPT_FUNCTION_IMPL(_GDC_thumbnail, 1)
     T_NUMBER(_GDC_thumbnail, 0)
     RETURN_NUMBER(GDC_thumbnail = (char)PARAM_INT(0));
@@ -526,7 +512,7 @@ CONCEPT_FUNCTION_IMPL(_GDC_thumblabel, 1)
     T_STRING(_GDC_thumblabel, 0)
 
     thumblabel     = PARAM(0);
-    GDC_thumblabel = thumblabel.c_str();
+    GDC_thumblabel = (char *)thumblabel.c_str();
 
     RETURN_STRING(thumblabel.c_str())
 END_IMPL
@@ -538,12 +524,7 @@ END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_border, 1)
     T_NUMBER(_GDC_border, 0)
-//#ifndef _WIN32
     RETURN_NUMBER(GDC_border = (GDC_BORDER_T)PARAM_INT(0));
-
-/*#else
-    RETURN_NUMBER(GDC_border=(char)PARAM_INT(0));
- #endif*/
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_BGColor, 1)
