@@ -56,7 +56,7 @@ typedef HANDLE   TSKID_t;
 /*-------------------------------------------------------------------*/
  #      define tskid()    (TSKID_t)GetCurrentThreadId()
 
-static void abend(char *r, int e, char *s) {
+static void abend(const char *r, int e, const char *s) {
     fprintf(stderr, "%s (x%08lx): ABEND Reason code %d, %s\n", tskid(), r, e, s);
     fflush(stderr);
     abort();
@@ -239,7 +239,7 @@ typedef struct s_Task_Table {
 /*-------------------------------------------------------------------*/
  #      define tskid()    pthread_self()
 
-static void abend(char *r, int e, char *s) {
+static void abend(const char *r, int e, const char *s) {
     fprintf(stderr, "%s (x%08lx): ABEND Reason code %d, %s\n", r, tskid(), e, s);
     fflush(stderr);
     abort();

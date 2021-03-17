@@ -16,17 +16,15 @@ CSQLStatement::CSQLStatement(CSQLManager *_Owner) {
 
     SQLAllocStmt(Owner->hConn, &hStmt);
 
-    SQLRETURN rc;
-    rc = SQLSetStmtOption(hStmt, SQL_CONCURRENCY, SQL_CONCUR_VALUES);
-    rc = SQLSetStmtOption(hStmt, SQL_ASYNC_ENABLE, SQL_ASYNC_ENABLE_OFF);
-    rc = SQLSetStmtOption(hStmt, SQL_CURSOR_TYPE, SQL_CURSOR_KEYSET_DRIVEN);
-    rc = SQLSetStmtOption(hStmt, SQL_ROWSET_SIZE, 1);
+    SQLSetStmtOption(hStmt, SQL_CONCURRENCY, SQL_CONCUR_VALUES);
+    SQLSetStmtOption(hStmt, SQL_ASYNC_ENABLE, SQL_ASYNC_ENABLE_OFF);
+    SQLSetStmtOption(hStmt, SQL_CURSOR_TYPE, SQL_CURSOR_KEYSET_DRIVEN);
+    SQLSetStmtOption(hStmt, SQL_ROWSET_SIZE, 1);
 
-    //rc=SQLSetStmtAttr(hStmt, SQL_ATTR_CURSOR_TYPE, (SQLPOINTER)SQL_CURSOR_DYNAMIC, SQL_IS_UINTEGER);
-    rc = SQLSetStmtAttr(hStmt, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER)SQL_SCROLLABLE, SQL_IS_UINTEGER);
+    SQLSetStmtAttr(hStmt, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER)SQL_SCROLLABLE, SQL_IS_UINTEGER);
 
 
-    rc = SQLSetCursorName(hStmt, (SQLCHAR *)CursorName.c_str(), SQL_NTS);
+    SQLSetCursorName(hStmt, (SQLCHAR *)CursorName.c_str(), SQL_NTS);
 
 #ifdef NO_BOUNDING
     bound_index = 0;
@@ -50,7 +48,7 @@ int CSQLStatement::GetCurrentRow() {
     return lRetVal;
 }
 
-int CSQLStatement::QueryPrepared(char *szQuery) {
+int CSQLStatement::QueryPrepared(const char *szQuery) {
     SQLRETURN   rc;
     SQLSMALLINT iParamsCount = 0;
 
@@ -66,19 +64,6 @@ int CSQLStatement::QueryPrepared(char *szQuery) {
     rc = SQLNumParams(hStmt, &iParamsCount);
     CHECK_FAIL_STMT(rc);
 
-    // binding parameters ...
-    // Some drivers don't return an exact value (eg. firebird odbc driver) for 'insert into test values(?,?) returning id'
-
-    /*if (Parameters.Count()!=iParamsCount) {
-            CSQLManager::LAST_ERROR+="[Concept ODBC Library][-3]Requested parameter count not the same with given parameters count (";
-       CSQLManager::LAST_ERROR+="received ";
-       CSQLManager::LAST_ERROR+=AnsiString((long)Parameters.Count());
-       CSQLManager::LAST_ERROR+=", needed ";
-       CSQLManager::LAST_ERROR+=AnsiString((long)iParamsCount);
-       CSQLManager::LAST_ERROR+=")";
-       return -3;
-       }*/
-
     // let the driver decide
     if (iParamsCount > Parameters.Count())
         iParamsCount = Parameters.Count();
@@ -89,7 +74,6 @@ int CSQLStatement::QueryPrepared(char *szQuery) {
             SQLULEN     iSqlSize;
             SQLSMALLINT iSqlType;
             SQLSMALLINT iNullable;
-            SQLINTEGER  cbData;
 
             rc = SQLDescribeParam(hStmt, i + 1,
                                   &iSqlType,
@@ -134,12 +118,8 @@ int CSQLStatement::QueryPrepared(char *szQuery) {
     while (rc == SQL_NEED_DATA) {
         Parameter *pToken = 0;
         rc = SQLParamData(hStmt, (SQLPOINTER *)&pToken);
-        //std::cerr << "RC:" << rc << "\n";
         if (rc == SQL_NEED_DATA) {
-            //std::cerr << "\nDATA: " << pToken->DATA.c_str() << "\n\n";
             SQLRETURN rc2 = SQLPutData(hStmt, (SQLPOINTER)pToken->DATA.c_str(), pToken->DATA.Length());
-            //std::cerr << "Err: " << GetError() << "\n";
-            //std::cerr << "Err: " << rc2 << "\n";
             CHECK_FAIL_STMT(rc2);
         }
     }
@@ -148,7 +128,7 @@ int CSQLStatement::QueryPrepared(char *szQuery) {
     return 0;
 }
 
-int CSQLStatement::Query(char *szQuery) {
+int CSQLStatement::Query(const char *szQuery) {
     lastrow = 0;
 #ifdef NO_BOUNDING
     list_cmd = 0;
@@ -421,8 +401,6 @@ int CSQLStatement::Fetch(short type, long parameter) {
 
 AnsiString bulk;
 int CSQLStatement::GetColumnByIndex(long index, char **data, int *size) {
-    SQLRETURN rc = 0;
-
     *data = 0;
     *size = 0;
     if ((!DataCount) || (!DATA) || (index >= DataCount) || (index < 0)) {
@@ -432,11 +410,8 @@ int CSQLStatement::GetColumnByIndex(long index, char **data, int *size) {
     char has_lob_data = 0;
 #ifdef NO_BOUNDING
     if ((!CHECK_LOB(DATA[index].Type)) && (DATA[index].Value) && (index + 1 != bound_index) && (!list_cmd)) {
-        //char empty_char[0xFFFF];
         if (DATA[index].Size < 0xFFFF) {
-            rc = SQLGetData(hStmt, index + 1, SQL_C_CHAR, DATA[index].Value, DATA[index].Size, &DATA[index].Indicators);
-            //std::cerr << "VAL: " << DATA[index].Value;
-            //std::cerr << "LEN: " << DATA[index].Indicators;
+            SQLRETURN rc = SQLGetData(hStmt, index + 1, SQL_C_CHAR, DATA[index].Value, DATA[index].Size, &DATA[index].Indicators);
             CHECK_FAIL_STMT(rc);
             if (DATA[index].Indicators == SQL_NULL_DATA) {
                 *data = 0;
@@ -532,7 +507,7 @@ int CSQLStatement::GetColumnByIndex(long index, char **data, int *size) {
         else
             bulk += "0";
         bulk += " ";
-        *data = bulk.c_str();
+        *data = (char *)bulk.c_str();
         *size = bulk.Length();
 
         return 0;
@@ -617,7 +592,7 @@ int CSQLStatement::Delete() {
 
         AnsiString szUpdateQuery("DELETE FROM ");
         szUpdateQuery += table;
-        szUpdateQuery += (char *)" WHERE CURRENT OF ";
+        szUpdateQuery += " WHERE CURRENT OF ";
         szUpdateQuery += CursorName;
 
         result = temp->QueryPrepared(szUpdateQuery);

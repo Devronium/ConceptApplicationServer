@@ -23,7 +23,6 @@ AnsiList::AnsiList(int _ac) {
 
 void AnsiList::Add(void *data, char data_is_vector, char no_clean) {
     LastPos = 0;
-    Node *Cursor  = First;
     Node *newNode = new Node;
 
     newNode->_DATA     = data;

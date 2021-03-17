@@ -13,11 +13,13 @@ INVOKE_CALL InvokePtr = 0;
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     InvokePtr = Invoke;
 
+#ifdef WITH_LIBICONV
     DEFINE_ECONSTANT(ICONV_TRIVIALP)
     DEFINE_ECONSTANT(ICONV_GET_TRANSLITERATE)
     DEFINE_ECONSTANT(ICONV_SET_TRANSLITERATE)
     DEFINE_ECONSTANT(ICONV_GET_DISCARD_ILSEQ)
     DEFINE_ECONSTANT(ICONV_SET_DISCARD_ILSEQ)
+#endif
     return 0;
 }
 //-----------------------------------------------------//
@@ -51,14 +53,16 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(iconv2, 3, 4)
     out[0] = 0;
     char   *in    = PARAM(2);
     size_t len_in = PARAM_LEN(2);
-
+#ifdef WITH_LIBICONV
     int val = 1;
     iconvctl(cd, ICONV_SET_DISCARD_ILSEQ, &val);
+#endif
     if (PARAMETERS_COUNT == 4) {
         T_NUMBER(iconv2, 3)
-
+#ifdef WITH_LIBICONV
         val = PARAM_INT(3);
         iconvctl(cd, ICONV_SET_TRANSLITERATE, &val);
+#endif
     }
     int result = iconv(cd, (char **)&in, &len_in, &out, &len);
     len = initial_len - len;
@@ -116,7 +120,7 @@ CONCEPT_FUNCTION_IMPL(iconvctl, 3)
         RETURN_NUMBER(-1);
         return 0;
     }
-
+#ifdef WITH_LIBICONV
     switch (PARAM_INT(1)) {
         case ICONV_TRIVIALP:
         case ICONV_GET_TRANSLITERATE:
@@ -138,6 +142,7 @@ CONCEPT_FUNCTION_IMPL(iconvctl, 3)
             }
             break;
     }
+#endif
     RETURN_NUMBER(result);
 END_IMPL
 //-----------------------------------------------------//

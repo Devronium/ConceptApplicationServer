@@ -1,24 +1,25 @@
-// 100% PURE ANSI C++ String Class
-// (c) 2005 RadGs Software
-// Author : Suica Eduard
-
 #ifndef __ANSISTRING_H
 #define __ANSISTRING_H
 
+#include <stdio.h>
 //#define USE_DEPRECATED
-#include <string.h>
 
-#define MAX_DECIMALS    0xFF
+#define MAX_DECIMALS              0xFF
+#define BLOCK_SIZE                16//16
 
+#define SERIALIZE_8BIT_LENGTH     1
+#define SERIALIZE_16BIT_LENGTH    2
+#define SERIALIZE_32BIT_LENGTH    4
 
 class AnsiString {
 private:
     char *Data;
-    long _LENGTH;
+    long _DATA_SIZE;
 
+    long _LENGTH;
 public:
     AnsiString(void);
-    AnsiString(char *value);
+    AnsiString(const char *value);
     AnsiString(char c);
     AnsiString(int i);
     AnsiString(long i);
@@ -28,51 +29,54 @@ public:
     char operator[](unsigned long index);
     char operator[](int index);
 
-    int operator==(char *str);
-    int operator!=(char *str);
+    int operator==(const char *str);
+    int operator!=(const char *str);
 
     int operator==(AnsiString S);
     int operator!=(AnsiString S);
 
 
-    int operator <(char *str);
-    int operator <=(char *str);
-    int operator >(char *str);
-    int operator >=(char *str);
+    int operator <(const char *str);
+    int operator <=(const char *str);
+    int operator >(const char *str);
+    int operator >=(const char *str);
 
     int operator <(AnsiString S);
     int operator <=(AnsiString S);
     int operator >(AnsiString S);
     int operator >=(AnsiString S);
 
-    void operator=(char *value);
+    void operator=(const char *value);
     void operator=(AnsiString S);
     void operator=(long i);
     void operator=(int i);
     void operator=(char c);
     void operator=(double d);
 
-    void operator+=(char *value);
+    void operator+=(const char *value);
     void operator+=(AnsiString S);
     void operator+=(char c);
 
-    operator char *();
+    operator const char *();
 
     AnsiString operator+(AnsiString S);
 
-    char *c_str();
+    const char *c_str();
+
     long ToInt();
     double ToFloat();
 
-    int LoadFile(char *filename);
-    int SaveFile(char *filename);
+    int LoadFile(const char *filename);
+    int SaveFile(const char *filename);
+    void LoadBuffer(const char *buffer, int size);
+    void AddBuffer(const char *S_Data, int S_Len, int blocks = 1); 
 
     long Length();
 
     long Pos(AnsiString substr);
-    long Pos(AnsiString substr, int after);
 
-    AnsiString Replace(AnsiString replace, AnsiString with);
+    int Serialize(FILE *out, int type);
+    int Unserialize(FILE *out, int type);
 
     ~AnsiString();
 };

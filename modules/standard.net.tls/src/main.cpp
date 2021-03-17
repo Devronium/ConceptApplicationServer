@@ -548,21 +548,21 @@ CONCEPT_FUNCTION_IMPL(TLSVerify, 1)
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
-void AddKey(X509_NAME *name, void *RESULT, INVOKE_CALL Invoke, char *key) {
+void AddKey(X509_NAME *name, void *RESULT, INVOKE_CALL Invoke, const char *key) {
     char asnbuf[1024];
 
-    if ((name) && (name->entries)) {
+    if ((name) && (X509_NAME_entry_count(name))) {
         void *var = 0;
         Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, key, &var);
         if (var) {
             CREATE_ARRAY(var);
-            STACK_OF(X509_NAME_ENTRY) * e_stack = name->entries;
-            int len = sk_X509_NAME_ENTRY_num(e_stack);
+            int len = X509_NAME_entry_count(name);
             for (int i = 0; i < len; i++) {
-                X509_NAME_ENTRY *entry = sk_X509_NAME_ENTRY_value(e_stack, i);
-                if ((entry) && (entry->object) && (entry->value)) {
-                    if (OBJ_obj2txt(asnbuf, sizeof(asnbuf), entry->object, 0))
-                        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, var, asnbuf, (INTEGER)VARIABLE_STRING, (char *)entry->value->data, (NUMBER)entry->value->length);
+                X509_NAME_ENTRY *entry = X509_NAME_get_entry(name, i);
+                if ((entry) && (X509_NAME_ENTRY_get_object(entry))) {
+                    ASN1_STRING *str = X509_NAME_ENTRY_get_data(entry);
+                    if (str)
+                        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, var, asnbuf, (INTEGER)VARIABLE_STRING, (char *)ASN1_STRING_data(str), (NUMBER)ASN1_STRING_length(str));
                 }
             }
         }
@@ -1648,7 +1648,7 @@ CONCEPT_FUNCTION_IMPL(TLSRenegotiate, 1)
         }
 
         if (container->server) {
-            container->ssl->state = SSL_ST_ACCEPT;
+            // container->ssl->state = SSL_ST_ACCEPT;
             if (SSL_do_handshake(container->ssl) <= 0) {
                 RETURN_NUMBER(-4);
                 return 0;

@@ -18,7 +18,8 @@
 /*====================================================================*/
 #if !defined SEMHH_DONE
 #     define  SEMHH_DONE
-#      include <string.h>
+#include <string.h>
+#include <stdio.h>
 
 # if defined(_WIN32)
 /*===============================================================================*/
@@ -71,9 +72,8 @@ static int     __SEMHH_TASK_MAX    = __SEMHH_DEFAULT_MAX_TASK;
 /* strtsk : CreateThread ...                                         */
 /*-------------------------------------------------------------------*/
 static TSKID_t   __SEMHH_START_TASK(void *f, void *arg) {
-    HANDLE wcid;
-
-    //unsigned chn;
+    HANDLE   wcid;
+    unsigned chn;
 
     if (__SEMHH_TASK_TABLE == NULL) {
         int  lg = __SEMHH_TASK_MAX * sizeof(TSKID_t);
@@ -129,10 +129,12 @@ static TSKID_t   __SEMHH_DEL_TASK_BY_ID(TSKID_t cid) {
 /*-------------------------------------------------------------------*/
 static TSKID_t   __SEMHH_WAIT_SINGLE_TASK(TSKID_t cid, int *prc) {
     if (cid == 0) return __SEMHH_WAIT_SINGLE_TASK(cid, prc);
-    if (__SEMHH_TASK_NUM <= 0)
+    if (__SEMHH_TASK_NUM <= 0) {
         abend("waitsk", -3, "WaitM, task_num = 0");
-    if (WaitForSingleObject(cid, INFINITE) < 0)
+    }
+    if (WaitForSingleObject(cid, INFINITE) < 0) {
         abend("waitsk", GetLastError(), "WaitSingle");
+    }
     __SEMHH_DEL_TASK_BY_ID(cid);
     GetExitCodeThread(cid, (DWORD *)prc);
     CloseHandle(cid);
@@ -159,8 +161,9 @@ static TSKID_t   __SEMHH_WAIT_MULTIPLE(int *prc) {
         for (i = 0; i < __SEMHH_TASK_NUM; i += 64) {
             int wn = __SEMHH_TASK_NUM - i < 64 ? __SEMHH_TASK_NUM - i : 64;
             n = WaitForMultipleObjects(wn, __SEMHH_TASK_TABLE + i, 0, 0);
-            if ((0 <= n) && (n < wn))
+            if ((0 <= n) && (n < wn)) {
                 goto retour;
+            }
             Sleep(25);
         }
     }
@@ -259,7 +262,7 @@ static void abend(const char *r, int e, const char *s) {
     {                                                \
         pthread_mutex_lock(&(s.mutx));               \
         if (--(s.v) < 0) {                           \
-            int wprt = s.v;                          \
+            /* int wprt = s.v; */                    \
             pthread_cond_wait(&(s.cond), &(s.mutx)); \
         }                                            \
         pthread_mutex_unlock(&(s.mutx));             \
@@ -377,7 +380,7 @@ static TSKID_t   __SEMHH_DEL_TASK_BY_NUM(int n) {
 /*     return cid                                           */
 /*----------------------------------------------------------*/
 static TSKID_t   __SEMHH_WAIT_MULTIPLE(int *prc) {
-    int     n, rc, flg;
+    int     n, rc /*, flg */;
     TSKID_t cid;
 
     semp(__SEMHH_END_TASK);
@@ -410,7 +413,7 @@ found_it:
 /*     return cid                                           */
 /*----------------------------------------------------------*/
 static TSKID_t   __SEMHH_WAIT_SINGLE_TASK(TSKID_t cid, int *prc) {
-    int n, rc, flg;
+    int n, rc /*, flg */;
 
     if (cid == 0) return __SEMHH_WAIT_MULTIPLE(prc);
     semp(__SEMHH_END_TASK);
@@ -444,8 +447,9 @@ static int       __SEMHH_WAIT_ALL() {
     semp(__SEMHH_TASK_TABLE_MUTEX);
     nt = __SEMHH_TASK_NUM;
     semv(__SEMHH_TASK_TABLE_MUTEX);
-    for (n = 0; n < nt; ++n)
-        TSKID_t cid = waitany(rc);
+    for (n = 0; n < nt; ++n) {
+        /* TSKID_t cid = */ waitany(rc);
+    }
     return n;
 }
 
@@ -464,8 +468,9 @@ static TSKID_t   __SEMHH_EXIT_TASK(int rc) {
 
     semp(__SEMHH_TASK_TABLE_MUTEX);
 
-    for (n = 0; n < __SEMHH_TASK_NUM; ++n)
+    for (n = 0; n < __SEMHH_TASK_NUM; ++n) {
         if (cid == __SEMHH_TASK_TABLE[n].id) goto found_it;
+    }
     abend("exitsk", __SEMHH_TASK_NUM, "cid not found in task_table");
 
 found_it:

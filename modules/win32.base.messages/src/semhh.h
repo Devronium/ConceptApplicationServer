@@ -57,7 +57,7 @@ typedef HANDLE   TSKID_t;
 /*-------------------------------------------------------------------*/
  #      define tskid()    (TSKID_t)GetCurrentThreadId()
 
-static void abend(char *r, int e, char *s) {
+static void abend(const char *r, int e, const char *s) {
     fprintf(stderr, "%s (x%08lx): ABEND Reason code %d, %s\n", tskid(), r, e, s);
     fflush(stderr);
     abort();
@@ -243,7 +243,7 @@ typedef struct s_Task_Table {
 /*-------------------------------------------------------------------*/
  #      define tskid()    pthread_self()
 
-static void abend(char *r, int e, char *s) {
+static void abend(const char *r, int e, const char *s) {
     fprintf(stderr, "%s (x%08lx): ABEND Reason code %d, %s\n", r, tskid(), e, s);
     fflush(stderr);
     abort();
@@ -262,7 +262,7 @@ static void abend(char *r, int e, char *s) {
     {                                                \
         pthread_mutex_lock(&(s.mutx));               \
         if (--(s.v) < 0) {                           \
-            int wprt = s.v;                          \
+            /* int wprt = s.v; */                    \
             pthread_cond_wait(&(s.cond), &(s.mutx)); \
         }                                            \
         pthread_mutex_unlock(&(s.mutx));             \
@@ -380,7 +380,7 @@ static TSKID_t   __SEMHH_DEL_TASK_BY_NUM(int n) {
 /*     return cid                                           */
 /*----------------------------------------------------------*/
 static TSKID_t   __SEMHH_WAIT_MULTIPLE(int *prc) {
-    int     n, rc, flg;
+    int     n, rc /*, flg */;
     TSKID_t cid;
 
     semp(__SEMHH_END_TASK);
@@ -413,7 +413,7 @@ found_it:
 /*     return cid                                           */
 /*----------------------------------------------------------*/
 static TSKID_t   __SEMHH_WAIT_SINGLE_TASK(TSKID_t cid, int *prc) {
-    int n, rc, flg;
+    int n, rc /*, flg */;
 
     if (cid == 0) return __SEMHH_WAIT_MULTIPLE(prc);
     semp(__SEMHH_END_TASK);
@@ -448,7 +448,7 @@ static int       __SEMHH_WAIT_ALL() {
     nt = __SEMHH_TASK_NUM;
     semv(__SEMHH_TASK_TABLE_MUTEX);
     for (n = 0; n < nt; ++n) {
-        TSKID_t cid = waitany(rc);
+        /* TSKID_t cid = */ waitany(rc);
     }
     return n;
 }

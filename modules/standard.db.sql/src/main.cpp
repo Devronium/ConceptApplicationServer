@@ -11,9 +11,6 @@
 #include "semhh.h"
 
 #define RESET_ERRORS
-//CSQLManager::LAST_ERROR=(char *)""; \
-//          //CSQLManager::LAST_WARNING=(char *)"";
-
 
 //-------------------------//
 // Local variables         //

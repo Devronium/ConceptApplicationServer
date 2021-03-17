@@ -46,14 +46,14 @@
 
 #define INI_FILE       "concept.ini"
 
-typedef int (*GET_VARIABLE_PROC)(int operation, void *VDESC, void *CONTEXT, int Depth, char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
-typedef int (*DEBUGGER_CALLBACK)(void *VDESC, void *CONTEXT, int Depth, int line, char *filename, GET_VARIABLE_PROC GVP, void *DEBUGGER_RESERVED, void *PIF, void *STACK_TRACE);
+typedef int (*GET_VARIABLE_PROC)(int operation, void *VDESC, void *CONTEXT, int Depth, const char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
+typedef int (*DEBUGGER_CALLBACK)(void *VDESC, void *CONTEXT, int Depth, int line, const char *filename, GET_VARIABLE_PROC GVP, void *DEBUGGER_RESERVED, void *PIF, void *STACK_TRACE);
 
 extern "C" {
-typedef int (*API_INTERPRETER2)(char *filename, char *inc_dir, char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, void *userdata);
-typedef int (*API_INTERPRETER)(char *filename, char *inc_dir, char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent);
-typedef int (*CLI_INIT)(int argc, char **argv);
-typedef int (*RESULT_GET)();
+    typedef int (*API_INTERPRETER2)(const char *filename, const char *inc_dir, const char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, const char *SERVER_PUBLIC_KEY, const char *SERVER_PRIVATE_KEY, const char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, void *userdata);
+    typedef int (*API_INTERPRETER)(const char *filename, const char *inc_dir, const char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, const char *SERVER_PUBLIC_KEY, const char *SERVER_PRIVATE_KEY, const char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent);
+    typedef int (*CLI_INIT)(int argc, char **argv);
+    typedef int (*RESULT_GET)();
 }
 
 void Print(char *str, int length) {
@@ -74,7 +74,7 @@ void Print(char *str, int length) {
 static int next_line = 0;
 static int step_into = 0;
 
-int DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char *filename, GET_VARIABLE_PROC GVP, void *DEBUGGER_RESERVED, void *PIF, void *STACK_TRACE) {
+int DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, const char *filename, GET_VARIABLE_PROC GVP, void *DEBUGGER_RESERVED, void *PIF, void *STACK_TRACE) {
     // to do !
     char varname[0xFF];
     char buffer[0xFFFF];
@@ -343,7 +343,7 @@ intptr_t ConceptGetPrivateProfileString(
     return (intptr_t)in;
 }
 
-AnsiString GetKey(char *ini_name, char *section, char *key, char *def) {
+AnsiString GetKey(const char *ini_name, const char *section, const char *key, const char *def) {
     char value[4096];
 
     value[0] = 0;
@@ -372,7 +372,7 @@ AnsiString SetWebDirectory(AnsiString temp) {
     AnsiString temp2;
 
     if (temp != (char *)"") {
-        buffer = temp.c_str();
+        buffer = (char *)temp.c_str();
         for (int i = strlen(buffer) - 1; i >= 0; i--)
             if ((buffer[i] == '/') || (buffer[i] == '\\')) {
                 temp2         = (char *)buffer + i + 1;
@@ -385,7 +385,7 @@ AnsiString SetWebDirectory(AnsiString temp) {
     return temp2;
 }
 
-int need_compilation(char *filename) {
+int need_compilation(const char *filename) {
     AnsiString accel_filename = filename;
 
     accel_filename += ".accel";
@@ -404,7 +404,7 @@ int need_compilation(char *filename) {
     return 0;
 }
 
-AnsiString GetKeyPath(AnsiString *HOME_BASE, char *path, char *category, char *key, char *default_value) {
+AnsiString GetKeyPath(AnsiString *HOME_BASE, const char *path, const char *category, const char *key, const char *default_value) {
     AnsiString temp;
 
     temp = GetKey(path, category, key, default_value);
@@ -414,7 +414,7 @@ AnsiString GetKeyPath(AnsiString *HOME_BASE, char *path, char *category, char *k
 }
 
 int main(int argc, char **argv) {
-    char       *filename = 0;
+    const char *filename = 0;
     AnsiString ftemp;
     HMODULE    hDLL      = 0;
     int        debug     = 0;

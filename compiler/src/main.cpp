@@ -30,11 +30,11 @@
 
 #define INI_FILE              "concept.ini"
 
-typedef int (*GET_VARIABLE_PROC)(int operation, void *VDESC, void *CONTEXT, int Depth, char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
-typedef int (*DEBUGGER_CALLBACK)(void *VDESC, void *CONTEXT, int Depth, int line, char *filename, GET_VARIABLE_PROC GVP, void *DEBUGGER_RESERVED, void *PIF, void *STACK_TRACE);
+typedef int (*GET_VARIABLE_PROC)(int operation, void *VDESC, void *CONTEXT, int Depth, const char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
+typedef int (*DEBUGGER_CALLBACK)(void *VDESC, void *CONTEXT, int Depth, int line, const char *filename, GET_VARIABLE_PROC GVP, void *DEBUGGER_RESERVED, void *PIF, void *STACK_TRACE);
 
 extern "C" {
-typedef int (*API_INTERPRETER)(char *filename, char *inc_dir, char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent);
+    typedef int (*API_INTERPRETER)(const char *filename, const char *inc_dir, const char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, const char *SERVER_PUBLIC_KEY, const char *SERVER_PRIVATE_KEY, const char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent);
 }
 
 void Print(char *str, int length) {
@@ -264,7 +264,7 @@ intptr_t ConceptGetPrivateProfileString(
     return (intptr_t)in;
 }
 
-AnsiString GetKey(char *ini_name, char *section, char *key, char *def) {
+AnsiString GetKey(const char *ini_name, const char *section, const char *key, const char *def) {
     char value[4096];
 
     value[0] = 0;
@@ -289,12 +289,12 @@ AnsiString GetDirectory() {
 }
 
 void SetWebDirectory() {
-    char       *buffer;
+    char *buffer;
     AnsiString temp;
 
     temp = getenv("PATH_TRANSLATED");
     if (temp != (char *)"") {
-        buffer = temp.c_str();
+        buffer = (char *)temp.c_str();
         for (int i = strlen(buffer) - 1; i >= 0; i--)
             if ((buffer[i] == '/') || (buffer[i] == '\\')) {
                 buffer[i + 1] = 0;
@@ -304,7 +304,7 @@ void SetWebDirectory() {
     }
 }
 
-AnsiString GetKeyPath(AnsiString *HOME_BASE, char *path, char *category, char *key, char *default_value) {
+AnsiString GetKeyPath(AnsiString *HOME_BASE, const char *path, const char *category, const char *key, const char *default_value) {
     AnsiString temp;
 
     temp = GetKey(path, category, key, default_value);
@@ -370,7 +370,7 @@ int main(int argc, char **argv) {
 
     fprintf(stdout, "Compiling ...\n");
     start = clock();
-    int res = Concept_Execute(filename, Include, Library, (void *)Print, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1);
+    int res = Concept_Execute(filename, Include.c_str(), Library.c_str(), (void *)Print, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1);
     elapsed = clock() - start;
     if (res == -3)
         fprintf(stderr, "File not found or insufficient rights: '%s'\n", filename);

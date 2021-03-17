@@ -58,20 +58,20 @@
 
 void InitThreads();
 
-typedef int (*GET_VARIABLE_PROC)(int operation, void *VDESC, void *CONTEXT, int Depth, char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
+typedef int (*GET_VARIABLE_PROC)(int operation, void *VDESC, void *CONTEXT, int Depth, const char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
 typedef int (*DEBUGGER_CALLBACK)(void *VDESC, void *CONTEXT, int Depth, int line, char *filename, GET_VARIABLE_PROC GVP, void *DEBUGGER_RESERVED, void *PIF, void *STACK_TRACE);
 typedef void (*CHECK_POINT)(int status);
 
 extern "C" {
-typedef int (*API_INTERPRETER)(char *filename, char *inc_dir, char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent);
-typedef int (*API_INTERPRETER2)(char *filename, char *inc_dir, char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, CHECK_POINT check_point, void *userdata);
-typedef int (*API_INTERPRETER3)(char *filename);
-typedef int (*API_INTERPRETER_PIPE)(int direct_pipe);
-typedef int (*API_INTERPRETER_GETSOCKET)();
+    typedef int (*API_INTERPRETER)(const char *filename, const char *inc_dir, const char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, const char *SERVER_PUBLIC_KEY, const char *SERVER_PRIVATE_KEY, const char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent);
+    typedef int (*API_INTERPRETER2)(const char *filename, const char *inc_dir, const char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, const char *SERVER_PUBLIC_KEY, const char *SERVER_PRIVATE_KEY, const char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, CHECK_POINT check_point, void *userdata);
+    typedef int (*API_INTERPRETER3)(const char *filename);
+    typedef int (*API_INTERPRETER_PIPE)(int direct_pipe);
+    typedef int (*API_INTERPRETER_GETSOCKET)();
 
-typedef void * (*API_EXECUTE_INIT)(char *filename, char *inc_dir, char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, void *userdata);
-typedef int (*API_EXECUTE_RUN)(void *PTR, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, int direct_pipe);
-typedef int (*API_EXECUTE_DONE)(void *PTR);
+    typedef void * (*API_EXECUTE_INIT)(const char *filename, const char *inc_dir, const char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, const char *SERVER_PUBLIC_KEY, const char *SERVER_PRIVATE_KEY, const char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, void *userdata);
+    typedef int (*API_EXECUTE_RUN)(void *PTR, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, int direct_pipe);
+    typedef int (*API_EXECUTE_DONE)(void *PTR);
 }
 
 #define     DEBUG_RUN         0x01
@@ -213,7 +213,7 @@ ssize_t read_exact(int fd, void *buf, int size, int timeout) {
     return written;
 }
 
-ssize_t write_exact(int fd, void *buf, int size) {
+ssize_t write_exact(int fd, const void *buf, int size) {
     int  written = 0;
     char *ref    = (char *)buf;
 
@@ -317,13 +317,13 @@ int NotifyParent(int msg_id, AnsiString DATA) {
     return 1;
 }
 
-AnsiString SetWebDirectory(char *filename) {
-    char       *buffer;
+AnsiString SetWebDirectory(const char *filename) {
+    char *buffer;
     AnsiString temp  = filename;
     AnsiString temp2 = filename;
 
-    if (temp != (char *)"") {
-        buffer = temp.c_str();
+    if (temp != "") {
+        buffer = (char *)temp.c_str();
         for (int i = strlen(buffer) - 1; i >= 0; i--)
             if ((buffer[i] == '/') || (buffer[i] == '\\')) {
                 temp2         = (char *)buffer + i + 1;
@@ -334,25 +334,6 @@ AnsiString SetWebDirectory(char *filename) {
             chdir(buffer);
     }
     return temp2;
-}
-
-int need_compilation(char *filename) {
-    AnsiString accel_filename = filename;
-
-    accel_filename += ".accel";
-    struct stat buf1, buf2;
-    // if some error, report no need for compilation
-    if (stat(filename, &buf1))
-        return 0;
-
-    if (stat(accel_filename.c_str(), &buf2))
-        return 1;
-
-    // last modification time don't match ... need recompilation ...
-    if (buf1.st_mtime != buf2.st_mtime)
-        return 1;
-
-    return 0;
 }
 
 void Print(char *str, int length) {
@@ -588,7 +569,7 @@ BREAKPOINT breakpoints[MAX_BREAKPOINTS];
 int        max_breakpoints   = 0;
 int        breakpoints_count = 0;
 
-int AddBreakpoint(char *filename, int line) {
+int AddBreakpoint(const char *filename, int line) {
     int target = 0;
     int i      = 0;
 
@@ -609,7 +590,7 @@ int AddBreakpoint(char *filename, int line) {
     return 1;
 }
 
-int RemoveBreakpoint(char *filename, int line) {
+int RemoveBreakpoint(const char *filename, int line) {
     for (int i = 0; i < max_breakpoints; i++)
         if ((breakpoints[i].line == line) && (breakpoints[i].filename == filename)) {
             breakpoints[i].line = -1;
@@ -668,7 +649,7 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                         char var_buffer[MAX_DEBUG_REQUEST + 1];
                         strcpy(var_buffer, "(Variable not defined)");
                         var_buffer[MAX_DEBUG_REQUEST] = 0;
-                        if (!GVP(0, VDESC, CONTEXT, Depth, DATA, var_buffer, MAX_DEBUG_REQUEST, PIF, STACK_TRACE))
+                        if (!GVP(0, VDESC, CONTEXT, Depth, DATA.c_str(), var_buffer, MAX_DEBUG_REQUEST, PIF, STACK_TRACE))
                             // to do ... variable undefined ...
                             strcpy(var_buffer, "(Variable not defined)");
 
@@ -681,14 +662,14 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                         int  index = DATA.Pos(":");
                         if (index > 1) {
                             AnsiString varvalue = (char *)DATA.c_str() + index;
-                            DATA.c_str()[index - 1] = 0;
+                            ((char *)DATA.c_str())[index - 1] = 0;
                             AnsiString varname = DATA.c_str();
                             // first parameter is 1, to SET variable (0 is for GET)
-                            if (!GVP(1, VDESC, CONTEXT, Depth, varname, varvalue, varvalue.Length() + 1, PIF, STACK_TRACE)) {
+                            if (!GVP(1, VDESC, CONTEXT, Depth, varname.c_str(), (char *)varvalue.c_str(), varvalue.Length() + 1, PIF, STACK_TRACE)) {
                                 // to do ... variable undefined ...
                             } else {
                                 var_buffer[MAX_DEBUG_REQUEST] = 0;
-                                if (!GVP(0, VDESC, CONTEXT, Depth, varname, var_buffer, MAX_DEBUG_REQUEST, PIF, STACK_TRACE)) {
+                                if (!GVP(0, VDESC, CONTEXT, Depth, varname.c_str(), var_buffer, MAX_DEBUG_REQUEST, PIF, STACK_TRACE)) {
                                     // to do ... variable undefined ...
                                 } else {
                                     DATA += (char *)"<:>";
@@ -707,9 +688,9 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                         // add breakpoint
                         if (index > 1) {
                             int break_line = AnsiString((char *)DATA.c_str() + index).ToInt();
-                            DATA.c_str()[index - 1] = 0;
+                            ((char *)DATA.c_str())[index - 1] = 0;
                             AnsiString fname = DATA.c_str();
-                            AddBreakpoint(fname, break_line);
+                            AddBreakpoint(fname.c_str(), break_line);
                         }
                     } else
                     if (msg_id == -0x106) {
@@ -717,9 +698,9 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                         int index = DATA.Pos(":");
                         if (index > 1) {
                             int break_line = AnsiString((char *)DATA.c_str() + index).ToInt();
-                            DATA.c_str()[index - 1] = 0;
+                            ((char *)DATA.c_str())[index - 1] = 0;
                             AnsiString fname = DATA.c_str();
-                            RemoveBreakpoint(fname, break_line);
+                            RemoveBreakpoint(fname.c_str(), break_line);
                         }
                     } else
                     if (msg_id == -0x107)
@@ -750,7 +731,7 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                             char var_buffer[MAX_DEBUG_REQUEST + 1];
                             strcpy(var_buffer, "(Variable not defined)");
                             var_buffer[MAX_DEBUG_REQUEST] = 0;
-                            if (!GVP(0, VDESC, CONTEXT, Depth, DATA, var_buffer, MAX_DEBUG_REQUEST, PIF, STACK_TRACE))
+                            if (!GVP(0, VDESC, CONTEXT, Depth, DATA.c_str(), var_buffer, MAX_DEBUG_REQUEST, PIF, STACK_TRACE))
                                 // to do ... variable undefined ...
                                 strcpy(var_buffer, "(Variable not defined)");
 
@@ -763,14 +744,14 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                             int  index = DATA.Pos(":");
                             if (index > 1) {
                                 AnsiString varvalue = (char *)DATA.c_str() + index;
-                                DATA.c_str()[index - 1] = 0;
+                                ((char *)DATA.c_str())[index - 1] = 0;
                                 AnsiString varname = DATA.c_str();
                                 // first parameter is 1, to SET variable (0 is for GET)
-                                if (!GVP(1, VDESC, CONTEXT, Depth, varname, varvalue, varvalue.Length() + 1, PIF, STACK_TRACE)) {
+                                if (!GVP(1, VDESC, CONTEXT, Depth, varname.c_str(), (char *)varvalue.c_str(), varvalue.Length() + 1, PIF, STACK_TRACE)) {
                                     // to do ... variable undefined ...
                                 } else {
                                     var_buffer[MAX_DEBUG_REQUEST] = 0;
-                                    if (!GVP(0, VDESC, CONTEXT, Depth, varname, var_buffer, MAX_DEBUG_REQUEST, PIF, STACK_TRACE)) {
+                                    if (!GVP(0, VDESC, CONTEXT, Depth, varname.c_str(), var_buffer, MAX_DEBUG_REQUEST, PIF, STACK_TRACE)) {
                                         // to do ... variable undefined ...
                                     } else {
                                         DATA += (char *)"<:>";
@@ -789,7 +770,7 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                             // add breakpoint
                             if (index > 1) {
                                 int break_line = AnsiString((char *)DATA.c_str() + index).ToInt();
-                                DATA.c_str()[index - 1] = 0;
+                                ((char *)DATA.c_str())[index - 1] = 0;
                                 AnsiString fname = DATA.c_str();
                                 AddBreakpoint(fname, break_line);
                             }
@@ -799,9 +780,9 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                             int index = DATA.Pos(":");
                             if (index > 1) {
                                 int break_line = AnsiString((char *)DATA.c_str() + index).ToInt();
-                                DATA.c_str()[index - 1] = 0;
+                                ((char *)DATA.c_str())[index - 1] = 0;
                                 AnsiString fname = DATA.c_str();
-                                RemoveBreakpoint(fname, break_line);
+                                RemoveBreakpoint(fname.c_str(), break_line);
                             }
                         } else
                         if (msg_id == -0x107)
@@ -817,7 +798,7 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
     return result;
 }
 
-int RunDebugConceptApplication2(char *filename, char *Include, char *Library, SOCKET sock, int pipein, int pipeout, int apid, int parent_apid, char *KEY) {
+int RunDebugConceptApplication2(const char *filename, const char *Include, const char *Library, SOCKET sock, int pipein, int pipeout, int apid, int parent_apid, const char *KEY) {
     HMODULE          hDLL;
     API_INTERPRETER2 Concept_Execute;
 
@@ -878,20 +859,7 @@ int RunDebugConceptApplication2(char *filename, char *Include, char *Library, SO
     return res;
 }
 
-AnsiString Strip(char *filename) {
-    AnsiString fname = filename;
-
-    if (fname[0] == '"') {
-        int len = fname.Length();
-        if (len > 2) {
-            fname = filename + 1;
-            fname.c_str()[len - 2] = 0;
-        }
-    }
-    return fname;
-}
-
-void SetEnvVar(char *varname, const char *value) {
+void SetEnvVar(const char *varname, const char *value) {
 #ifdef _WIN32
     AnsiString my_str = varname;
     my_str += (char *)"=";
@@ -1126,7 +1094,7 @@ intptr_t ConceptGetPrivateProfileString(
     return (intptr_t)in;
 }
 
-AnsiString GetKey(char *ini_name, char *section, char *key, char *def) {
+AnsiString GetKey(const char *ini_name, const char *section, const char *key, const char *def) {
     char value[4096];
 
     value[0] = 0;
@@ -1201,10 +1169,10 @@ int main3(int argc, char **argv) {
     API_INTERPRETER3 Concept_CachedInit = 0;
     API_INTERPRETER3 Concept_CachedDone = 0;
 
-    char *filename = argv[1];
+    const char *filename = argv[1];
 
-    char *Include = argv[2];
-    char *Library = argv[3];
+    const char *Include = argv[2];
+    const char *Library = argv[3];
 
     int read_pipe  = atoi(argv[4]);
     int write_pipe = atoi(argv[5]);
@@ -1451,6 +1419,7 @@ int main3(int argc, char **argv) {
     else
         fprintf(stderr, "Worker gone\n");
 
+    // ugly, but safe to skip cleaning-up, the process will be closed anyway
     if (handler)
         Concept_Execute3_Done(handler);
 
@@ -1539,12 +1508,12 @@ int main2(int argc, char **argv) {
     } else
         debug = atoi(argv[0]);
 
-    char *filename = argv[6];
+    const char *filename = argv[6];
     SetEnvVar("CONCEPT_FILENAME", filename);
     SOCKET sock        = /*dup*/ ((SOCKET)AnsiString(argv[7]).ToInt());
-    char   *Include    = argv[8];
-    char   *Library    = argv[9];
-    char   *DEBUG_HOST = 0;
+    const char   *Include    = argv[8];
+    const char   *Library    = argv[9];
+    const char   *DEBUG_HOST = 0;
     int    DEBUG_PORT  = 2663;
     int    direct_pipe = AnsiString(argv[1]).ToInt();
     int    pipein      = AnsiString(argv[2]).ToInt();
@@ -1552,9 +1521,9 @@ int main2(int argc, char **argv) {
     int    apid        = AnsiString(argv[4]).ToInt();
     int    parent_apid = AnsiString(argv[5]).ToInt();
 
-    char *SERVER_PUBLIC_KEY  = 0;
-    char *SERVER_PRIVATE_KEY = 0;
-    char *CLIENT_PUBLIC_KEY  = 0;
+    const char *SERVER_PUBLIC_KEY  = 0;
+    const char *SERVER_PRIVATE_KEY = 0;
+    const char *CLIENT_PUBLIC_KEY  = 0;
 
     int  autocompile = 0;
 

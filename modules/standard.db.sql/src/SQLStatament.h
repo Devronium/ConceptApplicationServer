@@ -84,9 +84,9 @@ public:
     int AddParameter(char *param, int size);
     int ClearParameters();
 
-    int QueryPrepared(char *szQuery);
+    int QueryPrepared(const char *szQuery);
 
-    int Query(char *szQuery);
+    int Query(const char *szQuery);
     int BindResult();
     int Fetch(short type, long parameter = 1);
     int FetchForward();

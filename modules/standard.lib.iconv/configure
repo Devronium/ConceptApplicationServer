@@ -4078,8 +4078,7 @@ fi
 if test "x$HAVE_ICONV" = "xfalse"; then
 	echo
 	echo "Iconv was not found on your system. Please use the --with-iconv=/path/to/iconv."
-	echo "libiconv can be downloaded from http://www.gnu.org/software/libiconv."
-	exit 1
+	echo "libiconv can be downloaded from http://www.gnu.org/software/libiconv. Trying to build anyway."
 fi
 
 
