@@ -442,11 +442,13 @@ uninstall-am:
 
 
 install-data-hook:
+	mkdir -p @prefix@/etc/concept/.ConceptClient.js
 	mkdir -p @prefix@/etc/concept/Include
 	mkdir -p @prefix@/etc/concept/Certificates
 	mkdir -p @prefix@/etc/concept/Samples
 	mkdir -p @prefix@/etc/concept/Public
 	mkdir -p @prefix@/etc/concept/Services
+	cp -R .ConceptClient.js @prefix@/etc/concept/
 	cp -R Include @prefix@/etc/concept/
 	cp -R Certificates @prefix@/etc/concept/
 	cp -R Public @prefix@/etc/concept/
@@ -462,6 +464,7 @@ install-data-hook:
 	cp ConceptSSLProxyServer.con.manifest @prefix@/sbin/
 
 uninstall-hook:
+	rm -rf @prefix@/etc/concept/.ConceptClient.js
 	rm -rf @prefix@/etc/concept/Samples
 	rm -rf @prefix@/etc/concept/Include
 	rm -rf @prefix@/etc/concept/Certificates
