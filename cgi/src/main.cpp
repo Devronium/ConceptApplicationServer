@@ -60,7 +60,6 @@ extern "C" {
  #define CMP_FUNC         stricmp
 #else
  #define CMP_FUNC         strcmp
-//#define LINUX_PATH "/opt/Concept/bin/"
  #define D_TEMP_DIR       "/tmp"
 #endif
 
@@ -83,16 +82,16 @@ extern "C" {
  #define TEMPLATE_PIPE    "ConceptCGIPipeXXXXXXXX.tmp"
 #endif
 
-typedef int (*NOTIFY_PARENT)(int pipe_out, int apid, int msg_id, int len, char *data);
+typedef int (*NOTIFY_PARENT)(int pipe_out, int apid, int msg_id, int len, const char *data);
 
 extern "C" {
-typedef int (*API_SETNOTIFY)(NOTIFY_PARENT np);
-typedef int (*API_INTERPRETER2)(char *filename, char *inc_dir, char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, void *userdata);
-typedef int (*API_INTERPRETER)(char *filename, char *inc_dir, char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent);
+    typedef int (*API_SETNOTIFY)(NOTIFY_PARENT np);
+    typedef int (*API_INTERPRETER2)(const char *filename, const char *inc_dir, const char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, const char *SERVER_PUBLIC_KEY, const char *SERVER_PRIVATE_KEY, const char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, void *userdata);
+    typedef int (*API_INTERPRETER)(const char *filename, const char *inc_dir, const char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, const char *SERVER_PUBLIC_KEY, const char *SERVER_PRIVATE_KEY, const char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent);
 
-typedef void * (*API_EXECUTE_INIT)(char *filename, char *inc_dir, char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, void *userdata);
-typedef int (*API_EXECUTE_RUN)(void *PTR, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent);
-typedef int (*API_EXECUTE_DONE)(void *PTR);
+    typedef void * (*API_EXECUTE_INIT)(const char *filename, const char *inc_dir, const char *lib_dir, void *fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, const char *SERVER_PRIVATE_KEY, const char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, void *userdata);
+    typedef int (*API_EXECUTE_RUN)(void *PTR, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, const char *SERVER_PUBLIC_KEY, const char *SERVER_PRIVATE_KEY, const char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent);
+    typedef int (*API_EXECUTE_DONE)(void *PTR);
 }
 
 typedef unsigned   chartype;
@@ -144,8 +143,8 @@ int iterations    = 0;
 static AnsiString s_file;
 static void       *CONCEPT_CONTEXT = 0;
 
-char *memstr(char *haystack, char *needle, int size, int needlesize) {
-    char *p;
+const char *memstr(const char *haystack, const char *needle, int size, int needlesize) {
+    const char *p;
 
     for (p = haystack; p <= (haystack - needlesize + size); p++)
         if (memcmp(p, needle, needlesize) == 0)
@@ -248,19 +247,19 @@ ret0:
     return 0;
 }
 
-void Print(char *str, int length = 0) {
+void Print(const char *str, int length = 0) {
     if (length <= 0)
         length = strlen(str);
 
     if (!_headers) {
         pre_buffer.AddBuffer(str, length);
         int  len  = pre_buffer.Length();
-        char *ptr = memstr(pre_buffer.c_str(), "\r\n\r\n", len, 4);
+        const char *ptr = memstr(pre_buffer.c_str(), "\r\n\r\n", len, 4);
         if ((len > 4) && (ptr)) {
             _headers = 1;
-            char *buf = pre_buffer.c_str();
+            const char *buf = pre_buffer.c_str();
             if ((len <= 12) && (!def_strcasestr(buf, "Content-Type"))) {
-                char *ptr2 = strstr(buf, "\n---- RUN TIME ERROR --------------------------------------------\n");
+                const char *ptr2 = strstr(buf, "\n---- RUN TIME ERROR --------------------------------------------\n");
                 if ((ptr2) && ((uintptr_t)ptr2 < (uintptr_t)ptr))
                     pre_buffer = AnsiString("Content-Type: text/plain\r\n") + pre_buffer;
                 else
@@ -505,7 +504,7 @@ intptr_t ConceptGetPrivateProfileString(
     return (intptr_t)in;
 }
 
-AnsiString GetKey(char *ini_name, char *section, char *key, char *def) {
+AnsiString GetKey(const char *ini_name, const char *section, const char *key, const char *def) {
     char value[4096];
 
     value[0] = 0;
@@ -530,12 +529,12 @@ AnsiString GetDirectory() {
 }
 
 void SetWebDirectory() {
-    char       *buffer;
+    char *buffer;
     AnsiString temp;
 
     temp = s_file.Length() ? s_file.c_str() : getenv("PATH_TRANSLATED");
-    if (temp != (char *)"") {
-        buffer = temp.c_str();
+    if (temp != "") {
+        buffer = (char *)temp.c_str();
         for (int i = strlen(buffer) - 1; i >= 0; i--)
             if ((buffer[i] == '/') || (buffer[i] == '\\')) {
                 buffer[i + 1] = 0;
@@ -545,8 +544,8 @@ void SetWebDirectory() {
     }
 }
 
-int need_compilation(char *filename) {
-    AnsiString accel_filename = filename;
+int need_compilation(const char *filename) {
+    AnsiString accel_filename(filename);
 
     accel_filename += ".accel";
     struct stat buf1, buf2;
@@ -564,7 +563,7 @@ int need_compilation(char *filename) {
     return 0;
 }
 
-int Connect(char *HOST, int PORT) {
+int Connect(const char *HOST, int PORT) {
     struct sockaddr_in sin;
     struct hostent     *hp;
     int CLIENT_SOCKET = -1;
@@ -615,33 +614,15 @@ void Done() {
         close(c_piper);
         c_piper = 0;
         unlink(namer);
-
-/*        if (unlink(namer)!=0) {
- * #ifdef _WIN32
- *          Sleep(10);
- * #else
- *          usleep(10000);
- * #endif
- *          unlink(namer);
- *      }*/
     }
     if (c_pipew > 0) {
         close(c_pipew);
         c_pipew = 0;
         unlink(namew);
-
-/*        if (unlink(namew)!=0) {
- * #ifdef _WIN32
- *          Sleep(10);
- * #else
- *          usleep(10000);
- * #endif
- *          unlink(namew);
- *      }*/
     }
 }
 
-int NotifyServer(int CLIENT_SOCKET, char *key, int *pipew, int *piper, int *_APID, int *_parentAPID, bool *debug) {
+int NotifyServer(int CLIENT_SOCKET, const char *key, int *pipew, int *piper, int *_APID, int *_parentAPID, bool *debug) {
     if (CLIENT_SOCKET == -1) {
         fprintf(stderr, "Error getting APID for CGI application\n");
         return -1;
@@ -652,7 +633,7 @@ int NotifyServer(int CLIENT_SOCKET, char *key, int *pipew, int *piper, int *_API
     tmp[0] = 0;
     GetTempPath(8192, tmp);
 #else
-    char       *tmp = D_TEMP_DIR;
+    const char *tmp = D_TEMP_DIR;
     AnsiString temp(tmp);
     temp += "/";
 
@@ -669,7 +650,7 @@ int NotifyServer(int CLIENT_SOCKET, char *key, int *pipew, int *piper, int *_API
     tplw += TEMPLATE_PIPE;
     tplr += TEMPLATE_PIPE;
 
-    namew = mktemp(tplw.c_str());
+    namew = mktemp((char *)tplw.c_str());
     mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
 #endif
 
@@ -683,7 +664,7 @@ int NotifyServer(int CLIENT_SOCKET, char *key, int *pipew, int *piper, int *_API
     GetTempFileName(tmp, TEMPLATE_PIPE, 0, szTempName);
     namer = szTempName;
 #else
-    namer = mktemp(tplr.c_str());
+    namer = mktemp((char *)tplr.c_str());
 #endif
 
 
@@ -760,7 +741,7 @@ int NotifyServer(int CLIENT_SOCKET, char *key, int *pipew, int *piper, int *_API
 AnsiString INI_PATH;
 #endif
 
-AnsiString GetKeyPath(AnsiString *HOME_BASE, char *path, char *category, char *key, char *default_value) {
+AnsiString GetKeyPath(AnsiString *HOME_BASE, const char *path, const char *category, const char *key, const char *default_value) {
     AnsiString temp;
 
     temp = GetKey(path, category, key, default_value);
@@ -797,7 +778,7 @@ int ConceptCGIInit(int is_cached_cgi) {
     switch_to_binary();
 #endif
 
-    char       *filename = s_file.Length() ? s_file.c_str() : getenv("PATH_TRANSLATED");
+    const char *filename = s_file.Length() ? s_file.c_str() : getenv("PATH_TRANSLATED");
     AnsiString manifest(filename);
     manifest += (char *)".manifest";
     int mt = GetKey(manifest.c_str(), "Application", "Multithreading", "0").ToInt();
@@ -912,7 +893,7 @@ void *thread_main(void *) {
 #endif
     SetWebDirectory();
 
-    char *filename = s_file.Length() ? s_file.c_str() : getenv("PATH_TRANSLATED");
+    const char *filename = s_file.Length() ? s_file.c_str() : getenv("PATH_TRANSLATED");
     if (!filename) {
         fprintf(stdout, "%s%c%c%c%c", "Content-Type: text/plain", 13, 10, 13, 10);
         fprintf(stdout, "Invalid WEBServer query\n");
@@ -948,7 +929,7 @@ void *thread_main(void *) {
             my_key.LoadFile(KEY_FILE);
 
     if (handle_cgi) {
-        client_sock = Connect(host, port);
+        client_sock = Connect(host.c_str(), port);
         NotifyServer(client_sock, my_key.c_str(), &c_pipew, &c_piper, &APID, &parentAPID, &debug);
     }
     if (!allow_debug)
@@ -1039,7 +1020,7 @@ int check_changed(time_t& last_mod, off_t& last_size, const char *path) {
 
 int check_file() {
     FILE *in       = 0;
-    char *filename = s_file.Length() ? s_file.c_str() : getenv("PATH_TRANSLATED");
+    const char *filename = s_file.Length() ? s_file.c_str() : getenv("PATH_TRANSLATED");
 
     in = fopen(filename, "rb");
     if (in) {
@@ -1047,11 +1028,6 @@ int check_file() {
         return 1;
     }
 
-    /*fprintf(stdout, "Content-Type: text/html\r\n" );
-     * fprintf(stdout, "HTTP/1.1 404 Not Found\r\n" );
-     * fprintf(stdout, "Date: Mon, 14 Jan 2002 03:19:55 GMT\r\n" );
-     * fprintf(stdout, "Server: Apache/1.3.22 (Unix)\r\n" );
-     * fprintf(stdout, "Connection: close\n" );*/
     fprintf(stdout, "%s%c%c%c%c", "Content-Type: text/html", 10, 13, 10, 13);
     fprintf(stdout, "<HEAD><TITLE>404 Not Found</TITLE></HEAD>\n");
     fprintf(stdout, "<BODY><H1>404 Not Found</H1>\n");

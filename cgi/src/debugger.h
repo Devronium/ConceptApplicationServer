@@ -38,10 +38,10 @@ typedef struct {
 } BREAKPOINT;
 
 
-typedef int (*GET_VARIABLE_PROC)(int operation, void *VDESC, void *CONTEXT, int Depth, char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
-typedef int (*DEBUGGER_CALLBACK)(void *VDESC, void *CONTEXT, int Depth, int line, char *filename, GET_VARIABLE_PROC GVP, void *DEBUGGER_RESERVED, void *PIF, void *STACK_TRACE);
+typedef int (*GET_VARIABLE_PROC)(int operation, void *VDESC, void *CONTEXT, int Depth, const char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
+typedef int (*DEBUGGER_CALLBACK)(void *VDESC, void *CONTEXT, int Depth, int line, const char *filename, GET_VARIABLE_PROC GVP, void *DEBUGGER_RESERVED, void *PIF, void *STACK_TRACE);
 
-int RemoteNotify(int pipe_out, int apid, int msg_id, int len, char *data);
+int RemoteNotify(int pipe_out, int apid, int msg_id, int len, const char *data);
 ClientDebugInfo *InitDebuger(AnsiString filename, int pipe_out, int pipe_in, int papid);
-int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char *filename, GET_VARIABLE_PROC GVP, void *DEBUGGER_RESERVED, void *PIF, void *STACK_TRACE);
+int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, const char *filename, GET_VARIABLE_PROC GVP, void *DEBUGGER_RESERVED, void *PIF, void *STACK_TRACE);
 #endif // __DEBUGGER_H

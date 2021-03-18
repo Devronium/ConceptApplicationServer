@@ -20,17 +20,6 @@ int        breakpoints_count = 0;
 AnsiString REGISTERED_FILES[0xFF];
 int        REGISTERED_COUNT = 0;
 
-
-/*void write_debug(char *what) {
- *      FILE *f=fopen("c:\\debug.txt","rt+");
- *      if (f) {
- *              fseek(f, 0, SEEK_END);
- *              fwrite(what, 1, strlen(what), f);
- *              fclose(f);
- *      }
- * }
- */
-
 int IS_REGISTERED(AnsiString filename) {
     for (int i = 0; i < REGISTERED_COUNT; i++)
         if (REGISTERED_FILES[i] == filename)
@@ -155,7 +144,7 @@ int NotifyParent(int msg_id, AnsiString DATA) {
     return 1;
 }
 
-int RemoteNotify(int pipe_out, int apid, int msg_id, int len, char *data) {
+int RemoteNotify(int pipe_out, int apid, int msg_id, int len, const char *data) {
     // ignore pipe_out parameter ...
 
     if (apid <= 0)
@@ -174,16 +163,7 @@ int RemoteNotify(int pipe_out, int apid, int msg_id, int len, char *data) {
     return 1;
 }
 
-/*void write_debug(char *what) {
- *      FILE *f=fopen("c:\\debug.txt","rt+");
- *      if (f) {
- *              fseek(f, 0, SEEK_END);
- *              fwrite(what, 1, strlen(what), f);
- *              fclose(f);
- *      }
- * }*/
-
-int AddBreakpoint(char *filename, int line) {
+int AddBreakpoint(const char *filename, int line) {
     int target = 0;
     int i      = 0;
 
@@ -198,19 +178,13 @@ int AddBreakpoint(char *filename, int line) {
     breakpoints[i].filename = filename;
     breakpoints[i].line     = line;
 
-    /*write_debug("Breakpoint added: ");
-     * write_debug(filename);
-     * write_debug(", line ");
-     * write_debug(AnsiString((long)line).c_str());
-     * write_debug("\n");*/
-
     max_breakpoints++;
     breakpoints_count++;
 
     return 1;
 }
 
-int RemoveBreakpoint(char *filename, int line) {
+int RemoveBreakpoint(const char *filename, int line) {
     for (int i = 0; i < max_breakpoints; i++)
         if ((breakpoints[i].line == line) && (breakpoints[i].filename == filename)) {
             breakpoints[i].line = -1;
@@ -225,7 +199,7 @@ void ClearBreakpoints() {
     breakpoints_count = 0;
 }
 
-char *ExtractFilename(char *filename) {
+const char *ExtractFilename(const char *filename) {
     int len = strlen(filename);
 
     for (int i = len - 1; i >= 0; i--)
@@ -234,30 +208,24 @@ char *ExtractFilename(char *filename) {
     return filename;
 }
 
-int IsBreakpoint(char *filename, int line) {
+int IsBreakpoint(const char *filename, int line) {
     for (int i = 0; i < max_breakpoints; i++)
         if ((breakpoints[i].line == line) && (breakpoints[i].filename == filename))
             return 1;
     return 0;
 }
 
-int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char *filename, GET_VARIABLE_PROC GVP, void *DEBUGGER_RESERVED, void *PIF, void *STACK_TRACE) {
+int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, const char *filename, GET_VARIABLE_PROC GVP, void *DEBUGGER_RESERVED, void *PIF, void *STACK_TRACE) {
     ClientDebugInfo *DINFO = (ClientDebugInfo *)DEBUGGER_RESERVED;
-    // to do !
-    // Debugger is now trapped !
-    //if (DINFO->FileName!=filename)
-    //   return 0;
+
     int  result = 0;
     int  parent;
     int  msg_id;
     char buffer2[0xFFFF];
 
-    //if (!IS_REGISTERED(filename))
-    //    return result;
-
     if (!DINFO)
         return result;
-    char *filename2 = ExtractFilename(filename);
+    const char *filename2 = ExtractFilename(filename);
 
     switch (DINFO->debug_type) {
         case DEBUG_RUNTO:
@@ -308,14 +276,14 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                         int  index = DATA.Pos(":");
                         if (index > 1) {
                             AnsiString varvalue = (char *)DATA.c_str() + index;
-                            DATA.c_str()[index - 1] = 0;
+                            ((char *)DATA.c_str())[index - 1] = 0;
                             AnsiString varname = DATA.c_str();
                             // first parameter is 1, to SET variable (0 is for GET)
-                            if (!GVP(1, VDESC, CONTEXT, Depth, varname, varvalue, varvalue.Length() + 1, PIF, STACK_TRACE)) {
+                            if (!GVP(1, VDESC, CONTEXT, Depth, varname.c_str(), (char *)varvalue.c_str(), varvalue.Length() + 1, PIF, STACK_TRACE)) {
                                 // to do ... variable undefined ...
                             } else {
                                 var_buffer[MAX_DEBUG_REQUEST] = 0;
-                                if (!GVP(0, VDESC, CONTEXT, Depth, varname, var_buffer, MAX_DEBUG_REQUEST, PIF, STACK_TRACE)) {
+                                if (!GVP(0, VDESC, CONTEXT, Depth, varname.c_str(), var_buffer, MAX_DEBUG_REQUEST, PIF, STACK_TRACE)) {
                                     // to do ... variable undefined ...
                                 } else {
                                     DATA += (char *)"<:>";
@@ -334,9 +302,9 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                         // add breakpoint
                         if (index > 1) {
                             int break_line = AnsiString((char *)DATA.c_str() + index).ToInt();
-                            DATA.c_str()[index - 1] = 0;
+                            ((char *)DATA.c_str())[index - 1] = 0;
                             AnsiString fname = DATA.c_str();
-                            AddBreakpoint(fname, break_line);
+                            AddBreakpoint(fname.c_str(), break_line);
                         }
                     } else
                     if (msg_id == -0x106) {
@@ -344,7 +312,7 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                         int index = DATA.Pos(":");
                         if (index > 1) {
                             int break_line = AnsiString((char *)DATA.c_str() + index).ToInt();
-                            DATA.c_str()[index - 1] = 0;
+                            ((char *)DATA.c_str())[index - 1] = 0;
                             AnsiString fname = DATA.c_str();
                             RemoveBreakpoint(fname, break_line);
                         }
@@ -383,7 +351,7 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                             char var_buffer[MAX_DEBUG_REQUEST + 1];
                             strcpy(var_buffer, "(Variable not defined)");
                             var_buffer[MAX_DEBUG_REQUEST] = 0;
-                            if (!GVP(0, VDESC, CONTEXT, Depth, DATA, var_buffer, MAX_DEBUG_REQUEST, PIF, STACK_TRACE))
+                            if (!GVP(0, VDESC, CONTEXT, Depth, DATA.c_str(), var_buffer, MAX_DEBUG_REQUEST, PIF, STACK_TRACE))
                                 // to do ... variable undefined ...
                                 strcpy(var_buffer, "(Variable not defined)");
 
@@ -395,15 +363,15 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                             char var_buffer[MAX_DEBUG_REQUEST + 1];
                             int  index = DATA.Pos(":");
                             if (index > 1) {
-                                AnsiString varvalue = (char *)DATA.c_str() + index;
-                                DATA.c_str()[index - 1] = 0;
+                                AnsiString varvalue = DATA.c_str() + index;
+                                ((char *)DATA.c_str())[index - 1] = 0;
                                 AnsiString varname = DATA.c_str();
                                 // first parameter is 1, to SET variable (0 is for GET)
-                                if (!GVP(1, VDESC, CONTEXT, Depth, varname, varvalue, varvalue.Length() + 1, PIF, STACK_TRACE)) {
+                                if (!GVP(1, VDESC, CONTEXT, Depth, varname.c_str(), (char *)varvalue.c_str(), varvalue.Length() + 1, PIF, STACK_TRACE)) {
                                     // to do ... variable undefined ...
                                 } else {
                                     var_buffer[MAX_DEBUG_REQUEST] = 0;
-                                    if (!GVP(0, VDESC, CONTEXT, Depth, varname, var_buffer, MAX_DEBUG_REQUEST, PIF, STACK_TRACE)) {
+                                    if (!GVP(0, VDESC, CONTEXT, Depth, varname.c_str(), var_buffer, MAX_DEBUG_REQUEST, PIF, STACK_TRACE)) {
                                         // to do ... variable undefined ...
                                     } else {
                                         DATA += (char *)"<:>";
@@ -421,8 +389,8 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                             int index = DATA.Pos(":");
                             // add breakpoint
                             if (index > 1) {
-                                int break_line = AnsiString((char *)DATA.c_str() + index).ToInt();
-                                DATA.c_str()[index - 1] = 0;
+                                int break_line = AnsiString(DATA.c_str() + index).ToInt();
+                                ((char *)DATA.c_str())[index - 1] = 0;
                                 AnsiString fname = DATA.c_str();
                                 AddBreakpoint(fname, break_line);
                             }
@@ -431,8 +399,8 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                             // remove breakpoint
                             int index = DATA.Pos(":");
                             if (index > 1) {
-                                int break_line = AnsiString((char *)DATA.c_str() + index).ToInt();
-                                DATA.c_str()[index - 1] = 0;
+                                int break_line = AnsiString(DATA.c_str() + index).ToInt();
+                                ((char *)DATA.c_str())[index - 1] = 0;
                                 AnsiString fname = DATA.c_str();
                                 RemoveBreakpoint(fname, break_line);
                             }

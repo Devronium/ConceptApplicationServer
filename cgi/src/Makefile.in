@@ -270,6 +270,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CFLAGS = -O2 -DLINUX_PATH=\"@prefix@/bin/\" -DLIBRARY_PATH=\"@prefix@/lib/libconceptcore.2.0.so\" -DLIBRARY_PATH_MT=\"@prefix@/lib/libconceptcore.2.0.MT/libconceptcore.2.0.so\" -DINI_PATH=\"@prefix@/etc/concept.ini\"
 AM_CXXFLAGS = -O2 -DLINUX_PATH=\"@prefix@/bin/\" -DLIBRARY_PATH=\"@prefix@/lib/libconceptcore.2.0.so\" -DLIBRARY_PATH_MT=\"@prefix@/lib/libconceptcore.2.0.MT/libconceptcore.2.0.so\" -DINI_PATH=\"@prefix@/etc/concept.ini\"
+AM_LDFLAGS = -ldl
 conceptcgi_SOURCES = AnsiString.cpp main.cpp AnsiString.h debugger.cpp debugger.h
 all: all-am
 
