@@ -67,7 +67,7 @@ class H2Server {
 		var filename = "";
 		var root;
 		if ((header) && (get_root_by_host)) {
-			var host = header["host"];
+			var host = header["host"] ?? header[":authority"];
 			if (!host) {
 				host = header["origin"];
 				if (host)
