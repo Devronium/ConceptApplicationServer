@@ -347,6 +347,10 @@ class _webrequest {
 		return this;
 	}
 
+	flush() {
+		this.web.flush();
+	}
+
 	put(array data) {
 		if (template) {
 			var fullpath;

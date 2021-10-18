@@ -52,7 +52,7 @@ struct Reprog {
 	Reclass cclass[16];
 };
 
-static struct {
+struct reg_thread_data {
 	Reprog *prog;
 	Renode *pstart, *pend;
 
@@ -68,12 +68,13 @@ static struct {
 
 	const char *error;
 	jmp_buf kaboom;
-} g;
+};
 
-static void die(const char *message)
+
+static void die(struct reg_thread_data *g, const char *message)
 {
-	g.error = message;
-	longjmp(g.kaboom, 1);
+	g->error = message;
+	longjmp(g->kaboom, 1);
 }
 
 static Rune canon(Rune c)
@@ -99,193 +100,193 @@ enum {
 	L_COUNT		/* {M,N} */
 };
 
-static int hex(int c)
+static int hex(struct reg_thread_data *g, int c)
 {
 	if (c >= '0' && c <= '9') return c - '0';
 	if (c >= 'a' && c <= 'f') return c - 'a' + 0xA;
 	if (c >= 'A' && c <= 'F') return c - 'A' + 0xA;
-	die("invalid escape sequence");
+	die(g, "invalid escape sequence");
 	return 0;
 }
 
-static int dec(int c)
+static int dec(struct reg_thread_data *g, int c)
 {
 	if (c >= '0' && c <= '9') return c - '0';
-	die("invalid quantifier");
+	die(g, "invalid quantifier");
 	return 0;
 }
 
 #define ESCAPES "BbDdSsWw^$\\.*+?()[]{}|0123456789"
 
-static int nextrune(void)
+static int nextrune(struct reg_thread_data *g)
 {
-	g.source += chartorune(&g.yychar, g.source);
-	if (g.yychar == '\\') {
-		g.source += chartorune(&g.yychar, g.source);
-		switch (g.yychar) {
-		case 0: die("unterminated escape sequence");
-		case 'f': g.yychar = '\f'; return 0;
-		case 'n': g.yychar = '\n'; return 0;
-		case 'r': g.yychar = '\r'; return 0;
-		case 't': g.yychar = '\t'; return 0;
-		case 'v': g.yychar = '\v'; return 0;
+	g->source += chartorune(&g->yychar, g->source);
+	if (g->yychar == '\\') {
+		g->source += chartorune(&g->yychar, g->source);
+		switch (g->yychar) {
+		case 0: die(g, "unterminated escape sequence");
+		case 'f': g->yychar = '\f'; return 0;
+		case 'n': g->yychar = '\n'; return 0;
+		case 'r': g->yychar = '\r'; return 0;
+		case 't': g->yychar = '\t'; return 0;
+		case 'v': g->yychar = '\v'; return 0;
 		case 'c':
-			g.yychar = (*g.source++) & 31;
+			g->yychar = (*g->source++) & 31;
 			return 0;
 		case 'x':
-			g.yychar = hex(*g.source++) << 4;
-			g.yychar += hex(*g.source++);
-			if (g.yychar == 0) {
-				g.yychar = '0';
+			g->yychar = hex(g, *g->source++) << 4;
+			g->yychar += hex(g, *g->source++);
+			if (g->yychar == 0) {
+				g->yychar = '0';
 				return 1;
 			}
 			return 0;
 		case 'u':
-			g.yychar = hex(*g.source++) << 12;
-			g.yychar += hex(*g.source++) << 8;
-			g.yychar += hex(*g.source++) << 4;
-			g.yychar += hex(*g.source++);
-			if (g.yychar == 0) {
-				g.yychar = '0';
+			g->yychar = hex(g, *g->source++) << 12;
+			g->yychar += hex(g, *g->source++) << 8;
+			g->yychar += hex(g, *g->source++) << 4;
+			g->yychar += hex(g, *g->source++);
+			if (g->yychar == 0) {
+				g->yychar = '0';
 				return 1;
 			}
 			return 0;
 		}
-		if (strchr(ESCAPES, g.yychar))
+		if (strchr(ESCAPES, g->yychar))
 			return 1;
-		if (isalpharune(g.yychar) || g.yychar == '_') /* check identity escape */
-			die("invalid escape character");
+		if (isalpharune(g->yychar) || g->yychar == '_') /* check identity escape */
+			die(g, "invalid escape character");
 		return 0;
 	}
 	return 0;
 }
 
-static int lexcount(void)
+static int lexcount(struct reg_thread_data *g)
 {
-	g.yychar = *g.source++;
+	g->yychar = *g->source++;
 
-	g.yymin = dec(g.yychar);
-	g.yychar = *g.source++;
-	while (g.yychar != ',' && g.yychar != '}') {
-		g.yymin = g.yymin * 10 + dec(g.yychar);
-		g.yychar = *g.source++;
+	g->yymin = dec(g, g->yychar);
+	g->yychar = *g->source++;
+	while (g->yychar != ',' && g->yychar != '}') {
+		g->yymin = g->yymin * 10 + dec(g, g->yychar);
+		g->yychar = *g->source++;
 	}
-	if (g.yymin >= REPINF)
-		die("numeric overflow");
+	if (g->yymin >= REPINF)
+		die(g, "numeric overflow");
 
-	if (g.yychar == ',') {
-		g.yychar = *g.source++;
-		if (g.yychar == '}') {
-			g.yymax = REPINF;
+	if (g->yychar == ',') {
+		g->yychar = *g->source++;
+		if (g->yychar == '}') {
+			g->yymax = REPINF;
 		} else {
-			g.yymax = dec(g.yychar);
-			g.yychar = *g.source++;
-			while (g.yychar != '}') {
-				g.yymax = g.yymax * 10 + dec(g.yychar);
-				g.yychar = *g.source++;
+			g->yymax = dec(g, g->yychar);
+			g->yychar = *g->source++;
+			while (g->yychar != '}') {
+				g->yymax = g->yymax * 10 + dec(g, g->yychar);
+				g->yychar = *g->source++;
 			}
-			if (g.yymax >= REPINF)
-				die("numeric overflow");
+			if (g->yymax >= REPINF)
+				die(g, "numeric overflow");
 		}
 	} else {
-		g.yymax = g.yymin;
+		g->yymax = g->yymin;
 	}
 
 	return L_COUNT;
 }
 
-static void newcclass(void)
+static void newcclass(struct reg_thread_data *g)
 {
-	if (g.ncclass >= nelem(g.prog->cclass))
-		die("too many character classes");
-	g.yycc = g.prog->cclass + g.ncclass++;
-	g.yycc->end = g.yycc->spans;
+	if (g->ncclass >= nelem(g->prog->cclass))
+		die(g, "too many character classes");
+	g->yycc = g->prog->cclass + g->ncclass++;
+	g->yycc->end = g->yycc->spans;
 }
 
-static void addrange(Rune a, Rune b)
+static void addrange(struct reg_thread_data *g, Rune a, Rune b)
 {
 	if (a > b)
-		die("invalid character class range");
-	if (g.yycc->end + 2 == g.yycc->spans + nelem(g.yycc->spans))
-		die("too many character class ranges");
-	*g.yycc->end++ = a;
-	*g.yycc->end++ = b;
+		die(g, "invalid character class range");
+	if (g->yycc->end + 2 == g->yycc->spans + nelem(g->yycc->spans))
+		die(g, "too many character class ranges");
+	*g->yycc->end++ = a;
+	*g->yycc->end++ = b;
 }
 
-static void addranges_d(void)
+static void addranges_d(struct reg_thread_data *g)
 {
-	addrange('0', '9');
+	addrange(g, '0', '9');
 }
 
-static void addranges_D(void)
+static void addranges_D(struct reg_thread_data *g)
 {
-	addrange(0, '0'-1);
-	addrange('9'+1, 0xFFFF);
+	addrange(g, 0, '0'-1);
+	addrange(g, '9'+1, 0xFFFF);
 }
 
-static void addranges_s(void)
+static void addranges_s(struct reg_thread_data *g)
 {
-	addrange(0x9, 0x9);
-	addrange(0xA, 0xD);
-	addrange(0x20, 0x20);
-	addrange(0xA0, 0xA0);
-	addrange(0x2028, 0x2029);
-	addrange(0xFEFF, 0xFEFF);
+	addrange(g, 0x9, 0x9);
+	addrange(g, 0xA, 0xD);
+	addrange(g, 0x20, 0x20);
+	addrange(g, 0xA0, 0xA0);
+	addrange(g, 0x2028, 0x2029);
+	addrange(g, 0xFEFF, 0xFEFF);
 }
 
-static void addranges_S(void)
+static void addranges_S(struct reg_thread_data *g)
 {
-	addrange(0, 0x9-1);
-	addrange(0x9+1, 0xA-1);
-	addrange(0xD+1, 0x20-1);
-	addrange(0x20+1, 0xA0-1);
-	addrange(0xA0+1, 0x2028-1);
-	addrange(0x2029+1, 0xFEFF-1);
-	addrange(0xFEFF+1, 0xFFFF);
+	addrange(g, 0, 0x9-1);
+	addrange(g, 0x9+1, 0xA-1);
+	addrange(g, 0xD+1, 0x20-1);
+	addrange(g, 0x20+1, 0xA0-1);
+	addrange(g, 0xA0+1, 0x2028-1);
+	addrange(g, 0x2029+1, 0xFEFF-1);
+	addrange(g, 0xFEFF+1, 0xFFFF);
 }
 
-static void addranges_w(void)
+static void addranges_w(struct reg_thread_data *g)
 {
-	addrange('0', '9');
-	addrange('A', 'Z');
-	addrange('_', '_');
-	addrange('a', 'z');
+	addrange(g, '0', '9');
+	addrange(g, 'A', 'Z');
+	addrange(g, '_', '_');
+	addrange(g, 'a', 'z');
 }
 
-static void addranges_W(void)
+static void addranges_W(struct reg_thread_data *g)
 {
-	addrange(0, '0'-1);
-	addrange('9'+1, 'A'-1);
-	addrange('Z'+1, '_'-1);
-	addrange('_'+1, 'a'-1);
-	addrange('z'+1, 0xFFFF);
+	addrange(g, 0, '0'-1);
+	addrange(g, '9'+1, 'A'-1);
+	addrange(g, 'Z'+1, '_'-1);
+	addrange(g, '_'+1, 'a'-1);
+	addrange(g, 'z'+1, 0xFFFF);
 }
 
-static int lexclass(void)
+static int lexclass(struct reg_thread_data *g)
 {
 	int type = L_CCLASS;
 	int quoted, havesave, havedash;
 	Rune save = 0;
 
-	newcclass();
+	newcclass(g);
 
-	quoted = nextrune();
-	if (!quoted && g.yychar == '^') {
+	quoted = nextrune(g);
+	if (!quoted && g->yychar == '^') {
 		type = L_NCCLASS;
-		quoted = nextrune();
+		quoted = nextrune(g);
 	}
 
 	havesave = havedash = 0;
 	for (;;) {
-		if (g.yychar == 0)
-			die("unterminated character class");
-		if (!quoted && g.yychar == ']')
+		if (g->yychar == 0)
+			die(g, "unterminated character class");
+		if (!quoted && g->yychar == ']')
 			break;
 
-		if (!quoted && g.yychar == '-') {
+		if (!quoted && g->yychar == '-') {
 			if (havesave) {
 				if (havedash) {
-					addrange(save, '-');
+					addrange(g, save, '-');
 					havesave = havedash = 0;
 				} else {
 					havedash = 1;
@@ -294,102 +295,102 @@ static int lexclass(void)
 				save = '-';
 				havesave = 1;
 			}
-		} else if (quoted && strchr("DSWdsw", g.yychar)) {
+		} else if (quoted && strchr("DSWdsw", g->yychar)) {
 			if (havesave) {
-				addrange(save, save);
+				addrange(g, save, save);
 				if (havedash)
-					addrange('-', '-');
+					addrange(g, '-', '-');
 			}
-			switch (g.yychar) {
-			case 'd': addranges_d(); break;
-			case 's': addranges_s(); break;
-			case 'w': addranges_w(); break;
-			case 'D': addranges_D(); break;
-			case 'S': addranges_S(); break;
-			case 'W': addranges_W(); break;
+			switch (g->yychar) {
+			case 'd': addranges_d(g); break;
+			case 's': addranges_s(g); break;
+			case 'w': addranges_w(g); break;
+			case 'D': addranges_D(g); break;
+			case 'S': addranges_S(g); break;
+			case 'W': addranges_W(g); break;
 			}
 			havesave = havedash = 0;
 		} else {
 			if (quoted) {
-				if (g.yychar == 'b')
-					g.yychar = '\b';
-				else if (g.yychar == '0')
-					g.yychar = 0;
+				if (g->yychar == 'b')
+					g->yychar = '\b';
+				else if (g->yychar == '0')
+					g->yychar = 0;
 				/* else identity escape */
 			}
 			if (havesave) {
 				if (havedash) {
-					addrange(save, g.yychar);
+					addrange(g, save, g->yychar);
 					havesave = havedash = 0;
 				} else {
-					addrange(save, save);
-					save = g.yychar;
+					addrange(g, save, save);
+					save = g->yychar;
 				}
 			} else {
-				save = g.yychar;
+				save = g->yychar;
 				havesave = 1;
 			}
 		}
 
-		quoted = nextrune();
+		quoted = nextrune(g);
 	}
 
 	if (havesave) {
-		addrange(save, save);
+		addrange(g, save, save);
 		if (havedash)
-			addrange('-', '-');
+			addrange(g, '-', '-');
 	}
 
 	return type;
 }
 
-static int lex(void)
+static int lex(struct reg_thread_data *g)
 {
-	int quoted = nextrune();
+	int quoted = nextrune(g);
 	if (quoted) {
-		switch (g.yychar) {
+		switch (g->yychar) {
 		case 'b': return L_WORD;
 		case 'B': return L_NWORD;
-		case 'd': newcclass(); addranges_d(); return L_CCLASS;
-		case 's': newcclass(); addranges_s(); return L_CCLASS;
-		case 'w': newcclass(); addranges_w(); return L_CCLASS;
-		case 'D': newcclass(); addranges_d(); return L_NCCLASS;
-		case 'S': newcclass(); addranges_s(); return L_NCCLASS;
-		case 'W': newcclass(); addranges_w(); return L_NCCLASS;
-		case '0': g.yychar = 0; return L_CHAR;
+		case 'd': newcclass(g); addranges_d(g); return L_CCLASS;
+		case 's': newcclass(g); addranges_s(g); return L_CCLASS;
+		case 'w': newcclass(g); addranges_w(g); return L_CCLASS;
+		case 'D': newcclass(g); addranges_d(g); return L_NCCLASS;
+		case 'S': newcclass(g); addranges_s(g); return L_NCCLASS;
+		case 'W': newcclass(g); addranges_w(g); return L_NCCLASS;
+		case '0': g->yychar = 0; return L_CHAR;
 		}
-		if (g.yychar >= '0' && g.yychar <= '9') {
-			g.yychar -= '0';
-			if (*g.source >= '0' && *g.source <= '9')
-				g.yychar = g.yychar * 10 + *g.source++ - '0';
+		if (g->yychar >= '0' && g->yychar <= '9') {
+			g->yychar -= '0';
+			if (*g->source >= '0' && *g->source <= '9')
+				g->yychar = g->yychar * 10 + *g->source++ - '0';
 			return L_REF;
 		}
 		return L_CHAR;
 	}
 
-	switch (g.yychar) {
+	switch (g->yychar) {
 	case 0:
 	case '$': case ')': case '*': case '+':
 	case '.': case '?': case '^': case '|':
-		return g.yychar;
+		return g->yychar;
 	}
 
-	if (g.yychar == '{')
-		return lexcount();
-	if (g.yychar == '[')
-		return lexclass();
-	if (g.yychar == '(') {
-		if (g.source[0] == '?') {
-			if (g.source[1] == ':') {
-				g.source += 2;
+	if (g->yychar == '{')
+		return lexcount(g);
+	if (g->yychar == '[')
+		return lexclass(g);
+	if (g->yychar == '(') {
+		if (g->source[0] == '?') {
+			if (g->source[1] == ':') {
+				g->source += 2;
 				return L_NC;
 			}
-			if (g.source[1] == '=') {
-				g.source += 2;
+			if (g->source[1] == '=') {
+				g->source += 2;
 				return L_PLA;
 			}
-			if (g.source[1] == '!') {
-				g.source += 2;
+			if (g->source[1] == '!') {
+				g->source += 2;
 				return L_NLA;
 			}
 		}
@@ -418,9 +419,9 @@ struct Renode {
 	Renode *y;
 };
 
-static Renode *newnode(int type)
+static Renode *newnode(struct reg_thread_data *g, int type)
 {
-	Renode *node = g.pend++;
+	Renode *node = g->pend++;
 	node->type = type;
 	node->cc = NULL;
 	node->c = 0;
@@ -445,11 +446,11 @@ static int empty(Renode *node)
 	}
 }
 
-static Renode *newrep(Renode *atom, int ng, int min, int max)
+static Renode *newrep(struct reg_thread_data *g, Renode *atom, int ng, int min, int max)
 {
-	Renode *rep = newnode(P_REP);
+	Renode *rep = newnode(g, P_REP);
 	if (max == REPINF && empty(atom))
-		die("infinite loop matching the empty string");
+		die(g, "infinite loop matching the empty string");
 	rep->ng = ng;
 	rep->m = min;
 	rep->n = max;
@@ -457,137 +458,137 @@ static Renode *newrep(Renode *atom, int ng, int min, int max)
 	return rep;
 }
 
-static void next(void)
+static void next(struct reg_thread_data *g)
 {
-	g.lookahead = lex();
+	g->lookahead = lex(g);
 }
 
-static int accept(int t)
+static int accept(struct reg_thread_data *g, int t)
 {
-	if (g.lookahead == t) {
-		next();
+	if (g->lookahead == t) {
+		next(g);
 		return 1;
 	}
 	return 0;
 }
 
-static Renode *parsealt(void);
+static Renode *parsealt(struct reg_thread_data *g);
 
-static Renode *parseatom(void)
+static Renode *parseatom(struct reg_thread_data *g)
 {
 	Renode *atom;
-	if (g.lookahead == L_CHAR) {
-		atom = newnode(P_CHAR);
-		atom->c = g.yychar;
-		next();
+	if (g->lookahead == L_CHAR) {
+		atom = newnode(g, P_CHAR);
+		atom->c = g->yychar;
+		next(g);
 		return atom;
 	}
-	if (g.lookahead == L_CCLASS) {
-		atom = newnode(P_CCLASS);
-		atom->cc = g.yycc;
-		next();
+	if (g->lookahead == L_CCLASS) {
+		atom = newnode(g, P_CCLASS);
+		atom->cc = g->yycc;
+		next(g);
 		return atom;
 	}
-	if (g.lookahead == L_NCCLASS) {
-		atom = newnode(P_NCCLASS);
-		atom->cc = g.yycc;
-		next();
+	if (g->lookahead == L_NCCLASS) {
+		atom = newnode(g, P_NCCLASS);
+		atom->cc = g->yycc;
+		next(g);
 		return atom;
 	}
-	if (g.lookahead == L_REF) {
-		atom = newnode(P_REF);
-		if (g.yychar == 0 || g.yychar > g.nsub || !g.sub[g.yychar])
-			die("invalid back-reference");
-		atom->n = g.yychar;
-		atom->x = g.sub[g.yychar];
-		next();
+	if (g->lookahead == L_REF) {
+		atom = newnode(g, P_REF);
+		if (g->yychar == 0 || g->yychar > g->nsub || !g->sub[g->yychar])
+			die(g, "invalid back-reference");
+		atom->n = g->yychar;
+		atom->x = g->sub[g->yychar];
+		next(g);
 		return atom;
 	}
-	if (accept('.'))
-		return newnode(P_ANY);
-	if (accept('(')) {
-		atom = newnode(P_PAR);
-		if (g.nsub == MAXSUB)
-			die("too many captures");
-		atom->n = g.nsub++;
-		atom->x = parsealt();
-		g.sub[atom->n] = atom;
-		if (!accept(')'))
-			die("unmatched '('");
+	if (accept(g, '.'))
+		return newnode(g, P_ANY);
+	if (accept(g, '(')) {
+		atom = newnode(g, P_PAR);
+		if (g->nsub == MAXSUB)
+			die(g, "too many captures");
+		atom->n = g->nsub++;
+		atom->x = parsealt(g);
+		g->sub[atom->n] = atom;
+		if (!accept(g, ')'))
+			die(g, "unmatched '('");
 		return atom;
 	}
-	if (accept(L_NC)) {
-		atom = parsealt();
-		if (!accept(')'))
-			die("unmatched '('");
+	if (accept(g, L_NC)) {
+		atom = parsealt(g);
+		if (!accept(g, ')'))
+			die(g, "unmatched '('");
 		return atom;
 	}
-	if (accept(L_PLA)) {
-		atom = newnode(P_PLA);
-		atom->x = parsealt();
-		if (!accept(')'))
-			die("unmatched '('");
+	if (accept(g, L_PLA)) {
+		atom = newnode(g, P_PLA);
+		atom->x = parsealt(g);
+		if (!accept(g, ')'))
+			die(g, "unmatched '('");
 		return atom;
 	}
-	if (accept(L_NLA)) {
-		atom = newnode(P_NLA);
-		atom->x = parsealt();
-		if (!accept(')'))
-			die("unmatched '('");
+	if (accept(g, L_NLA)) {
+		atom = newnode(g, P_NLA);
+		atom->x = parsealt(g);
+		if (!accept(g, ')'))
+			die(g, "unmatched '('");
 		return atom;
 	}
-	die("syntax error");
+	die(g, "syntax error");
 	return NULL;
 }
 
-static Renode *parserep(void)
+static Renode *parserep(struct reg_thread_data *g)
 {
 	Renode *atom;
 
-	if (accept('^')) return newnode(P_BOL);
-	if (accept('$')) return newnode(P_EOL);
-	if (accept(L_WORD)) return newnode(P_WORD);
-	if (accept(L_NWORD)) return newnode(P_NWORD);
+	if (accept(g, '^')) return newnode(g, P_BOL);
+	if (accept(g, '$')) return newnode(g, P_EOL);
+	if (accept(g, L_WORD)) return newnode(g, P_WORD);
+	if (accept(g, L_NWORD)) return newnode(g, P_NWORD);
 
-	atom = parseatom();
-	if (g.lookahead == L_COUNT) {
-		int min = g.yymin, max = g.yymax;
-		next();
+	atom = parseatom(g);
+	if (g->lookahead == L_COUNT) {
+		int min = g->yymin, max = g->yymax;
+		next(g);
 		if (max < min)
-			die("invalid quantifier");
-		return newrep(atom, accept('?'), min, max);
+			die(g, "invalid quantifier");
+		return newrep(g, atom, accept(g, '?'), min, max);
 	}
-	if (accept('*')) return newrep(atom, accept('?'), 0, REPINF);
-	if (accept('+')) return newrep(atom, accept('?'), 1, REPINF);
-	if (accept('?')) return newrep(atom, accept('?'), 0, 1);
+	if (accept(g, '*')) return newrep(g, atom, accept(g, '?'), 0, REPINF);
+	if (accept(g, '+')) return newrep(g, atom, accept(g, '?'), 1, REPINF);
+	if (accept(g, '?')) return newrep(g, atom, accept(g, '?'), 0, 1);
 	return atom;
 }
 
-static Renode *parsecat(void)
+static Renode *parsecat(struct reg_thread_data *g)
 {
 	Renode *cat, *x;
-	if (g.lookahead && g.lookahead != '|' && g.lookahead != ')') {
-		cat = parserep();
-		while (g.lookahead && g.lookahead != '|' && g.lookahead != ')') {
+	if (g->lookahead && g->lookahead != '|' && g->lookahead != ')') {
+		cat = parserep(g);
+		while (g->lookahead && g->lookahead != '|' && g->lookahead != ')') {
 			x = cat;
-			cat = newnode(P_CAT);
+			cat = newnode(g, P_CAT);
 			cat->x = x;
-			cat->y = parserep();
+			cat->y = parserep(g);
 		}
 		return cat;
 	}
 	return NULL;
 }
 
-static Renode *parsealt(void)
+static Renode *parsealt(struct reg_thread_data *g)
 {
 	Renode *alt, *x;
-	alt = parsecat();
-	while (accept('|')) {
+	alt = parsecat(g);
+	while (accept(g, '|')) {
 		x = alt;
-		alt = newnode(P_ALT);
+		alt = newnode(g, P_ALT);
 		alt->x = x;
-		alt->y = parsecat();
+		alt->y = parsecat(g);
 	}
 	return alt;
 }
@@ -828,9 +829,13 @@ static void dumpprog(Reprog *prog)
 
 Reprog *JS_regcomp(const char *pattern, int cflags, const char **errorp)
 {
+    struct reg_thread_data g;
+
 	Renode *node;
 	Reinst *split, *jump;
 	int i;
+
+    memset(&g, 0, sizeof(struct reg_thread_data));
 
 	g.prog = malloc(sizeof (Reprog));
 	g.pstart = g.pend = malloc(sizeof (Renode) * strlen(pattern) * 2);
@@ -850,19 +855,20 @@ Reprog *JS_regcomp(const char *pattern, int cflags, const char **errorp)
 
 	g.prog->flags = cflags;
 
-	next();
-	node = parsealt();
+	next(&g);
+	node = parsealt(&g);
 	if (g.lookahead == ')')
-		die("unmatched ')'");
+		die(&g, "unmatched ')'");
 	if (g.lookahead != 0)
-		die("syntax error");
+		die(&g, "syntax error");
 
 	g.prog->nsub = g.nsub;
 	g.prog->start = g.prog->end = malloc((count(node) + 6) * sizeof (Reinst));
-    if (cflags & REG_GLOBAL)
-        g.prog->lastIndex = 0;
-    else
-        g.prog->lastIndex = -1;
+    if (cflags & REG_GLOBAL) {
+		g.prog->lastIndex = 0;
+    } else {
+		g.prog->lastIndex = -1;
+    }
 	split = emit(g.prog, I_SPLIT);
 	split->x = split + 3;
 	split->y = split + 1;

@@ -142,6 +142,7 @@ class SIPSession {
 	var OnMessage;
 	var OnReferError;
 	var OnDTMF;
+	var OnReferred;
 
 	var _private_data;
 	var Referred;
@@ -558,6 +559,17 @@ class SIPSession {
 			}
 		}
 		this.Children = new_children;
+	}
+
+	RemoveAllChildren() {
+		while (this.Children) {
+			var session = this.Children[0];
+			if (session._private_data)
+				session.Cancel(true);
+			else
+				session.Bye(true);
+			this.RemoveChild(session);
+		}
 	}
 
 	ChildIsValid(session) {
@@ -1662,6 +1674,8 @@ class SIPStack {
 								session.Referred = true;
 								if (!session.accept_bye)
 									session.Accept(msg.ServerCode);
+								if (session.OnReferred)
+									session.OnReferred(child_session);
 							} else
 							if (msg.ServerCode >= 300) {
 								// busy/redirect/etc

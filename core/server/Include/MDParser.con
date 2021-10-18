@@ -1,0 +1,420 @@
+import standard.lib.str
+import standard.C.io
+import standard.lang.serialize
+
+class MDParser {
+	private static IsRule(var line) {
+		var first_char = line[0];
+		switch (first_char) {
+				case '*':
+				case '-':
+				case '_':
+					for (var i = 1; i < length line; i ++) {
+						if (first_char != line[i])
+							return false;
+					}
+					return true;
+		}
+		return false;
+	}
+
+	private static _do(var line, is_list = false) {
+		line = trim(line);
+		var line2 = "";
+		var[] modifiers;
+		for (var i = 0; i < length line; i ++) {
+			if ((line[i] + line[i + 1] == "![") || (line[i] == "[")) {
+				var is_link = false;
+				if (line[i] == "[")
+					is_link = true;
+				var alt = "";
+				var url = "";
+				var in_alt = true;
+				var in_url = false;
+				while (i ++ < length line) {
+					var ch = line[i];
+					if (ch == "]")
+						in_alt = false;
+					else
+					if (ch == "(")
+						in_url = true;
+					else
+					if (ch == ")") {
+						break;
+					} else
+					if (in_alt)
+						alt += ch;
+					else
+					if (in_url)
+						url += ch;
+				}
+				url = StrSplit(url, " ")[0];
+				if (is_link)
+					line2 += "<a href=\"$url\" title=\"$alt\">$alt</a>\n";
+				else
+					line2 += "<img alt=\"$alt\" src=\"$url\"/>\n";
+				continue;
+			}
+			switch (line[i]) {
+				case '`':
+					while (line[i + 1] == '`')
+						i ++;
+					if (modifiers["code"]) {
+						line2 += "</code>";
+						modifiers["code"] = false;
+					} else {
+						line2 += "<code>";
+						modifiers["code"] = true;
+					}
+					break;
+				case '*':
+				case '_':
+					if (((i == 0) || (line[i - 1] == " ") || (line[i - 1] == "\t") || 
+					(modifiers["bold"]) || (modifiers["italic"]) || (modifiers["bolditalic"])) && (!modifiers["code"])) {
+						if ((line[i] == line[i + 1]) && (line[i] == line[i + 2])) {
+							if (modifiers["bolditalic"]) {
+								line2 += "</em></strong>";
+								modifiers["bolditalic"] = false;
+							} else {
+								line2 += "<strong><em>";
+								modifiers["bolditalic"] = true;
+							}
+							i += 2;
+						} else
+						if (line[i] == line[i + 1]) {
+							if (modifiers["bold"]) {
+								line2 += "</strong>";
+								modifiers["bold"] = false;
+							} else {
+								line2 += "<strong>";
+								modifiers["bold"] = true;
+							}
+							i ++;
+						} else {
+							if (modifiers["italic"]) {
+								line2 += "</em>";
+								modifiers["italic"] = false;
+							} else {
+								line2 += "<em>";
+								modifiers["italic"] = true;
+							}
+						}
+						break;
+					}
+				default:
+					line2 += line[i];
+			}
+		}
+		var keys = GetKeys(modifiers);
+		for (i = 0; i < length keys; i ++) {
+			var k = keys[i];
+			switch (k) {
+				case "bold":
+					if (modifiers["bold"])
+						line2 += "</strong>";
+					break;
+				case "italic":
+					if (modifiers["italic"])
+						line2 += "</em>";
+					break;
+				case "bolditalic":
+					if (modifiers["bolditalic"])
+						line2 += "</em></strong>";
+					break;
+				case "code":
+					if (modifiers["code"])
+						line2 += "</code>";
+					break;
+			}
+		}
+		if (is_list)
+			line2 = "<li>" + line2 + "</li>\n";
+		return line2;
+	}
+
+	static parse(var data) {
+		var html = "";
+		var lines = StrSplit(StrReplace(data, "\r", ""), "\n", true);
+		
+		var paragraph = false;
+		var previous_line = "";
+		var code = false;
+		var ul = 0;
+		for (var i = 0; i < length lines; i ++) {
+			var line_orig = lines[i];
+			var line = trim(line_orig);
+			var next_line = "";
+
+			if (i < length lines - 1)
+				next_line = SubStr(lines[i + 1], 0, 2);
+			
+			if (!code) {
+				switch (next_line) {
+					case "==":
+						line = "#" + line;
+						i ++;
+						break;
+					case "--":
+						line = "##" + line;
+						i ++;
+						break;
+				}
+
+				if (((line[0] == "*") || (line[0] == "-") || (line[0] == "+")) && (line[1] == " ")) {
+					if (!ul)
+						html += "<ul>\n";
+					ul = 1;
+					line = SubStr(line, 2);
+				} else
+				if ((value line > 0) && (line[length ("" + (value line))] == ".")) {
+					if (!ul) {
+						html += "<ol>\n";
+						ul = 2;
+					}
+					line = SubStr(line, Pos(line, "."));
+				} else
+				if (ul) {
+					if (ul == 1)
+						html += "</ul>\n";
+					else
+						html += "</ol>\n";
+					ul = 0;
+				}
+			}
+
+
+			// heading
+			if ((!code) && (line[0] == "|")) {
+				html += MDParser::form(SubStr(line, 1));
+			} else
+			if ((!code) && (line[0] == "#")) {
+				if (paragraph) {
+					html += "</p>\n\n";
+					paragraph = false;
+				}
+				var header_level = 1;
+				var j = 1;
+				while (line[j ++] == "#")
+					header_level ++;
+				line = SubStr(line, header_level);
+
+				if (header_level > 6)
+					header_level = 6;
+				html += "<h$header_level>" + MDParser::_do(line, ul) + "</h$header_level>\n";
+				previous_line = "";
+			} else
+			// rule
+			if ((!code) && (MDParser::IsRule(line))) {
+				if (paragraph) {
+					html += "</p>\n\n";
+					paragraph = false;
+				}
+				html += "<hr/>\n";
+			} else
+			// code
+			if ((line[0] + line[1] + line[2] == '```') && (length line == 3))  {
+				if (code) {
+					html += "</pre>\n";
+					code = false;
+				} else {
+					html += "<pre>\n";
+					code = true;
+				}
+			} else 
+			if (code) {
+				html += line_orig + "\n";
+			} else {
+				if (line) {
+					if (paragraph) {
+						html += "<br>\n";
+					} else
+					if (previous_line == "") {
+						html += "<p>";
+						paragraph = true;
+					}
+					html += MDParser::_do(line, ul);
+				}
+				if (paragraph) {
+					html += "</p>\n\n";
+					paragraph = false;
+				}
+			}
+			previous_line = line;
+		}
+		if (paragraph)
+			html += "</p>\n\n";
+		if (code)
+			html += "</pre>\n";
+		return html;
+	}
+
+	static private name(string name) {
+            var len = length name;
+            var result = "";
+            var ord_a = ord('a');
+            var ord_z = ord('z');
+            var ord_A = ord('A');
+            var ord_Z = ord('Z');
+            var ord_0 = ord('0');
+            var ord_9 = ord('9');
+            var ord_ = ord('_');
+
+            for (var i = 0; i < len; i ++) {
+                var c = name[i];
+		if ((c == "*") && (i == len - 1))
+			break;
+                var ord_c = ord(c);
+                if (((ord_c >= ord_a) && (ord_c <= ord_z)) ||
+                    ((ord_c >= ord_A) && (ord_c <= ord_Z)) ||
+                    ((ord_c >= ord_0) && (ord_c <= ord_9)) ||
+                    (ord_c == ord_)) {
+                        result += c;
+                } else {
+                        result += "_";
+                }
+            }
+            return ToLower(result);
+	}
+
+	static form(data) {
+		var key = "";
+		var type = "";
+		var in_key = true;
+		data += "\n";
+		var html = "";
+		var[] obj;
+		var level;
+		var new_line = false;
+		for (var i = 0; i < length data; i ++) {
+			var ch = data[i];
+			switch (ch) {
+				case ":":
+					in_key = false;
+					break;
+				case "[":
+				case "{":
+				case "(":
+					if (!in_key)
+						level ++;
+					if (in_key)
+						key += ch;
+					else
+						type += ch;
+					break;
+				case "]":
+				case "}":
+				case ")":
+					if (!in_key)
+						level --;
+					if (in_key)
+						key += ch;
+					else
+						type += ch;
+					break;
+				case "\n":
+					if ((!in_key) && (!level) && (i != length data - 1))
+						new_line = true;
+				case " ":
+				case "\r":
+				case "\t":
+				case ",":
+				case ":":
+					if ((!in_key) && (!level)) {
+						type = trim(type);
+						if (type) {
+							key = trim(key);
+							if (key) {
+								var name = MDParser::name(key);
+								obj[name] = key;
+								switch (type[0]) {
+									case "_":
+										html += "<label for=\"$name\">$key:</label>\n";
+										html += "<input type=\"text\" id=\"$name\" name=\"$name\" size=\"${length type}\"/>\n";
+										break;
+									case "\$":
+									case "#":
+										html += "<label for=\"$name\">$key:</label>\n";
+										html += "<input type=\"number\" id=\"$name\" name=\"$name\"/>\n";
+										break;
+									case "{":
+										html += "<label for=\"$name\">$key:</label>\n";
+										html += "<select id=\"$name\" name=\"$name\"/>\n";
+										if (type[length type - 1] == "}")
+											type = SubStr(type, 0, length type - 1);
+										type = SubStr(type, 1);
+										var arr = StrSplit(type, ",");
+										for (var j = 0; j < length arr; j ++) {
+											var line = trim(arr[j]);
+											if ((line[0] == '(') && (line[length line - 1] == ')')) {
+												line = SubStr(line, 1, length line - 2);
+												html += "  <option value=\"$line\" selected=\"selected\">$line</option>\n";
+											} else
+												html += "  <option value=\"$line\">$line</option>\n";
+										}
+										html += "</select>";
+										break;
+									case "(":
+										html += "<label for=\"$name\">$key:</label>\n";
+										if (type[length type - 1] == ")")
+											type = SubStr(type, 0, length type - 1);
+										type = SubStr(type, 1);
+										arr = StrSplit(type, ",");
+										for (j = 0; j < length arr; j ++) {
+											line = trim(arr[j]);
+											if ((line[0] == '(') && (line[length line - 1] == ')')) {
+												line = SubStr(line, 1, length line - 2);
+												var line_id = MDParser::name(line);
+												html += "<input type=\"radio\" name=\"$name\" id=\"$line_id\" value=\"$line\" checked=\"checked\"/>";
+											} else {
+												line_id = MDParser::name(line);
+												html += "<input type=\"radio\" name=\"$name\" id=\"$line_id\" value=\"$line\"/>";
+											}
+											html += "<label for=\"$line_id\">$line</label>\n";
+										}
+										break;
+									case "[":
+										html += "<label for=\"$name\">$key:</label>\n";
+										if (type[length type - 1] == "]")
+											type = SubStr(type, 0, length type - 1);
+										type = SubStr(type, 1);
+										arr = StrSplit(type, ",");
+										for (j = 0; j < length arr; j ++) {
+											line = trim(arr[j]);
+											if ((line[0] == '(') && (line[length line - 1] == ')')) {
+												line = SubStr(line, 1, length line - 2);
+												line_id = MDParser::name(line);
+												html += "<input type=\"checkbox\" name=\"$name\" id=\"$line_id\" value=\"$line\" checked=\"checked\"/>";
+											} else {
+												line_id = MDParser::name(line);
+												html += "<input type=\"checkbox\" name=\"$name\" id=\"$line_id\" value=\"$line\"/>";
+											}
+											html += "<label for=\"$line_id\">$line</label>\n";
+										}
+										break;
+									case "*":
+										html += "<label for=\"$name\">$key:</label>\n";
+										html += "<textarea id=\"$name\" name=\"$name\"></textarea>\n";
+										break;
+								}
+							}
+							if (new_line) {
+								html += "<br/>";
+								new_line = false;
+							}
+							in_key = true;
+							key = "";
+							type = "";
+						}
+						break;
+					}
+				default:
+					if (in_key)
+						key += ch;
+					else
+						type += ch;
+					break;
+			}
+		}
+		return html;
+	}
+}
