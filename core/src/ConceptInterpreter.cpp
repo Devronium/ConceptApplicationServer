@@ -6241,6 +6241,7 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
     INTEGER data_count = OPT->dataCount;
 
 #ifndef NO_TCO
+    VariableDATA **tco_cache = NULL;
     if (TAIL_CALL) {
         LOCAL_CONTEXT = TAIL_CALL;
     } else
@@ -6338,6 +6339,26 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
             VariableDATA *LOCAL_CONTEXT_i = (VariableDATA *)VAR_ALLOC(PIF);
             LOCAL_CONTEXT [i] = LOCAL_CONTEXT_i;
 #endif
+#ifndef NO_TCO
+            if (TAIL_CALL) {
+                // Not sure about this...
+                // if (LOCAL_CONTEXT_i == PARAM)
+                //    continue;
+                // check if any parameter is reused
+                // foo("hello", "world") => foo("world", "hello");
+                if (tco_cache) {
+                    int index = DELTA_UNREF(FORMAL_PARAM, FORMAL_PARAM->PARAM_INDEX) [i - 1] - 2;
+                    if ((index >= 0) && (index < ParamCount) && (tco_cache[index]))
+                        PARAM = tco_cache[index];
+                } else {
+                    tco_cache = (VariableDATA **)FAST_MALLOC(PIF, sizeof(VariableDATA *) * ParamCount);
+                    memset(tco_cache, 0, sizeof(VariableDATA *) * ParamCount);
+                }
+                tco_cache[i - 1] = LOCAL_CONTEXT_i;                
+                LOCAL_CONTEXT_i = (VariableDATA *)VAR_ALLOC(PIF);
+                LOCAL_CONTEXT [i] = LOCAL_CONTEXT_i;
+            }
+#endif
 
             LOCAL_CONTEXT_i->TYPE  = PARAM->TYPE;
             LOCAL_CONTEXT_i->LINKS = 1;
@@ -6360,6 +6381,18 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
             LOCAL_CONTEXT_i->IS_PROPERTY_RESULT = 0;
         }
     }
+#ifndef NO_TCO
+    if (tco_cache) {
+        INTEGER j;
+        for (j = 0; j < ParamCount; j ++) {
+            if (tco_cache[j]) {
+                FREE_VARIABLE(tco_cache[j], STACK_TRACE);
+            }
+        }
+        FAST_FREE(PIF, tco_cache);
+        tco_cache = NULL;
+    }
+#endif
     while (i < data_count) {
 #ifdef USE_JIT_TRACE
         if ((!TAIL_CALL) && (self->initcode.code) && (i > self->OWNER->PARAMETERS_COUNT)) {
@@ -6371,9 +6404,13 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
         // variable descriptor
         RuntimeVariableDESCRIPTOR *TARGET = &DATA [i];
 #ifndef NO_TCO
-        if ((TAIL_CALL) && (LOCAL_CONTEXT[i]) && (LOCAL_CONTEXT[i]->LINKS > 1)) {
-            LOCAL_CONTEXT[i]->LINKS --;
-            LOCAL_CONTEXT[i] = (VariableDATA *)VAR_ALLOC(PIF);
+        if ((TAIL_CALL) && (LOCAL_CONTEXT[i])) {
+            if (LOCAL_CONTEXT[i]->LINKS > 1) {
+                LOCAL_CONTEXT[i]->LINKS --;
+                LOCAL_CONTEXT[i] = (VariableDATA *)VAR_ALLOC(PIF);
+            } else {
+                RESET_VARIABLE(LOCAL_CONTEXT[i], STACK_TRACE);
+            }
         }
 #endif
 #ifdef POOL_STACK
@@ -6386,6 +6423,7 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
         VariableDATA *LOCAL_CONTEXT_i = (VariableDATA *)VAR_ALLOC(PIF);
         LOCAL_CONTEXT [i] = LOCAL_CONTEXT_i;
 #endif
+
         i++;
         LOCAL_CONTEXT_i->TYPE = (TARGET->TYPE < 0) ? -TARGET->TYPE : TARGET->TYPE;
         LOCAL_CONTEXT_i->IS_PROPERTY_RESULT = (TARGET->BY_REF == 2) ? -1 : 0;
