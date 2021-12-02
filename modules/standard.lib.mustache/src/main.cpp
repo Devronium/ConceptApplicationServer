@@ -57,9 +57,9 @@ char *resolve(mustache_closure *mustacheclosure, const char *name, void *DATA) {
     char        *str = 0;
     NUMBER      nr   = 0;
     int len;
+
     if (!DATA)
         return null_type;
-
     int invoke_err;
     if (name) {
         invoke_err = mustacheclosure->Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, DATA, name, &type, &str, &nr);
@@ -139,6 +139,7 @@ char *mustache_put(void *closure, const char *name, int escape) {
 int mustache_enter(void *closure, const char *name) {
     if (!name)
         return 0;
+
     mustache_closure *mustacheclosure = (mustache_closure *)closure;
     int count = 0;
     void *var = NULL;
@@ -157,6 +158,23 @@ int mustache_enter(void *closure, const char *name) {
         if (mustacheclosure->stack_level >= 0x100)
             return MUSTACH_ERROR_TOO_DEPTH;
 
+        INTEGER type = 0;
+        char *str = 0;
+        NUMBER nr   = 0;
+
+        if (!IS_OK(mustacheclosure->Invoke(INVOKE_GET_VARIABLE, var, &type, &str, &nr)))
+            return 0;
+        switch (type) {
+            case VARIABLE_NUMBER:
+                return (int)(nr != 0.00f);
+            case VARIABLE_STRING:
+                if (((int)nr > 0) && (str) && (str[0]))
+                    return (int)nr;
+                return 0;
+            case VARIABLE_CLASS:
+            case VARIABLE_DELEGATE:
+                return 1;
+        }
 
         count = mustacheclosure->Invoke(INVOKE_GET_ARRAY_COUNT, var);
         if (count > 0) {
