@@ -5,6 +5,8 @@ include TCPSocket.con
 include UNIXSocket.con
 include Poll.con
 include DirectoryList.con
+include HTTPRequest.con
+
 import standard.lib.cripto
 import standard.math.rand
 import standard.lang.cli
@@ -4156,7 +4158,7 @@ class QuerySyncWorker {
 		return "";
 	}
 
-	LoadRing(path = ".") {
+	LoadRingLocal(path = ".") {
 		// set timeout here, in case we fail
 		RingTimeout = time() + RING_RELOAD_TIMEOUT;
 
@@ -4259,6 +4261,53 @@ class QuerySyncWorker {
 		ring_checksum = data_checksum;
 		RingTimeout = time() + RING_RELOAD_TIMEOUT;
 		this.verticalnodes = v_servers;
+	}
+
+	ProvisionRing(path = ".") {
+		var provisioning = ReadFile(path + "/provisioning.json");
+		if (provisioning) {
+			var ring_profile = JSONDeserialize(provisioning);
+			if (ring_profile) {
+				var url = ring_profile["ring"];
+				if (url) {
+					var req = new HTTPRequest(url);
+					req.UserData = path;
+					req.OnResponse = function(req) {
+						var response = req.response["code"];
+						if (response == 200) {
+							var buffer = req.buffer;
+							var data = JSONDeserialize(buffer);
+							if (data) {
+								WriteFile(buffer, req.UserData + "/ring.json");
+								this.LoadRingLocal(req.UserData);
+							} else {
+								console.error(LOG_THIS, "Got invalid data from provisioning server");
+							}
+						} else {
+							if (response)
+								console.error(LOG_THIS, "Got HTTP $response code while requesting ring configuration");
+							else
+								console.error(LOG_THIS, "Secure connection failed while requesting ring configuration");
+						}
+					};
+					req.request();
+					// wait max 3 seconds
+					req.iterate(3000);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	LoadRing(path = ".") {
+		// set timeout here, in case we fail
+		RingTimeout = time() + RING_RELOAD_TIMEOUT;
+
+		if (ProvisionRing(path))
+			return;
+
+		LoadRingLocal(path);
 	}
 
 	ValidIP(ip) {
