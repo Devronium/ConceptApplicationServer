@@ -1,3 +1,6 @@
+const USE_OLD_AUDIO_API = true;
+var isFirefox = typeof InstallTrigger !== 'undefined';
+
 //---------------------------------------------------------------//
 // Concept messages list                                         //
 //---------------------------------------------------------------//
@@ -7798,7 +7801,7 @@ window.mobileAndTabletcheck = function() {
 
 					out = new Float32Array(out_len);
 				}
-				var method = 1;
+				var method = 3;
 				switch (method) {
 					case 1:
 						// ugly but fast
@@ -7957,33 +7960,50 @@ window.mobileAndTabletcheck = function() {
 				}
 			}
 			this.MediaAudio = true;
-			var script = audioContext.ref.createScriptProcessor(this.GetBufferSize(audioContext), audioContext.ConceptChannels, audioContext.ConceptChannels);
-			audioContext.ConceptProcessor = script;
-			if (audioContext.ConceptCompression)
-				this.InAudioContext = audioContext;
-			script.onaudioprocess = function(audioProcessingEvent) {
-				if (audioContext.ConceptBufferFull) {
-					var channels = audioProcessingEvent.inputBuffer.numberOfChannels;
-					var output = [];
+			if (USE_OLD_AUDIO_API) {
+				// old API
+				var script = audioContext.ref.createScriptProcessor(this.GetBufferSize(audioContext), audioContext.ConceptChannels, audioContext.ConceptChannels);
+				audioContext.ConceptProcessor = script;
+				if (audioContext.ConceptCompression)
+					this.InAudioContext = audioContext;
+				script.onaudioprocess = function(audioProcessingEvent) {
+					if (audioContext.ConceptBufferFull) {
+						var channels = audioProcessingEvent.inputBuffer.numberOfChannels;
+						var output = [];
 
-					for (var i = 0; i < channels; i++)
-						output.push(audioProcessingEvent.inputBuffer.getChannelData(i));
+						for (var i = 0; i < channels; i++)
+							output.push(audioProcessingEvent.inputBuffer.getChannelData(i));
 
-					audioContext.ConceptBufferFull(self.AdjustSampleRate(output, audioContext.ref.sampleRate, audioContext.ConceptSampleRate, audioContext, 0, false), 2);
+						audioContext.ConceptBufferFull(self.AdjustSampleRate(output, audioContext.ref.sampleRate, audioContext.ConceptSampleRate, audioContext, 0, false), 2);
+					}
+					if ((self.InAudioContext) && (self.InAudioContext.ConceptAudioPair))
+						self.InAudioContext.ConceptAudioPair.ConceptProcess(audioProcessingEvent);
 				}
-				if ((self.InAudioContext) && (self.InAudioContext.ConceptAudioPair))
-					self.InAudioContext.ConceptAudioPair.ConceptProcess(audioProcessingEvent);
+				this.MediaListeners.push(function(stream) {
+					var microphone = audioContext.ref.createMediaStreamSource(stream);
+					microphone.connect(script);
+					audioContext.ConceptMicrophone = microphone;
+					script.connect(audioContext.ref.destination);
+				});
 			}
-			this.MediaListeners.push(function(stream) {
-				var microphone = audioContext.ref.createMediaStreamSource(stream);
-				microphone.connect(script);
-				audioContext.ConceptMicrophone = microphone;
-				script.connect(audioContext.ref.destination);
-			});
+
 			if (this.MediaTimer)
 				clearTimeout(this.MediaTimer);
+
 			this.MediaTimer = setTimeout(function () {
-				self.getUserMediaDo();
+				if (USE_OLD_AUDIO_API) {
+					self.getUserMediaDo();
+				} else {
+					// new API
+					self.getUserMediaDo(function(stream) {
+						const recorder = new MediaRecorder(stream, {mimeType: "audio/webm;codec=pcm"});
+						recorder.addEventListener('dataavailable', ({ data }) => {
+							audioContext.ConceptBufferFull(data);
+						}); 
+						recorder.start(50);
+						audioContext.ConceptMicrophone = recorder;
+					});
+				}
 			}, 100);
 
 
@@ -8076,6 +8096,9 @@ window.mobileAndTabletcheck = function() {
 	}
 
 	this.GetBufferSize = function(audioContext) {
+		if ((this.ConceptSampleRate === undefined) && (this.MasterAudioContext))
+			this.ConceptSampleRate = this.MasterAudioContext.sampleRate;
+
 		if (this.ConceptSampleRate < 11025)
 			return 256;
 		else
@@ -8283,7 +8306,7 @@ window.mobileAndTabletcheck = function() {
 		}
 	}
 
-	this.getUserMediaDo = function() {
+	this.getUserMediaDo = function(callback) {
 		delete this.MediaTimer;
 		navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
 		if (!navigator.getUserMedia) {
@@ -8301,6 +8324,8 @@ window.mobileAndTabletcheck = function() {
 					listener(stream);
 				}
 				self.MediaListeners = [ ];
+				if (callback)
+					callback(stream);
 			},
 			function(error) {
 				delete self.MediaStream;
@@ -9599,9 +9624,15 @@ window.mobileAndTabletcheck = function() {
 								console.warn(e);
 							}
 						}
-						element.ConceptProcessor.onaudioprocess = null;
-						if (element.ConceptMicrophone)
+						if (element.ConceptMicrophone) {
+							if (USE_OLD_AUDIO_API) {
+								element.ConceptProcessor.onaudioprocess = null;
+							} else {
+								element.ConceptMicrophone.stop();
+							}
 							element.ConceptMicrophone = null;
+						}
+
 						element.ConceptProcessor = null;
 						element.ConceptBuffers = [];
 						if (element.ConceptWorker) {
@@ -9817,9 +9848,20 @@ window.mobileAndTabletcheck = function() {
 					element.decode(new Uint8Array(ValueBuffer));
 				break;
 			case P_SAMPLERATE:
-				if (cls_id == 1016)
+				if (cls_id == 1016) {
 					element.ConceptSampleRate = parseInt(Value);
-				else
+					if ((element.ref) && (element.ref.sampleRate) && (element.ref.sampleRate !== element.ConceptSampleRate) && (!isFirefox)) {
+						this.MasterAudioContext = new AudioContext({latencyHint: 'interactive', sampleRate: element.ConceptSampleRate});
+						if (this.MasterAudioContext.state === "suspended") {
+							var audiocontext = this.MasterAudioContext
+							var self = this;
+							this.EmulateUserEvent = function(e) { if (self.MasterAudioContext.state === "suspended") { self.MasterAudioContext.resume(); console.log("iOS fix"); } delete self.EmulateUserEvent};
+							document.addEventListener('touchstart', this.EmulateUserEvent);
+							document.addEventListener('click', this.EmulateUserEvent);
+						}
+						element.ref = this.MasterAudioContext;
+					}
+				} else
 				if (cls_id == 1017)
 					element.ConceptFPS = parseInt(Value);
 				else
@@ -12478,10 +12520,10 @@ window.mobileAndTabletcheck = function() {
 				window.AudioContext = window.AudioContext || window.webkitAudioContext;
 				try {
 					if (!this.MasterAudioContext) {
-						this.MasterAudioContext = new AudioContext();
+						this.MasterAudioContext = new AudioContext({latencyHint: 'interactive'});
 						if (this.MasterAudioContext.state === "suspended") {
 							var audiocontext = this.MasterAudioContext
-							var self = this;;
+							var self = this;
 							this.EmulateUserEvent = function(e) { if (self.MasterAudioContext.state === "suspended") { self.MasterAudioContext.resume(); console.log("iOS fix"); } delete self.EmulateUserEvent};
 							document.addEventListener('touchstart', this.EmulateUserEvent);
 							document.addEventListener('click', this.EmulateUserEvent);
