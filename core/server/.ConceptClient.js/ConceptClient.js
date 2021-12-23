@@ -8338,6 +8338,8 @@ window.mobileAndTabletcheck = function() {
 	}
 
 	this.SetProperty = function(OwnerID, PROP_ID, Value, ValueBuffer) {
+		if (!self)
+			self = this;
 		var element = this.Controls[OwnerID];
 		var label;
 

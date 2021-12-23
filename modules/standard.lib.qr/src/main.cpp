@@ -7,6 +7,10 @@
 #define TJE_IMPLEMENTATION
 #include "tiny_jpeg.h"
 
+#include "code128.h"
+
+#include <stdlib.h>
+
 static INVOKE_CALL InvokePtr = 0;
 
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
@@ -131,5 +135,76 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(QR, 1, 5)
             RETURN_BUFFER((const char *)encoded, size);
         }
     }
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Code128, 1, 4)
+    T_STRING(Code128, 0)
+    int encode_gs1 = 1;
+    int height = 48;
+    int linewidth = 2;
+
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(Code128, 1);
+        encode_gs1 = PARAM_INT(1);
+    }
+
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(Code128, 2);
+        height = PARAM_INT(2);
+        if (height <= 0)
+            height = 80;
+    }
+
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(Code128, 3);
+        linewidth = PARAM_INT(3);
+        if (linewidth <= 0)
+            linewidth = 1;
+    }
+
+    const char *str = PARAM(0);
+    size_t barcode_length = code128_estimate_len(str);
+    char *barcode_data = (char *) malloc(barcode_length);
+
+    if (encode_gs1)
+        barcode_length = code128_encode_gs1(str, barcode_data, barcode_length);
+    else
+        barcode_length = code128_encode_raw(str, barcode_data, barcode_length);
+
+    struct jpeg_buffer buffer;
+    buffer.data = NULL;
+    buffer.size = 0;
+
+    int jpeg_len = barcode_length * linewidth * height * 3;
+    
+    unsigned char *encoded_jpeg = (unsigned char *)malloc(jpeg_len);
+    
+    memset(encoded_jpeg, 0xFF, jpeg_len);
+
+    int i, j, l;
+    for (i = 0; i < (int)barcode_length; i++) {
+        if (barcode_data[i]) {
+            for (j = 0; j < linewidth; j++) {
+                for (l = 0; l < height; l ++) {
+                    int base = l * barcode_length * linewidth * 3 + (i * linewidth + j) * 3;
+                    encoded_jpeg [ base ] = 0x00;
+                    encoded_jpeg [ base + 1 ] = 0x00;
+                    encoded_jpeg [ base + 2 ] = 0x00;
+                }
+            }
+        }
+    }
+    free(barcode_data);
+
+    int is_ok = tje_encode_with_func(jpeg_write, &buffer, 3, barcode_length * linewidth, height, 3, encoded_jpeg);
+
+    free(encoded_jpeg);
+
+    if (is_ok) {
+        RETURN_BUFFER((const char *)buffer.data, buffer.size);
+    } else {
+        RETURN_NUMBER(0);
+    }
+    free(buffer.data);
 END_IMPL
 //------------------------------------------------------------------------
