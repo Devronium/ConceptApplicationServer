@@ -8,6 +8,6 @@ LIBS =
 # the previous manual Makefile
 libexecdir=@libexecdir@/concept
 libexec_PROGRAMS = standard.lib.qr.so
-standard_lib_qr_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h QR_Encode.c QR_Encode.h code128.c code128.h tiny_jpeg.h
+standard_lib_qr_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h QR_Encode.c QR_Encode.h code128.c code128.h ean13.c ean13.h tiny_jpeg.h
 
 

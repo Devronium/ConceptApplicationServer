@@ -9,5 +9,6 @@ extern "C" {
 
     CONCEPT_FUNCTION(QR)
     CONCEPT_FUNCTION(Code128)
+    CONCEPT_FUNCTION(EAN13)
 }
 #endif // __LIBRARY_H

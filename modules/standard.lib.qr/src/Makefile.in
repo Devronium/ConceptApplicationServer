@@ -100,7 +100,7 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(libexecdir)"
 PROGRAMS = $(libexec_PROGRAMS)
 am_standard_lib_qr_so_OBJECTS = stdlibrary.$(OBJEXT) main.$(OBJEXT) \
-	QR_Encode.$(OBJEXT) code128.$(OBJEXT)
+	QR_Encode.$(OBJEXT) code128.$(OBJEXT) ean13.$(OBJEXT)
 standard_lib_qr_so_OBJECTS = $(am_standard_lib_qr_so_OBJECTS)
 standard_lib_qr_so_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -119,7 +119,8 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/QR_Encode.Po ./$(DEPDIR)/code128.Po \
-	./$(DEPDIR)/main.Po ./$(DEPDIR)/stdlibrary.Po
+	./$(DEPDIR)/ean13.Po ./$(DEPDIR)/main.Po \
+	./$(DEPDIR)/stdlibrary.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -274,7 +275,7 @@ top_srcdir = @top_srcdir@
 AM_CFLAGS = --pedantic -Wall -std=c99 -O2 -fPIC
 AM_CXXFLAGS = --pedantic -Wall -O2 -fPIC
 AM_LDFLAGS = -shared
-standard_lib_qr_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h QR_Encode.c QR_Encode.h code128.c code128.h tiny_jpeg.h
+standard_lib_qr_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h QR_Encode.c QR_Encode.h code128.c code128.h ean13.c ean13.h tiny_jpeg.h
 all: all-am
 
 .SUFFIXES:
@@ -363,6 +364,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/QR_Encode.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/code128.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ean13.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stdlibrary.Po@am__quote@ # am--include-marker
 
@@ -529,6 +531,7 @@ clean-am: clean-generic clean-libexecPROGRAMS mostlyclean-am
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/QR_Encode.Po
 	-rm -f ./$(DEPDIR)/code128.Po
+	-rm -f ./$(DEPDIR)/ean13.Po
 	-rm -f ./$(DEPDIR)/main.Po
 	-rm -f ./$(DEPDIR)/stdlibrary.Po
 	-rm -f Makefile
@@ -578,6 +581,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/QR_Encode.Po
 	-rm -f ./$(DEPDIR)/code128.Po
+	-rm -f ./$(DEPDIR)/ean13.Po
 	-rm -f ./$(DEPDIR)/main.Po
 	-rm -f ./$(DEPDIR)/stdlibrary.Po
 	-rm -f Makefile

@@ -8,6 +8,7 @@
 #include "tiny_jpeg.h"
 
 #include "code128.h"
+#include "ean13.h"
 
 #include <stdlib.h>
 
@@ -170,6 +171,75 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Code128, 1, 4)
         barcode_length = code128_encode_gs1(str, barcode_data, barcode_length);
     else
         barcode_length = code128_encode_raw(str, barcode_data, barcode_length);
+
+    struct jpeg_buffer buffer;
+    buffer.data = NULL;
+    buffer.size = 0;
+
+    int jpeg_len = barcode_length * linewidth * height * 3;
+    
+    unsigned char *encoded_jpeg = (unsigned char *)malloc(jpeg_len);
+    
+    memset(encoded_jpeg, 0xFF, jpeg_len);
+
+    int i, j, l;
+    for (i = 0; i < (int)barcode_length; i++) {
+        if (barcode_data[i]) {
+            for (j = 0; j < linewidth; j++) {
+                for (l = 0; l < height; l ++) {
+                    int base = l * barcode_length * linewidth * 3 + (i * linewidth + j) * 3;
+                    encoded_jpeg [ base ] = 0x00;
+                    encoded_jpeg [ base + 1 ] = 0x00;
+                    encoded_jpeg [ base + 2 ] = 0x00;
+                }
+            }
+        }
+    }
+    free(barcode_data);
+
+    int is_ok = tje_encode_with_func(jpeg_write, &buffer, 3, barcode_length * linewidth, height, 3, encoded_jpeg);
+
+    free(encoded_jpeg);
+
+    if (is_ok) {
+        RETURN_BUFFER((const char *)buffer.data, buffer.size);
+    } else {
+        RETURN_NUMBER(0);
+    }
+    free(buffer.data);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(EAN13, 1, 4)
+    T_STRING(EAN13, 0)
+    int height = 48;
+    int linewidth = 2;
+
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(EAN13, 1);
+        height = PARAM_INT(1);
+        if (height <= 0)
+            height = 80;
+    }
+
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(EAN13, 2);
+        linewidth = PARAM_INT(2);
+        if (linewidth <= 0)
+            linewidth = 1;
+    }
+
+    if (PARAM_LEN(0) < 12) {
+        RETURN_NUMBER(0);
+        return 0;
+    }
+
+    const char *str = PARAM(0);
+    int barcode_length = EAN13_width();
+
+    char *barcode_data = (char *) malloc(barcode_length);
+    memset(barcode_data, 0, barcode_length);
+
+    EAN13_build((char *)str, (bool *)barcode_data);
 
     struct jpeg_buffer buffer;
     buffer.data = NULL;
