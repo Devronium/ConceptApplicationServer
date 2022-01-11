@@ -51,6 +51,7 @@ static INVOKE_CALL LocalInvoker  = NULL;
  #include <direct.h>
  #include <locale.h>
  #include <Psapi.h>
+ #include <limits.h>
  #ifdef WITH_MMAP_FUNCTIONS
   #include "mman.h"
  #endif
@@ -124,30 +125,6 @@ intptr_t spawn_mod(char *cmd, char *workingDirectory, void *environment, int fdS
     sInfo.hStdInput  = (HANDLE)_get_osfhandle(fdStdIn);
     sInfo.hStdOutput = (HANDLE)_get_osfhandle(fdStdOut);
     sInfo.hStdError  = (HANDLE)_get_osfhandle(fdStdErr);
-
-    /*HANDLE orig;
-       if (sInfo.hStdOutput  != GetStdHandle(STD_OUTPUT_HANDLE)) {
-        orig=sInfo.hStdOutput;
-            DuplicateHandle(GetCurrentProcess(),sInfo.hStdOutput,GetCurrentProcess(),&sInfo.hStdOutput,0,TRUE,DUPLICATE_SAME_ACCESS);
-        CloseHandle(orig);
-       }
-       if (sInfo.hStdInput  != GetStdHandle(STD_INPUT_HANDLE)) {
-        orig=sInfo.hStdInput;
-            DuplicateHandle(GetCurrentProcess(),sInfo.hStdInput,GetCurrentProcess(),&sInfo.hStdInput,0,TRUE,DUPLICATE_SAME_ACCESS);
-        CloseHandle(orig);
-       }
-       if (sInfo.hStdError  != GetStdHandle(STD_ERROR_HANDLE)) {
-        orig=sInfo.hStdError;
-            DuplicateHandle(GetCurrentProcess(),sInfo.hStdError,GetCurrentProcess(),&sInfo.hStdError,0,TRUE,DUPLICATE_SAME_ACCESS);
-        CloseHandle(orig);
-       }*/
-
-    /*if (sInfo.hStdInput  != GetStdHandle(STD_INPUT_HANDLE)  &&
-        sInfo.hStdOutput != GetStdHandle(STD_OUTPUT_HANDLE) &&
-        sInfo.hStdError  != GetStdHandle(STD_ERROR_HANDLE))
-            flags = CREATE_NO_WINDOW;
-       else*/
-    //flags = CREATE_NO_WINDOW;
 
     // See #3231
     if ((fdStdIn == 0) && (fdStdOut == 1) && (fdStdErr == 2)) {
@@ -388,7 +365,123 @@ wchar_t *wstr(const char *utf8) {
     }
     return utf16;
 }
+
+char *realpath(const char *path, char resolved_path[PATH_MAX]) {
+    char *return_path = 0;
+
+    if (path) {
+        if (resolved_path) {
+            return_path = resolved_path;
+        } else {
+            return_path = (char *)malloc(PATH_MAX); 
+        }
+
+        if (return_path) {
+            //This is a Win32 API function similar to what realpath() is supposed to do
+            size_t size = GetFullPathNameA(path, PATH_MAX, return_path, 0);
+
+            //GetFullPathNameA() returns a size larger than buffer if buffer is too small
+            if (size > PATH_MAX) {
+                if (return_path != resolved_path) {
+                    size_t new_size;
+                    
+                    free(return_path);
+                    return_path = (char *)malloc(size);
+
+                    if (return_path) {
+                        new_size = GetFullPathNameA(path, size, return_path, 0); //Try again
+
+                        if (new_size > size) {
+                            free(return_path);
+                            return_path = 0;
+                            errno = ENAMETOOLONG;
+                        } else {
+                            size = new_size;
+                        }
+                    } else {
+                        errno = EINVAL;
+                    }    
+                } else {
+                    return_path = 0;
+                    errno = ENAMETOOLONG;
+                }
+            }
+
+            if (!size)  {
+                if (return_path != resolved_path)
+                    free(return_path);
+                
+                return_path = 0;
+
+                //Convert MS errors into standard errors
+                switch (GetLastError()) {
+                    case ERROR_FILE_NOT_FOUND:
+                        errno = ENOENT;
+                        break;
+
+                    case ERROR_PATH_NOT_FOUND: case ERROR_INVALID_DRIVE:
+                        errno = ENOTDIR;
+                        break;
+
+                    case ERROR_ACCESS_DENIED:
+                        errno = EACCES;
+                        break;
+                    
+                    default: //Unknown Error
+                        errno = EIO;
+                        break;
+                }
+            }
+
+            //If we get to here with a valid return_path, we're still doing good
+            if (return_path) {
+                struct stat stat_buffer;
+
+                //Make sure path exists, stat() returns 0 on success
+                if (stat(return_path, &stat_buffer))  {
+                    if (return_path != resolved_path)
+                        free(return_path);
+                
+                    return_path = 0;
+                }
+            }
+        } else {
+            errno = EINVAL;
+        }
+    } else {
+        errno = EINVAL;
+    }
+
+    return return_path;
+}
 #endif
+//-----------------------------------------------------------------------------------
+static char *base_path = NULL;
+
+char *SafePath(char *path) {
+    if (!base_path)
+        return strdup(path ? path : "");
+
+    char path_temp[4096];
+    path_temp[0] = 0;
+
+    strncpy(path_temp, base_path, sizeof(path_temp));
+    strncat(path_temp, path, sizeof(path_temp) - strlen(path_temp));
+
+    char *full_path = realpath(path_temp, NULL);
+
+    if (full_path) {
+        // ensure sandboxed
+        // avoid path hijaking
+        if (strstr(full_path, base_path) != full_path)
+            full_path[0] = 0;
+    } else {
+        full_path = (char *)malloc(sizeof(char));
+        // always return non-null
+        full_path [0] = 0;
+    }
+    return full_path;
+}
 //-----------------------------------------------------------------------------------
 char **GetParamList(void *arr, INVOKE_CALL _Invoke, char *command) {
     void    *newpData = 0;
@@ -1094,6 +1187,7 @@ CONCEPT_DLL_API CONCEPT__fopen CONCEPT_API_PARAMETERS {
         return (void *)"fopen: parameter 2 should be of STATIC STRING type";
 
     // function call
+    szParam0 = SafePath(szParam0);
 #ifdef _WIN32
     wchar_t *fname = wstr(szParam0);
     if (fname) {
@@ -1107,6 +1201,7 @@ CONCEPT_DLL_API CONCEPT__fopen CONCEPT_API_PARAMETERS {
 #else
     _C_call_result = (FILE *)fopen((char *)szParam0, (char *)szParam1);
 #endif
+    free(szParam0);
 
     SetVariable(RESULT, VARIABLE_NUMBER, "", (SYS_INT)_C_call_result);
     return 0;
@@ -1666,6 +1761,7 @@ CONCEPT_DLL_API CONCEPT__ReadFile CONCEPT_API_PARAMETERS {
     if (TYPE != VARIABLE_STRING)
         return (void *)"ReadFile: parameter 1 should be of STATIC STRING type";
 
+    szParam0 = SafePath(szParam0);
 #ifdef _WIN32
     wchar_t *fname = wstr(szParam0);
     if (fname) {
@@ -1676,6 +1772,7 @@ CONCEPT_DLL_API CONCEPT__ReadFile CONCEPT_API_PARAMETERS {
 #else
     FIN = (FILE *)fopen((char *)szParam0, "rb");
 #endif
+    free(szParam0);
     // function call
     if (FIN) {
         fseek(FIN, 0, SEEK_END);
@@ -1733,6 +1830,7 @@ CONCEPT_DLL_API CONCEPT__WriteFile CONCEPT_API_PARAMETERS {
     if (TYPE != VARIABLE_STRING)
         return (void *)"WriteFile: parameter 2 should be of STATIC STRING type";
 
+    szParam1 = SafePath(szParam1);
 #ifdef _WIN32
     wchar_t *fname = wstr(szParam1);
     if (fname) {
@@ -1743,6 +1841,7 @@ CONCEPT_DLL_API CONCEPT__WriteFile CONCEPT_API_PARAMETERS {
 #else
     FOUT = (FILE *)fopen((char *)szParam1, "wb");
 #endif
+    free(szParam1);
     // function call
     if (FOUT) {
         long size = (long)STR_LEN;
@@ -1773,7 +1872,9 @@ CONCEPT_DLL_API CONCEPT__FileExists CONCEPT_API_PARAMETERS {
     if (TYPE != VARIABLE_STRING)
         return (void *)"_FileExists: parameter 1 should be of STATIC STRING type";
 
+    szParam0 = SafePath(szParam0);
     FIN = (FILE *)fopen((char *)szParam0, "rb");
+    free(szParam0);
     // function call
     if (FIN) {
         fclose(FIN);
@@ -1799,8 +1900,9 @@ CONCEPT_DLL_API CONCEPT__DirectoryExists CONCEPT_API_PARAMETERS {
     if (TYPE != VARIABLE_STRING)
         return (void *)"_DirectoryExists: parameter 1 should be of STATIC STRING type";
 
+    szParam0 = SafePath(szParam0);
     DIR *_C_call_result = opendir(szParam0);
-
+    free(szParam0);
 
     if (_C_call_result) {
         closedir(_C_call_result);
@@ -2016,7 +2118,9 @@ CONCEPT_DLL_API CONCEPT__freopen CONCEPT_API_PARAMETERS {
             break;
     }
     // function call
+    szParam0 = SafePath(szParam0);
     _C_call_result = (FILE *)freopen((char *)szParam0, (char *)szParam1, (FILE *)(SYS_INT)nParam2);
+    free(szParam0);
 
     RETURN_NUMBER((SYS_INT)_C_call_result);
     return 0;
@@ -2084,8 +2188,10 @@ CONCEPT_DLL_API CONCEPT___chdir CONCEPT_API_PARAMETERS {
     // Parameter 1
     GET_CHECK_STRING(0, szParam0, "'chdir' parameter 0 should be a string (STATIC STRING).");
 
+    szParam0 = SafePath(szParam0);
     // function call
     _C_call_result = (int)chdir((char *)szParam0);
+    free(szParam0);
 
     RETURN_NUMBER(_C_call_result);
     return 0;
@@ -2103,12 +2209,14 @@ CONCEPT_DLL_API CONCEPT___mkdir CONCEPT_API_PARAMETERS {
     // Parameter 1
     GET_CHECK_STRING(0, szParam0, "'mkdir' parameter 0 should be a string (STATIC STRING).");
 
+    szParam0 = SafePath(szParam0);
     // function call
 #ifdef _WIN32
     _C_call_result = (int)mkdir((char *)szParam0);
 #else
     _C_call_result = (int)mkdir((char *)szParam0, 0777L);
 #endif
+    free(szParam0);
 
     RETURN_NUMBER(_C_call_result);
     return 0;
@@ -2131,18 +2239,22 @@ CONCEPT_DLL_API CONCEPT__exec CONCEPT_API_PARAMETERS {
     }
     szParam[i] = 0;
 
+    szPath = SafePath(szPath);
 #ifdef _WIN32
     // function call
     _C_call_result = (int)spawnvp(_P_WAIT, szPath, szParam);
 #else
     pid_t pid = fork();
-    if (pid < 0)
+    if (pid < 0) {
+        free(szPath);
         return (char *)"Error creating Process";
+    }
     if (!pid) {
         _C_call_result = (int)execvp(szPath, szParam);
     } else
         waitpid(pid, NULL, 0);
 #endif
+    free(szPath);
     RETURN_NUMBER(_C_call_result);
     return 0;
 }
@@ -2159,7 +2271,9 @@ CONCEPT_DLL_API CONCEPT__opendir CONCEPT_API_PARAMETERS {
     // Variable type check
     // Parameter 1
     GET_CHECK_STRING(0, szParam0, "Parameter 0 should be a string (STATIC STRING).");
+    szParam0 = SafePath(szParam0);
     _C_call_result = opendir(szParam0);
+    free(szParam0);
 
     RETURN_NUMBER((SYS_INT)_C_call_result);
     return 0;
@@ -2294,10 +2408,13 @@ CONCEPT_DLL_API CONCEPT__filetype CONCEPT_API_PARAMETERS {
     GET_CHECK_STRING(0, szParam0, "Parameter 0 should be a string (STATIC STRING).");
 
     struct stat buf;
+    szParam0 = SafePath(szParam0);
     if (stat(szParam0, &buf)) {
+        free(szParam0);
         RETURN_NUMBER(-1);
         return 0;
     }
+    free(szParam0);
 
 #ifdef _WIN32
     _C_call_result = (buf.st_mode) & _S_IFMT;
@@ -2319,7 +2436,9 @@ CONCEPT_DLL_API CONCEPT__filesize CONCEPT_API_PARAMETERS {
     GET_CHECK_STRING(0, szParam0, "filesize: Parameter 0 should be a string (STATIC STRING).");
 
     struct stat buf;
-    int         res = stat(szParam0, &buf);
+    szParam0 = SafePath(szParam0);
+    int res = stat(szParam0, &buf);
+    free(szParam0);
     if (!res) {
         if (S_ISDIR(buf.st_mode)) {
             RETURN_NUMBER(0);
@@ -2346,11 +2465,13 @@ CONCEPT_DLL_API CONCEPT__filelast_acc CONCEPT_API_PARAMETERS {
     //stat(szParam0, &buf);
 
     //RETURN_NUMBER(buf.st_atime);
+    szParam0 = SafePath(szParam0);
     if (!stat(szParam0, &buf)) {
         RETURN_NUMBER(buf.st_atime);
     } else {
         RETURN_NUMBER(-1);
     }
+    free(szParam0);
     return 0;
 }
 //-----------------------------------------------------------------------------------
@@ -2368,11 +2489,13 @@ CONCEPT_DLL_API CONCEPT__filelast_mod CONCEPT_API_PARAMETERS {
     //stat(szParam0, &buf);
 
     //RETURN_NUMBER(buf.st_mtime);
+    szParam0 = SafePath(szParam0);
     if (!stat(szParam0, &buf)) {
         RETURN_NUMBER(buf.st_mtime);
     } else {
         RETURN_NUMBER(-1);
     }
+    free(szParam0);
     return 0;
 }
 //-----------------------------------------------------------------------------------
@@ -2390,11 +2513,13 @@ CONCEPT_DLL_API CONCEPT__filelast_ch CONCEPT_API_PARAMETERS {
     //stat(szParam0, &buf);
 
     //RETURN_NUMBER(buf.st_ctime);
+    szParam0 = SafePath(szParam0);
     if (!stat(szParam0, &buf)) {
         RETURN_NUMBER(buf.st_ctime);
     } else {
         RETURN_NUMBER(-1);
     }
+    free(szParam0);
     return 0;
 }
 //-----------------------------------------------------------------------------------
@@ -2411,11 +2536,13 @@ CONCEPT_DLL_API CONCEPT__fileuid CONCEPT_API_PARAMETERS {
     struct stat buf;
     //stat(szParam0, &buf);
     //RETURN_NUMBER(buf.st_uid);
+    szParam0 = SafePath(szParam0);
     if (!stat(szParam0, &buf)) {
         RETURN_NUMBER(buf.st_uid);
     } else {
         RETURN_NUMBER(-1);
     }
+    free(szParam0);
     return 0;
 }
 //-----------------------------------------------------------------------------------
@@ -2433,11 +2560,13 @@ CONCEPT_DLL_API CONCEPT__filegid CONCEPT_API_PARAMETERS {
     //stat(szParam0, &buf);
 
     //RETURN_NUMBER(buf.st_gid);
+    szParam0 = SafePath(szParam0);
     if (!stat(szParam0, &buf)) {
         RETURN_NUMBER(buf.st_gid);
     } else {
         RETURN_NUMBER(-1);
     }
+    free(szParam0);
     return 0;
 }
 //-----------------------------------------------------------------------------------
@@ -2453,8 +2582,10 @@ CONCEPT_DLL_API CONCEPT___stat CONCEPT_API_PARAMETERS {
     //GET_CHECK_NUMBER(1, ?, "stat: Parameter 0 should be a string (STATIC STRING).");
 
     struct stat buf;
-    int         result     = stat(szParam0, &buf);
-    void        *array_var = PARAMETER(1);
+    szParam0 = SafePath(szParam0);
+    int result = stat(szParam0, &buf);
+    free(szParam0);
+    void *array_var = PARAMETER(1);
 
     if (!IS_OK(Invoke(INVOKE_CREATE_ARRAY, array_var)))
         return (void *)"stat : Failed to INVOKE_CREATE_ARRAY";
@@ -2508,7 +2639,9 @@ CONCEPT_FUNCTION_IMPL(rename, 2)
     T_STRING(rename, 0)
     T_STRING(rename, 1)
 
-    RETURN_NUMBER(rename(PARAM(0), PARAM(1)))
+    char *safe_path = SafePath(PARAM(0));
+    RETURN_NUMBER(rename(safe_path, PARAM(1)))
+    free(safe_path);
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(IniGet, 3, 4)
@@ -2517,12 +2650,15 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(IniGet, 3, 4)
     T_STRING(IniGet, 2)
 
     AnsiString keyval;
+    char *safe_path = SafePath(PARAM(0));
+
     if (PARAMETERS_COUNT > 3) {
         T_STRING(IniGet, 3)
-        GetKey(PARAM(0), PARAM(1), PARAM(2), PARAM(3), &keyval);
+        GetKey(safe_path, PARAM(1), PARAM(2), PARAM(3), &keyval);
     } else {
-        GetKey(PARAM(0), PARAM(1), PARAM(2), "", &keyval);
+        GetKey(safe_path, PARAM(1), PARAM(2), "", &keyval);
     }
+    free(safe_path);
     RETURN_STRING(keyval.c_str());
 END_IMPL
 //---------------------------------------------------------------------------
@@ -2532,14 +2668,18 @@ CONCEPT_FUNCTION_IMPL(IniSet, 4)
     T_STRING(IniSet, 2)
     T_STRING(IniSet, 3)
 
-    RETURN_NUMBER(SetKey(PARAM(0), PARAM(1), PARAM(2), PARAM(3)));
+    char *safe_path = SafePath(PARAM(0));
+    RETURN_NUMBER(SetKey(safe_path, PARAM(1), PARAM(2), PARAM(3)));
+    free(safe_path);
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(popen, 2)
     T_STRING(popen, 0)
     T_STRING(popen, 1)
 
-    RETURN_NUMBER((SYS_INT)popen(PARAM(0), PARAM(1)))
+    char *safe_path = SafePath(PARAM(0));
+    RETURN_NUMBER((SYS_INT)popen(safe_path, PARAM(1)))
+    free(safe_path);
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(pclose, 1)
@@ -2581,11 +2721,13 @@ CONCEPT_FUNCTION_IMPL(IsSymlink, 1)
 #else
     struct stat buf;
 
-    if (lstat(PARAM(0), &buf)) {
+    char *safe_path = SafePath(PARAM(0));
+    if (lstat(safe_path, &buf)) {
+        free(safe_path);
         RETURN_NUMBER(-1)
         return 0;
     }
-
+    free(safe_path);
     if (S_ISLNK(buf.st_mode)) {
         RETURN_NUMBER(1)
     } else {
@@ -2602,7 +2744,9 @@ CONCEPT_FUNCTION_IMPL(utime, 3)
     utimbuf buf;
     buf.actime  = (time_t)PARAM_INT(1);
     buf.modtime = (time_t)PARAM_INT(2);
-    int res = utime(PARAM(0), &buf);
+    char *safe_path = SafePath(PARAM(0));
+    int res = utime(safe_path, &buf);
+    free(safe_path);
     RETURN_NUMBER(res);
 END_IMPL
 //---------------------------------------------------------------------------
@@ -2804,7 +2948,9 @@ CONCEPT_FUNCTION_IMPL(chmod, 2)
     T_STRING(chmod, 0)
     T_NUMBER(chmod, 1)
 
-    int res = chmod(PARAM(0), PARAM_INT(1));
+    char *safe_path = SafePath(PARAM(0));
+    int res = chmod(safe_path, PARAM_INT(1));
+    free(safe_path);
     RETURN_NUMBER(res)
 END_IMPL
 //---------------------------------------------------------------------------
@@ -3172,7 +3318,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(mkfifo, 1, 2)
     }
     int res = -1;
 #ifndef _WIN32
+    char *safe_path = SafePath(PARAM(0));
     res = mkfifo(PARAM(0), rights);
+    free(safe_path);
 #endif
     RETURN_NUMBER(res);
 END_IMPL
@@ -4315,7 +4463,9 @@ CONCEPT_FUNCTION_IMPL(chroot, 1)
 #ifdef _WIN32
     int err = -1;
 #else
-    int err = chroot(PARAM(0));
+    char *safe_path = SafePath(PARAM(0));
+    int err = chroot(safe_path);
+    free(safe_path);
 #endif
     RETURN_NUMBER(err);
 END_IMPL
@@ -4615,3 +4765,16 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(enablevt100, 0, 1)
     RETURN_NUMBER(1);
 #endif
 END_IMPL
+//-----------------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(realpath, 1)
+    T_STRING(realpath, 0);
+
+    char *path = realpath(PARAM(0), NULL);
+    if (path) {
+        RETURN_STRING(path);
+        free(path);
+    } else {
+        RETURN_STRING("");
+    }
+END_IMPL
+//-----------------------------------------------------------------------------------
