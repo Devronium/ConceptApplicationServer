@@ -456,16 +456,15 @@ char *realpath(const char *path, char resolved_path[PATH_MAX]) {
 }
 #endif
 //-----------------------------------------------------------------------------------
-static char *base_path = NULL;
-
+static char *sandboxed_path = NULL;
 char *SafePath(char *path) {
-    if (!base_path)
+    if (!sandboxed_path)
         return strdup(path ? path : "");
 
     char path_temp[4096];
     path_temp[0] = 0;
 
-    strncpy(path_temp, base_path, sizeof(path_temp));
+    strncpy(path_temp, sandboxed_path, sizeof(path_temp));
     strncat(path_temp, path, sizeof(path_temp) - strlen(path_temp));
 
     char *full_path = realpath(path_temp, NULL);
@@ -473,7 +472,7 @@ char *SafePath(char *path) {
     if (full_path) {
         // ensure sandboxed
         // avoid path hijaking
-        if (strstr(full_path, base_path) != full_path)
+        if (strstr(full_path, sandboxed_path) != full_path)
             full_path[0] = 0;
     } else {
         full_path = (char *)malloc(sizeof(char));
@@ -1709,8 +1708,10 @@ CONCEPT_DLL_API CONCEPT___unlink CONCEPT_API_PARAMETERS {
     if (TYPE != VARIABLE_STRING)
         return (void *)"unlink: parameter 1 should be of STATIC STRING type";
 
+    szParam0 = SafePath(szParam0);
     // function call
     _C_call_result = (int)unlink(szParam0);
+    free(szParam0);
 
     SetVariable(RESULT, VARIABLE_NUMBER, "", _C_call_result);
     return 0;
@@ -1735,8 +1736,10 @@ CONCEPT_DLL_API CONCEPT___rmdir CONCEPT_API_PARAMETERS {
     if (TYPE != VARIABLE_STRING)
         return (void *)"rmdir: parameter 1 should be of STATIC STRING type";
 
+    szParam0 = SafePath(szParam0);
     // function call
     _C_call_result = (int)rmdir(szParam0);
+    free(szParam0);
 
     SetVariable(RESULT, VARIABLE_NUMBER, "", _C_call_result);
     return 0;
@@ -2239,6 +2242,12 @@ CONCEPT_DLL_API CONCEPT__exec CONCEPT_API_PARAMETERS {
     }
     szParam[i] = 0;
 
+    if (sandboxed_path) {
+        errno = EPERM;
+        RETURN_NUMBER(-1);
+        return 0;
+    }
+
     szPath = SafePath(szPath);
 #ifdef _WIN32
     // function call
@@ -2632,7 +2641,12 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(_system, 1)
     T_STRING(_system, 0)
 
-    RETURN_NUMBER(system(PARAM(0)))
+    if (sandboxed_path) {
+        errno = EPERM;
+        RETURN_NUMBER(-1);
+    } else {
+        RETURN_NUMBER(system(PARAM(0)))
+    }
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(rename, 2)
@@ -3078,6 +3092,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ExecuteProcess, 1, 8)
         T_NUMBER(ExecuteProcess, 7)
         n_stderr = PARAM_INT(7);
     }
+
+    if (sandboxed_path) {
+        errno = EPERM;
+        RETURN_NUMBER(-1);
+        return 0;
+    }
+
     char *dummy_param[2];
     dummy_param[0] = PARAM(0);
     dummy_param[1] = 0;
