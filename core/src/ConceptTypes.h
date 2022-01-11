@@ -144,6 +144,7 @@ typedef void (*DESTROY_PROTO_DATA)(void *data, void *handler);
 #define INVOKE_FREE_WORKER                    0x62
 #define INVOKE_CREATE_OBJECT_2                0x63
 #define INVOKE_ARRAY_KEYS                     0x64
+#define INVOKE_FILENAME                       0x65
 
 #define INVOKE_SUCCESS                        0
 #define CANNOT_INVOKE_INTERFACE               -10
@@ -162,6 +163,7 @@ typedef void (*DESTROY_PROTO_DATA)(void *data, void *handler);
 #define     VARIABLE_CLASS                    0x04
 #define     VARIABLE_ARRAY                    0x05
 #define     VARIABLE_DELEGATE                 0x06
+#define     VARIABLE_INTEGER                  0x07
 #define     _LINK__STRING_DATA                -1
 
 #define     STATIC_CLASS_ARRAY                -1
@@ -233,6 +235,7 @@ typedef struct tsVariableDATA {
     union {
         NUMBER NUMBER_DATA;
         POINTER CLASS_DATA;
+        uint64_t INTEGER_DATA;
     };
     unsigned short LINKS;
     signed char    TYPE;

@@ -103,6 +103,7 @@ static const char *empty_string = "";
 #define INVOKE_FREE_WORKER                    0x62
 #define INVOKE_CREATE_OBJECT_2                0x63
 #define INVOKE_ARRAY_KEYS                     0x64
+#define INVOKE_FILENAME                       0x65
 
 #define     VARIABLE_CONSTANT                 0x00
 #define     VARIABLE_UNDEFINED                0x01

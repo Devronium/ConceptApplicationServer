@@ -456,9 +456,38 @@ char *realpath(const char *path, char resolved_path[PATH_MAX]) {
 }
 #endif
 //-----------------------------------------------------------------------------------
-static char *sandboxed_path = NULL;
-char *SafePath(char *path) {
-    if (!sandboxed_path)
+int IsSandBoxed(INVOKE_CALL Invoke, void *HANDLER) {
+    return 0;
+}
+//-----------------------------------------------------------------------------------
+char *SafePath(char *path, INVOKE_CALL Invoke, void *HANDLER) {
+    if (!IsSandBoxed(Invoke, HANDLER))
+        return strdup(path ? path : "");
+
+    const char *file_path = NULL;
+    if (!IS_OK(Invoke(INVOKE_FILENAME, HANDLER, &file_path)))
+        file_path = NULL;
+
+    char sandboxed_path[MAX_PATH];
+    sandboxed_path[0] = 0;
+
+    if (file_path) {
+        for (int i = strlen(file_path) - 1; i >= 0; i --) {
+            if ((file_path[i] == '/') || (file_path[i] == '\\')) {
+                if (i < MAX_PATH) {
+                    char buffer[MAX_PATH];
+                    buffer[0] = 0;
+                    strncpy(sandboxed_path, file_path, i + 1);
+
+                    if (!realpath(buffer, sandboxed_path))
+                        sandboxed_path[0] = 0;
+                }
+                break;
+            }
+        }
+    }
+
+    if (!sandboxed_path[0])
         return strdup(path ? path : "");
 
     char path_temp[4096];
@@ -1186,7 +1215,7 @@ CONCEPT_DLL_API CONCEPT__fopen CONCEPT_API_PARAMETERS {
         return (void *)"fopen: parameter 2 should be of STATIC STRING type";
 
     // function call
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
 #ifdef _WIN32
     wchar_t *fname = wstr(szParam0);
     if (fname) {
@@ -1708,7 +1737,7 @@ CONCEPT_DLL_API CONCEPT___unlink CONCEPT_API_PARAMETERS {
     if (TYPE != VARIABLE_STRING)
         return (void *)"unlink: parameter 1 should be of STATIC STRING type";
 
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
     // function call
     _C_call_result = (int)unlink(szParam0);
     free(szParam0);
@@ -1736,7 +1765,7 @@ CONCEPT_DLL_API CONCEPT___rmdir CONCEPT_API_PARAMETERS {
     if (TYPE != VARIABLE_STRING)
         return (void *)"rmdir: parameter 1 should be of STATIC STRING type";
 
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
     // function call
     _C_call_result = (int)rmdir(szParam0);
     free(szParam0);
@@ -1764,7 +1793,7 @@ CONCEPT_DLL_API CONCEPT__ReadFile CONCEPT_API_PARAMETERS {
     if (TYPE != VARIABLE_STRING)
         return (void *)"ReadFile: parameter 1 should be of STATIC STRING type";
 
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
 #ifdef _WIN32
     wchar_t *fname = wstr(szParam0);
     if (fname) {
@@ -1833,7 +1862,7 @@ CONCEPT_DLL_API CONCEPT__WriteFile CONCEPT_API_PARAMETERS {
     if (TYPE != VARIABLE_STRING)
         return (void *)"WriteFile: parameter 2 should be of STATIC STRING type";
 
-    szParam1 = SafePath(szParam1);
+    szParam1 = SafePath(szParam1, Invoke, PARAMETERS->HANDLER);
 #ifdef _WIN32
     wchar_t *fname = wstr(szParam1);
     if (fname) {
@@ -1875,7 +1904,7 @@ CONCEPT_DLL_API CONCEPT__FileExists CONCEPT_API_PARAMETERS {
     if (TYPE != VARIABLE_STRING)
         return (void *)"_FileExists: parameter 1 should be of STATIC STRING type";
 
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
     FIN = (FILE *)fopen((char *)szParam0, "rb");
     free(szParam0);
     // function call
@@ -1903,7 +1932,7 @@ CONCEPT_DLL_API CONCEPT__DirectoryExists CONCEPT_API_PARAMETERS {
     if (TYPE != VARIABLE_STRING)
         return (void *)"_DirectoryExists: parameter 1 should be of STATIC STRING type";
 
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
     DIR *_C_call_result = opendir(szParam0);
     free(szParam0);
 
@@ -2121,7 +2150,7 @@ CONCEPT_DLL_API CONCEPT__freopen CONCEPT_API_PARAMETERS {
             break;
     }
     // function call
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
     _C_call_result = (FILE *)freopen((char *)szParam0, (char *)szParam1, (FILE *)(SYS_INT)nParam2);
     free(szParam0);
 
@@ -2191,7 +2220,7 @@ CONCEPT_DLL_API CONCEPT___chdir CONCEPT_API_PARAMETERS {
     // Parameter 1
     GET_CHECK_STRING(0, szParam0, "'chdir' parameter 0 should be a string (STATIC STRING).");
 
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
     // function call
     _C_call_result = (int)chdir((char *)szParam0);
     free(szParam0);
@@ -2212,7 +2241,7 @@ CONCEPT_DLL_API CONCEPT___mkdir CONCEPT_API_PARAMETERS {
     // Parameter 1
     GET_CHECK_STRING(0, szParam0, "'mkdir' parameter 0 should be a string (STATIC STRING).");
 
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
     // function call
 #ifdef _WIN32
     _C_call_result = (int)mkdir((char *)szParam0);
@@ -2242,13 +2271,13 @@ CONCEPT_DLL_API CONCEPT__exec CONCEPT_API_PARAMETERS {
     }
     szParam[i] = 0;
 
-    if (sandboxed_path) {
+    if (IsSandBoxed(Invoke, PARAMETERS->HANDLER)) {
         errno = EPERM;
         RETURN_NUMBER(-1);
         return 0;
     }
 
-    szPath = SafePath(szPath);
+    szPath = SafePath(szPath, Invoke, PARAMETERS->HANDLER);
 #ifdef _WIN32
     // function call
     _C_call_result = (int)spawnvp(_P_WAIT, szPath, szParam);
@@ -2280,7 +2309,7 @@ CONCEPT_DLL_API CONCEPT__opendir CONCEPT_API_PARAMETERS {
     // Variable type check
     // Parameter 1
     GET_CHECK_STRING(0, szParam0, "Parameter 0 should be a string (STATIC STRING).");
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
     _C_call_result = opendir(szParam0);
     free(szParam0);
 
@@ -2417,7 +2446,7 @@ CONCEPT_DLL_API CONCEPT__filetype CONCEPT_API_PARAMETERS {
     GET_CHECK_STRING(0, szParam0, "Parameter 0 should be a string (STATIC STRING).");
 
     struct stat buf;
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
     if (stat(szParam0, &buf)) {
         free(szParam0);
         RETURN_NUMBER(-1);
@@ -2445,7 +2474,7 @@ CONCEPT_DLL_API CONCEPT__filesize CONCEPT_API_PARAMETERS {
     GET_CHECK_STRING(0, szParam0, "filesize: Parameter 0 should be a string (STATIC STRING).");
 
     struct stat buf;
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
     int res = stat(szParam0, &buf);
     free(szParam0);
     if (!res) {
@@ -2474,7 +2503,7 @@ CONCEPT_DLL_API CONCEPT__filelast_acc CONCEPT_API_PARAMETERS {
     //stat(szParam0, &buf);
 
     //RETURN_NUMBER(buf.st_atime);
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
     if (!stat(szParam0, &buf)) {
         RETURN_NUMBER(buf.st_atime);
     } else {
@@ -2498,7 +2527,7 @@ CONCEPT_DLL_API CONCEPT__filelast_mod CONCEPT_API_PARAMETERS {
     //stat(szParam0, &buf);
 
     //RETURN_NUMBER(buf.st_mtime);
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
     if (!stat(szParam0, &buf)) {
         RETURN_NUMBER(buf.st_mtime);
     } else {
@@ -2522,7 +2551,7 @@ CONCEPT_DLL_API CONCEPT__filelast_ch CONCEPT_API_PARAMETERS {
     //stat(szParam0, &buf);
 
     //RETURN_NUMBER(buf.st_ctime);
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
     if (!stat(szParam0, &buf)) {
         RETURN_NUMBER(buf.st_ctime);
     } else {
@@ -2545,7 +2574,7 @@ CONCEPT_DLL_API CONCEPT__fileuid CONCEPT_API_PARAMETERS {
     struct stat buf;
     //stat(szParam0, &buf);
     //RETURN_NUMBER(buf.st_uid);
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
     if (!stat(szParam0, &buf)) {
         RETURN_NUMBER(buf.st_uid);
     } else {
@@ -2569,7 +2598,7 @@ CONCEPT_DLL_API CONCEPT__filegid CONCEPT_API_PARAMETERS {
     //stat(szParam0, &buf);
 
     //RETURN_NUMBER(buf.st_gid);
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
     if (!stat(szParam0, &buf)) {
         RETURN_NUMBER(buf.st_gid);
     } else {
@@ -2591,7 +2620,7 @@ CONCEPT_DLL_API CONCEPT___stat CONCEPT_API_PARAMETERS {
     //GET_CHECK_NUMBER(1, ?, "stat: Parameter 0 should be a string (STATIC STRING).");
 
     struct stat buf;
-    szParam0 = SafePath(szParam0);
+    szParam0 = SafePath(szParam0, Invoke, PARAMETERS->HANDLER);
     int result = stat(szParam0, &buf);
     free(szParam0);
     void *array_var = PARAMETER(1);
@@ -2641,7 +2670,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(_system, 1)
     T_STRING(_system, 0)
 
-    if (sandboxed_path) {
+    if (IsSandBoxed(Invoke, PARAMETERS->HANDLER)) {
         errno = EPERM;
         RETURN_NUMBER(-1);
     } else {
@@ -2653,7 +2682,7 @@ CONCEPT_FUNCTION_IMPL(rename, 2)
     T_STRING(rename, 0)
     T_STRING(rename, 1)
 
-    char *safe_path = SafePath(PARAM(0));
+    char *safe_path = SafePath(PARAM(0), Invoke, PARAMETERS->HANDLER);
     RETURN_NUMBER(rename(safe_path, PARAM(1)))
     free(safe_path);
 END_IMPL
@@ -2664,7 +2693,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(IniGet, 3, 4)
     T_STRING(IniGet, 2)
 
     AnsiString keyval;
-    char *safe_path = SafePath(PARAM(0));
+    char *safe_path = SafePath(PARAM(0), Invoke, PARAMETERS->HANDLER);
 
     if (PARAMETERS_COUNT > 3) {
         T_STRING(IniGet, 3)
@@ -2682,7 +2711,7 @@ CONCEPT_FUNCTION_IMPL(IniSet, 4)
     T_STRING(IniSet, 2)
     T_STRING(IniSet, 3)
 
-    char *safe_path = SafePath(PARAM(0));
+    char *safe_path = SafePath(PARAM(0), Invoke, PARAMETERS->HANDLER);
     RETURN_NUMBER(SetKey(safe_path, PARAM(1), PARAM(2), PARAM(3)));
     free(safe_path);
 END_IMPL
@@ -2691,7 +2720,7 @@ CONCEPT_FUNCTION_IMPL(popen, 2)
     T_STRING(popen, 0)
     T_STRING(popen, 1)
 
-    char *safe_path = SafePath(PARAM(0));
+    char *safe_path = SafePath(PARAM(0), Invoke, PARAMETERS->HANDLER);
     RETURN_NUMBER((SYS_INT)popen(safe_path, PARAM(1)))
     free(safe_path);
 END_IMPL
@@ -2735,7 +2764,7 @@ CONCEPT_FUNCTION_IMPL(IsSymlink, 1)
 #else
     struct stat buf;
 
-    char *safe_path = SafePath(PARAM(0));
+    char *safe_path = SafePath(PARAM(0), Invoke, PARAMETERS->HANDLER);
     if (lstat(safe_path, &buf)) {
         free(safe_path);
         RETURN_NUMBER(-1)
@@ -2758,7 +2787,7 @@ CONCEPT_FUNCTION_IMPL(utime, 3)
     utimbuf buf;
     buf.actime  = (time_t)PARAM_INT(1);
     buf.modtime = (time_t)PARAM_INT(2);
-    char *safe_path = SafePath(PARAM(0));
+    char *safe_path = SafePath(PARAM(0), Invoke, PARAMETERS->HANDLER);
     int res = utime(safe_path, &buf);
     free(safe_path);
     RETURN_NUMBER(res);
@@ -2962,7 +2991,7 @@ CONCEPT_FUNCTION_IMPL(chmod, 2)
     T_STRING(chmod, 0)
     T_NUMBER(chmod, 1)
 
-    char *safe_path = SafePath(PARAM(0));
+    char *safe_path = SafePath(PARAM(0), Invoke, PARAMETERS->HANDLER);
     int res = chmod(safe_path, PARAM_INT(1));
     free(safe_path);
     RETURN_NUMBER(res)
@@ -3093,7 +3122,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ExecuteProcess, 1, 8)
         n_stderr = PARAM_INT(7);
     }
 
-    if (sandboxed_path) {
+    if (IsSandBoxed(Invoke, PARAMETERS->HANDLER)) {
         errno = EPERM;
         RETURN_NUMBER(-1);
         return 0;
@@ -3339,7 +3368,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(mkfifo, 1, 2)
     }
     int res = -1;
 #ifndef _WIN32
-    char *safe_path = SafePath(PARAM(0));
+    char *safe_path = SafePath(PARAM(0), Invoke, PARAMETERS->HANDLER);
     res = mkfifo(PARAM(0), rights);
     free(safe_path);
 #endif
@@ -4484,7 +4513,7 @@ CONCEPT_FUNCTION_IMPL(chroot, 1)
 #ifdef _WIN32
     int err = -1;
 #else
-    char *safe_path = SafePath(PARAM(0));
+    char *safe_path = SafePath(PARAM(0), Invoke, PARAMETERS->HANDLER);
     int err = chroot(safe_path);
     free(safe_path);
 #endif

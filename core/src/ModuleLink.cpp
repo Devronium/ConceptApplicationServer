@@ -2465,6 +2465,17 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
             }
             break;
 
+        case INVOKE_FILENAME:
+            {
+                PIFAlizator *pif = va_arg(ap, PIFAlizator *);
+                if (!pif)
+                    return INVALID_INVOKE_PARAMETER;
+                char **str = va_arg(ap, char **);
+                if (str)
+                    *str = pif->FileName.c_str();
+            }
+            break;
+
         default:
             va_end(ap);
             return CANNOT_INVOKE_INTERFACE;
