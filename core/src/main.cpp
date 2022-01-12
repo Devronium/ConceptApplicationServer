@@ -30,7 +30,7 @@
  #include <time.h>
 #endif
 
-#define COMPILER_COPYRIGHT    "Concept CLI/Compiler (Accelerator) version 5.0\n(c)2006-2019 Devronium Applications srl\n"
+#define COMPILER_COPYRIGHT    "Concept CLI/Compiler (Accelerator) version 5.0\n(c)2006-2022 Devronium Applications srl\n"
 
 POOLED_IMPLEMENTATION(tsVariableDESCRIPTOR);
 POOLED_IMPLEMENTATION(tsVariableDATA);
@@ -1780,6 +1780,8 @@ CONCEPT_DLL_API Concept_Execute(char *filename, char *inc_dir, char *lib_dir, Fo
     }
     PIFAlizator PIF(inc_dir, lib_dir, &S, &SS, filename, debug, DEBUGGER_TRAP, DEBUGGER_RESERVED, SERVER_PUBLIC_KEY, SERVER_PRIVATE_KEY, CLIENT_PUBLIC_KEY);
     PIF.SetPipe(pipe_in, pipe_out, apid, parent, cached_direct_pipe);
+    if (atoi(getenv("SANDBOX")))
+        PIF.sandbox = 1;
     NotifyParent(pipe_out, parent, -1, "Unserializing");
 #ifdef TIMMING
     int start = clock();
@@ -2007,6 +2009,8 @@ CONCEPT_DLL_API_HANDLER Concept_Execute3_Init(char *filename, char *inc_dir, cha
         debug  = 0;
     }
     PIFAlizator *PIF = new PIFAlizator(inc_dir, lib_dir, &S, SS, filename, debug, DEBUGGER_TRAP, DEBUGGER_RESERVED, SERVER_PUBLIC_KEY, SERVER_PRIVATE_KEY, CLIENT_PUBLIC_KEY);
+    if (atoi(getenv("SANDBOX")))
+        PIF->sandbox = 1;
     PIF->SetPipe(pipe_in, pipe_out, apid, parent, cached_direct_pipe);
     NotifyParent(pipe_out, parent, -1, "Unserializing");
     if ((!debug) && (!PIF->Unserialize(AnsiString(filename) + DEFAULT_BIN_EXTENSION))) {
@@ -2149,6 +2153,8 @@ CONCEPT_DLL_API Concept_Execute3_RunClone(void *PTR, SOCKET sock, int debug, DEB
     SimpleStream SS(SSParent->fprint, sock, fp_notify, SSParent->userdata);
     AnsiString   S;
     PIFAlizator  *PIF = new PIFAlizator("", "", &S, &SS, "", debug, DEBUGGER_TRAP, DEBUGGER_RESERVED, SERVER_PUBLIC_KEY, SERVER_PRIVATE_KEY, CLIENT_PUBLIC_KEY, PIFParent);
+    if (PIFParent)
+        PIF->sandbox = PIFParent->sandbox;
     PIF->SetPipe(pipe_in, pipe_out, apid, parent, direct_pipe);
 
     ClassCode *CC = (ClassCode *)Cptr->R3;
