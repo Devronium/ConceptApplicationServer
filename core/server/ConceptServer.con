@@ -17,6 +17,7 @@ define USE_DB_SERVICE		true
 define CONCEPT_LEGACY_PROTOCOL	true
 define CONCEPT_ENABLE_REWRITE	true
 define CONCEPT_CAS_SANDBOX	false
+define CONCEPT_APP_SANDBOX	false
 define DEFAULT_CGI_WORKERS	2
 define JS_CGI_DONE_TIMEOUT	30
 define JS_MAX_TIMEOUT		1200
@@ -1573,7 +1574,8 @@ pragma used
 				"CONTENT_TYPE": headers["content-type"] ?? "",
 				"HTTP_ACCEPT_LANGUAGE": headers["accept-language"] ?? "",
 				"HTTP_ACCEPT_ENCODING": headers["accept-encoding"] ?? "",
-				"HTTP_REFERER": headers["referer"] ?? ""
+				"HTTP_REFERER": headers["referer"] ?? "",
+				"SANDBOX": CONCEPT_CAS_SANDBOX
 		];
 		if (classof Socket == "TLSESocket") {
 			env["HTTPS"] = "on";
@@ -1639,7 +1641,8 @@ pragma used
 				"CONTENT_TYPE=" + (headers["content-type"] ?? ""),
 				"HTTP_ACCEPT_LANGUAGE=" + (headers["accept-language"] ?? ""),
 				"HTTP_ACCEPT_ENCODING=" + (headers["accept-encoding"] ?? ""),
-				"HTTP_REFERER=" + (headers["referer"] ?? "")
+				"HTTP_REFERER=" + (headers["referer"] ?? ""),
+				"SANDBOX=" + CONCEPT_CAS_SANDBOX
 		];
 		if (classof Socket == "TLSESocket") {
 			env[length env] = "HTTPS=on";
@@ -2090,7 +2093,8 @@ class ConceptChild {
 					 "DRM_KEY=${this.Key}",
 					 "CONCEPT_SERVERPATH="+cwd,
 					 "CONCEPT_INIPATH=${Owner.IniFile}",
-					 "CONCEPT_LOGFILE=${Owner.IniGetPath("Paths", "LogFile", "")}"
+					 "CONCEPT_LOGFILE=${Owner.IniGetPath("Paths", "LogFile", "")}",
+					 "SANDBOX=" + CONCEPT_APP_SANDBOX
 					],
 
 					// don't wait
@@ -2149,7 +2153,8 @@ class ConceptChild {
 					 "DRM_KEY=${this.Key}",
 					 "CONCEPT_SERVERPATH="+cwd,
 					 "CONCEPT_INIPATH=${Owner.IniFile}",
-					 "CONCEPT_LOGFILE=${Owner.IniGetPath("Paths", "LogFile", "")}"
+					 "CONCEPT_LOGFILE=${Owner.IniGetPath("Paths", "LogFile", "")}",
+					 "SANDBOX=" + CONCEPT_APP_SANDBOX
 					],
 
 					// don't wait
@@ -2594,7 +2599,8 @@ pragma used
 				"CONTENT_TYPE": this.GetHeader("content-type", headers),
 				"HTTP_ACCEPT_LANGUAGE": this.GetHeader("accept-language", headers),
 				"HTTP_ACCEPT_ENCODING": this.GetHeader("accept-encoding", headers),
-				"HTTP_REFERER": this.GetHeader("referer", headers)
+				"HTTP_REFERER": this.GetHeader("referer", headers),
+				"SANDBOX": CONCEPT_CAS_SANDBOX
 		];
 		if (classof Socket == "TLSESocket") {
 			env["HTTPS"] = "on";
@@ -2667,7 +2673,8 @@ pragma used
 				"CONTENT_TYPE=" + this.GetHeader("content-type", headers),
 				"HTTP_ACCEPT_LANGUAGE=" + this.GetHeader("accept-language", headers),
 				"HTTP_ACCEPT_ENCODING=" + this.GetHeader("accept-encoding", headers),
-				"HTTP_REFERER=" + this.GetHeader("referer", headers)
+				"HTTP_REFERER=" + this.GetHeader("referer", headers),
+				"SANDBOX=" + CONCEPT_CAS_SANDBOX
 		];
 
 		if (classof Socket == "TLSESocket") {
