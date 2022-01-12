@@ -56,6 +56,13 @@ struct Container {
 static int last_result        = 0;
 static int cached_direct_pipe = -1;
 
+static int atoi_null(const char *str) {
+    if ((!str) || (!str[0]))
+        return 0;
+
+    return atoi(str);
+}
+
 void *GetPOOLContext(void *refVAR) {
     if ((!refVAR) || (((VariableDATA *)refVAR)->flags < 0))
         return 0;
@@ -1780,7 +1787,7 @@ CONCEPT_DLL_API Concept_Execute(char *filename, char *inc_dir, char *lib_dir, Fo
     }
     PIFAlizator PIF(inc_dir, lib_dir, &S, &SS, filename, debug, DEBUGGER_TRAP, DEBUGGER_RESERVED, SERVER_PUBLIC_KEY, SERVER_PRIVATE_KEY, CLIENT_PUBLIC_KEY);
     PIF.SetPipe(pipe_in, pipe_out, apid, parent, cached_direct_pipe);
-    if (atoi(getenv("SANDBOX")))
+    if (atoi_null(getenv("SANDBOX")))
         PIF.sandbox = 1;
     NotifyParent(pipe_out, parent, -1, "Unserializing");
 #ifdef TIMMING
@@ -2009,7 +2016,7 @@ CONCEPT_DLL_API_HANDLER Concept_Execute3_Init(char *filename, char *inc_dir, cha
         debug  = 0;
     }
     PIFAlizator *PIF = new PIFAlizator(inc_dir, lib_dir, &S, SS, filename, debug, DEBUGGER_TRAP, DEBUGGER_RESERVED, SERVER_PUBLIC_KEY, SERVER_PRIVATE_KEY, CLIENT_PUBLIC_KEY);
-    if (atoi(getenv("SANDBOX")))
+    if (atoi_null(getenv("SANDBOX")))
         PIF->sandbox = 1;
     PIF->SetPipe(pipe_in, pipe_out, apid, parent, cached_direct_pipe);
     NotifyParent(pipe_out, parent, -1, "Unserializing");
@@ -2667,7 +2674,7 @@ int cas_main(int argc, char **argv) {
     if (arguments)
         SetEnvVar("CONCEPT_ARGUMENTS", arguments);
 
-    int        use_pools     = atoi(getenv("CONCEPT_UseSharedMemoryPool"));
+    int        use_pools     = atoi_null(getenv("CONCEPT_UseSharedMemoryPool"));
 #ifdef _WIN32
     WSAData wsa;
     WSAStartup(MAKEWORD(2, 2), &wsa);
@@ -2677,25 +2684,25 @@ int cas_main(int argc, char **argv) {
 #endif
     int debug = 0;
     if ((argc >= 10) && (argv[0][1])) {
-        debug = atoi(getenv("CONCEPT_DEBUG"));
+        debug = atoi_null(getenv("CONCEPT_DEBUG"));
 
         if (debug)
             SetEnvVar("CONCEPT_DEBUG", "-1");
     } else
-        debug = atoi(argv[0]);
+        debug = atoi_null(argv[0]);
 
     char *filename = argv[6];
     SetEnvVar("CONCEPT_FILENAME", filename);
-    SOCKET sock        = /*dup*/ ((SOCKET)atoi(argv[7]));
+    SOCKET sock        = /*dup*/ ((SOCKET)atoi_null(argv[7]));
     char   *Include    = argv[8];
     char   *Library    = argv[9];
     char   *DEBUG_HOST = 0;
     int    DEBUG_PORT  = 2663;
-    int    direct_pipe = atoi(argv[1]);
-    int    pipein      = atoi(argv[2]);
-    int    pipeout     = atoi(argv[3]);
-    int    apid        = atoi(argv[4]);
-    int    parent_apid = atoi(argv[5]);
+    int    direct_pipe = atoi_null(argv[1]);
+    int    pipein      = atoi_null(argv[2]);
+    int    pipeout     = atoi_null(argv[3]);
+    int    apid        = atoi_null(argv[4]);
+    int    parent_apid = atoi_null(argv[5]);
 
     char *SERVER_PUBLIC_KEY  = 0;
     char *SERVER_PRIVATE_KEY = 0;
@@ -2781,7 +2788,7 @@ int main(int argc, char **argv) {
     int  compile      = 0;
     int  err          = 0;
     if (force_chdir)
-        do_chdir = atoi(force_chdir);
+        do_chdir = atoi_null(force_chdir);
 
     if (argc >= 3) {
         filename = argv[2];
