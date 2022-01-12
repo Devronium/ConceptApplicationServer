@@ -5,8 +5,10 @@ class Worker {
 	var _workerthread;
 	var _shared_context;
 
-	Worker(classname, string parameter = "", shared_context = null, string filename = "", var error = null) {
+	Worker(classname, string parameter = "", shared_context = null, string filename = "", var error = null, sandboxed = false) {
 		_workerobj = CreateWorker(classname, _workerthread, parameter, shared_context, filename, error);
+		if ((sandboxed) && (_workerobj))
+			WorkerSandbox(_workerobj);
 		if (_workerthread) {
 			var iterations=0;
 			while (!ThreadIsActive(_workerthread)) {
