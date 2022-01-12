@@ -145,6 +145,8 @@
 #define ERR1340     "Invalid regular expression"
 #define ERR1350     "Defined constant is recursive"
 #define ERR1400     "Concept Core is out of memory"
+#define ERR1500     "Security error: cannot load binary modules with relative paths"
+#define ERR1510     "Local binary modules are disabled when running in sandbox"
 
 #define WRN10001    "Possibly incorrect assignment: do you mean '==' instead of '=' ?"
 #define WRN10002    "Empty statement encountered. Is this your intention ?"

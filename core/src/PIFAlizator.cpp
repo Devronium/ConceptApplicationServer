@@ -3015,13 +3015,22 @@ INTEGER PIFAlizator::Execute(AnsiString *Stream, INTEGER on_line, char _USE_WARN
         } else
         if ((TYPE == TYPE_KEYWORD) && (_ID == KEY_IMPORT)) {
             sPARSE = Strip2(P.GetConstant());
-            sPARSE = this->NormalizePath(&sPARSE);
-            if (!ModuleNamesList.ContainsString(sPARSE.c_str())) {
-                ModuleNamesList.Add(sPARSE.c_str(), sPARSE.Length());
-                AnsiString tmp(IMPORT_DIR);
-                tmp += sPARSE;
-                if (!ImportModule(tmp, &Errors, on_line ? on_line : P.LastLine(), FileName, ModuleList, this, 1))
-                    ImportModule(sPARSE, &Errors, on_line ? on_line : P.LastLine(), FileName, ModuleList, this);
+            if (sPARSE.Pos("..") <= 0) {
+                sPARSE = this->NormalizePath(&sPARSE);
+                if (!ModuleNamesList.ContainsString(sPARSE.c_str())) {
+                    ModuleNamesList.Add(sPARSE.c_str(), sPARSE.Length());
+                    AnsiString tmp(IMPORT_DIR);
+                    tmp += sPARSE;
+                    // disable local module loading when sandboxed
+                    if (!ImportModule(tmp, &Errors, on_line ? on_line : P.LastLine(), FileName, ModuleList, this, !sandbox)) {
+                        if (sandbox)
+                            Errors.Add(new AnsiException(ERR1510, on_line ? on_line : P.LastLine(), 1510, sPARSE, FileName), DATA_EXCEPTION);
+                        else
+                            ImportModule(sPARSE, &Errors, on_line ? on_line : P.LastLine(), FileName, ModuleList, this);
+                    }
+                }
+            } else {
+                Errors.Add(new AnsiException(ERR1500, on_line ? on_line : P.LastLine(), 1500, sPARSE, FileName), DATA_EXCEPTION);
             }
         } else
         if ((TYPE == TYPE_KEYWORD) && (_ID == KEY_PRAGMA)) {
@@ -3338,10 +3347,18 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
                 continue;
             ModuleNamesList.Add(member_name.c_str(), member_name.Length());
 
-            AnsiString tmp(IMPORT_DIR);
-            tmp += member_name;
-            if (!ImportModule(tmp, &Errors, 0, "", ModuleList, this, 1))
-                ImportModule(member_name, &Errors, 0, "", ModuleList, this);
+            if (member_name.Pos("..") <= 0) {
+                AnsiString tmp(IMPORT_DIR);
+                tmp += member_name;
+                if (!ImportModule(tmp, &Errors, 0, "", ModuleList, this, !sandbox)) {
+                    if (sandbox)
+                        Errors.Add(new AnsiException(ERR1510, 0, 1510, member_name, FileName), DATA_EXCEPTION);
+                    else
+                        ImportModule(member_name, &Errors, 0, "", ModuleList, this);
+                }
+            } else {
+                Errors.Add(new AnsiException(ERR1500, 0, 1500, member_name, FileName), DATA_EXCEPTION);
+            }
         }
 
         if (is_lib) {
