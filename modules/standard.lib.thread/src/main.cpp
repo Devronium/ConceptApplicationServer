@@ -1615,7 +1615,6 @@ END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedClear, 0, 1)
     ShareContext *sharecontext = NULL;
-    void *worker = NULL;
     if (PARAMETERS_COUNT > 0) {
         T_NUMBER(WorkerSharedClear, 0);
         sharecontext = (ShareContext *)(SYS_INT)PARAM(0);

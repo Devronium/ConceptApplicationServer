@@ -476,19 +476,19 @@ char *SafePath(char *path, INVOKE_CALL Invoke, void *HANDLER) {
     if ((!file_path) && (!file_path[0]))
         file_path = local_path;
 
-    char sandboxed_path[MAX_PATH];
+    char sandboxed_path[4096];
     sandboxed_path[0] = 0;
 
     if ((file_path) && (file_path[0])) {
         for (int i = strlen(file_path) - 1; i >= 0; i --) {
             if ((file_path[i] == '/') || (file_path[i] == '\\')) {
-                if (i < MAX_PATH) {
-                    char buffer[MAX_PATH];
+                if (i < (int)sizeof(sandboxed_path)) {
+                    char buffer[4096];
                     buffer[0] = 0;
                     strncat(buffer, file_path, i);
                     if (realpath(buffer, sandboxed_path)) {
                         int len = strlen(sandboxed_path);
-                        if (len < (MAX_PATH - 1)) {
+                        if (len < ((int)sizeof(sandboxed_path) - 1)) {
                             sandboxed_path[len] = '/';
                             sandboxed_path[len + 1] = 0;
                         }
@@ -508,8 +508,8 @@ char *SafePath(char *path, INVOKE_CALL Invoke, void *HANDLER) {
     char path_temp[4096];
     path_temp[0] = 0;
 
-    strncat(path_temp, sandboxed_path, sizeof(path_temp));
-    strncat(path_temp, path, sizeof(path_temp) - strlen(path_temp));
+    strncat(path_temp, sandboxed_path, sizeof(path_temp) - 1);
+    strncat(path_temp, path, sizeof(path_temp) - strlen(path_temp) - 1);
     char *full_path = realpath(path_temp, NULL);
     if (full_path) {
         // ensure sandboxed
