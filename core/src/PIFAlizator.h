@@ -396,6 +396,7 @@ public:
     AnsiList   Warnings;
 
     char is_buffer;
+    char sandbox;
 
     ConceptLogContext *log_context;
 

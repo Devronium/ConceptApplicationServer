@@ -54,5 +54,7 @@ extern "C" {
     CONCEPT_FUNCTION(WorkerMemoryInfo)
     CONCEPT_FUNCTION(WorkerGC)
     CONCEPT_FUNCTION(WorkerErrors)
+
+    CONCEPT_FUNCTION(WorkerSandbox)
 }
 #endif // __LIBRARY_H

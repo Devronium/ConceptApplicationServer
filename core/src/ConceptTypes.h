@@ -145,6 +145,8 @@ typedef void (*DESTROY_PROTO_DATA)(void *data, void *handler);
 #define INVOKE_CREATE_OBJECT_2                0x63
 #define INVOKE_ARRAY_KEYS                     0x64
 #define INVOKE_FILENAME                       0x65
+#define INVOKE_IS_SANDBOX                     0x66
+#define INVOKE_SET_SANDBOX                    0x67
 
 #define INVOKE_SUCCESS                        0
 #define CANNOT_INVOKE_INTERFACE               -10

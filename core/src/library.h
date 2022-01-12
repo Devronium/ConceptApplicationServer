@@ -31,7 +31,7 @@ CONCEPT_DLL_API Concept_Execute(char *filename, char *inc_dir, char *lib_dir, Fo
 CONCEPT_DLL_API Concept_Compile(char *filename, char *inc_dir, char *lib_dir, ForeignPrint fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent);
 CONCEPT_DLL_API Concept_Execute2(char *filename, char *inc_dir, char *lib_dir, ForeignPrint fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, CHECK_POINT cp, void *userdata);
 
-CONCEPT_DLL_API Concept_ExecuteBuffer(char *buffer, int len, char *inc_dir, char *lib_dir, ForeignPrint fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, CHECK_POINT cp, void *result, void *module_list, void *userdata);
+CONCEPT_DLL_API Concept_ExecuteBuffer(char *buffer, int len, char *inc_dir, char *lib_dir, ForeignPrint fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, CHECK_POINT cp, void *result, void *module_list, void *owner, void *userdata);
 CONCEPT_DLL_API Concept_GetSocket();
 
 CONCEPT_DLL_API Concept_CachedInit(char *filename);

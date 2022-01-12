@@ -1615,6 +1615,7 @@ END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedClear, 0, 1)
     ShareContext *sharecontext = NULL;
+    void *worker = NULL;
     if (PARAMETERS_COUNT > 0) {
         T_NUMBER(WorkerSharedClear, 0);
         sharecontext = (ShareContext *)(SYS_INT)PARAM(0);
@@ -1738,5 +1739,17 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerErrors, 0, 2)
     } else {
         RETURN_STRING("");
     }
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSandbox, 0, 1)
+    void *worker = NULL;
+    if (PARAMETERS_COUNT > 0) {
+        T_NUMBER(WorkerSandbox, 0);
+        worker = (void *)(uintptr_t)PARAM(0);
+    }
+    if (!worker)
+        worker = PARAMETERS->HANDLER;
+    int err = Invoke(INVOKE_SET_SANDBOX, worker);
+    RETURN_NUMBER(err);
 END_IMPL
 //------------------------------------------------------------------------

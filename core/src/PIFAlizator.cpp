@@ -463,6 +463,7 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     this->TSClassCount       = 0;
     this->Workers            = 0;
     this->log_context        = 0;
+    this->sandbox            = 0;
 
 #ifdef DEBUGGER_VAR_NAMES
     HashTable_init(&this->DebugVarNames);

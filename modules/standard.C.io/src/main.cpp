@@ -457,6 +457,9 @@ char *realpath(const char *path, char resolved_path[PATH_MAX]) {
 #endif
 //-----------------------------------------------------------------------------------
 int IsSandBoxed(INVOKE_CALL Invoke, void *HANDLER) {
+    int is_sandbox = Invoke(INVOKE_IS_SANDBOX, HANDLER);
+    if (is_sandbox == 1)
+        return 1;
     return 0;
 }
 //-----------------------------------------------------------------------------------
@@ -465,44 +468,67 @@ char *SafePath(char *path, INVOKE_CALL Invoke, void *HANDLER) {
         return strdup(path ? path : "");
 
     const char *file_path = NULL;
+    static const char local_path[] = "./";
+
     if (!IS_OK(Invoke(INVOKE_FILENAME, HANDLER, &file_path)))
         file_path = NULL;
+
+    if ((!file_path) && (!file_path[0]))
+        file_path = local_path;
 
     char sandboxed_path[MAX_PATH];
     sandboxed_path[0] = 0;
 
-    if (file_path) {
+    if ((file_path) && (file_path[0])) {
         for (int i = strlen(file_path) - 1; i >= 0; i --) {
             if ((file_path[i] == '/') || (file_path[i] == '\\')) {
                 if (i < MAX_PATH) {
                     char buffer[MAX_PATH];
                     buffer[0] = 0;
-                    strncpy(sandboxed_path, file_path, i + 1);
-
-                    if (!realpath(buffer, sandboxed_path))
+                    strncat(buffer, file_path, i);
+                    if (realpath(buffer, sandboxed_path)) {
+                        int len = strlen(sandboxed_path);
+                        if (len < (MAX_PATH - 1)) {
+                            sandboxed_path[len] = '/';
+                            sandboxed_path[len + 1] = 0;
+                        }
+                    } else  {
                         sandboxed_path[0] = 0;
+                    }
                 }
                 break;
             }
         }
     }
 
+
     if (!sandboxed_path[0])
-        return strdup(path ? path : "");
+        return strdup("");
 
     char path_temp[4096];
     path_temp[0] = 0;
 
-    strncpy(path_temp, sandboxed_path, sizeof(path_temp));
+    strncat(path_temp, sandboxed_path, sizeof(path_temp));
     strncat(path_temp, path, sizeof(path_temp) - strlen(path_temp));
-
     char *full_path = realpath(path_temp, NULL);
-
     if (full_path) {
         // ensure sandboxed
         // avoid path hijaking
-        if (strstr(full_path, sandboxed_path) != full_path)
-            full_path[0] = 0;
+        if (strstr(full_path, sandboxed_path) != full_path) {
+            int len = strlen(sandboxed_path);
+            if (len > 0) {
+                // support mix of / and \ paths
+                if (sandboxed_path[len - 1] == '/') {
+                    sandboxed_path[len - 1] = '\\';
+                } else
+                if (sandboxed_path[len - 1] == '\\') {
+                    sandboxed_path[len - 1] = '/';
+                }
+                if (strstr(full_path, sandboxed_path) != full_path)
+                    full_path[0] = 0;
+            } else
+                full_path[0] = 0;
+        }
     } else {
         full_path = (char *)malloc(sizeof(char));
         // always return non-null
@@ -806,8 +832,12 @@ intptr_t MyGetPrivateProfileString(
     } else
         error = 1;
 
-    if ((error) || (!found))
-        strncpy(lpReturnedString, lpDefault, nSize);
+    if ((error) || (!found)) {
+        if (lpReturnedString) {
+            lpReturnedString[0] = 0;
+            strncat(lpReturnedString, lpDefault, nSize);
+        }
+    }
     if (filebuffer) {
         delete[] filebuffer;
         filebuffer = 0;
@@ -4819,12 +4849,19 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(realpath, 1)
     T_STRING(realpath, 0);
 
-    char *path = realpath(PARAM(0), NULL);
+    char *safe_path = SafePath(PARAM(0), Invoke, PARAMETERS->HANDLER);
+    char *path = realpath(safe_path, NULL);
+    free(safe_path);
     if (path) {
         RETURN_STRING(path);
         free(path);
     } else {
         RETURN_STRING("");
     }
+END_IMPL
+//-----------------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(sandbox, 0)
+    int err = Invoke(INVOKE_SET_SANDBOX, PARAMETERS->HANDLER);
+    RETURN_NUMBER(err);
 END_IMPL
 //-----------------------------------------------------------------------------------

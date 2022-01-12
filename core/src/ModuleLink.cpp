@@ -1814,7 +1814,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 int          len   = va_arg(ap, int);
                 VariableDATA *res  = va_arg(ap, VariableDATA *);
                 if ((code) && (len > 0)) {
-                    result = Concept_ExecuteBuffer(code, len, pif->INCLUDE_DIR.c_str(), pif->IMPORT_DIR.c_str(), pif->out->fprint, pif->out->sock, 0, NULL, NULL, pif->SERVER_PUBLIC_KEY, pif->SERVER_PRIVATE_KEY, pif->CLIENT_PUBLIC_KEY, pif->pipe_read, pif->pipe_write, pif->apid, pif->parent_apid, PIFAlizator::CheckPoint, res,  NULL, NULL);
+                    result = Concept_ExecuteBuffer(code, len, pif->INCLUDE_DIR.c_str(), pif->IMPORT_DIR.c_str(), pif->out->fprint, pif->out->sock, 0, NULL, NULL, pif->SERVER_PUBLIC_KEY, pif->SERVER_PRIVATE_KEY, pif->CLIENT_PUBLIC_KEY, pif->pipe_read, pif->pipe_write, pif->apid, pif->parent_apid, PIFAlizator::CheckPoint, res,  NULL, pif, NULL);
                 } else
                     result = INVALID_INVOKE_PARAMETER;
             }
@@ -1974,6 +1974,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     (*worker)->pipe_write  = -1;
                     (*worker)->direct_pipe = -1;
                     (*worker)->Workers     = ref_pif->Workers;
+                    (*worker)->sandbox     = ref_pif->sandbox;
                     semv(ref_pif->DelegateLock);
                 } else
                     result = INVALID_INVOKE_PARAMETER;
@@ -2045,6 +2046,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         (*worker)->pipe_write  = -1;
                         (*worker)->direct_pipe = -1;
                         (*worker)->Workers     = ref_pif->Workers;
+                        (*worker)->sandbox     = ref_pif->sandbox;
                         if (ref_pif->log_context) {
                             semp(ref_pif->log_context->loglock);
                             ref_pif->log_context->links ++;
@@ -2473,6 +2475,25 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 char **str = va_arg(ap, char **);
                 if (str)
                     *str = pif->FileName.c_str();
+            }
+            break;
+
+        case INVOKE_IS_SANDBOX:
+            {
+                PIFAlizator *pif = va_arg(ap, PIFAlizator *);
+                if (!pif)
+                    return INVALID_INVOKE_PARAMETER;
+                result = pif->sandbox;
+            }
+            break;
+
+        case INVOKE_SET_SANDBOX:
+            {
+                PIFAlizator *pif = va_arg(ap, PIFAlizator *);
+                if (!pif)
+                    return INVALID_INVOKE_PARAMETER;
+                // sandbox can only be set
+                pif->sandbox = 1;
             }
             break;
 

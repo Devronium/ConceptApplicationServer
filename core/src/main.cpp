@@ -1880,7 +1880,7 @@ CONCEPT_DLL_API Concept_GetSocket() {
 }
 
 //-----------------------------------------------------------------------------------
-CONCEPT_DLL_API Concept_ExecuteBuffer(char *buffer, int len, char *inc_dir, char *lib_dir, ForeignPrint fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, CHECK_POINT cp, void *result, void *module_list, void *userdata) {
+CONCEPT_DLL_API Concept_ExecuteBuffer(char *buffer, int len, char *inc_dir, char *lib_dir, ForeignPrint fp, SOCKET sock, int debug, DEBUGGER_CALLBACK DEBUGGER_TRAP, void *DEBUGGER_RESERVED, char *SERVER_PUBLIC_KEY, char *SERVER_PRIVATE_KEY, char *CLIENT_PUBLIC_KEY, int pipe_in, int pipe_out, int apid, int parent, CHECK_POINT cp, void *result, void *module_list, void *owner, void *userdata) {
     PIFAlizator::CheckPoint = cp;
     ForeignNotify fp_notify = 0;
 
@@ -1904,6 +1904,11 @@ CONCEPT_DLL_API Concept_ExecuteBuffer(char *buffer, int len, char *inc_dir, char
     }
     PIFAlizator PIF(inc_dir, lib_dir, &S, &SS, "code", debug, DEBUGGER_TRAP, DEBUGGER_RESERVED, SERVER_PUBLIC_KEY, SERVER_PRIVATE_KEY, CLIENT_PUBLIC_KEY, NULL, result, module_list);
     PIF.is_buffer = 1;
+    if (owner) {
+        PIF.sandbox = ((PIFAlizator *)owner)->sandbox;
+        PIF.FileName = ((PIFAlizator *)owner)->FileName;
+    }
+
     PIF.SetPipe(pipe_in, pipe_out, apid, parent, cached_direct_pipe);
 #ifdef TIMMING
     int start = clock();
