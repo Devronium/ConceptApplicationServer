@@ -256,7 +256,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFPageImage, 3, 6)
             pPNG_data = tdefl_write_image_to_png_file_in_memory(image.const_data(), image.width(), image.height(), channels, &png_data_size);
 
         if ((pPNG_data) && (png_data_size > 0)) {
-            char *safe_path = SafePath(safe_path, Invoke, PARAMETERS->HANDLER);
+            char *safe_path = SafePath(PARAM(2), Invoke, PARAMETERS->HANDLER);
             FILE *f = fopen(safe_path, "wb");
             if (f) {
                 fwrite(pPNG_data, png_data_size, 1, f);
@@ -275,7 +275,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFPageImage, 3, 6)
         if (pPNG_data)
             mz_free(pPNG_data);
 #else
-        char *safe_path = SafePath(safe_path, Invoke, PARAMETERS->HANDLER);
+        char *safe_path = SafePath(PARAM(2), Invoke, PARAMETERS->HANDLER);
         if (image.save(safe_path, type)) {
             RETURN_NUMBER(1)
         } else {
