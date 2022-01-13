@@ -6,11 +6,14 @@
 #ifdef _WIN32
 #include <errno.h>
 #include <sys/stat.h>
+#include <dir.h>
 
 // DLL Entry Point ... nothing ...
 int WINAPI DllEntryPoint(HINSTANCE hinst, unsigned long reason, void *lpReserved) {
     return 1;
 }
+#else
+#include <unistd.h>
 #endif
 //-----------------------------------------------------------------------------------
 float *GetFloatList(void *arr, INVOKE_CALL _Invoke) {
@@ -280,10 +283,18 @@ char *SafePath(char *path, INVOKE_CALL Invoke, void *HANDLER) {
                     }
                 }
                 break;
+            } else
+            if (!i) {
+                if (getcwd(sandboxed_path, sizeof(sandboxed_path)) != NULL) {
+                    int len = strlen(sandboxed_path);
+                    if (len < PATH_MAX - 2) {
+                        sandboxed_path[len] = '/';
+                        sandboxed_path[len + 1] = 0;
+                    }
+                }
             }
         }
     }
-
 
     if (!sandboxed_path[0])
         return strdup("");
