@@ -1980,6 +1980,23 @@ class ConceptChild {
 		var lib_dir = this.Owner.IniGetPath("Paths", "Library") + "/";
 		var safe_run = this.Owner.IniGetPath("Paths", "SafeMode", "runsafe");
 
+		var IsSandbox = CONCEPT_APP_SANDBOX;
+		if (IsSandbox) {
+			var exclude_sandbox = this.Owner.IniKey("Run", "ExcludeFromSandbox", "");
+			if (exclude_sandbox) {
+				var fname_clean = realpath(fname);
+				var arr = StrSplit(exclude_sandbox, ";");
+				for (var i = 0; i < length arr; i ++) {
+					var exclude_path = arr[i];
+					if ((exclude_path) && (realpath(exclude_path) == fname_clean)) {
+						console.info(LOG_THIS, "$fname_clean is excluded from sandboxing");
+						IsSandbox = false;
+						break;
+					}
+				}
+			}
+		}
+
 		var direct_pipe1=-1;
 		var direct_pipe2=-1;
 
@@ -2094,7 +2111,7 @@ class ConceptChild {
 					 "CONCEPT_SERVERPATH="+cwd,
 					 "CONCEPT_INIPATH=${Owner.IniFile}",
 					 "CONCEPT_LOGFILE=${Owner.IniGetPath("Paths", "LogFile", "")}",
-					 "SANDBOX=" + CONCEPT_APP_SANDBOX
+					 "SANDBOX=" + IsSandbox
 					],
 
 					// don't wait
@@ -2154,7 +2171,7 @@ class ConceptChild {
 					 "CONCEPT_SERVERPATH="+cwd,
 					 "CONCEPT_INIPATH=${Owner.IniFile}",
 					 "CONCEPT_LOGFILE=${Owner.IniGetPath("Paths", "LogFile", "")}",
-					 "SANDBOX=" + CONCEPT_APP_SANDBOX
+					 "SANDBOX=" + IsSandbox
 					],
 
 					// don't wait
