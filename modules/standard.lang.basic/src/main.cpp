@@ -164,13 +164,15 @@ CONCEPT_FUNCTION_IMPL(BasicEvaluateFile, 2)
 
     struct mb_interpreter_t *ctx = BASIC_CTX((basic_wrapper_container *)(intptr_t)PARAM(0));
 
-    int err = mb_load_file(ctx, PARAM(1));
+    char *safe_path = SafePath(PARAM(1), Invoke, PARAMETERS->HANDLER);
+    int err = mb_load_file(ctx, safe_path);
     if (err) {
         RETURN_NUMBER(err);
     } else {
         err = mb_run(ctx, false);
         RETURN_NUMBER(err);
     }
+    free(safe_path);
 END_IMPL
 //------------------------------------------------------------------------
 void RecursiveValue(struct mb_interpreter_t *ctx, void **l, mb_value_t *val, void *RESULT, INVOKE_CALL Invoke) {

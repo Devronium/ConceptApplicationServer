@@ -110,7 +110,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DBFOpen, 1, 4)
         }
     }
 
-    DBF_HANDLE handle = dbf_open(PARAM(0), NULL, editable, charconv, table_name);
+    char *safe_path = SafePath(PARAM(0), Invoke, PARAMETERS->HANDLER);
+    DBF_HANDLE handle = dbf_open(safe_path, NULL, editable, charconv, table_name);
+    free(safe_path);
+
     RETURN_NUMBER((SYS_INT)handle);
 END_IMPL
 //-----------------------------------------------------//

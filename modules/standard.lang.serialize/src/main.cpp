@@ -757,11 +757,13 @@ CONCEPT_DLL_API CONCEPT_SerializeObject CONCEPT_API_PARAMETERS {
     if ((filename) && (filename[0])) {
         is_file = true;
         DEBUG("XML Save file ...");
+        filename = SafePath(filename, Invoke, PARAMETERS->HANDLER);
 #ifdef WITH_LIBXML2
         xmlSaveFormatFileEnc(filename, doc, encoding, 1);
 #else
         doc.save_file(filename, PUGIXML_TEXT("\t"), pugi::format_default, t_encoding);
 #endif
+        free(filename);
         DEBUG("done");
     } else {
 #ifdef WITH_LIBXML2
@@ -995,7 +997,7 @@ int DoNode(RefContainer *rc, void *ConceptHandler, XML_NODE node, void *OwnerPTR
 CONCEPT_DLL_API CONCEPT_UnSerializeObject CONCEPT_API_PARAMETERS {
     RESET_ERROR
 
-                                          PARAMETERS_CHECK_MIN_MAX(1, 3, "UnSerializeObject: UnSerializeObject(filename|buffer, is_raw_buffer=false, var error)");
+    PARAMETERS_CHECK_MIN_MAX(1, 3, "UnSerializeObject: UnSerializeObject(filename|buffer, is_raw_buffer=false, var error)");
 
     LOCAL_INIT;
     char *filename = (char *)"";
@@ -1023,9 +1025,11 @@ CONCEPT_DLL_API CONCEPT_UnSerializeObject CONCEPT_API_PARAMETERS {
         if (!doc)
             doc = xmlReadMemory(filename, (int)len, "include.xml", "UTF-8", 0);
     } else {
+        filename = SafePath(filename, Invoke, PARAMETERS->HANDLER);
         doc = xmlReadFile(filename, NULL, 0);
         if (!doc)
             doc = xmlReadFile(filename, "UTF-8", 0);
+        free(filename);
     }
 
     if (!doc) {
@@ -1045,9 +1049,11 @@ CONCEPT_DLL_API CONCEPT_UnSerializeObject CONCEPT_API_PARAMETERS {
         if (result.status != pugi::status_ok)
             result = doc.load_buffer(filename, (int)len, pugi::parse_default, pugi::encoding_utf8);
     } else {
+        filename = SafePath(filename, Invoke, PARAMETERS->HANDLER);
         result = doc.load_file(filename);
         if (result.status != pugi::status_ok)
             result = doc.load_file(filename, pugi::parse_default, pugi::encoding_utf8);
+        free(filename);
     }
     if (result.status != pugi::status_ok) {
         if (PARAMETERS_COUNT > 2) {
@@ -1130,7 +1136,7 @@ CONCEPT_DLL_API CONCEPT_HasMember CONCEPT_API_PARAMETERS {
 CONCEPT_DLL_API CONCEPT_SetMember CONCEPT_API_PARAMETERS {
     RESET_ERROR
 
-                                  PARAMETERS_CHECK(3, "SetMember: SetMember(Object,szMemberName,Value)");
+    PARAMETERS_CHECK(3, "SetMember: SetMember(Object,szMemberName,Value)");
     LOCAL_INIT;
     char *membername = 0;
     char *pData;
@@ -1200,7 +1206,7 @@ CONCEPT_DLL_API CONCEPT_GetMember CONCEPT_API_PARAMETERS {
 CONCEPT_DLL_API CONCEPT_ObjectLinks CONCEPT_API_PARAMETERS {
     RESET_ERROR
 
-                                    PARAMETERS_CHECK(1, "ObjectLinks: ObjectLinks(object|array|delegate)");
+    PARAMETERS_CHECK(1, "ObjectLinks: ObjectLinks(object|array|delegate)");
     LOCAL_INIT;
 
     RETURN_NUMBER((double)Invoke(INVOKE_OBJECT_LINKS, PARAMETER(0)));
@@ -1210,7 +1216,7 @@ CONCEPT_DLL_API CONCEPT_ObjectLinks CONCEPT_API_PARAMETERS {
 CONCEPT_DLL_API CONCEPT_StaticLinks CONCEPT_API_PARAMETERS {
     RESET_ERROR
 
-                                    PARAMETERS_CHECK(1, "StaticLinks: StaticLinks(any_variable_type)");
+    PARAMETERS_CHECK(1, "StaticLinks: StaticLinks(any_variable_type)");
     LOCAL_INIT;
 
     RETURN_NUMBER((double)Invoke(INVOKE_VAR_LINKS, PARAMETER(0)));
@@ -1221,7 +1227,7 @@ static AnsiString as_result;
 CONCEPT_DLL_API CONCEPT__ASSERT CONCEPT_API_PARAMETERS {
     RESET_ERROR
 
-                                PARAMETERS_CHECK_MIN_MAX(1, 2, "_ASSERT: _ASSERT(condition[, szErrMessage=\"\"])");
+    PARAMETERS_CHECK_MIN_MAX(1, 2, "_ASSERT: _ASSERT(condition[, szErrMessage=\"\"])");
     LOCAL_INIT;
 
     as_result = "Assertion failed";
@@ -1256,7 +1262,7 @@ CONCEPT_DLL_API CONCEPT__ASSERT CONCEPT_API_PARAMETERS {
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API CONCEPT__ClsPtr CONCEPT_API_PARAMETERS {
     RESET_ERROR
-                                PARAMETERS_CHECK(1, "_ClsPtr: _ClsPtr(object)");
+    PARAMETERS_CHECK(1, "_ClsPtr: _ClsPtr(object)");
 
     LOCAL_INIT;
 
@@ -1271,7 +1277,7 @@ CONCEPT_DLL_API CONCEPT__ClsPtr CONCEPT_API_PARAMETERS {
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API CONCEPT__VarPtr CONCEPT_API_PARAMETERS {
     RESET_ERROR
-                                PARAMETERS_CHECK(1, "_VarPtr: _VarPtr(variable)");
+    PARAMETERS_CHECK(1, "_VarPtr: _VarPtr(variable)");
 
     LOCAL_INIT;
 
@@ -1281,7 +1287,7 @@ CONCEPT_DLL_API CONCEPT__VarPtr CONCEPT_API_PARAMETERS {
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API CONCEPT__KeySorted CONCEPT_API_PARAMETERS {
     RESET_ERROR
-                                   PARAMETERS_CHECK(1, "_KeySorted: array _KeySorted(array)");
+    PARAMETERS_CHECK(1, "_KeySorted: array _KeySorted(array)");
 
     LOCAL_INIT;
 
@@ -1300,7 +1306,7 @@ CONCEPT_DLL_API CONCEPT__KeySorted CONCEPT_API_PARAMETERS {
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API CONCEPT__IsSet CONCEPT_API_PARAMETERS {
     RESET_ERROR
-                               PARAMETERS_CHECK(2, "_IsSet: boolean _IsSet(array, nIndex|szKey)");
+    PARAMETERS_CHECK(2, "_IsSet: boolean _IsSet(array, nIndex|szKey)");
 
     LOCAL_INIT;
 
@@ -1336,7 +1342,7 @@ CONCEPT_DLL_API CONCEPT__IsSet CONCEPT_API_PARAMETERS {
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API CONCEPT__GetKeys CONCEPT_API_PARAMETERS {
     RESET_ERROR
-                                 PARAMETERS_CHECK(1, "_GetKeys: array _GetKeys(array)");
+    PARAMETERS_CHECK(1, "_GetKeys: array _GetKeys(array)");
 
     LOCAL_INIT;
 

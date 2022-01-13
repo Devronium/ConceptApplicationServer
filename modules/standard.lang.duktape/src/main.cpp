@@ -287,12 +287,15 @@ CONCEPT_FUNCTION_IMPL(JSEvaluateFile, 2)
     T_STRING(JSEvaluateFile, 1)
 
     duk_context *ctx = DUK_CTX((duk_wrapper_container *)(intptr_t)PARAM(0));
-    if (duk_peval_file(ctx, PARAM(1)) != 0) {
+
+    char *safe_path = SafePath(PARAM(1), Invoke, PARAMETERS->HANDLER);
+    if (duk_peval_file(ctx, safe_path) != 0) {
         RETURN_NUMBER(0);
     } else {
         RecursiveValue(ctx, RESULT, -1, Invoke);
         duk_pop(ctx);
     }
+    free(safe_path);
 END_IMPL
 //------------------------------------------------------------------------
 void RecursivePush(duk_context *ctx, void *var, INVOKE_CALL Invoke, unsigned char binary_mode) {

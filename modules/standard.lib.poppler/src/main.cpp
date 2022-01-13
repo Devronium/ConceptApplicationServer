@@ -54,7 +54,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFLoad, 1, 3)
         SET_STRING(2, "");
     }
 
-    poppler::document *pdoc = poppler::document::load_from_file(PARAM(0), password, password);
+    char *safe_path = SafePath(PARAM(0), Invoke, PARAMETERS->HANDLER);
+    poppler::document *pdoc = poppler::document::load_from_file(safe_path, password, password);
+    free(safe_path);
 
     if (!pdoc) {
         if (PARAMETERS_COUNT > 2) {
@@ -254,7 +256,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFPageImage, 3, 6)
             pPNG_data = tdefl_write_image_to_png_file_in_memory(image.const_data(), image.width(), image.height(), channels, &png_data_size);
 
         if ((pPNG_data) && (png_data_size > 0)) {
-            FILE *f = fopen(PARAM(2), "wb");
+            char *safe_path = SafePath(safe_path, Invoke, PARAMETERS->HANDLER);
+            FILE *f = fopen(safe_path, "wb");
             if (f) {
                 fwrite(pPNG_data, png_data_size, 1, f);
                 fclose(f);
@@ -262,6 +265,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFPageImage, 3, 6)
             if (PARAMETERS_COUNT > 5) {
                 SET_STRING(5, "Error writing image")
             }
+            free(safe_path);
         } else {
             if (PARAMETERS_COUNT > 5) {
                 SET_STRING(5, "Error creating image")
@@ -271,7 +275,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFPageImage, 3, 6)
         if (pPNG_data)
             mz_free(pPNG_data);
 #else
-        if (image.save(PARAM(2), type)) {
+        char *safe_path = SafePath(safe_path, Invoke, PARAMETERS->HANDLER);
+        if (image.save(safe_path, type)) {
             RETURN_NUMBER(1)
         } else {
             if (PARAMETERS_COUNT > 5) {
@@ -279,6 +284,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFPageImage, 3, 6)
             }
             RETURN_NUMBER(0)
         }
+        free(safe_path);
 #endif
         delete page;
     } else {

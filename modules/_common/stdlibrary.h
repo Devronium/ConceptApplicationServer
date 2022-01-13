@@ -322,6 +322,10 @@ int *GetIntList(void *arr, INVOKE_CALL _Invoke);
 bool *GetBoolList(void *arr, INVOKE_CALL _Invoke);
 double *GetDoubleList(void *arr, INVOKE_CALL _Invoke);
 
+int IsSandBoxed(INVOKE_CALL Invoke, void *HANDLER);
+char *SafePath(char *path, INVOKE_CALL Invoke, void *HANDLER);
+
+
 #define CORE_NEW(SIZE, VARIABLE)    Invoke(INVOKE_NEW_BUFFER, (INTEGER)SIZE, &VARIABLE)
 #define CORE_DELETE(VARIABLE)       Invoke(INVOKE_DELETE_BUFFER, VARIABLE)
 
@@ -346,5 +350,6 @@ double *GetDoubleList(void *arr, INVOKE_CALL _Invoke);
         Invoke(INVOKE_SET_VARIABLE, NEWVAR, type, szValue, nValue);     \
     }                                                                   \
 }
+
 //-------------------------------------------------------------------------------------------------------------
 #endif //__STDLIBRARY_H

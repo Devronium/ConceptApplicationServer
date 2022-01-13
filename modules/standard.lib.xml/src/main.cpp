@@ -226,7 +226,9 @@ CONCEPT_DLL_API CONCEPT__xmlReaderForFile CONCEPT_API_PARAMETERS {
 
     xmlTextReaderPtr reader = 0;
 
+    string = SafePath(string, Invoke, PARAMETERS->HANDLER);
     reader = xmlReaderForFile(string, encoding, (int)options);
+    free(string);
 
     RETURN_NUMBER((SYS_INT)reader);
     return 0;
@@ -508,7 +510,9 @@ CONCEPT_DLL_API CONCEPT__xmlParseFile CONCEPT_API_PARAMETERS {
 
     GET_CHECK_STRING(0, filename, "xmlParseFile : parameter 0 should be a string (STATIC STRING)");
 
+    filename = SafePath(filename, Invoke, PARAMETERS->HANDLER);
     RETURN_NUMBER((SYS_INT)xmlParseFile(filename));
+    free(filename);
     return 0;
 }
 //---------------------------------------------------------------------------
@@ -1619,6 +1623,7 @@ CONCEPT_DLL_API CONCEPT__xmlSaveFile CONCEPT_API_PARAMETERS {
         return 0;
     }
 
+    name = SafePath(name, Invoke, PARAMETERS->HANDLER);
     if (PARAMETERS_COUNT == 3) {
         GET_CHECK_STRING(2, encoding, "xmlSaveFile : parameter 2 should be a string (STATIC STRING)");
         if (!encoding[0])
@@ -1627,6 +1632,7 @@ CONCEPT_DLL_API CONCEPT__xmlSaveFile CONCEPT_API_PARAMETERS {
     } else {
         RETURN_NUMBER(xmlSaveFile(name, ptr));
     }
+    free(name);
     return 0;
 }
 //---------------------------------------------------------------------------
@@ -2202,7 +2208,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(xmlSetStructuredErrorFunc, 2)
     T_NUMBER(xmlSetStructuredErrorFunc, 0)
 
-    char *dclass = NULL;
+    char *dclass = 0;
     NUMBER dmember = 0;
     GET_DELEGATE(1, dclass, dmember)
 
@@ -2229,7 +2235,7 @@ END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(xmlURIEscapeStr, 1, 2)
     T_STRING(xmlURIEscapeStr, 0)
-    const char *exceptions = "";
+    char *exceptions = (char *)"";
     if (PARAMETERS_COUNT > 1) {
         T_STRING(xmlURIEscapeStr, 1)
         exceptions = PARAM(0);

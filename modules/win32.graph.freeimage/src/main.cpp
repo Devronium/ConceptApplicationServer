@@ -2,6 +2,7 @@
 #include "stdlibrary.h"
 #include "AnsiString.h"
 //------------ end of standard header ----------------------------//
+#include <stdlib.h>
 extern "C" {
 #include "FreeImage.h"
 }
@@ -395,49 +396,13 @@ CONCEPT_DLL_API CONCEPT__FreeImage_Load CONCEPT_API_PARAMETERS {
         return (void *)"FreeImage_Load: parameter 3 should be of STATIC NUMBER type";
 
     // function call
+    szParam1 = SafePath(szParam1, Invoke, PARAMETERS->HANDLER);
     _C_call_result = (FIBITMAP *)FreeImage_Load((FREE_IMAGE_FORMAT)(int)nParam0, (char *)szParam1, (int)nParam2);
+    free(szParam1);
 
     SetVariable(RESULT, VARIABLE_NUMBER, "", (SYS_INT)_C_call_result);
     return 0;
 }
-//-----------------------------------------------------------------------------------
-
-/*CONCEPT_DLL_API CONCEPT__FreeImage_LoadU CONCEPT_API_PARAMETERS {
-        if (PARAMETERS->COUNT!=3)
-           return (void *)": 'FreeImage_LoadU' parameters error. This fuction takes 3 parameters.";
-
-        // General variables
-        NUMBER       NUMBER_DUMMY;
-        char *       STRING_DUMMY;
-        INTEGER      TYPE;
-
-        // Result
-        FIBITMAP*	_C_call_result;
-        // Specific variables
-        NUMBER       nParam0;
-        char *       szParam1;
-        NUMBER       nParam2;
-
-        // Variable type check
-        // Parameter 1
-        GetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[0]-1], &TYPE, &STRING_DUMMY, &nParam0);
-        if (TYPE!=VARIABLE_NUMBER)
-           return (void *)"FreeImage_LoadU: parameter 1 should be of STATIC NUMBER type";
-        // Parameter 2
-        GetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1]-1], &TYPE, &szParam1, &NUMBER_DUMMY);
-        if (TYPE!=VARIABLE_STRING)
-           return (void *)"FreeImage_LoadU: parameter 2 should be of STATIC STRING type";
-        // Parameter 3
-        GetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2]-1], &TYPE, &STRING_DUMMY, &nParam2);
-        if (TYPE!=VARIABLE_NUMBER)
-           return (void *)"FreeImage_LoadU: parameter 3 should be of STATIC NUMBER type";
-
-        // function call
-        _C_call_result=(FIBITMAP*)FreeImage_LoadU((FREE_IMAGE_FORMAT)(int)nParam0, (wchar_t*)szParam1, (int)nParam2);
-
-        SetVariable(RESULT,VARIABLE_NUMBER,"",(SYS_INT)_C_call_result);
-        return 0;
-   }*/
 //-----------------------------------------------------------------------------------
 CONCEPT_DLL_API CONCEPT__FreeImage_Save CONCEPT_API_PARAMETERS {
     if (PARAMETERS->COUNT != 4)
@@ -475,54 +440,13 @@ CONCEPT_DLL_API CONCEPT__FreeImage_Save CONCEPT_API_PARAMETERS {
         return (void *)"FreeImage_Save: parameter 4 should be of STATIC NUMBER type";
 
     // function call
+    szParam2 = SafePath(szParam2, Invoke, PARAMETERS->HANDLER);
     _C_call_result = (BOOL)FreeImage_Save((FREE_IMAGE_FORMAT)(int)nParam0, (FIBITMAP *)(SYS_INT)nParam1, (char *)szParam2, (int)nParam3);
+    free(szParam2);
 
     SetVariable(RESULT, VARIABLE_NUMBER, "", _C_call_result);
     return 0;
 }
-//-----------------------------------------------------------------------------------
-
-/*CONCEPT_DLL_API CONCEPT__FreeImage_SaveU CONCEPT_API_PARAMETERS {
-        if (PARAMETERS->COUNT!=4)
-           return (void *)": 'FreeImage_SaveU' parameters error. This fuction takes 4 parameters.";
-
-        // General variables
-        NUMBER       NUMBER_DUMMY;
-        char *       STRING_DUMMY;
-        INTEGER      TYPE;
-
-        // Result
-        BOOL	_C_call_result;
-        // Specific variables
-        NUMBER       nParam0;
-        NUMBER       nParam1;
-        char *       szParam2;
-        NUMBER       nParam3;
-
-        // Variable type check
-        // Parameter 1
-        GetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[0]-1], &TYPE, &STRING_DUMMY, &nParam0);
-        if (TYPE!=VARIABLE_NUMBER)
-           return (void *)"FreeImage_SaveU: parameter 1 should be of STATIC NUMBER type";
-        // Parameter 2
-        GetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1]-1], &TYPE, &STRING_DUMMY, &nParam1);
-        if (TYPE!=VARIABLE_NUMBER)
-           return (void *)"FreeImage_SaveU: parameter 2 should be of STATIC NUMBER type";
-        // Parameter 3
-        GetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2]-1], &TYPE, &szParam2, &NUMBER_DUMMY);
-        if (TYPE!=VARIABLE_STRING)
-           return (void *)"FreeImage_SaveU: parameter 3 should be of STATIC STRING type";
-        // Parameter 4
-        GetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3]-1], &TYPE, &STRING_DUMMY, &nParam3);
-        if (TYPE!=VARIABLE_NUMBER)
-           return (void *)"FreeImage_SaveU: parameter 4 should be of STATIC NUMBER type";
-
-        // function call
-        _C_call_result=(BOOL)FreeImage_SaveU((FREE_IMAGE_FORMAT)(int)nParam0, (FIBITMAP*)(SYS_INT)nParam1, (wchar_t*)szParam2, (int)nParam3);
-
-        SetVariable(RESULT,VARIABLE_NUMBER,"",_C_call_result);
-        return 0;
-   }*/
 //-----------------------------------------------------------------------------------
 CONCEPT_DLL_API CONCEPT__FreeImage_Unload CONCEPT_API_PARAMETERS {
     if (PARAMETERS->COUNT != 1)
@@ -1237,7 +1161,9 @@ CONCEPT_DLL_API CONCEPT__FreeImage_GetFileType CONCEPT_API_PARAMETERS {
 
     GET_CHECK_STRING(0, filename, "FreeImage_GetFileType: parameter 1 should be a string");
 
+    filename = SafePath(filename, Invoke, PARAMETERS->HANDLER);
     int ftype = (int)FreeImage_GetFileType(filename);
+    free(filename);
 
     RETURN_NUMBER((SYS_INT)ftype);
     return 0;

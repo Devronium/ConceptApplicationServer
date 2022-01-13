@@ -105,7 +105,9 @@ CONCEPT_FUNCTION_IMPL(_zip_open, 3)
 
     int errorp = 0;
 
-    RETURN_NUMBER((SYS_INT)zip_open(PARAM(0), PARAM_INT(1), &errorp))
+    char *safe_path = SafePath(PARAM(0), Invoke, PARAMETERS->HANDLER);
+    RETURN_NUMBER((SYS_INT)zip_open(safe_path, PARAM_INT(1), &errorp))
+    free(safe_path);
 
     SET_NUMBER(2, errorp);
 
@@ -220,7 +222,7 @@ CONCEPT_FUNCTION_IMPL(_zip_get_archive_comment, 2)
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_get_archive_comment: Invalid parameter");
 
-    int        lenp = 0;
+    int lenp        = 0;
     const char *str = zip_get_archive_comment((zip *)PARAM_INT(0), &lenp, PARAM_INT(1));
     if (str) {
         RETURN_BUFFER(str, lenp);
@@ -237,7 +239,7 @@ CONCEPT_FUNCTION_IMPL(_zip_get_file_comment, 3)
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_get_file_comment: Invalid parameter");
 
-    int        lenp = 0;
+    int lenp        = 0;
     const char *str = zip_get_file_comment((zip *)PARAM_INT(0), PARAM_INT(1), &lenp, PARAM_INT(2));
     if (str) {
         RETURN_BUFFER(str, lenp);
