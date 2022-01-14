@@ -16,8 +16,8 @@ define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/cgi1
 define USE_DB_SERVICE		true
 define CONCEPT_LEGACY_PROTOCOL	false
 define CONCEPT_ENABLE_REWRITE	true
-define CONCEPT_CAS_SANDBOX	false
 define CONCEPT_APP_SANDBOX	false
+define CONCEPT_CAS_SANDBOX	CONCEPT_APP_SANDBOX
 define DEFAULT_CGI_WORKERS	2
 define JS_CGI_DONE_TIMEOUT	30
 define JS_MAX_TIMEOUT		1200
@@ -40,6 +40,34 @@ define H2_MAX_STDOUT_BUFFER	0x800000
 define H2_MAX_FILE_BUFFER	0x200000
 // 128k file buffer for http 1.1
 define H1_MAX_FILE_BUFFER	0x20000
+
+class ServerUtils {
+	static SandboxedPath(exclude_sandbox, fname, IsSandbox, log = false) {
+		if ((IsSandbox) && (exclude_sandbox)) {
+			var fname_clean = realpath(fname);
+			var arr = StrSplit(exclude_sandbox, ";");
+			for (var i = 0; i < length arr; i ++) {
+				var exclude_path = arr[i];
+				if ((exclude_path) && (realpath(exclude_path) == fname_clean)) {
+					if (log)
+						console.info(LOG_THIS, "$fname_clean is excluded from sandboxing");
+					IsSandbox = false;
+					break;
+				}
+			}
+		}
+		return IsSandbox;
+	}
+
+	static Sandboxed(Owner, fname, IsSandbox, log = false) {
+		if (IsSandbox) {
+			var exclude_sandbox = Owner.IniKey("Run", "ExcludeFromSandbox", "");
+			if (exclude_sandbox)
+				return ServerUtils::SandboxedPath(exclude_sandbox, fname, IsSandbox, log);
+		}
+		return IsSandbox;
+	}
+}
 
 class RewriteRegExp {
 	var regexp;
@@ -1546,6 +1574,11 @@ pragma used
 		var port = info["port"];
 
 		var headers = job.headers;
+
+		var IsSandbox = false;
+		if (CONCEPT_CAS_SANDBOX)
+			IsSandbox = ServerUtils::Sandboxed(this, job.app, CONCEPT_CAS_SANDBOX);
+
 		var env = [
 				"DOCUMENT_ROOT": job.root,
 				"GATEWAY_INTERFACE": "CGI/1.1",
@@ -1575,7 +1608,7 @@ pragma used
 				"HTTP_ACCEPT_LANGUAGE": headers["accept-language"] ?? "",
 				"HTTP_ACCEPT_ENCODING": headers["accept-encoding"] ?? "",
 				"HTTP_REFERER": headers["referer"] ?? "",
-				"SANDBOX": CONCEPT_CAS_SANDBOX
+				"SANDBOX": IsSandbox
 		];
 		if (classof Socket == "TLSESocket") {
 			env["HTTPS"] = "on";
@@ -1613,6 +1646,9 @@ pragma used
 		var address = info["address"];
 		var port = info["port"];
 		var headers = job.headers;
+		var IsSandbox = false;
+		if (CONCEPT_CAS_SANDBOX)
+			IsSandbox = ServerUtils::Sandboxed(this, job.app, CONCEPT_CAS_SANDBOX);
 		var env = [
 				"DOCUMENT_ROOT=" + job.root,
 				"GATEWAY_INTERFACE=CGI/1.1",
@@ -1642,7 +1678,7 @@ pragma used
 				"HTTP_ACCEPT_LANGUAGE=" + (headers["accept-language"] ?? ""),
 				"HTTP_ACCEPT_ENCODING=" + (headers["accept-encoding"] ?? ""),
 				"HTTP_REFERER=" + (headers["referer"] ?? ""),
-				"SANDBOX=" + CONCEPT_CAS_SANDBOX
+				"SANDBOX=" + IsSandbox
 		];
 		if (classof Socket == "TLSESocket") {
 			env[length env] = "HTTPS=on";
@@ -1980,22 +2016,9 @@ class ConceptChild {
 		var lib_dir = this.Owner.IniGetPath("Paths", "Library") + "/";
 		var safe_run = this.Owner.IniGetPath("Paths", "SafeMode", "runsafe");
 
-		var IsSandbox = CONCEPT_APP_SANDBOX;
-		if (IsSandbox) {
-			var exclude_sandbox = this.Owner.IniKey("Run", "ExcludeFromSandbox", "");
-			if (exclude_sandbox) {
-				var fname_clean = realpath(fname);
-				var arr = StrSplit(exclude_sandbox, ";");
-				for (var i = 0; i < length arr; i ++) {
-					var exclude_path = arr[i];
-					if ((exclude_path) && (realpath(exclude_path) == fname_clean)) {
-						console.info(LOG_THIS, "$fname_clean is excluded from sandboxing");
-						IsSandbox = false;
-						break;
-					}
-				}
-			}
-		}
+		var IsSandbox = false;
+		if (CONCEPT_APP_SANDBOX)
+			IsSandbox = ServerUtils::Sandboxed(this.Owner, fname, CONCEPT_APP_SANDBOX, true);
 
 		var direct_pipe1=-1;
 		var direct_pipe2=-1;
@@ -2565,6 +2588,7 @@ class ConceptH2Worker extends ConceptBaseWorker {
 pragma used
 	protected var CGIPlaceholders;
 	protected var Framework;
+	protected var ExcludeSandbox;
 
 	GetHeader(key, headers) {
 		if ((!headers) || (!IsSet(headers, key)))
@@ -2587,6 +2611,10 @@ pragma used
 		var address = info["address"];
 		var port = info["port"];
 		var headers = stream.Headers;
+
+		var IsSandbox = false;
+		if (CONCEPT_CAS_SANDBOX)
+			IsSandbox = ServerUtils::SandboxedPath(this.ExcludeSandbox, app, CONCEPT_CAS_SANDBOX);
 
 		var env = [
 				"DOCUMENT_ROOT": root,
@@ -2617,7 +2645,7 @@ pragma used
 				"HTTP_ACCEPT_LANGUAGE": this.GetHeader("accept-language", headers),
 				"HTTP_ACCEPT_ENCODING": this.GetHeader("accept-encoding", headers),
 				"HTTP_REFERER": this.GetHeader("referer", headers),
-				"SANDBOX": CONCEPT_CAS_SANDBOX
+				"SANDBOX": IsSandbox
 		];
 		if (classof Socket == "TLSESocket") {
 			env["HTTPS"] = "on";
@@ -2658,6 +2686,10 @@ pragma used
 		if (ConceptCGIChild::CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w))
 			return null;
 
+		var IsSandbox = false;
+		if (CONCEPT_CAS_SANDBOX)
+			IsSandbox = ServerUtils::SandboxedPath(this.ExcludeSandbox, app, CONCEPT_CAS_SANDBOX);
+
 		var info = Socket.Info;
 		var address = info["address"];
 		var port = info["port"];
@@ -2691,7 +2723,7 @@ pragma used
 				"HTTP_ACCEPT_LANGUAGE=" + this.GetHeader("accept-language", headers),
 				"HTTP_ACCEPT_ENCODING=" + this.GetHeader("accept-encoding", headers),
 				"HTTP_REFERER=" + this.GetHeader("referer", headers),
-				"SANDBOX=" + CONCEPT_CAS_SANDBOX
+				"SANDBOX=" + IsSandbox
 		];
 
 		if (classof Socket == "TLSESocket") {
@@ -2720,6 +2752,7 @@ pragma used
 
 	ConceptH2Worker(owner) {
 		Framework = owner.IniGetPath("Paths", "Include") + JS_FRAMEWORK;
+		ExcludeSandbox = owner.IniKey("Run", "ExcludeFromSandbox", "");
 	}
 }
 
