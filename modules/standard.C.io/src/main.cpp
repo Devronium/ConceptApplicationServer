@@ -2867,6 +2867,11 @@ END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(panicexit, 1)
     T_NUMBER(panicexit, 0)
+    if (IsSandBoxed(Invoke, PARAMETERS->HANDLER)) {
+        errno = EPERM;
+        RETURN_NUMBER(-1);
+        return 0;
+    }
     exit(PARAM_INT(0));
     RETURN_NUMBER(0);
 END_IMPL
