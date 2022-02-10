@@ -108,6 +108,7 @@ typedef void (*DESTROY_PROTO_DATA)(void *data, void *handler);
 #define INVOKE_DYNAMIC_UNLOCK                 0x3C
 #define INVOKE_CALL_DELEGATE_THREAD_SPINLOCK  0x3D
 #define INVOKE_GET_DIRECT_PIPE                0x3E
+#define INVOKE_SET_VARIABLE_WITH_GC           0x3F
 #define INVOKE_BYTECODE_FREE                  0x40
 #define INVOKE_PROFILER                       0x41
 #define INVOKE_MULTITHREADED                  0x42

@@ -176,7 +176,7 @@ INTEGER UnImportModule(HMODULE hMODULE, PIFAlizator *Sender) {
     return 0;
 }
 
-INTEGER SetVariable(VariableDATA *VD, INTEGER TYPE, char *STRING_VALUE, NUMBER NUMBER_VALUE) {
+INTEGER SetVariable_reachable(VariableDATA *VD, INTEGER TYPE, char *STRING_VALUE, NUMBER NUMBER_VALUE, int reachable) {
     if (!VD)
         return -1;
     // is constant ?
@@ -208,21 +208,28 @@ INTEGER SetVariable(VariableDATA *VD, INTEGER TYPE, char *STRING_VALUE, NUMBER N
     } else
     if (VD->TYPE == VARIABLE_DELEGATE) {
         VD->CLASS_DATA = new_Delegate((void *)STRING_VALUE, (int)NUMBER_VALUE);
-        ((struct CompiledClass *)delegate_Class(VD->CLASS_DATA))->reachable = 0x1C;
+        if (reachable)
+            ((struct CompiledClass *)delegate_Class(VD->CLASS_DATA))->reachable = 0x1C;
     } else
     if ((VD->TYPE == VARIABLE_CLASS) || (VD->TYPE == VARIABLE_ARRAY)) {
         VD->CLASS_DATA = (void *)STRING_VALUE;
         if (TYPE == VARIABLE_CLASS) {
             ((struct CompiledClass *)VD->CLASS_DATA)->LINKS++;
-            ((struct CompiledClass *)VD->CLASS_DATA)->reachable = 0x1C;
+            if (reachable)
+                ((struct CompiledClass *)VD->CLASS_DATA)->reachable = 0x1C;
         } else {
             ((struct Array *)VD->CLASS_DATA)->LINKS++;
-            ((struct Array *)VD->CLASS_DATA)->reachable = 0x1C;
+            if (reachable)
+                ((struct Array *)VD->CLASS_DATA)->reachable = 0x1C;
         }
     } else {
         VD->NUMBER_DATA = NUMBER_VALUE;
     }
     return 0;
+}
+
+INTEGER SetVariable(VariableDATA *VD, INTEGER TYPE, char *STRING_VALUE, NUMBER NUMBER_VALUE) {
+    return SetVariable_reachable(VD, TYPE, STRING_VALUE, NUMBER_VALUE, 1);
 }
 
 INTEGER GetVariable(VariableDATA *VD, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE) {
@@ -477,6 +484,17 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 result = SetVariable(vdata, type, str, nvalue);
             }
             break;
+
+        case INVOKE_SET_VARIABLE_WITH_GC:
+            {
+                VariableDATA *vdata = va_arg(ap, VariableDATA *);
+                INTEGER      type   = va_arg(ap, INTEGER);
+                char         *str   = va_arg(ap, char *);
+                NUMBER       nvalue = va_arg(ap, NUMBER);
+                result = SetVariable_reachable(vdata, type, str, nvalue, 0);
+            }
+            break;
+
 
         case INVOKE_GET_VARIABLE:
             {

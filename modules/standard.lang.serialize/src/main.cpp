@@ -9,6 +9,9 @@
 #include <string.h>
 #include <stdint.h>
 #include <map>
+#ifndef NO_VECTORS
+ #include <vector>
+#endif
 #ifndef _WIN32
  #include <netinet/in.h>
 #endif
@@ -114,9 +117,15 @@ static const HuffChar *slow_table[] = {slow_values_10, slow_values_11, slow_valu
 
 typedef struct {
     std::map<void *, int> BACK_CACHE;
+#ifdef NO_VECTORS
     void       *BACK_REFERENCES[MAX_OBJECTS];
     void       *BACK_REFERENCES2[MAX_OBJECTS];
     char       BACK_TYPES[MAX_OBJECTS];
+#else
+    std::vector<void *> BACK_REFERENCES;
+    std::vector<void *> BACK_REFERENCES2;
+    std::vector<char> BACK_TYPES;
+#endif
     int        BACK_REF_COUNT;
     void       *top_variable;
     AnsiString full_error;
@@ -281,7 +290,12 @@ int CheckBack(RefContainer *rc, void *pData) {
         return i;
 
     if (rc->BACK_REF_COUNT < MAX_OBJECTS) {
+#ifdef NO_VECTORS
         rc->BACK_REFERENCES[rc->BACK_REF_COUNT++] = pData;
+#else
+        rc->BACK_REFERENCES.push_back(pData);
+        rc->BACK_REF_COUNT++;
+#endif
         rc->BACK_CACHE[pData] = rc->BACK_REF_COUNT;
     }
     return 0;
@@ -946,9 +960,24 @@ int DoNode(RefContainer *rc, void *ConceptHandler, XML_NODE node, void *OwnerPTR
                 int  cyc_id      = TOINT(cyc_id_ptr);
                 if ((cyc_id > 0) && (cyc_id <= MAX_OBJECTS)) {
                     cyc_id--;
+#ifdef NO_VECTORS
                     rc->BACK_REFERENCES[cyc_id] = str;
                     rc->BACK_REF_COUNT++;
                     rc->BACK_TYPES[cyc_id] = VARIABLE_CLASS;
+#else
+                    rc->BACK_REF_COUNT++;
+                    // rc->BACK_REFERENCES.reserve(cyc_id + 1);
+                    // rc->BACK_REFERENCES.reserve(rc->BACK_REF_COUNT);
+                    // rc->BACK_TYPES.reserve(cyc_id + 1);
+                    if (rc->BACK_REFERENCES.size() < cyc_id + 1)
+                        rc->BACK_REFERENCES.resize(cyc_id + 1, NULL);
+
+                    if (rc->BACK_TYPES.size() < cyc_id + 1)
+                        rc->BACK_TYPES.resize(cyc_id + 1, 0);
+
+                    rc->BACK_REFERENCES[cyc_id] = str;
+                    rc->BACK_TYPES[cyc_id] = VARIABLE_CLASS;
+#endif
                 }
 
                 DoNode(rc, ConceptHandler, XML_FIRST_CHILD(cur_node), var_data, (void *)str);
@@ -970,10 +999,26 @@ int DoNode(RefContainer *rc, void *ConceptHandler, XML_NODE node, void *OwnerPTR
                 int  cyc_id      = TOINT(cyc_id_ptr);
                 if ((cyc_id > 0) && (cyc_id <= MAX_OBJECTS)) {
                     cyc_id--;
+#ifdef NO_VECTORS
                     rc->BACK_REFERENCES[cyc_id] = str;
                     rc->BACK_REF_COUNT++;
 
                     rc->BACK_TYPES[cyc_id] = VARIABLE_ARRAY;
+#else
+                    rc->BACK_REF_COUNT++;
+                    // rc->BACK_REFERENCES.reserve(cyc_id + 1);
+                    // rc->BACK_REFERENCES.reserve(rc->BACK_REF_COUNT);
+                    // rc->BACK_TYPES.reserve(cyc_id + 1);
+                    if (rc->BACK_REFERENCES.size() < cyc_id + 1)
+                        rc->BACK_REFERENCES.resize(cyc_id + 1, NULL);
+
+                    if (rc->BACK_TYPES.size() < cyc_id + 1)
+                        rc->BACK_TYPES.resize(cyc_id + 1, 0);
+
+
+                    rc->BACK_REFERENCES[cyc_id] = str;
+                    rc->BACK_TYPES[cyc_id] = VARIABLE_ARRAY;
+#endif
                 }
 
                 DoNode(rc, ConceptHandler, XML_FIRST_CHILD(cur_node), var_data, (void *)str);
@@ -984,7 +1029,7 @@ int DoNode(RefContainer *rc, void *ConceptHandler, XML_NODE node, void *OwnerPTR
                 int  ref_id      = TOINT(ref_id_ptr) - 1;
                 if ((ref_id >= 0) && (ref_id < rc->BACK_REF_COUNT)) {
                     DEBUG2("Valid cyclic reference: ", ref_id_ptr);
-                    LocalInvoker(INVOKE_SET_VARIABLE, OwnerPTR, (INTEGER)rc->BACK_TYPES[ref_id], rc->BACK_REFERENCES[ref_id], (NUMBER)0);
+                    LocalInvoker(INVOKE_SET_VARIABLE_WITH_GC, OwnerPTR, (INTEGER)rc->BACK_TYPES[ref_id], rc->BACK_REFERENCES[ref_id], (NUMBER)0);
                 }
                 XML_FREE_PROP_STR(ref_id_ptr);
             }
@@ -1612,19 +1657,30 @@ void DoArray(RefContainer *rc, void *pData, void *variable_data) {
     int         ref_ptr = CheckBack(rc, pData);
 
     if (ref_ptr) {
+#ifdef NO_VECTORS
         void *arr = rc->BACK_REFERENCES2[ref_ptr - 1];
+#else
+        void *arr = NULL;
+        if (ref_ptr <= rc->BACK_REFERENCES2.size())
+            arr = rc->BACK_REFERENCES2[ref_ptr - 1];
+#endif
         if (arr) {
             INTEGER type;
             char    *str = 0;
             NUMBER  nvalue;
 
             if (IS_OK(LocalInvoker(INVOKE_GET_VARIABLE, arr, &type, &str, &nvalue)))
-                Invoke(INVOKE_SET_VARIABLE, variable_data, type, (char *)str, (NUMBER)nvalue);
+                Invoke(INVOKE_SET_VARIABLE_WITH_GC, variable_data, type, (char *)str, (NUMBER)nvalue);
         }
         return;
     } else {
-        if ((rc->BACK_REF_COUNT > 0) && (rc->BACK_REF_COUNT <= MAX_OBJECTS))
+        if ((rc->BACK_REF_COUNT > 0) && (rc->BACK_REF_COUNT <= MAX_OBJECTS)) {
+#ifndef NO_VECTORS
+            if (rc->BACK_REFERENCES2.size() < rc->BACK_REF_COUNT)
+                rc->BACK_REFERENCES2.resize(rc->BACK_REF_COUNT, NULL);
+#endif
             rc->BACK_REFERENCES2[rc->BACK_REF_COUNT - 1] = variable_data;
+        }
     }
 
     int count = LocalInvoker(INVOKE_GET_ARRAY_COUNT, pData);
@@ -1649,7 +1705,7 @@ void DoArray(RefContainer *rc, void *pData, void *variable_data) {
                     case VARIABLE_STRING:
                     case VARIABLE_NUMBER:
                     case VARIABLE_DELEGATE:
-                        Invoke(INVOKE_SET_VARIABLE, subarr, type, szData, nData);
+                        Invoke(INVOKE_SET_VARIABLE_WITH_GC, subarr, type, szData, nData);
                         break;
 
                     case VARIABLE_ARRAY:
@@ -1691,18 +1747,29 @@ void DoObject(RefContainer *rc, void *pData, void *parent, bool root_only) {
     char *class_name = 0;
     int  ref_ptr     = CheckBack(rc, pData);
     if (ref_ptr) {
+#ifdef NO_VECTORS
         void *arr = rc->BACK_REFERENCES2[ref_ptr - 1];
+#else
+        void *arr = NULL;
+        if (ref_ptr <= rc->BACK_REFERENCES2.size())
+            arr = rc->BACK_REFERENCES2[ref_ptr - 1];
+#endif
         if (arr) {
             INTEGER type;
             char    *str = 0;
             NUMBER  nvalue;
             if (IS_OK(LocalInvoker(INVOKE_GET_VARIABLE, arr, &type, &str, &nvalue)))
-                Invoke(INVOKE_SET_VARIABLE, parent, type, (char *)str, (NUMBER)nvalue);
+                Invoke(INVOKE_SET_VARIABLE_WITH_GC, parent, type, (char *)str, (NUMBER)nvalue);
         }
         return;
     } else {
-        if ((rc->BACK_REF_COUNT > 0) && (rc->BACK_REF_COUNT <= MAX_OBJECTS))
+        if ((rc->BACK_REF_COUNT > 0) && (rc->BACK_REF_COUNT <= MAX_OBJECTS)) {
+#ifndef NO_VECTORS
+            if (rc->BACK_REFERENCES2.size() < rc->BACK_REF_COUNT)
+                rc->BACK_REFERENCES2.resize(rc->BACK_REF_COUNT, NULL);
+#endif
             rc->BACK_REFERENCES2[rc->BACK_REF_COUNT - 1] = parent;
+        }
     }
 
     int members_count = LocalInvoker(INVOKE_GET_SERIAL_CLASS, pData, (int)0, &class_name, (char **)0, (char *)0, (char *)0, (char *)0, (char **)0, (NUMBER *)0, (char *)0, (char *)0);
@@ -2052,7 +2119,7 @@ int DoBin(RefContainer *rc, void *ConceptHandler, void *OwnerPTR = 0, int dry_ru
                     ref_id *= -1;
                     if ((ref_id > 0) && (ref_id <= MAX_OBJECTS)) {
                         ref_id--;
-                        LocalInvoker(INVOKE_SET_VARIABLE, OwnerPTR, (INTEGER)rc->BACK_TYPES[ref_id], rc->BACK_REFERENCES[ref_id], (NUMBER)0);
+                        LocalInvoker(INVOKE_SET_VARIABLE_WITH_GC, OwnerPTR, (INTEGER)rc->BACK_TYPES[ref_id], rc->BACK_REFERENCES[ref_id], (NUMBER)0);
                     }
                 }
             } else {
@@ -2077,9 +2144,17 @@ int DoBin(RefContainer *rc, void *ConceptHandler, void *OwnerPTR = 0, int dry_ru
                         LocalInvoker(INVOKE_GET_VARIABLE, OwnerPTR, &type, &str, &nvalue);
 
                         ref_id--;
+#ifdef NO_VECTORS
                         rc->BACK_REFERENCES[ref_id] = str;
                         rc->BACK_REF_COUNT++;
                         rc->BACK_TYPES[ref_id] = VARIABLE_CLASS;
+#else
+                        rc->BACK_REF_COUNT++;
+                        rc->BACK_REFERENCES.reserve(ref_id + 1);
+                        rc->BACK_TYPES.reserve(ref_id + 1);
+                        rc->BACK_REFERENCES[ref_id] = str;
+                        rc->BACK_TYPES[ref_id] = VARIABLE_CLASS;
+#endif
                     }
                 }
                 int msize = 0;
@@ -2119,7 +2194,7 @@ int DoBin(RefContainer *rc, void *ConceptHandler, void *OwnerPTR = 0, int dry_ru
                     ref_id *= -1;
                     if ((ref_id > 0) && (ref_id <= MAX_OBJECTS)) {
                         ref_id--;
-                        LocalInvoker(INVOKE_SET_VARIABLE, OwnerPTR, (INTEGER)rc->BACK_TYPES[ref_id], rc->BACK_REFERENCES[ref_id], (NUMBER)0);
+                        LocalInvoker(INVOKE_SET_VARIABLE_WITH_GC, OwnerPTR, (INTEGER)rc->BACK_TYPES[ref_id], rc->BACK_REFERENCES[ref_id], (NUMBER)0);
                     }
                 }
             } else {
@@ -2133,9 +2208,17 @@ int DoBin(RefContainer *rc, void *ConceptHandler, void *OwnerPTR = 0, int dry_ru
                         LocalInvoker(INVOKE_GET_VARIABLE, OwnerPTR, &type, &str, &nvalue);
 
                         ref_id--;
+#ifdef NO_VECTORS
                         rc->BACK_REFERENCES[ref_id] = str;
                         rc->BACK_REF_COUNT++;
                         rc->BACK_TYPES[ref_id] = VARIABLE_ARRAY;
+#else
+                        rc->BACK_REF_COUNT++;
+                        rc->BACK_REFERENCES.reserve(ref_id + 1);
+                        rc->BACK_TYPES.reserve(ref_id + 1);
+                        rc->BACK_REFERENCES[ref_id] = str;
+                        rc->BACK_TYPES[ref_id] = VARIABLE_ARRAY;
+#endif
                     }
                 }
                 size = bin_read_size(rc);
