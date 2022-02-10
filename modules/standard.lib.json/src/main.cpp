@@ -6,6 +6,8 @@
 
 #define WITH_PARSON
 
+#define MAX_JSON_LEVEL   4096
+
 extern "C" {
     #include "JSON_checker.h"
 #ifdef WITH_PARSON
@@ -37,9 +39,9 @@ extern "C" {
 // Local variables         //
 //-------------------------//
 #ifdef WITH_PARSON
-    JSON_Value *do_array(void *arr, bool as_object = false);
+    JSON_Value *do_array(void *arr, bool as_object = false, int level = 0);
 #else
-    struct json_object *do_array(void *arr, bool as_object = false);
+    struct json_object *do_array(void *arr, bool as_object = false, int level = 0);
 
     #define JSON_NUMBER(my_elem, nData)                         \
         if (floor(nData) == nData) {                            \
@@ -64,13 +66,15 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //-----------------------------------------------------//
 #ifdef WITH_PARSON
-JSON_Value *do_object(void *pData, bool as_object = false) {
+JSON_Value *do_object(void *pData, bool as_object = false, int level = 0) {
     JSON_Value *my_obj = json_value_init_object();
     JSON_Object *my_elem = json_value_get_object(my_obj);
 #else
-struct json_object *do_object(void *pData, bool as_object = false) {
+struct json_object *do_object(void *pData, bool as_object = false, int level = 0) {
     struct json_object *my_obj = json_object_new_object();
 #endif
+    if (level >= MAX_JSON_LEVEL)
+        return my_obj;
     char *class_name           = 0;
 
     int members_count = InvokePtr(INVOKE_GET_SERIAL_CLASS, pData, (int)0, &class_name, (char **)0, (char *)0, (char *)0, (char *)0, (char **)0, (NUMBER *)0, (char *)0, (char *)0);
@@ -101,11 +105,11 @@ struct json_object *do_object(void *pData, bool as_object = false) {
                             break;
 
                         case VARIABLE_ARRAY:
-                            json_object_set_value(my_elem, (char *)(members[i] ? members[i] : ""), do_array(variable_data[i], as_object));
+                            json_object_set_value(my_elem, (char *)(members[i] ? members[i] : ""), do_array(variable_data[i], as_object, level + 1));
                             break;
 
                         case VARIABLE_CLASS:
-                            json_object_set_value(my_elem, (char *)(members[i] ? members[i] : ""), do_object((void *)class_data[i], as_object));
+                            json_object_set_value(my_elem, (char *)(members[i] ? members[i] : ""), do_object((void *)class_data[i], as_object, level + 1));
                             break;
 
                         default:
@@ -123,11 +127,11 @@ struct json_object *do_object(void *pData, bool as_object = false) {
                             break;
 
                         case VARIABLE_ARRAY:
-                            my_elem = do_array(variable_data[i], as_object);
+                            my_elem = do_array(variable_data[i], as_object, level + 1);
                             break;
 
                         case VARIABLE_CLASS:
-                            my_elem = do_object((void *)class_data[i], as_object);
+                            my_elem = do_object((void *)class_data[i], as_object, level + 1);
                             break;
 
                         default:
@@ -153,10 +157,10 @@ struct json_object *do_object(void *pData, bool as_object = false) {
 
 //-----------------------------------------------------//
 #ifdef WITH_PARSON
-JSON_Value *do_array(void *arr, bool as_object) {
+JSON_Value *do_array(void *arr, bool as_object, int level) {
     JSON_Value *my_obj = 0;
 #else
-struct json_object *do_array(void *arr, bool as_object) {
+struct json_object *do_array(void *arr, bool as_object, int level) {
     struct json_object *my_obj = 0;
 #endif
     void *newpData;
@@ -188,6 +192,8 @@ struct json_object *do_array(void *arr, bool as_object) {
     else
         my_obj = json_object_new_array();
 #endif
+    if (level >= MAX_JSON_LEVEL)
+        return my_obj;
 
     for (int i = 0; i < count; i++) {
         newpData = 0;
@@ -215,11 +221,11 @@ struct json_object *do_array(void *arr, bool as_object) {
                     break;
 
                 case VARIABLE_ARRAY:
-                    my_elem = do_array(newpData, as_object);
+                    my_elem = do_array(newpData, as_object, level + 1);
                     break;
 
                 case VARIABLE_CLASS:
-                    my_elem = do_object((void *)szData, as_object);
+                    my_elem = do_object((void *)szData, as_object, level + 1);
                     break;
 
                 default:
@@ -246,11 +252,11 @@ struct json_object *do_array(void *arr, bool as_object) {
                     break;
 
                 case VARIABLE_ARRAY:
-                    my_elem = do_array(newpData, as_object);
+                    my_elem = do_array(newpData, as_object, level + 1);
                     break;
 
                 case VARIABLE_CLASS:
-                    my_elem = do_object((void *)szData, as_object);
+                    my_elem = do_object((void *)szData, as_object, level + 1);
                     break;
 
                 default:
