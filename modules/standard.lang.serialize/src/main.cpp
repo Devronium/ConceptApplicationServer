@@ -1240,7 +1240,8 @@ CONCEPT_DLL_API CONCEPT_GetMember CONCEPT_API_PARAMETERS {
         int is_ok = IS_OK(Invoke(INVOKE_GET_CLASS_MEMBER, pData, membername, &TYPE, &szData, &nData));
         RETURN_NUMBER(is_ok);
         if (is_ok)
-            SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], TYPE, (char *)szData, nData);
+            // SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], TYPE, (char *)szData, nData);
+            Invoke(INVOKE_SET_VARIABLE_WITH_GC, LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], (INTEGER)TYPE, (char *)szData, nData);
         else {
             SET_NUMBER(2, 0);
         }
