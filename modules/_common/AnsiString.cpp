@@ -406,6 +406,9 @@ long AnsiString::Length() {
 
 long AnsiString::Pos(AnsiString substr) {
     long result = -1;
+    if ((!Data) || (!_LENGTH) || (!substr.Data) || (!substr._LENGTH))
+        return result;
+
     char *ptr   = strstr(Data, substr.c_str());
 
     if (ptr)
