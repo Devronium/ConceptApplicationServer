@@ -6619,6 +6619,9 @@ void ConceptInterpreter_DestroyGC(struct ConceptInterpreter *self, PIFAlizator *
         POOL = (VARPool *)POOL->NEXT;
     }
     //======================================================//
+    // see CompiledClass__GO_GARBAGE for details
+    __gc_obj.Call_All_Destructors(PIF);
+    //======================================================//
     __gc_obj.EndOfExecution_SayBye_Objects();
     __gc_array.EndOfExecution_SayBye_Arrays();
     __gc_vars.EndOfExecution_SayBye_Variables();

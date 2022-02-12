@@ -129,10 +129,12 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
             continue;
 
         CC->LINKS++;
-        if (CC->_Class->DESTRUCTOR)
-            CompiledClass_Destroy(CC, (PIFAlizator *)PIF);
 
-        CC->LINKS = -1;
+        // more efficient than calling CallAllDestructors, but it crashes with some cyclic object references
+        // if (CC->_Class->DESTRUCTOR)
+        //    CompiledClass_Destroy(CC, (PIFAlizator *)PIF);
+
+        // CC->LINKS = -1;
 
         if (CC->_CONTEXT) {
             const ClassCode *base = CC->_Class;
