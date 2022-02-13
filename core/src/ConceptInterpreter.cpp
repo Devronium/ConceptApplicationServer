@@ -6620,7 +6620,10 @@ void ConceptInterpreter_DestroyGC(struct ConceptInterpreter *self, PIFAlizator *
     }
     //======================================================//
     // see CompiledClass__GO_GARBAGE for details
+    char in_gc = PIF->in_gc;
+    PIF->in_gc = 1;
     __gc_obj.Call_All_Destructors(PIF);
+    PIF->in_gc = in_gc;
     //======================================================//
     __gc_obj.EndOfExecution_SayBye_Objects();
     __gc_array.EndOfExecution_SayBye_Arrays();
