@@ -1,4 +1,7 @@
 //#define FAST_EXIT_NO_GC_CALL
+// disable Tail Call Optimization (buggy)
+#define NO_TCO
+
 #include "ConceptInterpreter.h"
 #include "AnsiException.h"
 #include "ModuleLink.h"
@@ -6354,6 +6357,7 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
                     tco_cache = (VariableDATA **)FAST_MALLOC(PIF, sizeof(VariableDATA *) * ParamCount);
                     memset(tco_cache, 0, sizeof(VariableDATA *) * ParamCount);
                 }
+                LOCAL_CONTEXT_i -> LINKS ++;
                 tco_cache[i - 1] = LOCAL_CONTEXT_i;                
                 LOCAL_CONTEXT_i = (VariableDATA *)VAR_ALLOC(PIF);
                 LOCAL_CONTEXT [i] = LOCAL_CONTEXT_i;
@@ -6386,6 +6390,7 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
         INTEGER j;
         for (j = 0; j < ParamCount; j ++) {
             if (tco_cache[j]) {
+                tco_cache[j] -> LINKS --;
                 FREE_VARIABLE(tco_cache[j], STACK_TRACE);
             }
         }
