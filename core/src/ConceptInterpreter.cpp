@@ -6247,6 +6247,16 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
     VariableDATA **tco_cache = NULL;
     if (TAIL_CALL) {
         LOCAL_CONTEXT = TAIL_CALL;
+        if (ParamCount) {
+            INTEGER j;
+            tco_cache = (VariableDATA **)FAST_MALLOC(PIF, sizeof(VariableDATA *) * ParamCount);
+            for (j = 0; j < ParamCount; j ++) {
+                VariableDATA *ref = SenderCTX [DELTA_UNREF(FORMAL_PARAM, FORMAL_PARAM->PARAM_INDEX) [j] - 1];
+                tco_cache[j] = ref;
+                if (ref)
+                    ref -> LINKS ++;
+            }
+        }
     } else
 #endif
     {
@@ -6287,7 +6297,11 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
             LOCAL_CONTEXT[i] = (VariableDATA *)VAR_ALLOC(PIF);
  #endif
         RuntimeVariableDESCRIPTOR *TARGET = &DATA [i];
+#ifdef NO_TCO
         VariableDATA *sndr = SenderCTX [DELTA_UNREF(FORMAL_PARAM, FORMAL_PARAM->PARAM_INDEX) [i - 1] - 1];
+#else
+        VariableDATA *sndr = tco_cache ? tco_cache [i - 1] : SenderCTX [DELTA_UNREF(FORMAL_PARAM, FORMAL_PARAM->PARAM_INDEX) [i - 1] - 1];
+#endif
         if (TARGET->TYPE < 0) {
 #ifdef INLINE_PARAMETER_CHECK
             // validator !
@@ -6343,22 +6357,10 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
             LOCAL_CONTEXT [i] = LOCAL_CONTEXT_i;
 #endif
 #ifndef NO_TCO
-            if (TAIL_CALL) {
-                // Not sure about this...
-                // if (LOCAL_CONTEXT_i == PARAM)
-                //    continue;
-                // check if any parameter is reused
-                // foo("hello", "world") => foo("world", "hello");
-                if (tco_cache) {
-                    int index = DELTA_UNREF(FORMAL_PARAM, FORMAL_PARAM->PARAM_INDEX) [i - 1] - 2;
-                    if ((index >= 0) && (index < ParamCount) && (tco_cache[index]))
-                        PARAM = tco_cache[index];
-                } else {
-                    tco_cache = (VariableDATA **)FAST_MALLOC(PIF, sizeof(VariableDATA *) * ParamCount);
-                    memset(tco_cache, 0, sizeof(VariableDATA *) * ParamCount);
-                }
-                LOCAL_CONTEXT_i -> LINKS ++;
-                tco_cache[i - 1] = LOCAL_CONTEXT_i;                
+            if (tco_cache) {
+                int index = DELTA_UNREF(FORMAL_PARAM, FORMAL_PARAM->PARAM_INDEX) [i - 1] - 2;
+                if ((index >= 0) && (index < ParamCount) && (tco_cache[index]))
+                    PARAM = tco_cache[index];
                 LOCAL_CONTEXT_i = (VariableDATA *)VAR_ALLOC(PIF);
                 LOCAL_CONTEXT [i] = LOCAL_CONTEXT_i;
             }
