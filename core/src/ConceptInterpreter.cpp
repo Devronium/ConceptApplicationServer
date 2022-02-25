@@ -6245,6 +6245,7 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
 
 #ifndef NO_TCO
     VariableDATA **tco_cache = NULL;
+    bool tco_ref = false;
     if (TAIL_CALL) {
         LOCAL_CONTEXT = TAIL_CALL;
         if (ParamCount) {
@@ -6338,6 +6339,7 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
         if ((TARGET->BY_REF) && (sndr->IS_PROPERTY_RESULT != -1)) {
 #ifdef POOL_BLOCK_ALLOC
 #ifndef NO_TCO
+            tco_ref = true;
             if (TAIL_CALL) {
                 FREE_VARIABLE(LOCAL_CONTEXT [i], STACK_TRACE);
             } else
@@ -6391,11 +6393,10 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
         }
     }
 #ifndef NO_TCO
-    if (tco_cache) {
+    if ((tco_cache) && (!tco_ref)) {
         INTEGER j;
         for (j = 0; j < ParamCount; j ++) {
             if (tco_cache[j]) {
-                tco_cache[j] -> LINKS --;
                 FREE_VARIABLE(tco_cache[j], STACK_TRACE);
             }
         }
@@ -6455,6 +6456,16 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
             LOCAL_CONTEXT_i->CLASS_DATA = new_Array(PIF, true);
         } else
             LOCAL_CONTEXT_i->CLASS_DATA = NULL;
+    }
+    if (tco_cache) {
+        INTEGER j;
+        for (j = 0; j < ParamCount; j ++) {
+            if (tco_cache[j]) {
+                FREE_VARIABLE(tco_cache[j], STACK_TRACE);
+            }
+        }
+        FAST_FREE(PIF, tco_cache);
+        tco_cache = NULL;
     }
     CC_WRITE_UNLOCK(PIF)
     return LOCAL_CONTEXT;
