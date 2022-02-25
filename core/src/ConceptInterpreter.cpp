@@ -6361,14 +6361,13 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
                 int index = DELTA_UNREF(FORMAL_PARAM, FORMAL_PARAM->PARAM_INDEX) [i - 1] - 2;
                 if ((index >= 0) && (index < ParamCount) && (tco_cache[index]))
                     PARAM = tco_cache[index];
-
-                if (LOCAL_CONTEXT_i -> LINKS > 1) {
-                    FREE_VARIABLE(LOCAL_CONTEXT_i, STACK_TRACE);
-                    LOCAL_CONTEXT_i = (VariableDATA *)VAR_ALLOC(PIF);
-                    LOCAL_CONTEXT [i] = LOCAL_CONTEXT_i;
-                }
             }
 #endif
+            if ((TAIL_CALL) && (LOCAL_CONTEXT_i -> LINKS > 1)) {
+                FREE_VARIABLE(LOCAL_CONTEXT_i, STACK_TRACE);
+                LOCAL_CONTEXT_i = (VariableDATA *)VAR_ALLOC(PIF);
+                LOCAL_CONTEXT [i] = LOCAL_CONTEXT_i;
+            }
 
             LOCAL_CONTEXT_i->TYPE  = PARAM->TYPE;
             LOCAL_CONTEXT_i->LINKS = 1;
