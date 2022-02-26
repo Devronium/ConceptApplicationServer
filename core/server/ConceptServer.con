@@ -1832,7 +1832,8 @@ pragma used
 		n = UnBinarizeObject(n);
 		WorkerName = n[0];
 		Framework = this.IniGetPath(n[1], "Paths", "Include") + JS_FRAMEWORK;
-		ExcludeSandbox = trim(IniGet(n[1], "Run", "ExcludeFromSandbox", ""));
+		if (CONCEPT_CAS_SANDBOX)
+			ExcludeSandbox = trim(IniGet(n[1], "Run", "ExcludeFromSandbox", ""));
 		var empty_iterations;
 		var sleep_value;
 		while (true)
