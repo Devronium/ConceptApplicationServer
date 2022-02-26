@@ -14,7 +14,7 @@ define CONCEPT_STRICT_EXECUTE	false
 define SERVER_NAME		"cas"
 define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/cgi1.1/http2/ess/async)"
 define USE_DB_SERVICE		true
-define CONCEPT_LEGACY_PROTOCOL	false
+define CONCEPT_LEGACY_PROTOCOL	true
 define CONCEPT_ENABLE_REWRITE	true
 define CONCEPT_APP_SANDBOX	false
 define CONCEPT_CAS_SANDBOX	CONCEPT_APP_SANDBOX
@@ -60,11 +60,18 @@ class ServerUtils {
 	}
 
 	static Sandboxed(Owner, fname, IsSandbox, log = false) {
-		if (IsSandbox) {
+		if ((IsSandbox) && (Owner)) {
 			var exclude_sandbox = Owner.IniKey("Run", "ExcludeFromSandbox", "");
 			if (exclude_sandbox)
 				return ServerUtils::SandboxedPath(exclude_sandbox, fname, IsSandbox, log);
 		}
+		return IsSandbox;
+	}
+
+	static Sandboxed2(exclude_sandbox, fname, IsSandbox, log = false) {
+		if ((IsSandbox) && (exclude_sandbox))
+			return ServerUtils::SandboxedPath(exclude_sandbox, fname, IsSandbox, log);
+
 		return IsSandbox;
 	}
 }
@@ -1567,6 +1574,7 @@ pragma used
 	protected var[] Children;
 	protected var Placeholders;
 	protected var Framework = "";
+	protected var ExcludeSandbox;
 
 	CreateEnv(Socket, job, scriptname = "javascript") {
 		var info = Socket.Info;
@@ -1577,7 +1585,7 @@ pragma used
 
 		var IsSandbox = false;
 		if (CONCEPT_CAS_SANDBOX)
-			IsSandbox = ServerUtils::Sandboxed(this, job.app, CONCEPT_CAS_SANDBOX);
+			IsSandbox = ServerUtils::Sandboxed2(this.ExcludeSandbox, job.app, CONCEPT_CAS_SANDBOX);
 
 		var env = [
 				"DOCUMENT_ROOT": job.root,
@@ -1648,7 +1656,7 @@ pragma used
 		var headers = job.headers;
 		var IsSandbox = false;
 		if (CONCEPT_CAS_SANDBOX)
-			IsSandbox = ServerUtils::Sandboxed(this, job.app, CONCEPT_CAS_SANDBOX);
+			IsSandbox = ServerUtils::Sandboxed2(this.ExcludeSandbox, job.app, CONCEPT_CAS_SANDBOX);
 		var env = [
 				"DOCUMENT_ROOT=" + job.root,
 				"GATEWAY_INTERFACE=CGI/1.1",
@@ -1824,6 +1832,7 @@ pragma used
 		n = UnBinarizeObject(n);
 		WorkerName = n[0];
 		Framework = this.IniGetPath(n[1], "Paths", "Include") + JS_FRAMEWORK;
+		ExcludeSandbox = trim(IniGet(n[1], "Run", "ExcludeFromSandbox", ""));
 		var empty_iterations;
 		var sleep_value;
 		while (true)

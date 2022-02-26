@@ -5333,8 +5333,9 @@ class ConceptServer extends RewriteContainer extends IniCache {
 				this.TLSWSSocket = new TLSESocket();
 			}
 		}
-		if (!this.Socket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128)) {
-			this.WSSocket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
+		if ((this.Socket) && (!this.Socket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128))) {
+			if (this.WSSocket)
+				this.WSSocket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
 			if (this.TLSWSSocket)
 				this.TLSWSSocket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
 			console.info(LOG_THIS, "TCP fast open enabled");
