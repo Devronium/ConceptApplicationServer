@@ -381,7 +381,7 @@ void *AllocClassObject(void *PIF) {
         }
     }
 #endif
-    ClassPool * POOL = (ClassPool *)((PIFAlizator *)PIF)->CLASSPOOL;
+    ClassPool *POOL = (ClassPool *)((PIFAlizator *)PIF)->CLASSPOOL;
     ClassPool *NEXT_POOL;
     int       i;
     ((PIFAlizator *)PIF)->object_count++;

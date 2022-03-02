@@ -2074,7 +2074,7 @@ int FilterContains(RefContainer *rc, AnsiString *name) {
     return 1;
 }
 
-int DoBin(RefContainer *rc, void *ConceptHandler, void *OwnerPTR = 0, int dry_run = 0) {
+int DoBin(RefContainer *rc, void *ConceptHandler, void *OwnerPTR, int dry_run = 0) {
     int type;
 
     do {
