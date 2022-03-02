@@ -460,6 +460,7 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     this->is_buffer          = 0;
     this->fixed_class_count  = 0;
     this->in_gc              = 0;
+    this->skip_reachability  = 0;
     this->TSClassCount       = 0;
     this->Workers            = 0;
     this->log_context        = 0;

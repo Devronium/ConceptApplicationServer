@@ -938,6 +938,11 @@ int CheckReachability(void *PIF, bool skip_top) {
     if ((!PIF) || (!((PIFAlizator *)PIF)->RootInstance) || (((PIFAlizator *)PIF)->in_gc))
         return 0;
 
+    if (((PIFAlizator *)PIF)->skip_reachability) {
+        ((PIFAlizator *)PIF)->skip_reachability = 2;
+        return 0;
+    }
+
     ((PIFAlizator *)PIF)->in_gc = 1;
     int res = 0;
     //ALLOC_LOCK
@@ -1082,6 +1087,8 @@ int CheckReachability(void *PIF, bool skip_top) {
         }
         ARRAYPOOL = (ArrayPool *)ARRAYPOOL->NEXT;
     }
+    //======================================================//
+    __gc_obj.Call_All_Destructors(PIF);
     __gc_obj.EndOfExecution_SayBye_Objects();
     __gc_array.EndOfExecution_SayBye_Arrays();
     __gc_vars.EndOfExecution_SayBye_Variables();

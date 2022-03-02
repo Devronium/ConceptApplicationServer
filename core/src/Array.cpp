@@ -845,7 +845,7 @@ void Array_GO_GARBAGE(struct Array *self, void *PIF, GarbageCollector *__gc_obj,
         return;
 
     bool single_link = ((main_call) && (self->LINKS == 1));
-    self->LINKS = -1;
+    self->LINKS ++;//= -1;
     NODE *CURRENT = self->FIRST;
 
     for (ARRAY_COUNT_TYPE i = 0; i < self->NODE_COUNT; i++) {

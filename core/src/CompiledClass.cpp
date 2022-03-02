@@ -120,7 +120,7 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
     int           inspectSize = INITIAL_INSPECT_SIZE;
     struct CompiledClass **toInspect = (struct CompiledClass **)realloc(NULL, sizeof(struct CompiledClass *) * inspectSize);
     toInspect[0] = self;
-    self->LINKS = 1;
+    // self->LINKS = 1;
     int inspectPos = 1;
 
     for (int j = 0; j < inspectPos; j++) {
@@ -185,7 +185,9 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
                                     ((struct Array *)Var->CLASS_DATA)->reachable = check_objects;
                                 __gc_array->Reference(Var->CLASS_DATA);
                                 Array_GO_GARBAGE((struct Array *)Var->CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
+                                // ensure never visited again
                                 Var->CLASS_DATA = 0;
+                                Var->TYPE = VARIABLE_NUMBER; 
                             } else {
                                 RESET_VARIABLE(Var, NULL);
                             }

@@ -347,7 +347,7 @@ class EventLoop {
 		if (socket <= 0)
 			socket = e.socket;
 
-		if (PollRemove(pollfd, socket))
+		if ((socket > 0) && (PollRemove(pollfd, socket)))
 			console.error(LOG_THIS, "error in PollRemove");
 
 		if (e.socket > 0) {

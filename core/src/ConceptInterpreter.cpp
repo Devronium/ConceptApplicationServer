@@ -3319,11 +3319,18 @@ nothrow:
                             }
                             STACK(STACK_TRACE, OE->Operator_DEBUG_INFO_LINE)
                             WRITE_UNLOCK
+                            char skip_reachability = PIF->skip_reachability;
+                            PIF->skip_reachability = 1;
                             try {
                                 STATIC_ERROR = (char *)((EXTERNAL_CALL)(PIF->StaticLinks [OE->OperandRight_ID - 1]))(&FORMAL_PARAMETERS2, LOCAL_CONTEXT, LOCAL_CONTEXT [OE->Result_ID - 1], SetVariable, GetVariable, PIF->out->sock, PIF->SERVER_PUBLIC_KEY, PIF->SERVER_PRIVATE_KEY, PIF->CLIENT_PUBLIC_KEY, SetClassMember, GetClassMember, Invoke);
                             } catch (...) {
                                 PIF->RunTimeError(690, ERR690, OE, THIS_REF->OWNER, STACK_TRACE);
                             }
+#ifndef SIMPLE_MULTI_THREADING
+                            if (PIF->skip_reachability == 2)
+                                CheckReachability(PIF);
+#endif
+                            PIF->skip_reachability = skip_reachability;
                             WRITE_LOCK
                             UNSTACK;
                             if (STATIC_ERROR) {
@@ -5770,11 +5777,18 @@ call_label:
                         }
                         STACK(STACK_TRACE, OE->Operator_DEBUG_INFO_LINE)
                         WRITE_UNLOCK
+                        char skip_reachability = PIF->skip_reachability;
+                        PIF->skip_reachability = 1;
                         try {
                             STATIC_ERROR = (char *)((EXTERNAL_CALL)(PIF->StaticLinks [OE->OperandRight_ID - 1]))(&FORMAL_PARAMETERS2, LOCAL_CONTEXT, LOCAL_CONTEXT [OE->Result_ID - 1], SetVariable, GetVariable, PIF->out->sock, PIF->SERVER_PUBLIC_KEY, PIF->SERVER_PRIVATE_KEY, PIF->CLIENT_PUBLIC_KEY, SetClassMember, GetClassMember, Invoke);
                         } catch (...) {
                             PIF->RunTimeError(690, ERR690, OE, self->OWNER, STACK_TRACE);
                         }
+#ifndef SIMPLE_MULTI_THREADING
+                        if (PIF->skip_reachability == 2)
+                            CheckReachability(PIF);
+#endif
+                        PIF->skip_reachability = skip_reachability;
                         WRITE_LOCK
                         UNSTACK;
                         if (STATIC_ERROR) {
