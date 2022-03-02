@@ -3327,7 +3327,7 @@ nothrow:
                                 PIF->RunTimeError(690, ERR690, OE, THIS_REF->OWNER, STACK_TRACE);
                             }
 #ifndef SIMPLE_MULTI_THREADING
-                            if (PIF->skip_reachability == 2)
+                            if ((PIF->skip_reachability == 2) && (!skip_reachability))
                                 CheckReachability(PIF);
 #endif
                             PIF->skip_reachability = skip_reachability;
@@ -5785,7 +5785,7 @@ call_label:
                             PIF->RunTimeError(690, ERR690, OE, self->OWNER, STACK_TRACE);
                         }
 #ifndef SIMPLE_MULTI_THREADING
-                        if (PIF->skip_reachability == 2)
+                        if ((PIF->skip_reachability == 2) && (!skip_reachability))
                             CheckReachability(PIF);
 #endif
                         PIF->skip_reachability = skip_reachability;
