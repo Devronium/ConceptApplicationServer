@@ -350,7 +350,6 @@ void *AllocVAR(void *PIF) {
 int ModuleCheckReachability(void *PIF) {
 #ifndef SIMPLE_MULTI_THREADING
     if (CheckReachability(PIF)) {
-        ((PIFAlizator *)PIF)->dirty_limit = 1000;
         VarClean((PIFAlizator *)PIF, 0);
         return 1;
     }
@@ -366,10 +365,7 @@ void *AllocClassObject(void *PIF) {
     if (PIF) {
         int delta = ((PIFAlizator *)PIF)->object_count - ((PIFAlizator *)PIF)->last_gc_run;
         if (delta >= ((PIFAlizator *)PIF)->dirty_limit) {
-            if (CheckReachability(PIF)) {
-                // bad programmer, bad !
-                ((PIFAlizator *)PIF)->dirty_limit = 1000;
-            } else {
+            if (!CheckReachability(PIF)) {
                 // good boy, good programmer
                 if (((PIFAlizator *)PIF)->dirty_limit < DIRTY_LIMIT) {
                     ((PIFAlizator *)PIF)->dirty_limit *= 3;
@@ -533,10 +529,7 @@ void *AllocArray(void *PIF, bool skip_top) {
 #ifndef SIMPLE_MULTI_THREADING
     int delta = ((PIFAlizator *)PIF)->object_count - ((PIFAlizator *)PIF)->last_gc_run;
     if ((delta >= ((PIFAlizator *)PIF)->dirty_limit) && (!skip_top)) {
-        if (CheckReachability(PIF, skip_top)) {
-            // bad programmer, bad !
-            ((PIFAlizator *)PIF)->dirty_limit = 1000;
-        } else {
+        if (!CheckReachability(PIF, skip_top)) {
             // good boy, good programmer
             if (((PIFAlizator *)PIF)->dirty_limit < DIRTY_LIMIT) {
                 ((PIFAlizator *)PIF)->dirty_limit *= 2;
@@ -1095,6 +1088,9 @@ int CheckReachability(void *PIF, bool skip_top) {
     //ALLOC_UNLOCK
     ((PIFAlizator *)PIF)->in_gc = 0;
     ((PIFAlizator *)PIF)->last_gc_run = ((PIFAlizator *)PIF)->object_count;
+
+    if (res > ((PIFAlizator *)PIF)->dirty_limit / 10)
+        ((PIFAlizator *)PIF)->dirty_limit = 1000;
     return res;
 }
 

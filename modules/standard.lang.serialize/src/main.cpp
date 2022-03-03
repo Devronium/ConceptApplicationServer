@@ -2151,8 +2151,12 @@ int DoBin(RefContainer *rc, void *ConceptHandler, void *OwnerPTR, int dry_run = 
                         rc->BACK_TYPES[ref_id] = VARIABLE_CLASS;
 #else
                         rc->BACK_REF_COUNT++;
-                        rc->BACK_REFERENCES.reserve(ref_id + 1);
-                        rc->BACK_TYPES.reserve(ref_id + 1);
+                        if (rc->BACK_REFERENCES.size() < ref_id + 1)
+                            rc->BACK_REFERENCES.resize(ref_id + 1, NULL);
+
+                        if (rc->BACK_TYPES.size() < ref_id + 1)
+                            rc->BACK_TYPES.resize(ref_id + 1, 0);
+
                         rc->BACK_REFERENCES[ref_id] = str;
                         rc->BACK_TYPES[ref_id] = VARIABLE_CLASS;
 #endif
@@ -2215,8 +2219,11 @@ int DoBin(RefContainer *rc, void *ConceptHandler, void *OwnerPTR, int dry_run = 
                         rc->BACK_TYPES[ref_id] = VARIABLE_ARRAY;
 #else
                         rc->BACK_REF_COUNT++;
-                        rc->BACK_REFERENCES.reserve(ref_id + 1);
-                        rc->BACK_TYPES.reserve(ref_id + 1);
+                        if (rc->BACK_REFERENCES.size() < ref_id + 1)
+                            rc->BACK_REFERENCES.resize(ref_id + 1, NULL);
+
+                        if (rc->BACK_TYPES.size() < ref_id + 1)
+                            rc->BACK_TYPES.resize(ref_id + 1, 0);
                         rc->BACK_REFERENCES[ref_id] = str;
                         rc->BACK_TYPES[ref_id] = VARIABLE_ARRAY;
 #endif
