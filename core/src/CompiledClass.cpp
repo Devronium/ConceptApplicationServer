@@ -163,14 +163,16 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
                                 if ((check_objects == -1) || ((CC2->reachable & check_objects) != check_objects)) {
                                     if (check_objects != -1)
                                         CC2->reachable = check_objects;
-                                    __gc_obj->Reference(CC2);
-                                    if (CC2->_CONTEXT) {
-                                        if (inspectPos < inspectSize)
-                                            toInspect[inspectPos++] = CC2;
-                                        else {
-                                            inspectSize            += INSPECT_INCREMENT;
-                                            toInspect               = (struct CompiledClass **)realloc(toInspect, sizeof(struct CompiledClass *) * inspectSize);
-                                            toInspect[inspectPos++] = CC2;
+                                    if (!__gc_obj->IsReferenced(CC2)) {
+                                        __gc_obj->Reference(CC2);
+                                        if (CC2->_CONTEXT) {
+                                            if (inspectPos < inspectSize)
+                                                toInspect[inspectPos++] = CC2;
+                                            else {
+                                                inspectSize            += INSPECT_INCREMENT;
+                                                toInspect               = (struct CompiledClass **)realloc(toInspect, sizeof(struct CompiledClass *) * inspectSize);
+                                                toInspect[inspectPos++] = CC2;
+                                            }
                                         }
                                     }
                                 } else {
@@ -178,16 +180,19 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
                                 }
                             }
                             Var->CLASS_DATA = 0;
+                            Var->TYPE = VARIABLE_NUMBER;
                         } else
                         if (Var->TYPE == VARIABLE_ARRAY) {
                             if ((check_objects == -1) || ((((struct Array *)Var->CLASS_DATA)->reachable & check_objects) != check_objects)) {
                                 if (check_objects != -1)
                                     ((struct Array *)Var->CLASS_DATA)->reachable = check_objects;
-                                __gc_array->Reference(Var->CLASS_DATA);
-                                Array_GO_GARBAGE((struct Array *)Var->CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
-                                // ensure never visited again
-                                Var->CLASS_DATA = 0;
-                                Var->TYPE = VARIABLE_NUMBER; 
+                                if (!__gc_array->IsReferenced(Var->CLASS_DATA)) {
+                                    __gc_array->Reference(Var->CLASS_DATA);
+                                    Array_GO_GARBAGE((struct Array *)Var->CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
+                                    // ensure never visited again
+                                    Var->CLASS_DATA = 0;
+                                    Var->TYPE = VARIABLE_NUMBER; 
+                                }
                             } else {
                                 RESET_VARIABLE(Var, NULL);
                             }

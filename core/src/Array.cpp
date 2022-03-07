@@ -877,16 +877,22 @@ void Array_GO_GARBAGE(struct Array *self, void *PIF, GarbageCollector *__gc_obj,
                             Var->NUMBER_DATA = 0;
                         }
                         if ((check_objects == -1) || ((((struct CompiledClass *)CLASS_DATA)->reachable & check_objects) != check_objects)) {
-                            __gc_obj->Reference(CLASS_DATA);
-                            CompiledClass__GO_GARBAGE((struct CompiledClass *)CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
+                            if (!__gc_obj->IsReferenced(CLASS_DATA)) {
+                                __gc_obj->Reference(CLASS_DATA);
+                                CompiledClass__GO_GARBAGE((struct CompiledClass *)CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
+                            }
                         } else {
                             RESET_VARIABLE(Var, NULL);
                         }
                     } else
                     if (Var->TYPE == VARIABLE_ARRAY) {
                         if ((check_objects == -1) || ((((struct Array *)Var->CLASS_DATA)->reachable & check_objects) != check_objects)) {
-                            __gc_array->Reference(Var->CLASS_DATA);
-                            Array_GO_GARBAGE((struct Array *)Var->CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
+                            if (!__gc_array->IsReferenced(Var->CLASS_DATA)) {
+                                __gc_array->Reference(Var->CLASS_DATA);
+                                Array_GO_GARBAGE((struct Array *)Var->CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
+                                Var->TYPE = VARIABLE_NUMBER;
+                                Var->NUMBER_DATA = 0;
+                            }
                         } else {
                             RESET_VARIABLE(Var, NULL);
                         }
