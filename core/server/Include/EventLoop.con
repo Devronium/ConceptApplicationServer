@@ -447,14 +447,14 @@ class EventLoop {
 		} else {
 			if (this.iotimeout_objects)
 				this.__timedout();
-			if (timeout > 0) {
-				var elapsed = Date.now() - start;
-				if (elapsed < timeout - 2) {
-					var sleep_val = timeout - elapsed;
-					if (sleep_val > 50)
-						sleep_val = 50;
-					Sleep(sleep_val);
-				}
+		}
+		if (timeout > 0) {
+			var elapsed = Date.now() - start;
+			if (elapsed < timeout - 2) {
+				var sleep_val = timeout - elapsed;
+				if (sleep_val > 50)
+					sleep_val = 50;
+				Sleep(sleep_val);
 			}
 		}
 		// if (Date.now() - this.__recreate_timestamp >= 600000)

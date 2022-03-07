@@ -169,6 +169,12 @@ class Worker {
 		return ThreadIsActive(_workerthread);
 	}
 
+	MemoryInfo() {
+		if (!_workerthread)
+			return [ ];
+		return WorkerMemoryInfo(_workerobj);
+	}
+
 	finalize() {
 		this.Join();
 	}
