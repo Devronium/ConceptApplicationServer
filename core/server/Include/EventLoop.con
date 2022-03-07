@@ -137,6 +137,7 @@ class EventLoop {
 	protected var running;
 	protected var cpu_sleep;
 	protected var iotimeout_objects;
+	protected var iotimeout_expires;
 	protected var __recreate_timestamp;
 
 	public var pollfd;
@@ -378,6 +379,7 @@ class EventLoop {
 		}
 		this.socketevents = socketevents2;
 		this.iotimeout_objects = iotimeout_objects2;
+		this.iotimeout_expires = Date.now() + 10 * MAX_CPU_SLEEP;
 	}
 
 	protected __timedout() {
@@ -391,6 +393,7 @@ class EventLoop {
 				}
 			}
 		}
+		this.iotimeout_expires = Date.now() + 10 * MAX_CPU_SLEEP;
 	}
 
 	protected __exec(outsockets, write_event) {
@@ -431,34 +434,41 @@ class EventLoop {
 		return remove_sockets;
 	}
 
+	protected PollSleep(timeout) {
+		var start = Date.now();
+		var remove_sockets = 0;
+		var io_events = 0;
+		do {
+			var outsockets = PollWait(pollfd, timeout, var write_sockets);
+			if ((outsockets) || (write_sockets)) {
+				io_events ++;
+				if (outsockets)
+					remove_sockets += this.__exec(outsockets, false);
+				if (write_sockets)
+					remove_sockets += this.__exec(write_sockets, true);
+			} else {
+				break;
+			}
+			var elapsed = Date.now() - start;
+			timeout -= elapsed;
+		} while (timeout > 2);
+
+		if (remove_sockets)
+			this.__remove_sockets();
+
+		if ((this.iotimeout_objects) && (this.iotimeout_expires < Date.now()))
+			this.__timedout();
+
+		elapsed = Date.now() - start;
+
+		return io_events;
+	}
+
 	protected __poll(timeout) {
 		if (timeout < this.minSleep)
 			timeout = this.minSleep;
-		var start = Date.now();
-		var outsockets = PollWait(pollfd, timeout, var write_sockets);
-		if ((outsockets) || (write_sockets)) {
-			var remove_sockets = 0;
-			if (outsockets)
-				remove_sockets += this.__exec(outsockets, false);
-			if (write_sockets)
-				remove_sockets += this.__exec(write_sockets, true);
-			if (remove_sockets)
-				this.__remove_sockets();
-		} else {
-			if (this.iotimeout_objects)
-				this.__timedout();
-		}
-		if (timeout > 0) {
-			var elapsed = Date.now() - start;
-			if (elapsed < timeout - 2) {
-				var sleep_val = timeout - elapsed;
-				if (sleep_val > 50)
-					sleep_val = 50;
-				Sleep(sleep_val);
-			}
-		}
-		// if (Date.now() - this.__recreate_timestamp >= 600000)
-		// 	this.__recreate();
+
+		PollSleep(timeout);
 	}
 
 	run() {
