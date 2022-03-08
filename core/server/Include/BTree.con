@@ -986,7 +986,7 @@ class BTreeFile {
 		return res;
 	}
 
-	protected Find(var val, var found, start = 0, limit = 1, extra_validation = null, user_data = null) {
+	protected Find(val, var found, start = 0, limit = 1, extra_validation = null, user_data = null) {
 		var page = ReadPage(var elements);
 		if ((page) && (elements > 0)) {
 			var compare = this.compare;
