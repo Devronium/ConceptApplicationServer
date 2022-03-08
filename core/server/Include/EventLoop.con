@@ -451,14 +451,18 @@ class EventLoop {
 				if (write_sockets)
 					remove_sockets += this.__exec(write_sockets, true);
 
-				if ((io_events > 1) && (!outsockets)) {
+				if ((io_events == 2) && (!outsockets)) {
 					// set it to edge-trigger mode
 					for (i = 0; i < length write_sockets; i ++) {
 						sock = write_sockets[i];
-						PollUpdate(pollfd, sock, POLL_READ | POLL_WRITE | POLL_ET);
+						PollUpdate(pollfd, sock, POLL_READ);
 						et_sockets["" + sock] = sock;
 					}
+					if (timeout > 24)
+						timeout = 24;
 				}
+				if (remove_sockets)
+					break;
 			} else {
 				break;
 			}
