@@ -79,12 +79,11 @@ public:
 #endif
 
     int Add(int efd, int mode) {
-#ifdef WITH_KQUEUE
-        struct kevent event;
-        EV_SET(&event, efd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, 0);
-        return kevent(fd, &event, 1, NULL, 0, NULL);
-#endif
 #ifdef WITH_POLL
+        int poll_et = 0;
+        if (mode & 4)
+            poll_et = POLLET;
+
         if (chlist_pos <= chlist_len) {
             chlist_len += 64;
             chlist = (struct pollfd *)realloc(chlist, sizeof(struct pollfd) * chlist_len);
@@ -92,21 +91,21 @@ public:
         if (!chlist)
             return -2;
         chlist[chlist_pos].fd = efd;
-        switch (mode) {
+        switch (mode & 3) {
             case 1:
-                chlist[chlist_pos].events = POLLOUT;
+                chlist[chlist_pos].events = POLLOUT | poll_et;
                 break;
             case 3:
-                chlist[chlist_pos].events = POLLIN | POLLPRI | POLLOUT;
+                chlist[chlist_pos].events = POLLIN | POLLPRI | POLLOUT | poll_et;
                 break;
             default:
-                chlist[chlist_pos].events = POLLIN | POLLPRI;
+                chlist[chlist_pos].events = POLLIN | POLLPRI | poll_et;
         }
         chlist[chlist_pos].revents = 0;
         chlist_pos++;
 #endif
 #ifdef WITH_SELECT
-        switch (mode) {
+        switch (mode & 3) {
             case 1:
                 FD_SET(efd, &outlist);
                 break;
@@ -121,32 +120,53 @@ public:
         return 0;
     }
 
-    int Wait(INVOKE_CALL Invoke, void *RESULT, int timeout, void *OUT_SOCKETS) {
-#ifdef WITH_KQUEUE
-        int maxevents = POLL_MAX_EVENTS;
-        struct kevent *events = (struct kevent *)malloc(sizeof(struct kevent) * maxevents);
-        if (!events)
-            return -1;
-        struct timespec timeout_spec;
-        if (timeout > 0) {
-            timeout_spec.tv_sec = timeout / 1000;
-            timeout_spec.tv_nsec = (timeout % 1000) * 1000;
+    int Update(int efd, int mode) {
+#ifdef WITH_POLL
+        if (chlist_pos <= chlist_len) {
+            chlist_len += 64;
+            chlist = (struct pollfd *)realloc(chlist, sizeof(struct pollfd) * chlist_len);
         }
-        int nev = kevent(fd, NULL, 0, events, maxevents, (timeout > 0) ? &timeout_spec : NULL);
-        INTEGER index = 0;
-        INTEGER out_index = 0;
-        for (INTEGER i = 0; i < nev; i++) {
-            if ((OUT_SOCKETS) && (events[i].filter == EVFILT_WRITE)) {
-                Invoke(INVOKE_SET_ARRAY_ELEMENT, OUT_SOCKETS, out_index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)events[i].ident); 
-            } else {
-                Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)events[i].ident); 
+        if (!chlist)
+            return -2;
+        int poll_et = 0;
+        if (mode & 4)
+            poll_et = POLLET;
+        for (int i = 0; i < chlist_pos; i ++) {
+            if (chlist[i].fd == efd) {
+                switch (mode & 3) {
+                    case 1:
+                        chlist[chlist_pos].events = POLLOUT | poll_et;
+                        break;
+                    case 3:
+                        chlist[chlist_pos].events = POLLIN | POLLPRI | POLLOUT | poll_et;
+                        break;
+                    default:
+                        chlist[chlist_pos].events = POLLIN | POLLPRI | poll_et;
+                }
+                return 0;
             }
         }
-
-        free(events);
-
-        return nev;
 #endif
+#ifdef WITH_SELECT
+        switch (mode & 3) {
+            case 1:
+                FD_SET(efd, &outlist);
+                FD_CLR(efd, &chlist);
+                break;
+            case 3:
+                FD_SET(efd, &chlist);
+                FD_SET(efd, &outlist);
+                break;
+            default:
+                FD_SET(efd, &chlist);
+                FD_CLR(efd, &outlist);
+        }
+        return 0;
+#endif
+        return -1;
+    }
+
+    int Wait(INVOKE_CALL Invoke, void *RESULT, int timeout, void *OUT_SOCKETS) {
 #ifdef WITH_SELECT
         struct timeval tout;
         tout.tv_sec = 0;
@@ -218,16 +238,6 @@ public:
     }
 
     int Remove(int efd) {
-#ifdef WITH_KQUEUE
-        struct kevent event;
-        EV_SET(&event, efd, EVFILT_READ, EV_DELETE, 0, 0, 0);
-        int err1 = kevent(fd, &event, 1, NULL, 0, NULL);
-        EV_SET(&event, efd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
-        int err2 = kevent(fd, &event, 1, NULL, 0, NULL);
-        if ((err1) && (err2))
-            return -1;
-        return 0;
-#endif
 #ifdef WITH_POLL
         if ((chlist_pos) && (chlist)) {
             for (int i = 0; i < chlist_pos; i++) {
@@ -275,6 +285,7 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     DEFINE_SCONSTANT("POLL_WRITE",  "1");
     DEFINE_SCONSTANT("POLL_READ",   "2");
     DEFINE_SCONSTANT("POLL_RW",     "3");
+    DEFINE_SCONSTANT("POLL_ET",     "4");
     return 0;
 }
 //=====================================================================================//
@@ -329,6 +340,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollAdd, 2, 3)
         T_NUMBER(PollAdd, 2);
         mode = PARAM_INT(2);
     }
+
 #ifdef WITH_SELECT_POLL
     T_HANDLE(PollAdd, 0);
     PollContainer *efd = (PollContainer *)(SYS_INT)PARAM(0);
@@ -339,20 +351,25 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollAdd, 2, 3)
     T_NUMBER(PollAdd, 0);
     int efd = PARAM_INT(0);
     if ((fd > 0) && (efd > 0)) {
+        int poll_et = 0;
 #ifdef WITH_KQUEUE
         struct kevent events[2];
         int num_events = 1;
-        switch (mode) {
+
+        if (mode & 4)
+            poll_et = EV_CLEAR;
+
+        switch (mode & 3) {
             case 1:
-                EV_SET(&events[0], fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
+                EV_SET(&events[0], fd, EVFILT_WRITE, EV_ADD | EV_ENABLE | poll_et, 0, 0, 0);
                 break;
             case 3:
-                EV_SET(&events[0], fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, 0);
-                EV_SET(&events[1], fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
+                EV_SET(&events[0], fd, EVFILT_READ, EV_ADD | EV_ENABLE | poll_et, 0, 0, 0);
+                EV_SET(&events[1], fd, EVFILT_WRITE, EV_ADD | EV_ENABLE | poll_et, 0, 0, 0);
                 num_events = 2;
                 break;
             default:
-                EV_SET(&events[0], fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, 0);
+                EV_SET(&events[0], fd, EVFILT_READ, EV_ADD | EV_ENABLE | poll_et, 0, 0, 0);
         }
         err = kevent(efd, events, num_events, NULL, 0, NULL);
 #else
@@ -360,15 +377,19 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollAdd, 2, 3)
         // supress valgrind warning
         event.data.u64 = 0;
         event.data.fd = fd;
-        switch (mode) {
+
+        if (mode & 4)
+            poll_et = EPOLLET;
+
+        switch (mode & 3) {
             case 1:
-                event.events = EPOLLOUT;
+                event.events = EPOLLOUT | poll_et;
                 break;
             case 3:
-                event.events = EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLRDHUP;
+                event.events = EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLRDHUP | poll_et;
                 break;
             default:
-                event.events = EPOLLIN | /* EPOLLPRI |*/ EPOLLHUP | EPOLLRDHUP;// | EPOLLET;
+                event.events = EPOLLIN | EPOLLHUP | EPOLLRDHUP | poll_et;
         }
         err = epoll_ctl (efd, EPOLL_CTL_ADD, fd, &event);
 #endif
@@ -391,29 +412,34 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollUpdate, 2, 3)
     T_HANDLE(PollUpdate, 0);
     PollContainer *efd = (PollContainer *)(SYS_INT)PARAM(0);
     if (fd > 0) {
-        efd->Remove(fd);
-        err = efd->Add(fd, mode);
+        err = efd->Update(fd, mode);
+        // efd->Remove(fd);
+        // err = efd->Add(fd, mode);
     }
 #else
 #if defined(WITH_EPOLL) || defined(WITH_KQUEUE)
     T_NUMBER(PollUpdate, 0);
     int efd = PARAM_INT(0);
     if ((fd > 0) && (efd > 0)) {
+        int poll_et = 0;
+
 #ifdef WITH_KQUEUE
         struct kevent events[2];
         int num_events = 1;
+        if (mode & 4)
+            poll_et = EV_CLEAR;
         // Adds the event to the kqueue. Re-adding an existing event will modify the parameters of the original event, and not result in a duplicate entry.
-        switch (mode) {
+        switch (mode & 3) {
             case 1:
-                EV_SET(&events[0], fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
+                EV_SET(&events[0], fd, EVFILT_WRITE, EV_ADD | EV_ENABLE | poll_et, 0, 0, 0);
                 break;
             case 3:
-                EV_SET(&events[0], fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, 0);
-                EV_SET(&events[1], fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, 0);
+                EV_SET(&events[0], fd, EVFILT_READ, EV_ADD | EV_ENABLE | poll_et, 0, 0, 0);
+                EV_SET(&events[1], fd, EVFILT_WRITE, EV_ADD | EV_ENABLE | poll_et, 0, 0, 0);
                 num_events = 2;
                 break;
             default:
-                EV_SET(&events[0], fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, 0);
+                EV_SET(&events[0], fd, EVFILT_READ, EV_ADD | EV_ENABLE | poll_et, 0, 0, 0);
         }
         err = kevent(efd, events, num_events, NULL, 0, NULL);
 #else
@@ -421,15 +447,19 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollUpdate, 2, 3)
         // supress valgrind warning
         event.data.u64 = 0;
         event.data.fd = fd;
-        switch (mode) {
+
+        if (mode & 4)
+            poll_et = EPOLLET;
+
+        switch (mode & 3) {
             case 1:
-                event.events = EPOLLOUT;
+                event.events = EPOLLOUT | poll_et;
                 break;
             case 3:
-                event.events = EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLRDHUP;
+                event.events = EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLRDHUP | poll_et;
                 break;
             default:
-                event.events = EPOLLIN | /* EPOLLPRI |*/ EPOLLHUP | EPOLLRDHUP;// | EPOLLET;
+                event.events = EPOLLIN | EPOLLHUP | EPOLLRDHUP | poll_et;
         }
         err = epoll_ctl (efd, EPOLL_CTL_MOD, fd, &event);
 #endif

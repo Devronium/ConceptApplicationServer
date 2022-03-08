@@ -438,26 +438,39 @@ class EventLoop {
 		var start = Date.now();
 		var remove_sockets = 0;
 		var io_events = 0;
+		var[] et_sockets;
+		var i;
+		var sock;
 		do {
 			var outsockets = PollWait(pollfd, timeout, var write_sockets);
 			if ((outsockets) || (write_sockets)) {
 				io_events ++;
-				var sleep_val = 0;
+
 				if (outsockets)
 					remove_sockets += this.__exec(outsockets, false);
-				else
-					sleep_val = timeout - (Date.now() - start);
 				if (write_sockets)
 					remove_sockets += this.__exec(write_sockets, true);
 
-				if ((io_events % 2) && (sleep_val > 2))
-					Sleep(2);
+				if ((io_events > 1) && (!outsockets)) {
+					// set it to edge-trigger mode
+					for (i = 0; i < length write_sockets; i ++) {
+						sock = write_sockets[i];
+						PollUpdate(pollfd, sock, POLL_READ | POLL_WRITE | POLL_ET);
+						et_sockets["" + sock] = sock;
+					}
+				}
 			} else {
 				break;
 			}
 			var elapsed = Date.now() - start;
 			timeout -= elapsed;
 		} while (timeout > 2);
+
+		// reset edge-trigger mode
+		for (i = 0; i < length et_sockets; i ++) {
+			sock = et_sockets[i];
+			PollUpdate(pollfd, sock, POLL_READ | POLL_WRITE);
+		}
 
 		if (remove_sockets)
 			this.__remove_sockets();
