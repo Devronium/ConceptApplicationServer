@@ -2,6 +2,9 @@
 #include "stdlibrary.h"
 //------------ end of standard header ----------------------------//
 #include "library.h"
+
+#define POLL_MAX_EVENTS     1024
+
 #ifndef _WIN32
  #include <unistd.h>
  #include <sys/types.h>
@@ -120,7 +123,7 @@ public:
 
     int Wait(INVOKE_CALL Invoke, void *RESULT, int timeout, void *OUT_SOCKETS) {
 #ifdef WITH_KQUEUE
-        int maxevents = 8192;
+        int maxevents = POLL_MAX_EVENTS;
         struct kevent *events = (struct kevent *)malloc(sizeof(struct kevent) * maxevents);
         if (!events)
             return -1;
@@ -495,7 +498,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollWait, 1, 4)
     T_NUMBER(PollWait, 0);
     int efd = PARAM_INT(0);
     if (efd > 0) {
-        int maxevents = 8196;
+        int maxevents = POLL_MAX_EVENTS;
         CREATE_ARRAY(RESULT);
 #ifdef WITH_KQUEUE
         struct kevent *events = (struct kevent *)malloc(sizeof(struct kevent) * maxevents);

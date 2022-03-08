@@ -986,7 +986,7 @@ class BTreeFile {
 		return res;
 	}
 
-	protected Find(val, var found, start = 0, limit = 1, extra_validation = null, user_data = null) {
+	protected Find(var val, var found, start = 0, limit = 1, extra_validation = null, user_data = null) {
 		var page = ReadPage(var elements);
 		if ((page) && (elements > 0)) {
 			var compare = this.compare;
@@ -1053,6 +1053,7 @@ class BTreeFile {
 				//if (!f.Seek(pos))
 				if (fseek(f_handle, pos, SEEK_SET))
 					throw "B-Tree seek error in " + @class + "." + @member;
+
 				return Find(val, found, start, limit, extra_validation, user_data);
 			}
 		}
