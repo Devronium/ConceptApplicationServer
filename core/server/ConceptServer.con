@@ -74,6 +74,15 @@ class ServerUtils {
 
 		return IsSandbox;
 	}
+
+	static ShowStatistics(owner) {
+		echo "============================================\n";
+		if (owner)
+			echo "[${classof owner}] memory usage:\n";
+		echo WorkerMemoryInfo();
+		echo "\n";
+		echo "============================================\n";
+	}
 }
 
 class RewriteRegExp {
@@ -1818,7 +1827,7 @@ pragma used
 		work_count += this.Iterate();
 		if (work_count) {
 			empty_iterations = 0;
-			sleep_value = 0;
+			sleep_value = 2;
 		} else {
 			empty_iterations++;
 			if (empty_iterations > IDLE_SLEEP_THRESHOLD)
