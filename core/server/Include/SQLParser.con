@@ -2,6 +2,7 @@ import standard.lib.str
 import standard.lib.json
 import standard.lib.cripto
 import standard.lang.serialize
+import standard.C.io
 
 class SQLParser {
 	static error(var err, offset, message) {
@@ -174,10 +175,16 @@ class SQLParser {
 		return atom;
 	}
 
-	static stripcode(atom) {
+	static stripcode(atom, var err, var offset) {
 		if (length atom >= 2) {
 			if ((atom[0] == '{') && (atom[length atom - 1] == '}'))
 				return SubStr(atom, 1, length atom - 2);
+			if ((atom[0] == atom[length atom - 1]) && ((atom[0] == "\"") || (atom[length atom - 1] == "'"))) {
+				var data = ReadFile(SubStr(atom, 1, length atom - 2));
+				if (!data)
+					SQLParser::error(err, offset, "JS code expected in file $atom (file does not exists or is empty)");
+				return data;
+			}
 		}
 		return atom;
 	}
@@ -707,7 +714,7 @@ class SQLParser {
 					case "REDUCE":
 						command = SQLParser::parseAtom(buffer, err, offset);
 						if (command) {
-							syntax["REDUCE"] = SQLParser::stripcode(command);
+							syntax["REDUCE"] = SQLParser::stripcode(command, err, offset);
 						} else {
 							SQLParser::error(err, offset, "JS code expected");
 						}
@@ -1009,7 +1016,7 @@ class SQLParser {
 
 		atom = SQLParser::parseAtom(buffer, err, offset);
 		if (atom) {
-			syntax["TRIGGERCODE"] = SQLParser::stripcode(atom);
+			syntax["TRIGGERCODE"] = SQLParser::stripcode(atom, err, offset);
 		} else {
 			SQLParser::error(err, offset, "JS code expected");
 			return false;
@@ -1149,7 +1156,7 @@ class SQLParser {
 					case "REDUCE":
 						command = SQLParser::parseAtom(buffer, err, offset);
 						if (command) {
-							syntax["REDUCE"] = SQLParser::stripcode(command);
+							syntax["REDUCE"] = SQLParser::stripcode(command, err, offset);
 						} else {
 							SQLParser::error(err, offset, "JS code expected");
 						}
@@ -1292,7 +1299,7 @@ class SQLParser {
 							command = "";
 							syntax = null;
 						} else
-							syntax[orig_command] = SQLParser::stripcode(command);
+							syntax[orig_command] = SQLParser::stripcode(command, err, offset);
 						break;
 					case ";":
 						// ignore it

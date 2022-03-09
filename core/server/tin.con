@@ -301,7 +301,7 @@ class IOWorker extends Worker{
 			case "LIMIT":
 				return " records_count";
 			case "REDUCE":
-				return " { js }";
+				return " [{ js }|\"filename\"]";
 			case "INSERT":
 				return " INTO";
 			case "DELETE":
