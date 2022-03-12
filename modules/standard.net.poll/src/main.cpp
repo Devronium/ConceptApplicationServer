@@ -177,32 +177,39 @@ public:
         }
         fd_set fd_list;
         fd_set fd_out_list;
+        fd_set fd_excepts;
         FD_ZERO(&fd_list);
+        FD_ZERO(&fd_excepts);
         if (OUT_SOCKETS) {
             FD_ZERO(&fd_out_list);
         }
 #ifdef _WIN32
         for (int i = 0; i < chlist.fd_count; i++) {
             FD_SET(chlist.fd_array[i], &fd_list);
+            FD_SET(chlist.fd_array[i], &fd_excepts);
         }
         if (OUT_SOCKETS) {
-            for (int i = 0; i < outlist.fd_count; i++)
+            for (int i = 0; i < outlist.fd_count; i++) {
                 FD_SET(outlist.fd_array[i], &fd_out_list);
+                FD_SET(chlist.fd_array[i], &fd_excepts);
+            }
         }
 #else
         FD_COPY(&chlist, &fd_list);
         if (OUT_SOCKETS) {
             FD_COPY(&outlist, &fd_out_list);
+            FD_SET(&outlist, &fd_excepts);
         }
+        FD_SET(&chlist, &fd_excepts);
 #endif
 
         INTEGER index = 0;
         INTEGER out_index = 0;
         int err;
         if (OUT_SOCKETS)
-            err = select(FD_SETSIZE, &fd_list, &fd_out_list, 0, &tout);
+            err = select(FD_SETSIZE, &fd_list, &fd_out_list, &fd_excepts, &tout);
         else
-            err = select(FD_SETSIZE, &fd_list, 0, 0, &tout);
+            err = select(FD_SETSIZE, &fd_list, 0, &fd_excepts, &tout);
         if (err > 0) {
             for (int i = 0; i < chlist.fd_count; i++) {
                 if (FD_ISSET(chlist.fd_array[i], &fd_list))
@@ -213,6 +220,11 @@ public:
                     if (FD_ISSET(outlist.fd_array[i], &fd_out_list))
                         Invoke(INVOKE_SET_ARRAY_ELEMENT, OUT_SOCKETS, out_index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)outlist.fd_array[i]); 
                 }
+            }
+        } else {
+            for (int i = 0; i < chlist.fd_count; i++) {
+                if (FD_ISSET(chlist.fd_array[i], &fd_excepts))
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)chlist.fd_array[i]); 
             }
         }
         return err;

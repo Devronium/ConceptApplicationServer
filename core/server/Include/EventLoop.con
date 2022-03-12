@@ -423,7 +423,7 @@ class EventLoop {
 					else
 					if (PollRemove(pollfd, socket))
 						console.error(LOG_THIS, "error in PollRemove");
-					
+
 					socketevents[key] = null;
 					remove_sockets ++;
 					console.error(LOG_THIS, exc);
@@ -490,7 +490,6 @@ class EventLoop {
 	protected __poll(timeout) {
 		if (timeout < this.minSleep)
 			timeout = this.minSleep;
-
 		PollSleep(timeout);
 	}
 
