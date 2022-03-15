@@ -11436,6 +11436,7 @@ window.mobileAndTabletcheck = function() {
 
 	this.CreateControl = function(Parent, CLASS_ID, RID) {
 		var parent = this.Controls[Parent];
+		var self = this;
 		var packing = PACK_SHRINK;
 		var control;
 		var label;

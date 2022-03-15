@@ -6475,6 +6475,7 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
         } else
             LOCAL_CONTEXT_i->CLASS_DATA = NULL;
     }
+#ifndef NO_TCO
     if (tco_cache) {
         INTEGER j;
         for (j = 0; j < ParamCount; j ++) {
@@ -6485,6 +6486,7 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
         FAST_FREE(PIF, tco_cache);
         tco_cache = NULL;
     }
+#endif
     CC_WRITE_UNLOCK(PIF)
     return LOCAL_CONTEXT;
 }
