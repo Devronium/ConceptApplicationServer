@@ -5,6 +5,11 @@
 POOLED_IMPLEMENTATION(CompiledClass)
 
 struct CompiledClass *new_CompiledClass(void *PIF, const ClassCode *CC) {
+    if (((PIFAlizator *)PIF)->in_gc) {
+        AnsiException *Exc = new AnsiException(ERR639, 0, 639, "", CC->_DEBUG_INFO_FILENAME, CC->NAME, "");
+        ((PIFAlizator *)PIF)->AcknoledgeRunTimeError(NULL, Exc);
+        return NULL;
+    }
     CompiledClass *self = (struct CompiledClass *)AllocClassObject(PIF);
     self->_Class   = CC;
     self->_CONTEXT = 0;
@@ -179,7 +184,7 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
                                     RESET_VARIABLE(Var, NULL);
                                 }
                             }
-                            Var->CLASS_DATA = 0;
+                            Var->NUMBER_DATA = 0;
                             Var->TYPE = VARIABLE_NUMBER;
                         } else
                         if (Var->TYPE == VARIABLE_ARRAY) {
@@ -190,7 +195,7 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
                                     __gc_array->Reference(Var->CLASS_DATA);
                                     Array_GO_GARBAGE((struct Array *)Var->CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
                                     // ensure never visited again
-                                    Var->CLASS_DATA = 0;
+                                    Var->NUMBER_DATA = 0;
                                     Var->TYPE = VARIABLE_NUMBER; 
                                 }
                             } else {

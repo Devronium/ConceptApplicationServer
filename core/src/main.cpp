@@ -1083,7 +1083,7 @@ int CheckReachability(void *PIF, bool skip_top) {
     //======================================================//
     // DO NOT CALL DESTRUCTORS
     // multiple issues with variable reference count being incremented while destructor is called
-    // __gc_obj.Call_All_Destructors(PIF);
+    __gc_obj.Call_All_Destructors(PIF);
     __gc_obj.EndOfExecution_SayBye_Objects();
     __gc_array.EndOfExecution_SayBye_Arrays();
     __gc_vars.EndOfExecution_SayBye_Variables();

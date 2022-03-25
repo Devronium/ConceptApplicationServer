@@ -517,6 +517,8 @@ void ClassCode::SetRelocation(INTEGER mid, INTEGER index) {
 CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, const RuntimeOptimizedElement *OE, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static) const {
     static const ParamList dummy = { 0, 0 };
     CompiledClass *res  = new_CompiledClass(PIF, this);
+    if (!res)
+        return NULL;
 
     Owner->CLASS_DATA = res;
 

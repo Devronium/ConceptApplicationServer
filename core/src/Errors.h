@@ -69,6 +69,7 @@
 #define ERR630      "A constructor isn't allowed to throw an exception"
 #define ERR635      "A finalizer isn't allowed to throw an exception"
 #define ERR638      "A finalizer can't increase the reference count for an object."
+#define ERR639      "Object creation is not allowed in finalizers."
 #define ERR640      "A STATIC STRING data type can be indexed only by a STATIC NUMBER"
 #define ERR650      "Invalid operator in STATIC STRING expression"
 #define ERR660      "Invalid operator in STATIC NUMBER expression"

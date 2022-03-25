@@ -6612,8 +6612,6 @@ void ConceptInterpreter_DestroyGC(struct ConceptInterpreter *self, PIFAlizator *
                     if (LOCAL_CONTEXT_i->TYPE == VARIABLE_DELEGATE) {
                         CLASS_DATA = delegate_Class(CLASS_DATA);
                         free_Delegate(LOCAL_CONTEXT_i->CLASS_DATA);
-                        LOCAL_CONTEXT_i->TYPE = VARIABLE_NUMBER;
-                        LOCAL_CONTEXT_i->NUMBER_DATA = 0;
                     }
                     __gc_obj.Reference(CLASS_DATA);
                     if (!i) {
@@ -6627,6 +6625,8 @@ void ConceptInterpreter_DestroyGC(struct ConceptInterpreter *self, PIFAlizator *
                     __gc_array.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
                     Array_GO_GARBAGE((struct Array *)LOCAL_CONTEXT_i->CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars, -1, fast_array_clean);
                 }
+                LOCAL_CONTEXT_i->TYPE = VARIABLE_NUMBER;
+                LOCAL_CONTEXT_i->NUMBER_DATA = 0;
             }
             __gc_vars.Reference(LOCAL_CONTEXT_i);
         }
@@ -6645,8 +6645,6 @@ void ConceptInterpreter_DestroyGC(struct ConceptInterpreter *self, PIFAlizator *
                     if (LOCAL_CONTEXT_i->TYPE == VARIABLE_DELEGATE) {
                         CLASS_DATA = delegate_Class(CLASS_DATA);
                         free_Delegate(LOCAL_CONTEXT_i->CLASS_DATA);
-                        LOCAL_CONTEXT_i->TYPE = VARIABLE_NUMBER;
-                        LOCAL_CONTEXT_i->NUMBER_DATA = 0;
                     }
                     __gc_obj.Reference(CLASS_DATA);
                     CompiledClass__GO_GARBAGE((struct CompiledClass *)CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars);
@@ -6655,6 +6653,8 @@ void ConceptInterpreter_DestroyGC(struct ConceptInterpreter *self, PIFAlizator *
                     __gc_array.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
                     Array_GO_GARBAGE((struct Array *)LOCAL_CONTEXT_i->CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars);
                 }
+                LOCAL_CONTEXT_i->TYPE = VARIABLE_NUMBER;
+                LOCAL_CONTEXT_i->NUMBER_DATA = 0;
             }
         }
         POOL = (VARPool *)POOL->NEXT;
@@ -6663,7 +6663,7 @@ void ConceptInterpreter_DestroyGC(struct ConceptInterpreter *self, PIFAlizator *
     // see CompiledClass__GO_GARBAGE for details
     char in_gc = PIF->in_gc;
     PIF->in_gc = 1;
-    __gc_obj.Call_All_Destructors(PIF);
+    // __gc_obj.Call_All_Destructors(PIF);
     PIF->in_gc = in_gc;
     //======================================================//
     __gc_obj.EndOfExecution_SayBye_Objects();
