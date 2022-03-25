@@ -12,6 +12,7 @@ extern "C" {
 #define DISABLE_DEPRECATED_FEATURES
 #define JIT_RUNTIME_CHECKS
 #define OPTIONAL_SEPARATOR
+#define MAX_RUNTIME_ERRORS      480
 
 #if defined(_WIN32) || defined(__linux__)
 // on FreeBSD dlmalloc is the default memory allocator

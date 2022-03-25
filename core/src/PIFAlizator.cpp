@@ -233,7 +233,15 @@ void PIFAlizator::AcknoledgeRunTimeError(SCStack *STACK_TRACE, AnsiException *Ex
         }
         free(buf);
     }
-    Errors.Add(Exc, DATA_EXCEPTION);
+
+    if (Errors.Count() < MAX_RUNTIME_ERRORS)
+        Errors.Add(Exc, DATA_EXCEPTION);
+    else
+        delete Exc;
+
+    if (Errors.Count() == MAX_RUNTIME_ERRORS)
+        Errors.Add(new AnsiException(ERR1520, Exc->GetLine(), 1520, "", Exc->GetFileName(), "", ""), DATA_EXCEPTION);
+
     plainstring_deinit(&cstack);
     INTERNAL_UNLOCK(this)
 }

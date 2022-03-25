@@ -349,7 +349,7 @@ void *AllocVAR(void *PIF) {
 
 int ModuleCheckReachability(void *PIF) {
 #ifndef SIMPLE_MULTI_THREADING
-    if (CheckReachability(PIF)) {
+    if (CheckReachability(PIF) > 0) {
         VarClean((PIFAlizator *)PIF, 0);
         return 1;
     }
@@ -929,11 +929,11 @@ int ClearVariablesByCLSID(void *PIF, int CLSID) {
 
 int CheckReachability(void *PIF, bool skip_top) {
     if ((!PIF) || (!((PIFAlizator *)PIF)->RootInstance) || (((PIFAlizator *)PIF)->in_gc))
-        return 0;
+        return -1;
 
     if (((PIFAlizator *)PIF)->skip_reachability) {
         ((PIFAlizator *)PIF)->skip_reachability = 2;
-        return 0;
+        return -2;
     }
 
     ((PIFAlizator *)PIF)->in_gc = 1;
@@ -1081,7 +1081,9 @@ int CheckReachability(void *PIF, bool skip_top) {
         ARRAYPOOL = (ArrayPool *)ARRAYPOOL->NEXT;
     }
     //======================================================//
-    __gc_obj.Call_All_Destructors(PIF);
+    // DO NOT CALL DESTRUCTORS
+    // multiple issues with variable reference count being incremented while destructor is called
+    // __gc_obj.Call_All_Destructors(PIF);
     __gc_obj.EndOfExecution_SayBye_Objects();
     __gc_array.EndOfExecution_SayBye_Arrays();
     __gc_vars.EndOfExecution_SayBye_Variables();

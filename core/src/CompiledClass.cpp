@@ -215,10 +215,17 @@ VariableDATA **CompiledClass_GetContext(const struct CompiledClass *self) {
 }
 
 int CompiledClass_Destroy(struct CompiledClass *self, PIFAlizator *PIF, SCStack *STACK_TRACE) {
-    self->LINKS++;
+    if (self->LINKS < 0)
+        return 0;
+
+    self->LINKS ++;
     VariableDATA *THROW_DATA = 0;
 
+    INTEGER original_links = self->LINKS;
+
     STACK(STACK_TRACE, self->_Class->DESTRUCTOR_MEMBER->_DEBUG_STARTLINE)
+    char skip_reachability = PIF->skip_reachability;
+    PIF->skip_reachability = 1;
     VariableDATA * RESULT = self->_Class->DESTRUCTOR_MEMBER->Execute(PIF, self->_Class->CLSID, self, 0, self->_CONTEXT, THROW_DATA, STACK_TRACE, NULL, 0);
     UNSTACK;
     if (RESULT) {
@@ -231,7 +238,18 @@ int CompiledClass_Destroy(struct CompiledClass *self, PIFAlizator *PIF, SCStack 
         AnsiException *Exc = new AnsiException(ERR635, 0, 635, "", self->_Class->_DEBUG_INFO_FILENAME, self->_Class->NAME, self->_Class->DESTRUCTOR_MEMBER->NAME);
         PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
     }
-    self->LINKS = -1;
+    PIF->skip_reachability = skip_reachability;
+    if ((original_links != self->LINKS) && (self->LINKS > 1)) {
+        AnsiException *Exc = new AnsiException(ERR638, 0, 638, "", self->_Class->_DEBUG_INFO_FILENAME, self->_Class->NAME, self->_Class->DESTRUCTOR_MEMBER->NAME);
+        PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+        self->LINKS --;
+
+        // disable destructor for increasing reference count
+        // ((ClassCode *)self->_Class)->DESTRUCTOR = 0;
+        // ((ClassCode *)self->_Class)->DESTRUCTOR_MEMBER = NULL;
+        return -1;
+    } else
+        self->LINKS = -1;
     return 1;
 }
 
@@ -276,8 +294,13 @@ void delete_CompiledClass(struct CompiledClass *self, SCStack *STACK_TRACE) {
     }
 
     PIFAlizator *PIF          = GET_PIF(self);
-    if (self->_Class->DESTRUCTOR)
-        CompiledClass_Destroy(self, PIF, STACK_TRACE);
+    if (self->_Class->DESTRUCTOR) {
+        INTEGER old_links = self->LINKS;
+        if (CompiledClass_Destroy(self, PIF, STACK_TRACE) < 0) {
+            // runtime error - class reference count increased while calling destructor;
+            return;
+        }
+    }
 
     self->LINKS = -1;
     INTEGER       Count       = self->_Class->DataMembersCount;
