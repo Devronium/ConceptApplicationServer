@@ -349,10 +349,14 @@ void *AllocVAR(void *PIF) {
 
 int ModuleCheckReachability(void *PIF) {
 #ifndef SIMPLE_MULTI_THREADING
+    char skip_reachability = ((PIFAlizator *)PIF)->skip_reachability;
+    ((PIFAlizator *)PIF)->skip_reachability = 0;
     if (CheckReachability(PIF) > 0) {
         VarClean((PIFAlizator *)PIF, 0);
+        ((PIFAlizator *)PIF)->skip_reachability = skip_reachability;
         return 1;
     }
+    ((PIFAlizator *)PIF)->skip_reachability = skip_reachability;
     return 0;
 #else
     return -1;
