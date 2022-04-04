@@ -2,7 +2,6 @@
 
 import standard.C.io
 import standard.lang.cli
-import standard.lib.preg
 import standard.lib.json
 import standard.lib.readline
 
@@ -1143,7 +1142,9 @@ class Main {
 			return;
 
 		var orig_query = s;
-		var query_arr = preg(s, '^([A-Za-z0-9\_]+)\\.([A-Za-z0-9\_]+)\\((.*)\\)$');
+		var re = new RegExp('^([A-Za-z0-9\_]+)\\.([A-Za-z0-9\_]+)\\((.*)\\)$');
+		var query_arr = re.exec(s);
+
 		var collection = "";
 		var parameters = "";
 
