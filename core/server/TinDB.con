@@ -1718,7 +1718,10 @@ pragma used
 				KeepAlivePing();
 				lastping = time();
 			}
-			sleep_value = 2; // Sleep(2);
+			if (outsockets)
+				sleep_value = 2; // Sleep(2);
+			else
+				sleep_value = 4;
 		} else
 			sleep_value = -1; // Sleep(5);
 	}
