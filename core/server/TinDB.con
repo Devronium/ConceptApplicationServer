@@ -1658,7 +1658,9 @@ pragma used
 				remote_obj = null;
 				job = null;
 			}
-		}
+		} else
+			timeout = 20;
+
 		if (!sockets) {
 			sleep_value = -1;
 			return;
@@ -1666,7 +1668,7 @@ pragma used
 		if (timeout < 0)
 			timeout = 0;
 		var outsockets = this.poll.wait(timeout);
-		if (/*(SocketPoll(sockets, var outsockets, timeout)) &&*/ (outsockets)) {
+		if (outsockets) {
 			for (var i = 0; i < length outsockets; i++) {
 				var sock = outsockets[i];
 				var buffer = "";
