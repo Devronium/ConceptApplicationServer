@@ -1726,6 +1726,17 @@ pragma used
 			sleep_value = -1; // Sleep(5);
 	}
 
+	Iteration(var sleep_value, var t, var next_worker, var next_a_worker, var next_idle_worker, var storage_dbs, var storage_workers, var aggregation_workers, var idle_workers, var current_worker, var storage_dbs_w) {
+		var data;
+		Worker::PendingAll(data, sleep_value);
+		if (data) {
+			for (var i = 0; i < length data; i++)
+				Execute(data[i], sleep_value, t, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, current_worker, storage_dbs_w);
+			data = null;
+		} else
+			Execute(null, sleep_value, t, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, current_worker, storage_dbs_w);
+	}
+
 	QueryWorker(n) {
 		n = UnBinarizeObject(n);
 		WorkerID = n[0];
@@ -1758,16 +1769,8 @@ pragma used
 			}
 		}
 		var sleep_value = 0;
-		var data;
-		while (true) {
-			Worker::PendingAll(data, sleep_value);
-			if (data) {
-				for (var i = 0; i < length data; i++)
-					Execute(data[i], sleep_value, t, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, current_worker, storage_dbs_w);
-				data = null;
-			} else
-				Execute(null, sleep_value, t, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, current_worker, storage_dbs_w);
-		}
+		while (true)
+			this.Iteration(sleep_value, t, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, current_worker, storage_dbs_w);
 	}
 }
 
@@ -3618,6 +3621,25 @@ pragma used
 		return TinDBOid::create(machineid, workerid, counter++);
 	}
 
+	Iteration() {
+		var data;
+		var qsize = Worker::PendingAll(data, -1, 100);
+		if (data) {
+			var len = length data;
+			for (var i = 0; i < length data; i++) {
+				try {
+					Execute(UnBinarizeObject(data[i]));
+				} catch (var exc) {
+					console.error(LOG_THIS, "Storage worker exception: $exc");
+				}
+				if ((non_flushed_writes) && ((non_flushed_writes > BUSY_FSYNC_LIMIT) || ((time() - last_flush) >= BUSY_FSYNC_TIMEOUT)))
+					this.Flush();
+			}
+			if ((non_flushed_writes) && (qsize == len))
+				this.Flush();
+		}
+	}
+
 	StorageWorker(n) {
 		if (TIN_JOURNALING)
 			journal = new Journal(n);
@@ -3643,25 +3665,8 @@ pragma used
 			}
 		}
 
-		var data;
-		while (true) {
-			data = null;
-			var qsize = Worker::PendingAll(data, -1, 100);
-			if (data) {
-				var len = length data;
-				for (var i = 0; i < length data; i++) {
-					try {
-						Execute(UnBinarizeObject(data[i]));
-					} catch (var exc) {
-						console.error(LOG_THIS, "Storage worker exception: $exc");
-					}
-					if ((non_flushed_writes) && ((non_flushed_writes > BUSY_FSYNC_LIMIT) || ((time() - last_flush) >= BUSY_FSYNC_TIMEOUT)))
-						this.Flush();
-				}
-				if ((non_flushed_writes) && (qsize == len))
-					this.Flush();
-			}
-		}
+		while (true)
+			Iteration();
 	}
 }
 
