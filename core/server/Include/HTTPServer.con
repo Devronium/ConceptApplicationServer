@@ -405,7 +405,8 @@ class ClientThread {
 							var arr = StrSplit(e, "=>");
 							if (length arr == 2) {
 								var r = new RegExp(trim(arr[0]));
-								var match = r.exec(filename)[0];
+								var m_arr = r.exec(filename) ?? [ ];
+								var match = m_arr[0];
 								if (match) {
 									var with = StrReplace(trim(arr[1]), '$', match);
 									with = StrReplace(with, "[]", params);

@@ -615,7 +615,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 VariableDATA *target = va_arg(ap, VariableDATA *);
                 if (target) {
                     VariableDATA *VARIABLE = target;
-                    VARIABLE->LINKS--;
+                    if (VARIABLE->LINKS)
+                        VARIABLE->LINKS--;
                     if (!VARIABLE->LINKS) {
                         if (VARIABLE->CLASS_DATA) {
                             if (VARIABLE->TYPE == VARIABLE_STRING) {

@@ -283,7 +283,7 @@ class _webrequest {
 			var host = "";
 			if ((IsSet(this.headers, "referer")) && (this.headers["referer"])) {
 				var re = /^((\w+):)?(\/\/((\w+)?(:(\w+))?@)?([^\/\?:]+)(:(\d+))?)?(\/?([^\/\?#][^\?#]*)?)?(\?([^#]+))?(#(\w*))?/;
-				var arr = re.exec(this.headers["referer"]);
+				var arr = re.exec(this.headers["referer"]) ?? [ ];
 				host = arr[8] ?? "";
 			} else
 			if (IsSet(this.headers, ":authority"))

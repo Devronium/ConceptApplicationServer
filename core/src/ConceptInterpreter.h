@@ -61,7 +61,8 @@ extern "C" {
 //---------------------------------------------------------
 #ifdef INLINE_COMMON_CALLS
 #define FREE_VARIABLE(VARIABLE, SCStack *STACK_TRACE)                                          \
-    VARIABLE->LINKS--;                                                                         \
+    if (VARIABLE->LINKS)                                                                       \
+        VARIABLE->LINKS--;                                                                     \
     if (!VARIABLE->LINKS) {                                                                    \
         if (VARIABLE->CLASS_DATA) {                                                            \
             if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
@@ -87,7 +88,8 @@ void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE);
 
 #ifdef SIMPLE_MULTI_THREADING
 #define FREE_VARIABLE_TS(VARIABLE, STACK_TRACE)                                                \
-    VARIABLE->LINKS--;                                                                         \
+    if (VARIABLE->LINKS)                                                                       \
+        VARIABLE->LINKS--;                                                                     \
     if (!VARIABLE->LINKS) {                                                                    \
         if (VARIABLE->CLASS_DATA) {                                                            \
             if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
@@ -117,13 +119,15 @@ void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE);
 #endif
 
 #define FREE_VARIABLE_RESET(VARIABLE)                                                    \
-    VARIABLE->LINKS--;                                                                   \
+    if (VARIABLE->LINKS)                                                                 \
+        VARIABLE->LINKS--;                                                               \
     if (!VARIABLE->LINKS) {                                                              \
         VAR_FREE(VARIABLE);                                                              \
     }
 
 #define FAST_FREE_VARIABLE(VARIABLE)                                                           \
-    VARIABLE->LINKS--;                                                                         \
+    if (VARIABLE->LINKS)                                                                       \
+        VARIABLE->LINKS--;                                                                     \
     if (!VARIABLE->LINKS) {                                                                    \
         if (VARIABLE->CLASS_DATA) {                                                            \
             if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
@@ -143,7 +147,8 @@ void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE);
     }
 
 #define FAST_FREE_VARIABLE2(VARIABLE, RESET_VAR)                                               \
-    VARIABLE->LINKS--;                                                                         \
+    if (VARIABLE->LINKS)                                                                       \
+        VARIABLE->LINKS--;                                                                     \
     if (!VARIABLE->LINKS) {                                                                    \
         if (VARIABLE->CLASS_DATA) {                                                            \
             if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
@@ -164,7 +169,8 @@ void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE);
         RESET_VAR = NULL;
 
 #define FREE_VARIABLE_NO_OBJECTS(VARIABLE)                                 \
-    VARIABLE->LINKS--;                                                     \
+    if (VARIABLE->LINKS)                                                   \
+        VARIABLE->LINKS--;                                                 \
     if (!VARIABLE->LINKS) {                                                \
         if ((VARIABLE->TYPE == VARIABLE_STRING) && (VARIABLE->CLASS_DATA)) \
             plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);\

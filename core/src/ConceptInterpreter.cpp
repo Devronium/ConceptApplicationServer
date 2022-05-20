@@ -6384,6 +6384,10 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
             }
 #endif
             if ((TAIL_CALL) && (LOCAL_CONTEXT_i -> LINKS > 1)) {
+                if ((LOCAL_CONTEXT_i == PARAM) && (LOCAL_CONTEXT_i -> LINKS == 2)) {
+                    LOCAL_CONTEXT_i->IS_PROPERTY_RESULT = 0;
+                    continue;
+                }
                 FREE_VARIABLE(LOCAL_CONTEXT_i, STACK_TRACE);
                 LOCAL_CONTEXT_i = (VariableDATA *)VAR_ALLOC(PIF);
                 LOCAL_CONTEXT [i] = LOCAL_CONTEXT_i;
