@@ -1,6 +1,7 @@
 //#define FAST_EXIT_NO_GC_CALL
 // disable Tail Call Optimization (buggy)
 // #define NO_TCO
+#define NO_TC
 
 #include "ConceptInterpreter.h"
 #include "AnsiException.h"
@@ -5581,6 +5582,9 @@ sel_label:
                             bool can_run;
                             ConceptInterpreter_CreateEnvironment(self, PIF, CCTEMP, FORMAL_PARAMETERS, LOCAL_CONTEXT, STACK_TRACE, LOCAL_CONTEXT, can_run);
                             if (can_run) {
+                                FAST_FREE(PIF, PROPERTIES);
+                                PROPERTIES = 0;
+                                WRITE_UNLOCK
                                 goto tail_call;
                             } else {
                                 continue;
@@ -5599,6 +5603,9 @@ sel_label:
                                 if (can_run) {
                                     self = (ConceptInterpreter *)((Optimizer *)(pMEMBER_i->OPTIMIZER))->INTERPRETER;
                                     ClassID = CCTEMP->_Class->CLSID;
+                                    FAST_FREE(PIF, PROPERTIES);
+                                    PROPERTIES = 0;
+                                    WRITE_UNLOCK
                                     goto tc_start;
                                 } else {
                                     continue;
@@ -6465,6 +6472,17 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
         if ((!TAIL_CALL) && (self->initcode.code) && (i > self->OWNER->PARAMETERS_COUNT)) {
             self->initcode.func2((sljit_sw)LOCAL_CONTEXT, (sljit_sw)PIF);
             CC_WRITE_UNLOCK(PIF)
+#ifndef NO_TCO
+            if (tco_cache) {
+                INTEGER j;
+                for (j = 0; j < ParamCount; j ++) {
+                    if (tco_cache[j]) {
+                        FREE_VARIABLE(tco_cache[j], STACK_TRACE);
+                    }
+                }
+                FAST_FREE(PIF, tco_cache);
+            }
+#endif
             return LOCAL_CONTEXT;
         }
 #endif
@@ -6522,7 +6540,6 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
             }
         }
         FAST_FREE(PIF, tco_cache);
-        tco_cache = NULL;
     }
 #endif
     CC_WRITE_UNLOCK(PIF)
