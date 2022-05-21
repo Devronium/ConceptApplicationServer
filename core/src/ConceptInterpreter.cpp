@@ -1,6 +1,6 @@
 //#define FAST_EXIT_NO_GC_CALL
 // disable Tail Call Optimization (buggy)
-// #define NO_TCO
+#define NO_TCO
 // #define NO_TC
 
 #include "ConceptInterpreter.h"

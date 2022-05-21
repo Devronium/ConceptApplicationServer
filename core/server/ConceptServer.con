@@ -1459,10 +1459,12 @@ class ConceptBaseWorker {
 
 	UpdateChildCache(children) {
 		var[] new_cache;
-		for (var i = 0; i < length children; i++){ 
-			var cgi = children[i];
-			if ((cgi) && (cgi.reqid))
-				new_cache[cgi.reqid] = cgi;
+		if (children) {
+			for (var i = 0; i < length children; i++){ 
+				var cgi = children[i];
+				if ((cgi) && (cgi.reqid))
+					new_cache[cgi.reqid] = cgi;
+			}
 		}
 		childcache = new_cache;
 		cacheholders = 0;
@@ -1478,7 +1480,7 @@ class ConceptBaseWorker {
 	}
 
 	IterateAsyncWorkers(children) {
-		if ((cacheholders > 100) && (children))
+		if (cacheholders > 100)
 			this.UpdateChildCache(children);
 
 		var workers = cgiworkers;
