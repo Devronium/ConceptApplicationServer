@@ -5321,6 +5321,7 @@ int ConceptInterpreter_JIT(INTEGER &INSTRUCTION_POINTER, INTEGER INSTRUCTION_COU
 #endif
 
 VariableDATA *ConceptInterpreter_Interpret(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE) {
+tc_start:
     Optimizer        *OPT = (struct Optimizer *)self->OWNER->OPTIMIZER;
     INTEGER INSTRUCTION_COUNT   = OPT->codeCount;
     char             *STATIC_ERROR       = 0;
@@ -5572,17 +5573,39 @@ sel_label:
                 if (pMEMBER_i) {
 #ifndef NO_TCO
                     // tail call optimization
-                    if ((pMEMBER_i == self->OWNER) && ((LOCAL_CONTEXT [OE->Result_ID - 1]->LINKS == 1) || (OE->Operator_FLAGS == MAY_IGNORE_RESULT)) && 
-                        ((INSTRUCTION_POINTER == INSTRUCTION_COUNT) ||
-                        ((INSTRUCTION_POINTER <= INSTRUCTION_COUNT - 1) && (CODE[INSTRUCTION_POINTER].Operator_ID == KEY_OPTIMIZED_RETURN) && 
-                        (OE->Result_ID == CODE[INSTRUCTION_POINTER].OperandRight_ID)))) {
-                        bool can_run;
-                        ConceptInterpreter_CreateEnvironment(self, PIF, CCTEMP, FORMAL_PARAMETERS, LOCAL_CONTEXT, STACK_TRACE, LOCAL_CONTEXT, can_run);
-                        if (can_run) {
-                            goto tail_call;
-                        } else {
-                            continue;
+                    if (!CATCH_INSTRUCTION_POINTER) {
+                        if ((pMEMBER_i == self->OWNER) && ((LOCAL_CONTEXT [OE->Result_ID - 1]->LINKS == 1) || (OE->Operator_FLAGS == MAY_IGNORE_RESULT)) && 
+                            ((INSTRUCTION_POINTER == INSTRUCTION_COUNT) ||
+                            ((INSTRUCTION_POINTER <= INSTRUCTION_COUNT - 1) && (CODE[INSTRUCTION_POINTER].Operator_ID == KEY_OPTIMIZED_RETURN) && 
+                            (OE->Result_ID == CODE[INSTRUCTION_POINTER].OperandRight_ID)))) {
+                            bool can_run;
+                            ConceptInterpreter_CreateEnvironment(self, PIF, CCTEMP, FORMAL_PARAMETERS, LOCAL_CONTEXT, STACK_TRACE, LOCAL_CONTEXT, can_run);
+                            if (can_run) {
+                                goto tail_call;
+                            } else {
+                                continue;
+                            }
+                        } 
+    #ifndef NO_TC
+                        else
+                        if ((pMEMBER_i != self->OWNER) && ((LOCAL_CONTEXT [OE->Result_ID - 1]->LINKS == 1) || (OE->Operator_FLAGS == MAY_IGNORE_RESULT)) && 
+                            ((INSTRUCTION_POINTER == INSTRUCTION_COUNT) ||
+                            ((INSTRUCTION_POINTER <= INSTRUCTION_COUNT - 1) && (CODE[INSTRUCTION_POINTER].Operator_ID == KEY_OPTIMIZED_RETURN) && 
+                            (OE->Result_ID == CODE[INSTRUCTION_POINTER].OperandRight_ID)))) {
+
+                            bool can_run;
+                            if ((pMEMBER_i->OPTIMIZER) && (((Optimizer *)(pMEMBER_i->OPTIMIZER))->INTERPRETER) && (pMEMBER_i->IS_FUNCTION == 1) && ((pMEMBER_i->ACCESS == ACCESS_PUBLIC)  || (CCTEMP->_Class == self->OWNER->Defined_In)) && (((Optimizer *)(pMEMBER_i->OPTIMIZER))->dataCount <= OPT->dataCount)) {
+                                ConceptInterpreter_CreateEnvironment((ConceptInterpreter *)((Optimizer *)(pMEMBER_i->OPTIMIZER))->INTERPRETER, PIF, CCTEMP, FORMAL_PARAMETERS, LOCAL_CONTEXT, STACK_TRACE, LOCAL_CONTEXT, can_run);
+                                if (can_run) {
+                                    self = (ConceptInterpreter *)((Optimizer *)(pMEMBER_i->OPTIMIZER))->INTERPRETER;
+                                    ClassID = CCTEMP->_Class->CLSID;
+                                    goto tc_start;
+                                } else {
+                                    continue;
+                                }
+                            }
                         }
+    #endif
                     }
 #endif
                     if ((CCTEMP->_Class == self->OWNER->Defined_In) || (pMEMBER_i->ACCESS == 1)) {
@@ -6276,6 +6299,17 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
                     ref -> LINKS ++;
             }
         }
+        VariableDATA *this_ref = LOCAL_CONTEXT[0];
+        CC_WRITE_LOCK(PIF)
+        if ((this_ref) && ((this_ref->TYPE != VARIABLE_CLASS) || (this_ref->CLASS_DATA != Sender))) {
+            RESET_VARIABLE(this_ref, STACK_TRACE);
+
+            this_ref->TYPE               = VARIABLE_CLASS;
+            this_ref->CLASS_DATA         = Sender;
+            this_ref->IS_PROPERTY_RESULT = -1;
+            if (this_ref->CLASS_DATA)
+                ((struct CompiledClass *)this_ref->CLASS_DATA)->LINKS++;
+        }
     } else
 #endif
     {
@@ -6376,13 +6410,13 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
             VariableDATA *LOCAL_CONTEXT_i = (VariableDATA *)VAR_ALLOC(PIF);
             LOCAL_CONTEXT [i] = LOCAL_CONTEXT_i;
 #endif
-#ifndef NO_TCO
+/* #ifndef NO_TCO
             if (tco_cache) {
                 int index = DELTA_UNREF(FORMAL_PARAM, FORMAL_PARAM->PARAM_INDEX) [i - 1] - 2;
                 if ((index >= 0) && (index < ParamCount) && (tco_cache[index]))
                     PARAM = tco_cache[index];
             }
-#endif
+#endif */
             if ((TAIL_CALL) && (LOCAL_CONTEXT_i -> LINKS > 1)) {
                 if ((LOCAL_CONTEXT_i == PARAM) && (LOCAL_CONTEXT_i -> LINKS == 2)) {
                     LOCAL_CONTEXT_i->IS_PROPERTY_RESULT = 0;
