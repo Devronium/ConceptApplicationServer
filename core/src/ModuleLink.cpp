@@ -456,7 +456,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 char    **str = va_arg(ap, char **);
                 *str = 0;
                 if (size) {
-                    *str = (char *)malloc(size);
+                    *str = (char *)plainstring_core_new(size);
                     if (!(*str)) {
                         result = CANNOT_INVOKE_IN_THIS_CASE;
                     }
@@ -468,7 +468,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
             {
                 char *str = va_arg(ap, char *);
                 if (str) {
-                    free(str);
+                    plainstring_core_free(str);
                 } else {
                     result = CANNOT_INVOKE_IN_THIS_CASE;
                 }

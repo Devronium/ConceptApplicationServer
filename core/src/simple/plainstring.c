@@ -1,7 +1,12 @@
 #include "plainstring.h"
 #include <stdlib.h>
 #include <string.h>
+
 #define WITH_DTOA
+
+#define PLAINSTRING_MALLOC      malloc
+#define PLAINSTRING_REALLOC     realloc
+#define PLAINSTRING_FREE        free
 
 #define breakeven_point    12
 
@@ -14,6 +19,16 @@ static const char *null_string = "";
           for (ss = (s), dd = (d); nn > 0; nn--) { *dd++ = *ss++; } } }
 
 #define MEMCPY    fast_memcpy
+
+void *plainstring_core_new(size_t size) {
+    return PLAINSTRING_MALLOC(size);
+}
+
+void plainstring_core_free(void *ptr) {
+    PLAINSTRING_FREE(ptr);
+}
+
+void plainstring_core_free(void *ptr);
 
 void cstr_loaddouble(char *buffer, double d) {
 #ifdef WITH_FPCONV
@@ -50,7 +65,7 @@ void plainstring_init(struct plainstring *str) {
 }
 
 struct plainstring *plainstring_new(void) {
-    struct plainstring *str = (struct plainstring *)malloc(sizeof(struct plainstring));
+    struct plainstring *str = (struct plainstring *)PLAINSTRING_MALLOC(sizeof(struct plainstring));
     plainstring_init(str);
     return str;
 }
@@ -115,7 +130,7 @@ void plainstring_char_plainstring(const struct plainstring *this_string, intptr_
         }
     }
     if (ps->DATA) {
-        free(ps->DATA);
+        PLAINSTRING_FREE(ps->DATA);
         ps->DATA = 0;
         ps->DATA_SIZE = 0;
         ps->LENGTH = 0;
@@ -322,11 +337,11 @@ void plainstring_set(struct plainstring *this_string, const char *value) {
             if (len + 1 >= this_string->DATA_SIZE) {
                 this_string->DATA_SIZE  = ((len + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
                 char *orig_data         = this_string->DATA;
-                this_string->DATA       = (char *)realloc(this_string->DATA, this_string->DATA_SIZE);
+                this_string->DATA       = (char *)PLAINSTRING_REALLOC(this_string->DATA, this_string->DATA_SIZE);
                 if (!this_string->DATA) {
                     this_string->DATA_SIZE = 0;
                     this_string->LENGTH = 0;
-                    free(orig_data);
+                    PLAINSTRING_FREE(orig_data);
                 }
             }
             if (this_string->DATA) {
@@ -362,7 +377,7 @@ void plainstring_set_plainstring(struct plainstring *this_string, const struct p
 
     if (this_string->DATA) {
         if (this_string->DATA_SIZE - ps->LENGTH > BLOCK_SIZE) {
-            free(this_string->DATA);
+            PLAINSTRING_FREE(this_string->DATA);
             this_string->DATA = 0;
             this_string->DATA_SIZE = 0;
         } else
@@ -374,9 +389,9 @@ void plainstring_set_plainstring(struct plainstring *this_string, const struct p
         this_string->LENGTH = ps->LENGTH;
         if (ps->LENGTH + 1 >= this_string->DATA_SIZE) {
 
-            free(this_string->DATA);
+            PLAINSTRING_FREE(this_string->DATA);
             this_string->DATA_SIZE = ((ps->LENGTH + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
-            this_string->DATA = (char *)malloc(this_string->DATA_SIZE);
+            this_string->DATA = (char *)PLAINSTRING_MALLOC(this_string->DATA_SIZE);
         }
         MEMCPY(this_string->DATA, ps->DATA, ps->LENGTH);
         this_string->DATA[this_string->LENGTH] = 0;
@@ -394,11 +409,11 @@ void plainstring_add(struct plainstring *this_string, const char *value) {
         if (this_string->DATA_SIZE < this_string->LENGTH + 1) {
             this_string->DATA_SIZE = ((this_string->LENGTH + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
             char *orig_data = this_string->DATA;
-            this_string->DATA = (char *)realloc(this_string->DATA, this_string->DATA_SIZE);
+            this_string->DATA = (char *)PLAINSTRING_REALLOC(this_string->DATA, this_string->DATA_SIZE);
             if (!this_string->DATA) {
                 this_string->DATA_SIZE = 0;
                 this_string->LENGTH = 0;
-                free(orig_data);
+                PLAINSTRING_FREE(orig_data);
                 return;
             }
             MEMCPY(this_string->DATA + len, value, len_value + 1);
@@ -416,7 +431,7 @@ void plainstring_add_char(struct plainstring *this_string, char c) {
         this_string->DATA[this_string->LENGTH]   = 0;
     } else {
         this_string->DATA_SIZE += BLOCK_SIZE;
-        this_string->DATA = (char *)realloc(this_string->DATA, this_string->DATA_SIZE);
+        this_string->DATA = (char *)PLAINSTRING_REALLOC(this_string->DATA, this_string->DATA_SIZE);
         this_string->DATA[this_string->LENGTH++] = c;
         this_string->DATA[this_string->LENGTH] = 0;
     }
@@ -482,10 +497,10 @@ int plainstring_loadfile(struct plainstring *this_string, const char *filename) 
         fseek(in, 0, SEEK_END);
         size = ftell(in);
         fseek(in, 0, SEEK_SET);
-        free(this_string->DATA);
+        PLAINSTRING_FREE(this_string->DATA);
 
         this_string->DATA_SIZE  = ((size + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
-        this_string->DATA        = (char *)malloc(this_string->DATA_SIZE);
+        this_string->DATA        = (char *)PLAINSTRING_MALLOC(this_string->DATA_SIZE);
         this_string->DATA [size] = 0;
         fread(this_string->DATA, size, 1, in);
         fclose(in);
@@ -517,11 +532,11 @@ int plainstring_savefile(const struct plainstring *this_string, const char *file
 }
 
 void plainstring_loadbuffer(struct plainstring *this_string, const char *buffer, int size) {
-    void *free_after = NULL;
+    void *PLAINSTRING_FREE_after = NULL;
     if ((this_string->DATA) && (buffer == this_string->DATA))
-        free_after = this_string->DATA;
+        PLAINSTRING_FREE_after = this_string->DATA;
     else
-        free(this_string->DATA);
+        PLAINSTRING_FREE(this_string->DATA);
     if (size < 0)
         size = 0;
 
@@ -532,7 +547,7 @@ void plainstring_loadbuffer(struct plainstring *this_string, const char *buffer,
         return;
     }
     this_string->DATA_SIZE = ((size + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
-    this_string->DATA = (char *)malloc(this_string->DATA_SIZE);
+    this_string->DATA = (char *)PLAINSTRING_MALLOC(this_string->DATA_SIZE);
     if (this_string->DATA) {
         MEMCPY(this_string->DATA, buffer, size);
         this_string->DATA[size] = 0;
@@ -540,7 +555,7 @@ void plainstring_loadbuffer(struct plainstring *this_string, const char *buffer,
         this_string->DATA_SIZE = 0;
         this_string->LENGTH = 0;
     }
-    free(free_after);
+    PLAINSTRING_FREE(PLAINSTRING_FREE_after);
 }
 
 void plainstring_addbuffer(struct plainstring *this_string, const char *buffer, int size) {
@@ -556,12 +571,12 @@ void plainstring_addbuffer(struct plainstring *this_string, const char *buffer, 
             this_string->DATA_SIZE = ((this_string->LENGTH + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
 
             char *orig_data = this_string->DATA;
-            this_string->DATA = (char *)realloc(this_string->DATA, this_string->DATA_SIZE);
+            this_string->DATA = (char *)PLAINSTRING_REALLOC(this_string->DATA, this_string->DATA_SIZE);
             if (this_string->DATA) {
                 MEMCPY(this_string->DATA + len, buffer, size);
                 this_string->DATA[this_string->LENGTH] = 0;
             } else {
-                free(orig_data);
+                PLAINSTRING_FREE(orig_data);
                 this_string->LENGTH    = 0;
                 this_string->DATA_SIZE = 0;
             }
@@ -575,7 +590,7 @@ void plainstring_addbuffer(struct plainstring *this_string, const char *buffer, 
 }
 
 void plainstring_linkbuffer(struct plainstring *this_string, char *buffer, int size) {
-    free(this_string->DATA);
+    PLAINSTRING_FREE(this_string->DATA);
     if (size < 0)
         size = 0;
 
@@ -602,14 +617,14 @@ void plainstring_increasebuffer(struct plainstring *this_string, int size) {
         this_string->DATA_SIZE = (new_len / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
 
         char *orig_data = this_string->DATA;
-        this_string->DATA = (char *)realloc(this_string->DATA, this_string->DATA_SIZE);
+        this_string->DATA = (char *)PLAINSTRING_REALLOC(this_string->DATA, this_string->DATA_SIZE);
         if (!this_string->DATA) {
             this_string->DATA_SIZE = ((this_string->LENGTH + size + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
-            this_string->DATA = (char *)realloc(orig_data, this_string->DATA_SIZE);
+            this_string->DATA = (char *)PLAINSTRING_REALLOC(orig_data, this_string->DATA_SIZE);
             if (!this_string->DATA) {
                 this_string->DATA_SIZE = 0;
                 this_string->LENGTH = 0;
-                free(orig_data);
+                PLAINSTRING_FREE(orig_data);
             }
         }
     }
@@ -626,7 +641,7 @@ void plainstring_asg(struct plainstring *this_string, const struct plainstring *
     int size = s->LENGTH;
 
     if ((size < this_string->LENGTH) || (!this_string->DATA)) {
-        free(this_string->DATA);
+        PLAINSTRING_FREE(this_string->DATA);
 
         this_string->DATA = 0;
         this_string->LENGTH = 0;
@@ -635,7 +650,7 @@ void plainstring_asg(struct plainstring *this_string, const struct plainstring *
             return;
         }
         this_string->DATA_SIZE = ((size + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
-        this_string->DATA = (char *)malloc(this_string->DATA_SIZE);
+        this_string->DATA = (char *)PLAINSTRING_MALLOC(this_string->DATA_SIZE);
     } else
         plainstring_increasebuffer(this_string, size - this_string->LENGTH);
 
@@ -665,11 +680,11 @@ void plainstring_replace_char_with_string(struct plainstring *this_string, const
         if (len > (uintptr_t)this_string->DATA_SIZE) {
             this_string->DATA_SIZE = (len / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
             char *orig_data        = this_string->DATA;
-            this_string->DATA      = (char *)realloc(this_string->DATA, this_string->DATA_SIZE);
+            this_string->DATA      = (char *)PLAINSTRING_REALLOC(this_string->DATA, this_string->DATA_SIZE);
             if (!this_string->DATA) {
                 this_string->DATA_SIZE = 0;
                 this_string->LENGTH = 0;
-                free(orig_data);
+                PLAINSTRING_FREE(orig_data);
             }
         }
         if (this_string->DATA) {
@@ -726,9 +741,9 @@ int plainstring_computesharedsize(struct concept_FILE *infile, int type) {
 
 void plainstring_delete(struct plainstring *this_string) {
     plainstring_deinit(this_string);
-    free(this_string);
+    PLAINSTRING_FREE(this_string);
 }
 
 void plainstring_deinit(struct plainstring *this_string) {
-    free(this_string->DATA);
+    PLAINSTRING_FREE(this_string->DATA);
 }

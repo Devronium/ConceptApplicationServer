@@ -99,5 +99,8 @@ void plainstring_delete(struct plainstring *this_string);
 
 void cstr_loaddouble(char *buffer, double d);
 
+void *plainstring_core_new(size_t size);
+void plainstring_core_free(void *ptr);
+
 #endif
 

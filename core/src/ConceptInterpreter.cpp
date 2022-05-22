@@ -1,6 +1,6 @@
 //#define FAST_EXIT_NO_GC_CALL
 // disable Tail Call Optimization (buggy)
-#define NO_TCO
+// #define NO_TCO
 // #define NO_TC
 
 #include "ConceptInterpreter.h"
@@ -6419,20 +6419,17 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
             VariableDATA *LOCAL_CONTEXT_i = (VariableDATA *)VAR_ALLOC(PIF);
             LOCAL_CONTEXT [i] = LOCAL_CONTEXT_i;
 #endif
-/* #ifndef NO_TCO
-            if (tco_cache) {
-                int index = DELTA_UNREF(FORMAL_PARAM, FORMAL_PARAM->PARAM_INDEX) [i - 1] - 2;
-                if ((index >= 0) && (index < ParamCount) && (tco_cache[index]))
-                    PARAM = tco_cache[index];
-            }
-#endif */
-            if ((TAIL_CALL) && (LOCAL_CONTEXT_i -> LINKS > 1)) {
-                if ((LOCAL_CONTEXT_i == PARAM) && (LOCAL_CONTEXT_i -> LINKS == 2)) {
-                    LOCAL_CONTEXT_i->IS_PROPERTY_RESULT = 0;
-                    continue;
+            if (TAIL_CALL) {
+                if (LOCAL_CONTEXT_i -> LINKS > 1) {
+                    if ((LOCAL_CONTEXT_i == PARAM) && (LOCAL_CONTEXT_i -> LINKS == 2)) {
+                        LOCAL_CONTEXT_i->IS_PROPERTY_RESULT = 0;
+                        continue;
+                    }
+                    FREE_VARIABLE(LOCAL_CONTEXT_i, STACK_TRACE);
+                    LOCAL_CONTEXT_i = (VariableDATA *)VAR_ALLOC(PIF);
+                } else {
+                    RESET_VARIABLE(LOCAL_CONTEXT_i, STACK_TRACE);
                 }
-                FREE_VARIABLE(LOCAL_CONTEXT_i, STACK_TRACE);
-                LOCAL_CONTEXT_i = (VariableDATA *)VAR_ALLOC(PIF);
                 LOCAL_CONTEXT [i] = LOCAL_CONTEXT_i;
             }
 
