@@ -35,6 +35,12 @@
 #endif
 #endif
 
+#ifdef WITH_SELECT
+    #ifndef FD_COPY
+        #define FD_COPY(dest,src) memcpy((dest),(src),sizeof *(dest))
+    #endif
+#endif
+
 #ifdef WITH_KQUEUE
     #include <sys/event.h>
 #endif
@@ -80,10 +86,6 @@ public:
 
     int Add(int efd, int mode) {
 #ifdef WITH_POLL
-        int poll_et = 0;
-        if (mode & 4)
-            poll_et = POLLET;
-
         if (chlist_pos <= chlist_len) {
             chlist_len += 64;
             chlist = (struct pollfd *)realloc(chlist, sizeof(struct pollfd) * chlist_len);
@@ -93,13 +95,13 @@ public:
         chlist[chlist_pos].fd = efd;
         switch (mode & 3) {
             case 1:
-                chlist[chlist_pos].events = POLLOUT | poll_et;
+                chlist[chlist_pos].events = POLLOUT;
                 break;
             case 3:
-                chlist[chlist_pos].events = POLLIN | POLLPRI | POLLOUT | poll_et;
+                chlist[chlist_pos].events = POLLIN | POLLPRI | POLLOUT | POLLHUP | POLLRDHUP;
                 break;
             default:
-                chlist[chlist_pos].events = POLLIN | POLLPRI | poll_et;
+                chlist[chlist_pos].events = POLLIN | POLLPRI | POLLHUP | POLLRDHUP;
         }
         chlist[chlist_pos].revents = 0;
         chlist_pos++;
@@ -128,20 +130,17 @@ public:
         }
         if (!chlist)
             return -2;
-        int poll_et = 0;
-        if (mode & 4)
-            poll_et = POLLET;
         for (int i = 0; i < chlist_pos; i ++) {
             if (chlist[i].fd == efd) {
                 switch (mode & 3) {
                     case 1:
-                        chlist[chlist_pos].events = POLLOUT | poll_et;
+                        chlist[chlist_pos].events = POLLOUT;
                         break;
                     case 3:
-                        chlist[chlist_pos].events = POLLIN | POLLPRI | POLLOUT | poll_et;
+                        chlist[chlist_pos].events = POLLIN | POLLPRI | POLLOUT | POLLHUP | POLLRDHUP;
                         break;
                     default:
-                        chlist[chlist_pos].events = POLLIN | POLLPRI | poll_et;
+                        chlist[chlist_pos].events = POLLIN | POLLPRI | POLLHUP | POLLRDHUP;
                 }
                 return 0;
             }
@@ -195,12 +194,23 @@ public:
             }
         }
 #else
-        FD_COPY(&chlist, &fd_list);
-        if (OUT_SOCKETS) {
-            FD_COPY(&outlist, &fd_out_list);
-            FD_SET(&outlist, &fd_excepts);
+        for (int i = 0; i < FD_SETSIZE; i++) {
+            if (FD_ISSET(i, &chlist)) {
+                FD_SET(i, &fd_list);
+                FD_SET(i, &fd_excepts);
+            }
         }
-        FD_SET(&chlist, &fd_excepts);
+        if (OUT_SOCKETS) {
+            for (int i = 0; i < FD_SETSIZE; i++) {
+                if (FD_ISSET(i, &outlist)) {
+                    FD_SET(i, &fd_out_list);
+                }
+                if (FD_ISSET(i, &chlist)) {
+                    FD_SET(i, &fd_excepts);
+                }
+
+            }
+        }
 #endif
 
         INTEGER index = 0;
@@ -211,6 +221,7 @@ public:
         else
             err = select(FD_SETSIZE, &fd_list, 0, &fd_excepts, &tout);
         if (err > 0) {
+#ifdef WIN32
             for (int i = 0; i < chlist.fd_count; i++) {
                 if (FD_ISSET(chlist.fd_array[i], &fd_list))
                     Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)chlist.fd_array[i]); 
@@ -221,11 +232,30 @@ public:
                         Invoke(INVOKE_SET_ARRAY_ELEMENT, OUT_SOCKETS, out_index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)outlist.fd_array[i]); 
                 }
             }
+#else
+            for (int i = 0; i < FD_SETSIZE; i++) {
+                if (FD_ISSET(i, &fd_list))
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)i); 
+            }
+            if (OUT_SOCKETS) {
+                for (int i = 0; i < FD_SETSIZE; i++) {
+                    if (FD_ISSET(i, &fd_out_list))
+                        Invoke(INVOKE_SET_ARRAY_ELEMENT, OUT_SOCKETS, out_index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)i); 
+                }
+            }
+#endif
         } else {
+#ifdef WIN32
             for (int i = 0; i < chlist.fd_count; i++) {
                 if (FD_ISSET(chlist.fd_array[i], &fd_excepts))
                     Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)chlist.fd_array[i]); 
             }
+#else
+            for (int i = 0; i < FD_SETSIZE; i++) {
+                if (FD_ISSET(i, &fd_excepts))
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)i); 
+            }
+#endif
         }
         return err;
 #endif

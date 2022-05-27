@@ -508,11 +508,22 @@ class H2Server {
 	}
 
 	protected __socket_fast_write(socket, data) {
+		var offset = 0;
 		if (socket.tls) {
-			socket.Socket.TLSWrite(data);
-			socket.Socket.WriteIterate();
+			do {
+				var written = socket.Socket.TLSWrite(data, offset);
+				socket.Socket.WriteIterate();
+				if (written <= 0)
+					break;
+				offset += written;
+			} while (offset < length data);
 		} else {
-			socket.Socket.Write(data);
+			do {
+				written = socket.Socket.Write(data);
+				if (written <= 0)
+					break;
+				offset += written;
+			} while (offset < length data);
 		}
 	}
 
