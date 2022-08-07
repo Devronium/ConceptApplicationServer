@@ -1011,6 +1011,28 @@ int CheckReachability(void *PIF, bool skip_top) {
         root = (GCRoot *)root->NEXT;
     }
 
+    if (((PIFAlizator *)PIF)->Promises) {
+        for (INTEGER i = 0; i < ((PIFAlizator *)PIF)->PromisesAllocated; i ++) {
+            struct PromiseData *pdata = &((PIFAlizator *)PIF)->Promises[i];
+            if (pdata->ID) {
+                for (INTEGER j = 0; j < ((Optimizer *)((ClassMember *)pdata->CM)->OPTIMIZER)->dataCount; j ++) {
+                    VariableDATA *Var = pdata->LOCAL_CONTEXT[j];
+                    if ((Var) && (Var->CLASS_DATA)) {
+                        if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
+                            CompiledClass *CC2 = (struct CompiledClass *)DYNAMIC_DATA(Var);
+                            if ((CC2->reachable & 0x03) != reach_id_flag)
+                                MarkRecursiveClass(PIF, CC2, reach_id_flag, CC2->reachable & 0x1C);
+                        } else
+                        if (Var->TYPE == VARIABLE_ARRAY) {
+                            Array *ARR2 = (struct Array *)Var->CLASS_DATA;
+                            if ((ARR2->reachable & 0x03) != reach_id_flag)
+                                MarkRecursive(PIF, ARR2, reach_id_flag, ARR2->reachable & 0x1C);
+                        }
+                    }
+                }
+            }
+        }
+    }
     // Mark locked objects.
     // A C library may hold a lock on an object or array.
     // In this case, all child object must be locked to avoid 

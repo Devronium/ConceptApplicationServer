@@ -61,9 +61,9 @@ public:
     ClassMember(void *DefinedIn, const char *name, char is_data_only, char _not_binary = 1, char is_unserialize = false);
     ~ClassMember(void);
 #ifdef SIMPLE_MULTI_THREADING
-    VariableDATA *Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct CompiledClass *Owner, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, char is_main = 0, INTEGER *thread_lock = NULL);
+    VariableDATA *Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct CompiledClass *Owner, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, struct PromiseData *resolve_pdata =  NULL, char is_main = 0, INTEGER *thread_lock = NULL);
 #else
-    VariableDATA *Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct CompiledClass *Owner, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, char is_main = 0);
+    VariableDATA *Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct CompiledClass *Owner, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, struct PromiseData *resolve_pdata =  NULL, char is_main = 0);
 #endif
     void EnsureVD();
 

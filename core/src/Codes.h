@@ -30,6 +30,7 @@
 #define KEY_FUNCTION            0xA13
 #define KEY_PRIVATE             0xA14
 #define KEY_PUBLIC              0xA15
+
 #ifndef DISABLE_DEPRECATED_FEATURES
 #define KEY_CEVENT              0xA16
 #endif
@@ -58,6 +59,8 @@
 #define KEY_CASE_SEP            0xA2B
 #define KEY_DEFAULT             0xA2C
 
+#define KEY_ASYNC               0xA2D
+
 #define __START_OPERATORS       0x00
 
 #define KEY_SELECTOR_P          0x11
@@ -84,6 +87,8 @@
 #define KEY_TYPE_OF             0x1D
 #define KEY_CLASS_NAME          0x1E
 #define KEY_LENGTH              0x1F
+
+#define KEY_AWAIT               0x20
 
 #define KEY_VALUE               0x80
 
@@ -291,6 +296,8 @@
 #define C_SWITCH         "switch"
 #define C_CASE_SEP       ":"
 #define C_DEFAULT        "default"
+#define C_ASYNC          "async"
+#define AWAIT            "await"
 
 #define NULL_STRING                ""
 

@@ -2005,6 +2005,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
             {
                 PIFAlizator *PIF = va_arg(ap, PIFAlizator *);
                 if (PIF) {
+                    ((PIFAlizator *)PIF)->ResetPromises(1);
                     PIFAlizator *ref_pif = PIF;
                     while (ref_pif->parentPIF)
                         ref_pif = (PIFAlizator *)ref_pif->parentPIF;
@@ -2513,6 +2514,46 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     return INVALID_INVOKE_PARAMETER;
                 // sandbox can only be set
                 pif->sandbox = 1;
+            }
+            break;
+
+        case INVOKE_RESOLVE:
+            {
+                PIFAlizator *pif = va_arg(ap, PIFAlizator *);
+                void *ID = va_arg(ap, void *);
+                VariableDATA *RETURN_DATA = va_arg(ap, VariableDATA *);
+                VariableDATA *EXCEPTION = va_arg(ap, VariableDATA *);
+
+                if ((!pif) || (!ID))
+                    return INVALID_INVOKE_PARAMETER;
+                // sandbox can only be set
+                struct PromiseData *pdata = pif->GetPromise(ID);
+                if (pdata) {
+                    if (EXCEPTION)
+                        EXCEPTION->LINKS ++;
+                    pdata->THROW_DATA = EXCEPTION;
+                    if (RETURN_DATA) {
+                        FREE_VARIABLE(pdata->LOCAL_CONTEXT[ pdata->RESULT_ID - 1 ], NULL);
+                        pdata->LOCAL_CONTEXT[ pdata->RESULT_ID - 1 ] = RETURN_DATA;
+                        RETURN_DATA->LINKS ++;
+                    } else {
+                        RESET_VARIABLE(pdata->LOCAL_CONTEXT[ pdata->RESULT_ID - 1 ], NULL);
+                    }
+
+                    EXCEPTION = NULL;
+                    VariableDATA *RES = ((ClassMember *)pdata->CM)->Execute(pif, ((ClassCode *)((ClassMember *)pdata->CM)->Defined_In)->CLSID, NULL, NULL, NULL, EXCEPTION, NULL, NULL, MAY_IGNORE_RESULT, pdata, 0);
+                    if (RES) {
+                        FREE_VARIABLE(RES, NULL);
+                    }
+                    if (EXCEPTION) {
+                        pif->RunTimeError(1319, ERR1319, NULL, (ClassMember *)pdata->CM, NULL);
+                        FREE_VARIABLE(EXCEPTION, NULL);
+                    }
+                    pif->ResolvePromise(pdata);
+
+                    return INVOKE_SUCCESS;
+                }
+                return INVALID_INVOKE_PARAMETER;
             }
             break;
 

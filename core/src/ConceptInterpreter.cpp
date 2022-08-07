@@ -1224,6 +1224,7 @@ void ConceptInterpreter_AnalizeInstructionPath(struct ConceptInterpreter *self, 
                 case KEY_TYPE_OF:
                 case KEY_CLASS_NAME:
                 case KEY_LENGTH:
+                case KEY_AWAIT:
                     if (usedflags[OE->OperandLeft_ID - 1] != 3) {
                         if (usedflags[OE->OperandLeft_ID - 1])
                             usedflags[OE->OperandLeft_ID - 1] = 2;
@@ -1405,6 +1406,7 @@ void ConceptInterpreter_AnalizeInstructionPath(struct ConceptInterpreter *self, 
                     case KEY_TYPE_OF:
                     case KEY_CLASS_NAME:
                     case KEY_DLL_CALL:
+                    case KEY_AWAIT:
                         optimizable = false;
                         prec_is_new = false;
                         break;
@@ -3528,9 +3530,9 @@ numbereval:
 
                     case VARIABLE_CLASS:
 #ifdef SIMPLE_MULTI_THREADING
-                        ConceptInterpreter_EvalClassExpression(THIS_REF, PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, OE_Operator_ID, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
+                        ConceptInterpreter_EvalClassExpression(THIS_REF, PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, OE_Operator_ID, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, NULL, IsWriteLocked);
 #else
-                        ConceptInterpreter_EvalClassExpression(THIS_REF, PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, OE_Operator_ID, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY);
+                        ConceptInterpreter_EvalClassExpression(THIS_REF, PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, OE_Operator_ID, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, NULL);
 #endif
                         continue;
 
@@ -3779,9 +3781,9 @@ int ConceptInterpreter_Catch(struct ConceptInterpreter *self, VariableDATA *&THR
 }
 
 #ifdef SIMPLE_MULTI_THREADING
-int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, OPERATOR_ID_TYPE OE_Operator_ID, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, char &IsWriteLocked) {
+int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, OPERATOR_ID_TYPE OE_Operator_ID, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, INTEGER *IS_AWAIT, char &IsWriteLocked) {
 #else
-int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, OPERATOR_ID_TYPE OE_Operator_ID, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY) {
+int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, OPERATOR_ID_TYPE OE_Operator_ID, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, INTEGER *IS_AWAIT) {
 #endif
     CompiledClass  *CCTEMP;
     DECLARE_PATH(VARIABLE_NUMBER);
@@ -3790,6 +3792,9 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
     ParamList OPERATOR_PARAM;
     INTEGER   PARAM_INDEX[1];
     VariableDATA *RESULT;
+
+    if (IS_AWAIT)
+        *IS_AWAIT = 0;
 
     switch (OE_Operator_ID) {
         case KEY_BY_REF:
@@ -4057,7 +4062,20 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
             DECLARE_PATH(VARIABLE_CLASS);
             return 1;
 
+        case KEY_AWAIT:
+            if (!IS_AWAIT) {
+                PIF->RunTimeError(1318, ERR1318, OE, self->OWNER, STACK_TRACE);
+            } else
+            if ((LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) && (!strcmp(((struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->_Class->NAME.c_str(), "Promise")))
+                *IS_AWAIT = 1;
+
+            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+            ((struct CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+            DECLARE_PATH(VARIABLE_CLASS);
+            return 1;
+
         default:
+            OPERATOR_ID = 0;
             DECLARE_PATH(0x20);
             PIF->RunTimeError(920, ERR920, OE, self->OWNER, STACK_TRACE);
             break;
@@ -4360,6 +4378,12 @@ int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFA
             }
             return 1;
 
+        case KEY_AWAIT:
+            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+            ((struct Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+            DECLARE_PATH(VARIABLE_ARRAY);
+            return 1;
+
         default:
             //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
             DECLARE_PATH(0x20);
@@ -4491,6 +4515,11 @@ int ConceptInterpreter_EvalDelegateExpression(struct ConceptInterpreter *self, P
             //---------------------------//
             LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA  = copy_Delegate(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA);
             DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_AWAIT:
+            DECLARE_PATH(VARIABLE_DELEGATE);
+            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA  = copy_Delegate(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA);
             return 1;
 
         default:
@@ -4889,6 +4918,10 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
             }
             return 1;
 
+        case KEY_AWAIT:
+            NEW_CONCEPT_STRING2(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
+            return 1;
+
         default:
             DECLARE_PATH(0x20);
             PIF->RunTimeError(650, ERR650, OE, self->OWNER, STACK_TRACE);
@@ -5208,6 +5241,10 @@ int ConceptInterpreter_EvalNumberExpression(struct ConceptInterpreter *self, PIF
             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA;
             return 1;
 
+        case KEY_AWAIT:
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA;
+            return 1;
+
         default:
             PIF->RunTimeError(660, ERR660, OE, self->OWNER, STACK_TRACE);
             break;
@@ -5321,7 +5358,7 @@ int ConceptInterpreter_JIT(INTEGER &INSTRUCTION_POINTER, INTEGER INSTRUCTION_COU
 }
 #endif
 
-VariableDATA *ConceptInterpreter_Interpret(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE) {
+VariableDATA *ConceptInterpreter_Interpret(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, struct PromiseData **pdata) {
 #ifndef NO_TC
     INTEGER allocated_data_count = ((struct Optimizer *)self->OWNER->OPTIMIZER)->dataCount;
 tc_start:
@@ -5370,6 +5407,10 @@ tail_call:
     INTEGER CATCH_INSTRUCTION_POINTER = 0;
     INTEGER CATCH_VARIABLE            = 0;
     INTEGER PREVIOUS_TRY = 0;
+    INTEGER IS_AWAIT;
+
+    RuntimeOptimizedElement *OE;
+    OPERATOR_ID_TYPE OE_Operator_ID;
 
     ParamListExtra FORMAL_PARAMETERS2;
     FORMAL_PARAMETERS2.PIF = PIF;
@@ -5402,6 +5443,21 @@ tail_call:
     JITDATA[2] = (void *)&PROPERTIES;
     JITDATA[3] = (void *)ClassID;
 #endif
+
+    if ((pdata) && (*pdata)) {
+        LOCAL_CONTEXT = (*pdata)->LOCAL_CONTEXT;
+        PROPERTIES = (*pdata)->PROPERTIES;
+        THROW_DATA = (*pdata)->THROW_DATA;
+        INSTRUCTION_POINTER = (*pdata)->INSTRUCTION_POINTER;
+        CATCH_INSTRUCTION_POINTER = (*pdata)->CATCH_INSTRUCTION_POINTER;
+        CATCH_VARIABLE = (*pdata)->CATCH_VARIABLE;
+        PREVIOUS_TRY = (*pdata)->PREVIOUS_TRY;
+
+        *pdata = NULL;
+
+        if (THROW_DATA)
+            goto promise_rejected;
+    }
     while (INSTRUCTION_POINTER < INSTRUCTION_COUNT) {
         WRITE_UNLOCK
 #ifdef USE_JIT_TRACE
@@ -5428,8 +5484,8 @@ tail_call:
             break;
 #endif
 #endif
-        RuntimeOptimizedElement *OE = &CODE [INSTRUCTION_POINTER++];
-        OPERATOR_ID_TYPE OE_Operator_ID      = OE->Operator_ID;
+        OE = &CODE [INSTRUCTION_POINTER++];
+        OE_Operator_ID      = OE->Operator_ID;
 #ifdef PROFILE_HIT_COUNT
         hits[OE_Operator_ID]++;
         iterations++;
@@ -6073,10 +6129,34 @@ numbereval:
 
                 case VARIABLE_CLASS:
 #ifdef SIMPLE_MULTI_THREADING
-                    ConceptInterpreter_EvalClassExpression(self, PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, OE_Operator_ID, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
+                    ConceptInterpreter_EvalClassExpression(self, PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, OE_Operator_ID, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, &IS_AWAIT, IsWriteLocked);
 #else
-                    ConceptInterpreter_EvalClassExpression(self, PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, OE_Operator_ID, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY);
+                    ConceptInterpreter_EvalClassExpression(self, PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, OE_Operator_ID, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, &IS_AWAIT);
 #endif
+                    if ((IS_AWAIT) && (pdata)) {
+                        *pdata = PIF->AllocatePromise(LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA);
+
+                        (*pdata)->CM = self->OWNER;
+                        (*pdata)->LOCAL_CONTEXT = LOCAL_CONTEXT;
+                        (*pdata)->PROPERTIES = PROPERTIES;
+                        (*pdata)->THROW_DATA = THROW_DATA;
+                        (*pdata)->RESULT_ID = OE->Result_ID;
+                        (*pdata)->INSTRUCTION_POINTER = INSTRUCTION_POINTER;
+                        (*pdata)->CATCH_INSTRUCTION_POINTER = CATCH_INSTRUCTION_POINTER;
+                        (*pdata)->CATCH_VARIABLE = CATCH_VARIABLE;
+                        (*pdata)->PREVIOUS_TRY = PREVIOUS_TRY;
+
+                        RETURN_DATA              = (VariableDATA *)VAR_ALLOC(PIF);
+                        RETURN_DATA->LINKS       = 1;
+                        RETURN_DATA->IS_PROPERTY_RESULT = 0;
+                        RETURN_DATA->TYPE        = LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE;
+                        RETURN_DATA->CLASS_DATA = LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA;
+                        if (RETURN_DATA->CLASS_DATA)
+                            ((struct CompiledClass *)RETURN_DATA->CLASS_DATA)->LINKS++;
+                        WRITE_UNLOCK
+
+                        return RETURN_DATA;
+                    }
                     continue;
 
                 case VARIABLE_ARRAY:
@@ -6192,6 +6272,7 @@ throw_label:
                     DECLARE_PATH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE);
                     LOCAL_CONTEXT [OE->OperandRight_ID - 1]->LINKS++;
                     THROW_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1];
+promise_rejected:
                     THROW_DATA->IS_PROPERTY_RESULT = 0;
                     if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {
                         FREE_VARIABLE(LOCAL_CONTEXT [CATCH_VARIABLE - 1], STACK_TRACE);
@@ -6287,15 +6368,26 @@ void ConceptInterpreter_CheckParameters(struct ConceptInterpreter *self, PIFAliz
 
 VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *self, PIFAlizator *PIF, struct CompiledClass *Sender, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *STACK_TRACE, VariableDATA **TAIL_CALL, bool& can_run) {
     VariableDATA **LOCAL_CONTEXT;
+    SCStack *STACK_ROOT;
     struct Optimizer *OPT = (struct Optimizer *)self->OWNER->OPTIMIZER;
 
     can_run = true;
     INTEGER ParamCount = FORMAL_PARAM ? FORMAL_PARAM->COUNT : 0;
     INTEGER data_count = OPT->dataCount;
-
 #ifndef NO_TCO
     VariableDATA **tco_cache = NULL;
     bool tco_ref = false;
+#endif
+
+    if (self->OWNER->IS_STATIC & 0x02) {
+        // async function call
+#ifndef NO_TCO
+        // disable TAIL_CALL
+        TAIL_CALL = NULL;
+#endif
+        goto no_stack_allock_for_async;
+    }
+#ifndef NO_TCO
     if (TAIL_CALL) {
         LOCAL_CONTEXT = TAIL_CALL;
         if (ParamCount) {
@@ -6322,12 +6414,13 @@ VariableDATA **ConceptInterpreter_CreateEnvironment(struct ConceptInterpreter *s
     } else
 #endif
     {
-        SCStack *STACK_ROOT = (SCStack *)(STACK_TRACE ? STACK_TRACE->ROOT : NULL);
+        STACK_ROOT = (SCStack *)(STACK_TRACE ? STACK_TRACE->ROOT : NULL);
         if ((STACK_ROOT) && (STACK_ROOT->STACK_CONTEXT) && (STACK_ROOT->stack_pos + data_count < BLOCK_STACK_SIZE)) {
             LOCAL_CONTEXT                 = ((VariableDATA **)STACK_ROOT->STACK_CONTEXT) + STACK_ROOT->stack_pos;
             STACK_ROOT->stack_pos        += data_count;
             STACK_TRACE->alloc_from_stack = 1;
         } else
+no_stack_allock_for_async:
             LOCAL_CONTEXT = (VariableDATA **)FAST_MALLOC(PIF, sizeof(VariableDATA *) * OPT->dataCount);
     #ifdef POOL_BLOCK_ALLOC
      #ifdef POOL_STACK

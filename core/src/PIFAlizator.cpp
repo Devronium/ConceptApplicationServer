@@ -478,6 +478,11 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     HashTable_init(&this->DebugVarNames);
 #endif
     MemoryTable_init(&this->LibraryAllocations);
+
+    this->Promises          = NULL;
+    this->PromisesLength    = 0;
+    this->PromisesAllocated = 0;
+
     semv(WorkerLock);
 }
 
@@ -504,7 +509,35 @@ void PIFAlizator::Clear() {
     this->UndefinedClasses.Clear();
 }
 
+void PIFAlizator::ResetPromises(int free_vars) {
+    if (this->Promises) {
+        for (INTEGER i = 0; i < this->PromisesAllocated; i ++) {
+            struct PromiseData *pdata = &this->Promises[i];
+            if (pdata->ID) {
+                if (pdata->PROPERTIES) {
+                    FAST_FREE(this, pdata->PROPERTIES);
+                    pdata->PROPERTIES = NULL;
+                }
+                if (free_vars) {
+                    for (INTEGER j = 0; j < ((Optimizer *)((ClassMember *)pdata->CM)->OPTIMIZER)->dataCount; j ++) {
+                        VariableDATA *Var = pdata->LOCAL_CONTEXT[j];
+                        if (Var) {
+                            FREE_VARIABLE(Var, NULL);
+                        }
+                    }
+                }
+                FAST_FREE(this, pdata->LOCAL_CONTEXT);
+            }
+        }
+        free(this->Promises);
+    }
+    this->Promises = NULL;
+    this->PromisesAllocated = 0;
+    this->PromisesLength = 0;
+}
+
 PIFAlizator::~PIFAlizator(void) {
+    this->ResetPromises(1);
 #ifdef CACHED_CLASSES
     HashTable_deinit(&this->CachedClasses);
 #endif
@@ -1470,7 +1503,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 
             if (_ID == 1) {
                 VD_THIS->USED = 1;
-                if (STATIC) {
+                if (STATIC & 0x01) {
                     Errors.Add(new AnsiException(ERR930, on_line ? on_line : P->LastLine(), 930, sPARSE, FileName, CC->NAME, CM->NAME), DATA_EXCEPTION);
                     continue;
                 }
@@ -1828,6 +1861,10 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             } else
             if ((PREC_TYPE == TYPE_CLASS) && (_ID == KEY_SEL)) {
                 _ID = KEY_DLL_CALL;
+            } else
+            if (_ID == KEY_AWAIT) {
+                CM->IS_STATIC |= 0x02;
+                // automatically make function async
             }
         }
 
@@ -1997,7 +2034,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 }
 
                 if (_ID) {
-                    if (STATIC) {
+                    if (STATIC & 0x01) {
                         Errors.Add(new AnsiException(ERR930, on_line ? on_line : P->LastLine(), 930, sPARSE, FileName, CC->NAME, CM->NAME), DATA_EXCEPTION);
                         continue;
                     }
@@ -2043,7 +2080,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                     _ID = GeneralMembers->ContainsString(sPARSE.c_str());
 
                     if (_ID) {
-                        if (STATIC) {
+                        if (STATIC & 0x01) {
                             Errors.Add(new AnsiException(ERR930, on_line ? on_line : P->LastLine(), 930, sPARSE, FileName, CC->NAME, CM->NAME), DATA_EXCEPTION);
                             continue;
                         }
@@ -2583,7 +2620,7 @@ INTEGER PIFAlizator::BuildClass(AnsiParser *P, INTEGER on_line) {
         }
 
         if ((TYPE == TYPE_KEYWORD) && (_ID == KEY_STATIC)) {
-            STATIC = 1;
+            STATIC |= 1;
         } else
         if ((TYPE == TYPE_KEYWORD) && (_ID == KEY_PUBLIC)) {
             ACCESS = ACCESS_PUBLIC;
@@ -2593,6 +2630,9 @@ INTEGER PIFAlizator::BuildClass(AnsiParser *P, INTEGER on_line) {
         } else
         if ((TYPE == TYPE_KEYWORD) && (_ID == KEY_PROTECTED)) {
             ACCESS = ACCESS_PROTECTED;
+        } else
+        if ((TYPE == TYPE_KEYWORD) && (_ID == KEY_ASYNC)) {
+            STATIC |= 2;
         } else
         if ((TYPE == TYPE_KEYWORD) && (_ID == KEY_EXTENDS)) {
             if (!START_CLASS) {
@@ -3546,6 +3586,61 @@ void PIFAlizator::OptimizeMember(ClassMember *CM) {
     delete_OptimizerHelper(helper);
 
     this->Helper = old_helper;
+}
+
+struct PromiseData *PIFAlizator::AllocatePromise(void *ID) {
+    struct PromiseData *pdata;
+    INTEGER i;
+
+    if ((!this->Promises) || (this->PromisesLength >= this->PromisesAllocated)) {
+        i = this->PromisesAllocated;
+        this->PromisesAllocated += 10;
+        this->Promises = (struct PromiseData *)realloc(this->Promises, sizeof(struct PromiseData) * this->PromisesAllocated);
+
+        for (; i < this->PromisesAllocated; i ++)
+            this->Promises[i].ID = 0;
+    }
+
+    for (i = 0; i < this->PromisesAllocated; i ++) {
+        pdata = &this->Promises[i];
+        if (!pdata->ID) {
+            pdata->ID = ID;
+            this->PromisesLength ++;
+            return pdata;
+        }
+    }
+
+    return NULL;
+}
+
+struct PromiseData *PIFAlizator::GetPromise(void  *ID) {
+    INTEGER i;
+
+    if (!ID)
+        return NULL;
+
+    for (i = 0; i < this->PromisesAllocated; i ++) {
+        if (this->Promises[i].ID == ID)
+            return &this->Promises[i];
+    }
+
+    return NULL;
+}
+
+void PIFAlizator::ResolvePromise(struct PromiseData *pdata) {
+    INTEGER i;
+
+    if (!pdata)
+        return;
+
+    pdata->ID = 0;
+    this->PromisesLength --;
+
+    if (this->PromisesLength == 0) {
+        free(this->Promises);
+        this->Promises = NULL;
+        this->PromisesAllocated = 0;
+    }
 }
 
 void PIFAlizator::Optimize(int start, char use_compiled_code, char use_lock) {

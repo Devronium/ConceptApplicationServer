@@ -27,6 +27,7 @@ INTEGER GetOperatorType(INTEGER ID) {
         case KEY_DEC:
         case KEY_POZ:
         case KEY_NEG:
+        case KEY_AWAIT:
             return OPERATOR_UNARY;
 
         case KEY_INC_LEFT:
@@ -370,6 +371,12 @@ const char *GetKeyWord(INTEGER ID) {
         case KEY_DEFAULT:
             return C_DEFAULT;
 
+        case KEY_AWAIT:
+            return AWAIT;
+
+        case KEY_ASYNC:
+            return C_ASYNC;
+
         case KEY_OPTIMIZED_IF:
             return "OPTIMIZED_IF";
 
@@ -679,6 +686,12 @@ INTEGER GetID(AnsiString& KeyWord) {
             }
             if (KeyWord == C_SUPER) {
                 return KEY_SUPER;
+            }
+            if (KeyWord == C_ASYNC) {
+                return KEY_ASYNC;
+            }
+            if (KeyWord == AWAIT) {
+                return KEY_AWAIT;
             }
             break;
 

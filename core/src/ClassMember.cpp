@@ -303,7 +303,7 @@ void ClassMember::EndMainCall(void *PIF, VariableDATA *&RESULT, VariableDATA *&T
 #endif
 }
 
-VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct CompiledClass *Owner, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, char is_main THREAD_CREATION_LOCKS) {
+VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct CompiledClass *Owner, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, struct PromiseData *resolve_pdata, char is_main THREAD_CREATION_LOCKS) {
 #ifdef EMPIRIC_STACK_CHECK
     if (++STACK_HIT > MAX_RECURSIVE_CALL) {
         ((PIFAlizator *)PIF)->Errors.Add(new AnsiException(ERR840, _DEBUG_STARTLINE, 840, NAME, _DEBUG_FILENAME), DATA_EXCEPTION);
@@ -311,11 +311,18 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct 
     }
 #endif
 
-    struct ConceptInterpreter *INTERPRETER = (struct ConceptInterpreter *)((struct Optimizer *)this->OPTIMIZER)->INTERPRETER;
-    if (!INTERPRETER) {
-        INTERPRETER = new_ConceptInterpreter((struct Optimizer *)OPTIMIZER, ((ClassCode *)Defined_In)->CLSID, this);
-        ((struct Optimizer *)this->OPTIMIZER)->INTERPRETER = INTERPRETER;
-    }
+    struct ConceptInterpreter *INTERPRETER;
+    VariableDATA **CONTEXT;
+    VariableDATA *this_ref;
+    INTEGER ParamCount;
+    INTEGER data_count;
+
+    bool can_run = true;
+    struct Optimizer *OPT = (struct Optimizer *)this->OPTIMIZER;
+    RuntimeVariableDESCRIPTOR *DATA = OPT->DATA;
+
+    SCStack *STACK_ROOT;
+    
     SCStack STACK_TRACE;
     STACK_TRACE.CM               = this;
     STACK_TRACE.PREV             = PREV;
@@ -338,19 +345,31 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct 
     }
     STACK_TRACE.TOP = &STACK_TRACE;
 
-    bool         can_run;
+    if (resolve_pdata) {
+        CONTEXT = resolve_pdata->LOCAL_CONTEXT;
+        INTERPRETER = (ConceptInterpreter *)((Optimizer *)((ClassMember *)resolve_pdata->CM)->OPTIMIZER)->INTERPRETER;
+        STACK_TRACE.LOCAL_CONTEXT = (void **)CONTEXT;
+
+        if (CONTEXT)
+            STACK_TRACE.len = ((struct Optimizer *)OPTIMIZER)->dataCount;
+
+        goto promise_resolve;
+    }
+
+    INTERPRETER = (struct ConceptInterpreter *)((struct Optimizer *)this->OPTIMIZER)->INTERPRETER;
+    if (!INTERPRETER) {
+        INTERPRETER = new_ConceptInterpreter((struct Optimizer *)OPTIMIZER, ((ClassCode *)Defined_In)->CLSID, this);
+        ((struct Optimizer *)this->OPTIMIZER)->INTERPRETER = INTERPRETER;
+    }
+
 #ifdef NO_FORCED_INLINE_CODE
-    VariableDATA **CONTEXT = ConceptInterpreter_CreateEnvironment((struct ConceptInterpreter *)INTERPRETER, (PIFAlizator *)PIF, Owner, FORMAL_PARAM, SenderCTX, &STACK_TRACE, NULL, can_run);
+    CONTEXT = ConceptInterpreter_CreateEnvironment((struct ConceptInterpreter *)INTERPRETER, (PIFAlizator *)PIF, Owner, FORMAL_PARAM, SenderCTX, &STACK_TRACE, NULL, can_run);
 #else
-    VariableDATA **CONTEXT;
-    struct Optimizer *OPT = (struct Optimizer *)this->OPTIMIZER;
+    ParamCount = FORMAL_PARAM ? FORMAL_PARAM->COUNT : 0;
+    data_count = OPT->dataCount;
 
-    can_run = true;
-    INTEGER ParamCount = FORMAL_PARAM ? FORMAL_PARAM->COUNT : 0;
-    INTEGER data_count = OPT->dataCount;
-
-    SCStack *STACK_ROOT = (SCStack *)STACK_TRACE.ROOT;
-    if ((STACK_ROOT) && (STACK_ROOT->STACK_CONTEXT) && (STACK_ROOT->stack_pos + data_count < BLOCK_STACK_SIZE)) {
+    STACK_ROOT = (SCStack *)STACK_TRACE.ROOT;
+    if ((!(this->IS_STATIC & 0x02)) && (STACK_ROOT) && (STACK_ROOT->STACK_CONTEXT) && (STACK_ROOT->stack_pos + data_count < BLOCK_STACK_SIZE)) {
         CONTEXT                 = ((VariableDATA **)STACK_ROOT->STACK_CONTEXT) + STACK_ROOT->stack_pos;
         STACK_ROOT->stack_pos        += data_count;
         STACK_TRACE.alloc_from_stack = 1;
@@ -364,9 +383,9 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct 
     } else
  #endif
     BLOCK_VAR_ALLOC(CONTEXT, PIF, data_count, 0);
-    VariableDATA *this_ref = CONTEXT[0];
+    this_ref = CONTEXT[0];
 #else
-    VariableDATA *this_ref = (VariableDATA *)VAR_ALLOC(PIF);
+    this_ref = (VariableDATA *)VAR_ALLOC(PIF);
     CONTEXT [0] = this_ref;
 #endif
     this_ref->TYPE               = VARIABLE_CLASS;
@@ -379,7 +398,6 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct 
         ((struct CompiledClass *)this_ref->CLASS_DATA)->LINKS++;
 
     INTEGER i;
-    RuntimeVariableDESCRIPTOR *DATA = OPT->DATA;
     for (i = 1; i <= ParamCount; i++) {
  #ifdef POOL_STACK
         if ((STACK_TRACE.alloc_from_stack) && (!CONTEXT[i]))
@@ -509,13 +527,16 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct 
     if (!PREV)
         AddGCRoot(PIF, &STACK_TRACE);
 
+promise_resolve:
 #ifdef SIMPLE_MULTI_THREADING
     if (thread_lock)
         *thread_lock = 0;
 #endif
+
     VariableDATA *RESULT = NULL;
+    struct PromiseData *pdata = resolve_pdata;
     if (can_run)
-        RESULT = ConceptInterpreter_Interpret((struct ConceptInterpreter *)INTERPRETER, (PIFAlizator *)PIF, CONTEXT, CONCEPT_CLASS_ID, THROW_DATA, &STACK_TRACE);
+        RESULT = ConceptInterpreter_Interpret((struct ConceptInterpreter *)INTERPRETER, (PIFAlizator *)PIF, CONTEXT, CONCEPT_CLASS_ID, THROW_DATA, &STACK_TRACE, &pdata);
     if (PREV)
         ((SCStack *)PREV->ROOT)->TOP = PREV_TOP;
     STACK_TRACE.len = -1;
@@ -529,6 +550,8 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct 
             RESULT = USE_RESULT;
             RESULT->LINKS++;
         }
+        if (pdata)
+            goto promise_await;
 #if defined(POOL_BLOCK_ALLOC) && defined(POOL_STACK) && (!defined(SIMPLE_MULTI_THREADING))
         // faster inline context cleaning
         if ((PREV) && (STACK_TRACE.alloc_from_stack)) {
@@ -576,6 +599,7 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct 
 #ifdef EMPIRIC_STACK_CHECK
     --STACK_HIT;
 #endif
+promise_await:
     if (RESULT) {
         RESULT->LINKS--;
     }

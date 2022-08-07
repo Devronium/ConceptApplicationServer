@@ -50,6 +50,7 @@ class Promise {
 	}
 
 	resolve(p = null) {
+		__resolve(this, this.parameters);
 		try {
 			if (_state != PROMISE_PENDING)
 				throw "Invalid promise state in ::resolve";
@@ -66,6 +67,7 @@ class Promise {
 	}
 
 	resolveNoParams() {
+		__resolve(this, this.parameters);
 		try {
 			if (_state != PROMISE_PENDING)
 				throw "Invalid promise state in ::resolve";
@@ -83,6 +85,7 @@ class Promise {
 	}
 
 	reject(p = null) {
+		__resolve(this, null, "rejected");
 		try {
 			if (_state != PROMISE_PENDING)
 				throw "Invalid promise state in ::reject";

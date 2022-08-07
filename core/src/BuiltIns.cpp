@@ -409,6 +409,17 @@ CONCEPT_FUNCTION_IMPL(allocinfo, 0)
 #endif
 END_IMPL
 
+
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(__resolve, 2, 3)
+    T_OBJECT(__resolve, 0)
+
+    if (PARAMETERS->COUNT == 2)
+        Invoke(INVOKE_RESOLVE, PARAMETERS->PIF, (INTEGER)PARAM(0), PARAMETER(1), (void *)NULL);
+    else
+        Invoke(INVOKE_RESOLVE, PARAMETERS->PIF, (INTEGER)PARAM(0), PARAMETER(1), PARAMETER(2));
+    RETURN_NUMBER(0);
+END_IMPL
+
 #ifndef DISABLE_INTROSPECTION
 CONCEPT_FUNCTION_IMPL(bytecode, 1)
     T_DELEGATE(bytecode, 0)
@@ -1180,6 +1191,7 @@ void *BUILTINADDR(void *pif, const char *name, unsigned char *is_private) {
     BUILTIN(bytedata)
     BUILTIN(callstack)
 #endif
+    BUILTIN(__resolve)
 
     if ((!PIF) || (PIF->enable_private)) {
         if (is_private)

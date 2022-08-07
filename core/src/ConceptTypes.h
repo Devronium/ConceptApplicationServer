@@ -148,6 +148,7 @@ typedef void (*DESTROY_PROTO_DATA)(void *data, void *handler);
 #define INVOKE_FILENAME                       0x65
 #define INVOKE_IS_SANDBOX                     0x66
 #define INVOKE_SET_SANDBOX                    0x67
+#define INVOKE_RESOLVE                        0x68
 
 #define INVOKE_SUCCESS                        0
 #define CANNOT_INVOKE_INTERFACE               -10
@@ -367,6 +368,19 @@ struct GreenThreadCycle {
     void                 *CURRENT_THREAD;
     // interpreter next
     void                 *NEXT;
+};
+
+struct PromiseData {
+    void                 *ID;
+    void                 *CM;
+    VariableDATA         **LOCAL_CONTEXT;
+    VariableDATAPROPERTY *PROPERTIES;
+    VariableDATA         *THROW_DATA;
+    INTEGER              RESULT_ID;
+    INTEGER              INSTRUCTION_POINTER;
+    INTEGER              CATCH_INSTRUCTION_POINTER;
+    INTEGER              CATCH_VARIABLE;
+    INTEGER              PREVIOUS_TRY;
 };
 
 #define DYNAMIC_DATA(VARIABLE)  (VARIABLE->TYPE == VARIABLE_DELEGATE ? delegate_Class(VARIABLE->CLASS_DATA) : VARIABLE->CLASS_DATA)

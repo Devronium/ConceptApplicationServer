@@ -320,7 +320,7 @@ int ClassCode::CanBeRunStatic(const char *name, ClassMember **member) {
         if ((CM->NAME) && (!strcmp(CM->NAME, name))) {
             if (member)
                 *member = CM;
-            return CM->IS_STATIC;
+            return (CM->IS_STATIC & 0x01);
         }
     }
     return 0;
@@ -398,7 +398,7 @@ int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
                 flags [index] = 0x80;
             }
             access [index] = CM->ACCESS;
-            if (CM->IS_STATIC) {
+            if (CM->IS_STATIC & 0x01) {
                 access [index] |= 0x80;
             }
             if (!CM->IS_FUNCTION) {
@@ -551,7 +551,7 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
             PIF->RootInstance = res;
         VariableDATA *THROW_DATA = 0;
         STACK(PREV, OE ? OE->Operator_DEBUG_INFO_LINE : 0)
-        VariableDATA * RESULT = CM->Execute(PIF, this->CLSID, (CompiledClass *)Owner->CLASS_DATA, FORMAL_PARAM, SenderCTX, THROW_DATA, PREV, NULL, 0, is_static);
+        VariableDATA * RESULT = CM->Execute(PIF, this->CLSID, (CompiledClass *)Owner->CLASS_DATA, FORMAL_PARAM, SenderCTX, THROW_DATA, PREV, NULL, 0, NULL, is_static);
         UNSTACK;
         if (RESULT) {
             if (is_static) {
@@ -1464,6 +1464,11 @@ GreenThreadCycle *ClassCode::CreateThread(PIFAlizator *PIF, INTEGER i, VariableD
         if (pMEMBER_i->IS_FUNCTION == 1) {
             if (pMEMBER_i->MUST_PARAMETERS_COUNT) {
                 AnsiException *Exc = new AnsiException(1310, ERR1310, 0, "mandatory parameters: ", pMEMBER_i->MUST_PARAMETERS_COUNT, *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, pMEMBER_i->NAME);
+                PIF->AcknoledgeRunTimeError(NULL, Exc);
+                return 0;
+            }
+            if (pMEMBER_i->IS_STATIC & 0x02) {
+                AnsiException *Exc = new AnsiException(1318, ERR1318, pMEMBER_i->_DEBUG_STARTLINE, 0, "", *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, pMEMBER_i->NAME);
                 PIF->AcknoledgeRunTimeError(NULL, Exc);
                 return 0;
             }

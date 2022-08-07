@@ -433,6 +433,15 @@ public:
     void *Helper;
     struct MemoryTable LibraryAllocations;
 
+    struct PromiseData *Promises;
+    INTEGER PromisesLength;
+    INTEGER PromisesAllocated;
+
+    struct PromiseData *AllocatePromise(void *ID);
+    struct PromiseData *GetPromise(void *ID);
+    void ResolvePromise(struct PromiseData *pdata);
+    void ResetPromises(int free_vars);
+
     INTEGER FindVariableByName(void *key, const char *name);
     void RegisterVariableName(void *key, const char *name, INTEGER val);
 
