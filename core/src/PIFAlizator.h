@@ -444,6 +444,8 @@ public:
     void ResetPromises(int free_vars);
     int IsPromiseObject(const ClassCode *CC);
 
+    SCStack *GetStackTrace();
+
     INTEGER FindVariableByName(void *key, const char *name);
     void RegisterVariableName(void *key, const char *name, INTEGER val);
 

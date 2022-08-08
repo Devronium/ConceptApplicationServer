@@ -304,6 +304,8 @@ void ClassMember::EndMainCall(void *PIF, VariableDATA *&RESULT, VariableDATA *&T
 }
 
 VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, struct CompiledClass *Owner, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, struct PromiseData *resolve_pdata, char is_main THREAD_CREATION_LOCKS) {
+    if (!PREV)
+        PREV = ((PIFAlizator *)PIF)->GetStackTrace();
 #ifdef EMPIRIC_STACK_CHECK
     if (++STACK_HIT > MAX_RECURSIVE_CALL) {
         ((PIFAlizator *)PIF)->Errors.Add(new AnsiException(ERR840, _DEBUG_STARTLINE, 840, NAME, _DEBUG_FILENAME), DATA_EXCEPTION);

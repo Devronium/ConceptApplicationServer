@@ -378,6 +378,8 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
                     Parameter->LINKS = 1;
                     Parameter->TYPE  = TYPE;
 
+                    SCStack *STACK_TRACE = PIF->GetStackTrace();
+
                     VariableDATA *CONTAINER [1];
                     CONTAINER [0] = Parameter;
 
@@ -416,12 +418,12 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
                                         CCode->CLSID,
                                         CCode->CLSID,
                                         &THROW_DATA,
-                                        NULL);
+                                        STACK_TRACE);
 
                     ((struct CompiledClass *)CLASS_PTR)->LINKS --;
-                    FREE_VARIABLE(Parameter, NULL);
+                    FREE_VARIABLE(Parameter, STACK_TRACE);
                     if (THROW_DATA) {
-                        FREE_VARIABLE(THROW_DATA, NULL);
+                        FREE_VARIABLE(THROW_DATA, STACK_TRACE);
                         return -1;
                     }
                     return 0;

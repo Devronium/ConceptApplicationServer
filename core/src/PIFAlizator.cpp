@@ -3658,6 +3658,22 @@ void PIFAlizator::ResolvePromise(struct PromiseData *pdata) {
     }
 }
 
+SCStack *PIFAlizator::GetStackTrace() {
+    SCStack *STACK_TRACE = NULL;
+#ifndef SIMPLE_MULTI_THREADING
+    if (!in_gc) {
+        GCRoot *root = this->GCROOT;
+        if (root) {
+            STACK_TRACE = (SCStack *)root->STACK_TRACE;
+            if (STACK_TRACE)
+                STACK_TRACE = (SCStack *)STACK_TRACE->TOP;
+        }
+    }
+#endif
+    return STACK_TRACE;
+}
+
+
 void PIFAlizator::Optimize(int start, char use_compiled_code, char use_lock) {
     int class_count = ClassList->Count();
 

@@ -301,6 +301,10 @@ void delete_CompiledClass(struct CompiledClass *self, SCStack *STACK_TRACE) {
     PIFAlizator *PIF          = GET_PIF(self);
     if (self->_Class->DESTRUCTOR) {
         INTEGER old_links = self->LINKS;
+#ifndef SIMPLE_MULTI_THREADING
+        if (!STACK_TRACE)
+            STACK_TRACE = PIF->GetStackTrace();
+#endif
         if (CompiledClass_Destroy(self, PIF, STACK_TRACE) < 0) {
             // runtime error - class reference count increased while calling destructor;
             return;
