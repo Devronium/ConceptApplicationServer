@@ -2529,25 +2529,37 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 // sandbox can only be set
                 struct PromiseData *pdata = pif->GetPromise(ID);
                 if (pdata) {
+                    SCStack *STACK_TRACE = NULL;
+    #ifndef SIMPLE_MULTI_THREADING
+                    if (pif) {
+                        GCRoot *root = pif->GCROOT;
+                        if (root) {
+                            STACK_TRACE = (SCStack *)root->STACK_TRACE;
+                            if (STACK_TRACE)
+                                STACK_TRACE = (SCStack *)STACK_TRACE->TOP;
+                        }
+                    }
+    #endif
+
                     if (EXCEPTION)
                         EXCEPTION->LINKS ++;
                     pdata->THROW_DATA = EXCEPTION;
                     if (RETURN_DATA) {
-                        FREE_VARIABLE(pdata->LOCAL_CONTEXT[ pdata->RESULT_ID - 1 ], NULL);
+                        FREE_VARIABLE(pdata->LOCAL_CONTEXT[ pdata->RESULT_ID - 1 ], STACK_TRACE);
                         pdata->LOCAL_CONTEXT[ pdata->RESULT_ID - 1 ] = RETURN_DATA;
                         RETURN_DATA->LINKS ++;
                     } else {
-                        RESET_VARIABLE(pdata->LOCAL_CONTEXT[ pdata->RESULT_ID - 1 ], NULL);
+                        RESET_VARIABLE(pdata->LOCAL_CONTEXT[ pdata->RESULT_ID - 1 ], STACK_TRACE);
                     }
 
                     EXCEPTION = NULL;
-                    VariableDATA *RES = ((ClassMember *)pdata->CM)->Execute(pif, ((ClassCode *)((ClassMember *)pdata->CM)->Defined_In)->CLSID, NULL, NULL, NULL, EXCEPTION, NULL, NULL, MAY_IGNORE_RESULT, pdata, 0);
+                    VariableDATA *RES = ((ClassMember *)pdata->CM)->Execute(pif, ((ClassCode *)((ClassMember *)pdata->CM)->Defined_In)->CLSID, NULL, NULL, NULL, EXCEPTION, STACK_TRACE, NULL, MAY_IGNORE_RESULT, pdata, 0);
                     if (RES) {
-                        FREE_VARIABLE(RES, NULL);
+                        FREE_VARIABLE(RES, STACK_TRACE);
                     }
                     if (EXCEPTION) {
-                        pif->RunTimeError(1319, ERR1319, NULL, (ClassMember *)pdata->CM, NULL);
-                        FREE_VARIABLE(EXCEPTION, NULL);
+                        pif->RunTimeError(1319, ERR1319, NULL, (ClassMember *)pdata->CM, STACK_TRACE);
+                        FREE_VARIABLE(EXCEPTION, STACK_TRACE);
                     }
                     pif->ResolvePromise(pdata);
 

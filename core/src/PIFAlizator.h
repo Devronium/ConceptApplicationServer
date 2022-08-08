@@ -436,11 +436,13 @@ public:
     struct PromiseData *Promises;
     INTEGER PromisesLength;
     INTEGER PromisesAllocated;
+    INTEGER PromiseClassID;
 
     struct PromiseData *AllocatePromise(void *ID);
     struct PromiseData *GetPromise(void *ID);
     void ResolvePromise(struct PromiseData *pdata);
     void ResetPromises(int free_vars);
+    int IsPromiseObject(const ClassCode *CC);
 
     INTEGER FindVariableByName(void *key, const char *name);
     void RegisterVariableName(void *key, const char *name, INTEGER val);

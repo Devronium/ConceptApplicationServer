@@ -434,6 +434,7 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     this->CachedhDLL        = 0;
     this->PROFILE_DRIVEN    = 0;
     this->PROFILE_DRIVEN_ID = 0;
+    this->PromiseClassID    = 0;
 
 #ifdef SIMPLE_MULTI_THREADING
     //seminit(this->WriteLock, 1);
@@ -521,9 +522,8 @@ void PIFAlizator::ResetPromises(int free_vars) {
                 if (free_vars) {
                     for (INTEGER j = 0; j < ((Optimizer *)((ClassMember *)pdata->CM)->OPTIMIZER)->dataCount; j ++) {
                         VariableDATA *Var = pdata->LOCAL_CONTEXT[j];
-                        if (Var) {
+                        if (Var)
                             FREE_VARIABLE(Var, NULL);
-                        }
                     }
                 }
                 FAST_FREE(this, pdata->LOCAL_CONTEXT);
@@ -534,6 +534,21 @@ void PIFAlizator::ResetPromises(int free_vars) {
     this->Promises = NULL;
     this->PromisesAllocated = 0;
     this->PromisesLength = 0;
+}
+
+int PIFAlizator::IsPromiseObject(const ClassCode *CC) {
+    if (this->PromiseClassID) {
+        if (CC->CLSID == PromiseClassID)
+            return 1;
+        return 0;
+    }
+
+    const char *class_name = CC->NAME.c_str();
+    if ((class_name) && (!strcmp(class_name, "Promise"))) {
+        this->PromiseClassID = CC->CLSID;
+        return 1;
+    }
+    return 0;
 }
 
 PIFAlizator::~PIFAlizator(void) {

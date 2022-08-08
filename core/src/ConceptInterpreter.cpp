@@ -4066,7 +4066,7 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
             if (!IS_AWAIT) {
                 PIF->RunTimeError(1318, ERR1318, OE, self->OWNER, STACK_TRACE);
             } else
-            if ((LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) && (!strcmp(((struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->_Class->NAME.c_str(), "Promise")))
+            if ((LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) && (PIF->IsPromiseObject(((struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->_Class)))
                 *IS_AWAIT = 1;
 
             LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
@@ -6153,6 +6153,9 @@ numbereval:
                         RETURN_DATA->CLASS_DATA = LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA;
                         if (RETURN_DATA->CLASS_DATA)
                             ((struct CompiledClass *)RETURN_DATA->CLASS_DATA)->LINKS++;
+
+                        // don't keep a reference to the Promise object
+                        RESET_VARIABLE((LOCAL_CONTEXT [OE->Result_ID - 1]), STACK_TRACE);
                         WRITE_UNLOCK
 
                         return RETURN_DATA;
@@ -6678,7 +6681,6 @@ void ConceptInterpreter_DestroyEnviroment(struct ConceptInterpreter *self, PIFAl
             }
 #else
             VariableDATA *LOCAL_CONTEXT_i = LOCAL_CONTEXT [i];
-            SCStack *STACK_ROOT = (SCStack *)(STACK_TRACE ? STACK_TRACE->ROOT : NULL);
             if (LOCAL_CONTEXT_i) {
  #ifdef POOL_BLOCK_ALLOC
     #ifdef POOL_STACK
