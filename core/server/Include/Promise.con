@@ -50,7 +50,7 @@ class Promise {
 	}
 
 	resolve(p = null) {
-		__resolve(this, this.parameters);
+		__resolve(this, p);
 		try {
 			if (_state != PROMISE_PENDING)
 				throw "Invalid promise state in ::resolve";
