@@ -209,6 +209,7 @@ static int STACK_HIT = 0;
 #endif
 
 void ClassMember::EndMainCall(void *PIF, VariableDATA *&RESULT, VariableDATA *&THROW_DATA, SCStack *PREV, SCStack *STACK_TRACE) {
+    ((PIFAlizator *)PIF)->ResetPromises(1);
     if (RESULT) {
         if (RESULT->TYPE == VARIABLE_NUMBER)
             ((PIFAlizator *)PIF)->last_result = (int)RESULT->NUMBER_DATA;

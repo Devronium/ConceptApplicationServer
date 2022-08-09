@@ -515,18 +515,16 @@ void PIFAlizator::ResetPromises(int free_vars) {
         for (INTEGER i = 0; i < this->PromisesAllocated; i ++) {
             struct PromiseData *pdata = &this->Promises[i];
             if (pdata->ID) {
-                if (pdata->PROPERTIES) {
-                    FAST_FREE(this, pdata->PROPERTIES);
-                    pdata->PROPERTIES = NULL;
-                }
                 if (free_vars) {
-                    for (INTEGER j = 0; j < ((Optimizer *)((ClassMember *)pdata->CM)->OPTIMIZER)->dataCount; j ++) {
-                        VariableDATA *Var = pdata->LOCAL_CONTEXT[j];
-                        if (Var)
-                            FREE_VARIABLE(Var, NULL);
+                    this->ResolveWithExceptionByID(pdata);
+                } else {
+                    if (pdata->PROPERTIES) {
+                        FAST_FREE(this, pdata->PROPERTIES);
+                        pdata->PROPERTIES = NULL;
                     }
+                    FAST_FREE(this, pdata->LOCAL_CONTEXT);
                 }
-                FAST_FREE(this, pdata->LOCAL_CONTEXT);
+                
             }
         }
         free(this->Promises);
@@ -552,7 +550,6 @@ int PIFAlizator::IsPromiseObject(const ClassCode *CC) {
 }
 
 PIFAlizator::~PIFAlizator(void) {
-    this->ResetPromises(1);
 #ifdef CACHED_CLASSES
     HashTable_deinit(&this->CachedClasses);
 #endif
@@ -3656,6 +3653,40 @@ void PIFAlizator::ResolvePromise(struct PromiseData *pdata) {
         this->Promises = NULL;
         this->PromisesAllocated = 0;
     }
+}
+
+void PIFAlizator::ResolveWithExceptionByID(struct PromiseData *pdata) {
+    if (!pdata)
+        return;
+
+    SCStack *STACK_TRACE = this->GetStackTrace();
+
+    pdata->THROW_DATA = (VariableDATA *)VAR_ALLOC(this);
+    pdata->THROW_DATA->IS_PROPERTY_RESULT = 0;
+    pdata->THROW_DATA->LINKS = 1;
+    pdata->THROW_DATA->TYPE  = VARIABLE_NUMBER;
+    pdata->THROW_DATA->NUMBER_DATA = -1;
+
+    VariableDATA *EXCEPTION = NULL;
+    VariableDATA *RES = ((ClassMember *)pdata->CM)->Execute(this, ((ClassCode *)((ClassMember *)pdata->CM)->Defined_In)->CLSID, NULL, NULL, NULL, EXCEPTION, STACK_TRACE, NULL, MAY_IGNORE_RESULT, pdata, 0);
+
+    FREE_VARIABLE(pdata->THROW_DATA, STACK_TRACE);
+
+    if (RES) {
+        FREE_VARIABLE(RES, STACK_TRACE);
+    }
+    if (EXCEPTION) {
+        this->RunTimeError(1319, ERR1319, NULL, (ClassMember *)pdata->CM, STACK_TRACE);
+        FREE_VARIABLE(EXCEPTION, STACK_TRACE);
+    }
+
+    this->ResolvePromise(pdata);
+}
+
+void PIFAlizator::ResolveWithException(CompiledClass *self) {
+    struct PromiseData *pdata = this->GetPromise(self);
+    if (pdata)
+        this->ResolveWithExceptionByID(pdata);
 }
 
 SCStack *PIFAlizator::GetStackTrace() {

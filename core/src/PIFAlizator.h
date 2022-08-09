@@ -443,6 +443,8 @@ public:
     void ResolvePromise(struct PromiseData *pdata);
     void ResetPromises(int free_vars);
     int IsPromiseObject(const ClassCode *CC);
+    void ResolveWithExceptionByID(struct PromiseData *pdata);
+    void ResolveWithException(CompiledClass *self);
 
     SCStack *GetStackTrace();
 
