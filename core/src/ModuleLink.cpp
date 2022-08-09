@@ -2542,10 +2542,9 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         }
                     }
     #endif
-
-                    if (EXCEPTION)
-                        EXCEPTION->LINKS ++;
                     pdata->THROW_DATA = EXCEPTION;
+                    if (pdata->THROW_DATA)
+                        pdata->THROW_DATA->LINKS ++;
                     if (RETURN_DATA) {
                         FREE_VARIABLE(pdata->LOCAL_CONTEXT[ pdata->RESULT_ID - 1 ], STACK_TRACE);
                         pdata->LOCAL_CONTEXT[ pdata->RESULT_ID - 1 ] = RETURN_DATA;
@@ -2556,6 +2555,10 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 
                     EXCEPTION = NULL;
                     VariableDATA *RES = ((ClassMember *)pdata->CM)->Execute(pif, ((ClassCode *)((ClassMember *)pdata->CM)->Defined_In)->CLSID, NULL, NULL, NULL, EXCEPTION, STACK_TRACE, NULL, MAY_IGNORE_RESULT, pdata, 0);
+
+                    if (pdata->THROW_DATA)
+                        FREE_VARIABLE(pdata->THROW_DATA, STACK_TRACE);
+
                     if (RES) {
                         FREE_VARIABLE(RES, STACK_TRACE);
                     }
