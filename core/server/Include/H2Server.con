@@ -9,7 +9,7 @@ import standard.C.io
 import standard.lib.str
 import standard.lang.serialize
 
-define READ_BUFFER_SIZE		0xFFFF
+define READ_BUFFER_SIZE		8192
 define FAST_READ_FILE		8192
 define MAX_HEADER_SIZE		8192
 

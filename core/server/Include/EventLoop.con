@@ -322,7 +322,10 @@ class EventLoop {
 					}
 				}
 			} catch (var exc) {
-				console.error(LOG_THIS, exc);
+				if (typeof exc == "string")
+					console.error(LOG_THIS, exc);
+				else
+					console.error(LOG_THIS, classof exc);
 			}
 		}
 		if (no_sleep) {
@@ -358,7 +361,10 @@ class EventLoop {
 				try {
 					e.data.Socket.Close();
 				} catch (var exc) {
-					console.debug(LOG_THIS, exc);
+					if (typeof exc == "string")
+						console.debug(LOG_THIS, exc);
+					else
+						console.debug(LOG_THIS, classof exc);
 				}
 			}
 		}
@@ -403,6 +409,9 @@ class EventLoop {
 			if (socket) {
 				var key = "" + socket;
 				var e = socketevents[key];
+				// closed socket
+				if ((e) && (!e.socket))
+					continue;
 				this.__currentevent = e;
 				try {
 					if ((!e) || (((write_event) && (e.runWrite(this))) || ((!write_event) && (e.runRead(this))))) {
@@ -447,6 +456,7 @@ class EventLoop {
 
 				if (outsockets)
 					remove_sockets += this.__exec(outsockets, false);
+
 				if (write_sockets)
 					remove_sockets += this.__exec(write_sockets, true);
 
