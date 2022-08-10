@@ -1056,6 +1056,9 @@ class ConceptCASChild extends ConceptAsyncChild {
 	}
 
 	IterateEventLoop(socket, loop, is_write) {
+		if (!worker)
+			running = false;
+
 		if (is_write < 0) {
 			this.reset();
 		} else {
@@ -1480,7 +1483,7 @@ class ConceptBaseWorker {
 	}
 
 	IterateAsyncWorkers(children) {
-		if (cacheholders > 100)
+		if ((cacheholders > 100) && (children))
 			this.UpdateChildCache(children);
 
 		var workers = cgiworkers;

@@ -480,6 +480,7 @@ class H2Server {
 		if (err <= 0) {
 			if ((!err) && (socket.file))
 				return;
+
 			if (!loop.callbackEvents())
 				loop.onWrite(null);
 		} else {
@@ -708,7 +709,7 @@ class H2Server {
 			if (socket) {
 				SocketSetBlocking(socket.Socket, false);
 				socket.SetOption(SOL_SOCKET, SO_KEEPALIVE, true);
-				loop.addSocket(new SocketContainer(socket), this.__consume, this.timeout_ms);
+				loop.addSocket(new SocketContainer(socket), this.__consume, this.timeout_ms, null, POLL_READ | POLL_WRITE);
 			}
 		});
 		if (tls) {
@@ -722,7 +723,7 @@ class H2Server {
 						socket.MakeExportable();
 					var container = new SocketContainer(socket);
 					container.tls = true;
-					loop.addSocket(container, this.__consume_tls, this.timeout_ms);
+					loop.addSocket(container, this.__consume_tls, this.timeout_ms, null, POLL_READ | POLL_WRITE);
 				}
 			});
 		}

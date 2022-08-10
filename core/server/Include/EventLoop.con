@@ -18,6 +18,7 @@ class __EventEvent {
 	var data2;
 	var notifyEvents;
 	var events_len;
+	var deleted;
 
 	__EventEvent(deleg, when, rerun = 0) {
 		this.deleg = deleg;
@@ -272,14 +273,14 @@ class EventLoop {
 		}		
 	}
 
-	addSocket(iodescriptor, delegate e, timeout = 0, w = null) {
+	addSocket(iodescriptor, delegate e, timeout = 0, w = null, force_flags = 0) {
 		var socket = iodescriptor;
 		while (typeof socket == "class")
 			socket = socket.Socket;
 
 		var key = "" + socket;
 		
-		var flags = 0;
+		var flags = force_flags;
 		if (e)
 			flags |= POLL_READ;
 		if (w)
@@ -348,6 +349,11 @@ class EventLoop {
 	}
 
 	protected __close_socketevent(e, socket = 0) {
+		if (e.deleted)
+			return;
+
+		e.deleted = true;
+
 		if (socket <= 0)
 			socket = e.socket;
 
@@ -417,15 +423,19 @@ class EventLoop {
 					if ((!e) || (((write_event) && (e.runWrite(this))) || ((!write_event) && (e.runRead(this))))) {
 						if (e) {
 							this.__close_socketevent(e, socket);
-						} else {
+						}
+						/* else {
 							console.error(LOG_THIS, "invalid socket $socket");
 							if (PollRemove(pollfd, socket))
 								console.error(LOG_THIS, "error in PollRemove");
-						}
+						} */
 						socketevents[key] = null;
 						remove_sockets ++;
 					}
 				} catch (var exc) {
+					if (e.deleted)
+						continue;
+
 					console.error(LOG_THIS, "uncaught exception, removing socket");
 					if (e.socket > 0)
 						this.__close_socketevent(e, socket);

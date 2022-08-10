@@ -44,7 +44,8 @@ define H2_SEND_WINDOWUPDATE	32767
 define H2_INITIAL_WINDOW	0xFFFF
 define H2_WINDOWUPDATE_VALUE	0xFFFF
 
-define H2_FILE_READ_BUFFER	0x20000
+define H2_FILE_READ_BUFFER	1024
+// 0x20000
 
 define H2_X_INITIAL_WINDOW_SIZE	0x7FFFF
 define H2_X_INITIAL_WINDOW_SIZE_VAL	1048576
@@ -910,9 +911,9 @@ class HTTP2Socket {
 									throw "HTTP2Socket/Invalid stream id $streamid (window update)";
 								stream = Streams["" + streamid];
 								if (stream)
-									stream.WindowSize = payload;
+									stream.WindowSize += payload;
 							} else
-								this.WindowSize = payload;
+								this.WindowSize += payload;
 							break;
 						case H2_CONTINUATION:
 							if (!streamid) {
