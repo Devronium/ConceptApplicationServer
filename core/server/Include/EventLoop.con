@@ -469,11 +469,10 @@ class EventLoop {
 				if (outsockets)
 					remove_sockets += this.__exec(outsockets, false);
 
-				if (write_sockets)
+				if (write_sockets) {
 					remove_sockets += this.__exec(write_sockets, true);
 					if (remove_sockets)
 						break;
-
 					if ((io_events == 2) && (!outsockets) && (!io_writes)) {
 						// set it to edge-trigger mode
 						for (i = 0; i < length write_sockets; i ++) {
@@ -484,7 +483,7 @@ class EventLoop {
 						if (timeout > 24)
 							timeout = 24;
 					}
-				} else {
+				} else
 					break;
 			}
 			var elapsed = Date.now() - start;
