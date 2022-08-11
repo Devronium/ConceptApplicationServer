@@ -44,7 +44,7 @@ define H2_SEND_WINDOWUPDATE	32767
 define H2_INITIAL_WINDOW	0xFFFF
 define H2_WINDOWUPDATE_VALUE	0xFFFF
 
-define H2_FILE_READ_BUFFER	1024
+define H2_FILE_READ_BUFFER	16384
 // 0x20000
 
 define H2_X_INITIAL_WINDOW_SIZE	0x7FFFF
@@ -973,25 +973,24 @@ class HTTP2Socket {
 		return length OutBuffer;
 	}
 
-	protected WriteChunk() {
+	// unidentified bug on slow connections
+	// chunk_size over 4096 seems to reset (in some cases) the connection
+	protected WriteChunk(chunk_size = 4096) {
 		var offset = 0;
 		var timestamp = Date.now();
-		do {
-			var len = this.Socket.TLSWrite(OutBuffer, offset);
-			if (len > 0) {
-				offset += len;
-				IdleSince = time();
-				last_err_time = 0;
-				// don't call WriteIterate (WriteOnce will call it)
-				// it is important for WriteOnce to return true, while data is pending
-				/* try {
-					this.Socket.WriteIterate();
-				} catch (var exc) {
-					console.debug(LOG_THIS, exc);
-					break;
-				} */
-			}
-		} while ((len > 0) && (Date.now() - timestamp < 50));
+
+		if (this.Socket.GetTLSWritePending())
+			return;
+
+		var len = this.Socket.TLSWrite(SubStr(OutBuffer, 0, chunk_size));
+		if (len > 0) {
+			offset += len;
+			IdleSince = time();
+			last_err_time = 0;
+			// don't call WriteIterate (WriteOnce will call it)
+			// it is important for WriteOnce to return true, while data is pending
+		}
+
 		if (offset >= length OutBuffer)
 			OutBuffer = "";
 		else

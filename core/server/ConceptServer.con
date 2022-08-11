@@ -1186,7 +1186,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 				}
 			}
 		}
-		if ((std_out) && (can_write)) {
+		if (std_out) {
 			// pipesocket code (splice/sendfile/TransmitFile)
 			var err = -2;
 			if (!is_tls) {
@@ -1243,7 +1243,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 				}
 			}
 		}
-		if (std_out_buffer) {
+		if ((std_out_buffer) && (can_write)) {
 			if (stream) {
 				var stream_write = true;
 				try {

@@ -561,9 +561,9 @@ class TLSESocket extends TCPSocket {
 		if (_islisten)
 			throw "Invalid TLS socket type (GetTLSPending)";
 		var res=TLSEPending(tls);
-		if (res<0)
-			throw "Broken TLS socket (GetTLSPending)";
-		return res;
+		if (res)
+			return true;
+		return false;
 	}
 
 	public function GetEstablished() {
