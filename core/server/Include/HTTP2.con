@@ -506,7 +506,7 @@ class HTTP2Stream {
 	}
 
 	Write(socket, var buf, close = false, len = -1) {
-		if (Status != 2)
+		if (Status == -4)
 			throw "HTTP2Stream/Write: Cannot write on a closed stream";
 
 		if (len < 0)
