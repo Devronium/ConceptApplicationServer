@@ -470,11 +470,11 @@ class EventLoop {
 				if (write_sockets)
 					remove_sockets += this.__exec(write_sockets, true);
 
-				if ((io_events == 2) && (!outsockets)) {
-					if (timeout > 24)
-						timeout = 24;
-					Sleep(5);
-				}
+				// if ((io_events == 2) && (!outsockets)) {
+				// 	if (timeout > 24)
+				// 		timeout = 24;
+				// 	Sleep(5);
+				// }
 				if (remove_sockets)
 					break;
 			} else {
