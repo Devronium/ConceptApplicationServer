@@ -140,6 +140,7 @@ class EventLoop {
 	protected var iotimeout_objects;
 	protected var iotimeout_expires;
 	protected var __recreate_timestamp;
+	protected var io_writes;
 
 	public var pollfd;
 	public var iteration = 1;
@@ -157,6 +158,10 @@ class EventLoop {
 
 	stat() {
 		return ["events" => length events, "sockets" => length socketevents, "iotimeoutobjects" => iotimeout_objects, "cpu_sleep" => cpu_sleep, "iteration" => iteration];
+	}
+
+	scheduleWrite() {
+		io_writes ++;
 	}
 
 	schedule(delegate e, interval = 0) {
@@ -270,6 +275,7 @@ class EventLoop {
 				when = Date.now() + timeout;
 			__currentevent.when = when;
 			__currentevent.rerun = timeout;
+			io_writes ++;
 		}		
 	}
 
@@ -421,14 +427,8 @@ class EventLoop {
 				this.__currentevent = e;
 				try {
 					if ((!e) || (((write_event) && (e.runWrite(this))) || ((!write_event) && (e.runRead(this))))) {
-						if (e) {
+						if (e)
 							this.__close_socketevent(e, socket);
-						}
-						/* else {
-							console.error(LOG_THIS, "invalid socket $socket");
-							if (PollRemove(pollfd, socket))
-								console.error(LOG_THIS, "error in PollRemove");
-						} */
 						socketevents[key] = null;
 						remove_sockets ++;
 					}
@@ -461,6 +461,7 @@ class EventLoop {
 		var i;
 		var sock;
 		do {
+			io_writes = 0;
 			var outsockets = PollWait(pollfd, timeout, var write_sockets);
 			if ((outsockets) || (write_sockets)) {
 				io_events ++;
@@ -470,8 +471,10 @@ class EventLoop {
 
 				if (write_sockets)
 					remove_sockets += this.__exec(write_sockets, true);
+					if (remove_sockets)
+						break;
 
-					if ((io_events == 2) && (!outsockets)) {
+					if ((io_events == 2) && (!outsockets) && (!io_writes)) {
 						// set it to edge-trigger mode
 						for (i = 0; i < length write_sockets; i ++) {
 							sock = write_sockets[i];
@@ -481,8 +484,6 @@ class EventLoop {
 						if (timeout > 24)
 							timeout = 24;
 					}
-					if (remove_sockets)
-						break;
 				} else {
 					break;
 			}
