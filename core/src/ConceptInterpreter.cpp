@@ -188,8 +188,8 @@ POOLED_IMPLEMENTATION(ConceptInterpreter)
 
 #ifndef INLINE_COMMON_CALLS
 void FREE_VARIABLE(VariableDATA *VARIABLE, SCStack *STACK_TRACE) {
-    VARIABLE->LINKS--;
-    if (!VARIABLE->LINKS) {
+    // check if links <= 1 (to also work with zero links)
+    if (VARIABLE->LINKS <= 1) {
         if (VARIABLE->CLASS_DATA) {
             if (VARIABLE->TYPE == VARIABLE_STRING) {
                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);
@@ -206,7 +206,8 @@ void FREE_VARIABLE(VariableDATA *VARIABLE, SCStack *STACK_TRACE) {
                 delete_Delegate(VARIABLE->CLASS_DATA, STACK_TRACE);
         }
         VAR_FREE(VARIABLE);
-    }
+    } else
+        VARIABLE->LINKS--;
 }
 #endif
 
