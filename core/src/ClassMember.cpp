@@ -556,7 +556,7 @@ promise_resolve:
         if (pdata)
             goto promise_await;
 #if defined(POOL_BLOCK_ALLOC) && defined(POOL_STACK) && (!defined(SIMPLE_MULTI_THREADING))
-        // faster inline context cleaning
+        // faster inline context cleaning 
         if ((PREV) && (STACK_TRACE.alloc_from_stack)) {
             INTEGER data_count = ((struct Optimizer *)this->OPTIMIZER)->dataCount;
             for (INTEGER i = 0; i < data_count; i++) {
@@ -602,10 +602,10 @@ promise_resolve:
 #ifdef EMPIRIC_STACK_CHECK
     --STACK_HIT;
 #endif
-promise_await:
     if (RESULT) {
         RESULT->LINKS--;
     }
+promise_await:
     return RESULT;
 }
 
