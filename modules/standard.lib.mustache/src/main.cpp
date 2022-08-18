@@ -25,6 +25,7 @@ struct mustache_stack {
 struct mustache_closure {
     INVOKE_CALL Invoke;
     void *OWNER;
+    void *TEMPLATES;
     void *DATA;
     void *arrdata;
     int stack_level;
@@ -41,10 +42,15 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     DEFINE_SCONSTANT("MUSTACH_ERROR_EMPTY_TAG", "-3")
     DEFINE_SCONSTANT("MUSTACH_ERROR_TAG_TOO_LONG", "-4")
     DEFINE_SCONSTANT("MUSTACH_ERROR_BAD_SEPARATORS", "-5")
-    DEFINE_SCONSTANT("MUSTACH_ERROR_TOO_DEPTH", "-6")
+    DEFINE_SCONSTANT("MUSTACH_ERROR_TOO_DEEP", "-6")
     DEFINE_SCONSTANT("MUSTACH_ERROR_CLOSING", "-7")
     DEFINE_SCONSTANT("MUSTACH_ERROR_BAD_UNESCAPE_TAG", "-8")
-    DEFINE_SCONSTANT("MUSTACH_ERROR_UNDEFINED", "-9")
+    DEFINE_SCONSTANT("MUSTACH_ERROR_INVALID_ITF", "-9")
+
+    DEFINE_SCONSTANT("MUSTACH_ERROR_ITEM_NOT_FOUND", "-10")
+    DEFINE_SCONSTANT("MUSTACH_ERROR_PARTIAL_NOT_FOUND", "-11")
+    DEFINE_SCONSTANT("MUSTACH_ERROR_UNDEFINED_TAG", "-12")
+
     return 0;
 }
 //---------------------------------------------------------------------------
@@ -121,10 +127,10 @@ char *resolve(mustache_closure *mustacheclosure, const char *name, void *DATA) {
     return null_type;
 }
 
-char *mustache_put(void *closure, const char *name, int escape) {
+int mustache_get(void *closure, const char *name, struct mustach_sbuf *sbuf) {
     mustache_closure *mustacheclosure = (mustache_closure *)closure;
     if (!name)
-        return NULL;
+        return MUSTACH_ERROR_ITEM_NOT_FOUND;
 
     if ((name) && (name[0] == '.') && (!name[1]))
         name = NULL;
@@ -133,7 +139,8 @@ char *mustache_put(void *closure, const char *name, int escape) {
     if (!DATA)
         DATA = mustacheclosure->DATA;
 
-    return resolve(mustacheclosure, name, DATA);
+    sbuf->value = resolve(mustacheclosure, name, DATA);
+    return 0;
 }
 
 int mustache_enter(void *closure, const char *name) {
@@ -156,7 +163,7 @@ int mustache_enter(void *closure, const char *name) {
 
     if (is_ok) {
         if (mustacheclosure->stack_level >= 0x100)
-            return MUSTACH_ERROR_TOO_DEPTH;
+            return MUSTACH_ERROR_TOO_DEEP;
 
         INTEGER type = 0;
         char *str = 0;
@@ -221,15 +228,33 @@ int mustache_leave(void *closure) {
     return 0;
 }
 
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(mustache, 2, 3)
+int mustache_partial(void *closure, const char *name, struct mustach_sbuf *sbuf) {
+    mustache_closure *mustacheclosure = (mustache_closure *)closure;
+    void *var = NULL;
+    if (mustacheclosure->TEMPLATES) {
+        if (mustacheclosure->Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, mustacheclosure->TEMPLATES, (INTEGER)-1, name) == 1) {
+            sbuf->value = resolve(mustacheclosure, name, mustacheclosure->TEMPLATES);
+            return 0;
+        }
+    }
+    return MUSTACH_ERROR_PARTIAL_NOT_FOUND;
+}
+
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(mustache, 2, 4)
     T_STRING(mustache, 0)
 
-    struct mustach_itf itf = {NULL, mustache_put, mustache_enter, mustache_next, mustache_leave};
-    struct mustache_closure closure = {Invoke, PARAMETERS->HANDLER, PARAMETER(1), NULL, 0, -1, -1};
+    struct mustach_itf itf = {NULL, NULL, mustache_enter, mustache_next, mustache_leave, mustache_partial, NULL, mustache_get, NULL};
+
+    struct mustache_closure closure = {Invoke, PARAMETERS->HANDLER, NULL, PARAMETER(1), NULL, 0, -1, -1};
     char *result = NULL;
     size_t size = 0;
 
-    int err = mustach(PARAM(0), &itf, &closure, &result, &size);
+    if (PARAMETERS_COUNT > 3) {
+        T_ARRAY(mustache, 3);
+        closure.TEMPLATES = PARAMETER(3);
+    }
+
+    int err = mustach_mem(PARAM(0), PARAM_LEN(0), &itf, &closure, Mustach_With_AllExtensions, &result, &size);
     if (PARAMETERS_COUNT > 2) {
         SET_NUMBER(2, err);
     }
