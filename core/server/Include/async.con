@@ -378,8 +378,8 @@ class _webrequest {
 						case MUSTACH_ERROR_BAD_SEPARATORS:
 							this.print("MUSTACH_ERROR_BAD_SEPARATORS in template");
 							break;
-						case MUSTACH_ERROR_TOO_DEPTH:
-							this.print("MUSTACH_ERROR_TOO_DEPTH in template");
+						case MUSTACH_ERROR_TOO_DEEP:
+							this.print("MUSTACH_ERROR_TOO_DEEP in template");
 							break;
 						case MUSTACH_ERROR_CLOSING:
 							this.print("MUSTACH_ERROR_CLOSING in template");
@@ -387,8 +387,17 @@ class _webrequest {
 						case MUSTACH_ERROR_BAD_UNESCAPE_TAG:
 							this.print("MUSTACH_ERROR_BAD_UNESCAPE_TAG in template");
 							break;
-						case MUSTACH_ERROR_UNDEFINED:
-							this.print("MUSTACH_ERROR_UNDEFINED in template");
+						case MUSTACH_ERROR_INVALID_ITF:
+							this.print("MUSTACH_ERROR_INVALID_ITF in template");
+							break;
+						case MUSTACH_ERROR_ITEM_NOT_FOUND:
+							this.print("MUSTACH_ERROR_ITEM_NOT_FOUND in template");
+							break;
+						case MUSTACH_ERROR_PARTIAL_NOT_FOUND:
+							this.print("MUSTACH_ERROR_PARTIAL_NOT_FOUND in template");
+							break;
+						case MUSTACH_ERROR_UNDEFINED_TAG:
+							this.print("MUSTACH_ERROR_UNDEFINED_TAG in template");
 							break;
 						default:
 							this.print("UNKNOWN ERROR #$err in template");
