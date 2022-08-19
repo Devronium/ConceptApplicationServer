@@ -1271,6 +1271,10 @@ pragma used
 									next_worker = 0;
 								storage_dbs_w[storage_key] = storage;
 							}
+							if ((!priority) && ((obj.o == "X") || (obj.o == "Y"))) {
+								// index operations have high priority
+								priority = 1;
+							}
 						} else
 						if (priority < 0) {
 							// idle priority
