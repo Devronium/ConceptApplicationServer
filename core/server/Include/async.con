@@ -360,7 +360,16 @@ class _webrequest {
 				fullpath = template;
 			var tpl = ReadFile(fullpath);
 			if (tpl) {
-				var str = mustache(tpl, data, var err);
+				var str = mustache(tpl, data, var err, function(template) {
+					var fullpath;
+					if (template[0] != "/")
+						fullpath = this.web.fs.safepath(this.web.path) + template;
+					else
+						fullpath = template;
+					var tpl = ReadFile(fullpath);
+					if (tpl)
+						return tpl;
+				});
 				if (err) {
 					switch (err) {
 						case MUSTACH_ERROR_SYSTEM:
@@ -506,6 +515,24 @@ class web {
 			}
 		});
 		return true;
+	}
+
+	connect(string username = "sysdbadministrator", string password = "sysdbadministrator", string db = "appdb", string host = "localhost", number port = 2668) {
+		if (this.db) {
+			if (this.db.ifauth())
+				return true;
+			return false;
+		}
+
+		this.db = new tinasync(db, host, port);
+		this.db.keepopen();
+		return this.db.auth(username, password);
+	}
+
+	sql(query, params = null) {
+		if ((!this.db) && (!this.db.ifauth()))
+			throw "Not connected/authorized";
+		return this.db.sql(query, params);
 	}
 
 	done(id) {

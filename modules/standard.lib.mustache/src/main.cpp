@@ -236,6 +236,29 @@ int mustache_partial(void *closure, const char *name, struct mustach_sbuf *sbuf)
             sbuf->value = resolve(mustacheclosure, name, mustacheclosure->TEMPLATES);
             return 0;
         }
+        void *RES       = 0;
+        void *EXCEPTION = 0;
+        mustacheclosure->Invoke(INVOKE_CALL_DELEGATE, mustacheclosure->TEMPLATES, &RES, &EXCEPTION, (INTEGER)1, (INTEGER)VARIABLE_STRING, (char *)name, (NUMBER)0);
+        if (EXCEPTION) {
+            mustacheclosure->Invoke(INVOKE_FREE_VARIABLE, EXCEPTION);
+            if (RES)
+                mustacheclosure->Invoke(INVOKE_FREE_VARIABLE, RES);
+            return MUSTACH_ERROR_PARTIAL_NOT_FOUND;
+        }
+        if (RES) {
+            char *data = resolve(mustacheclosure, NULL, RES);
+            mustacheclosure->temp[0] = 0;
+            if (data) {
+                int len = strlen(data);
+                if (len >= sizeof(mustacheclosure->temp))
+                    len = sizeof(mustacheclosure->temp) - 1;
+                memcpy(mustacheclosure->temp, data, len);
+            }
+            mustacheclosure->Invoke(INVOKE_FREE_VARIABLE, RES);
+            sbuf->value = mustacheclosure->temp;
+            return 0;
+        }
+
     }
     return MUSTACH_ERROR_PARTIAL_NOT_FOUND;
 }
@@ -250,7 +273,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(mustache, 2, 4)
     size_t size = 0;
 
     if (PARAMETERS_COUNT > 3) {
-        T_ARRAY(mustache, 3);
         closure.TEMPLATES = PARAMETER(3);
     }
 
