@@ -1,5 +1,4 @@
 #!/usr/local/bin/concept
-import standard.lib.preg
 
 import standard.C.io
 import standard.lang.cli
@@ -825,7 +824,7 @@ class Main {
 	}
 
 	LoadCSV(var data) {
-		data = CSV::Do(data, null, var error, var error_text);
+		data = CSV::Do(data, null, var error, var error_text, null);
 		if ((error) && (error_text)) {
 			echo "Error in CSV: $error_text" + NEW_LINE;
 			return null;

@@ -64,8 +64,46 @@ class CSV {
 		this.Done();
 	}
 
-	static function Do(var string data, var mode=null, var error=null, var error_text="") {
+	static function Do(var string data, var mode=null, var error=null, var error_text="", delimiter = "") {
 		var c=new CSV(mode);
+		if (delimiter)
+			c.Delim = delimiter;
+		else
+		if (delimiter == null) {
+			var item = Pos(data, "\n");
+			if (item > 0) {
+				var first_line = SubStr(data, 0, item);
+				if (first_line) {
+					var len = length first_line;
+					if (len > 4096)
+						len = 4096;
+
+					var[] arr;
+					var max_ch = "";
+					var max_hit = 0;
+					for (var i = 0; i < length first_line; i ++) {
+						var ch = first_line[i];
+						switch (ch) {
+							case ',':
+							case ';':
+							case '\t':
+							case ' ':
+							case '|':
+								arr[ch] ++;
+								if (arr[ch] > max_hit) {
+									max_hit = arr[ch];
+									max_ch = ch;
+								}
+								break;
+							case '\r':
+								break;
+						}
+					}
+					if (max_ch)
+						c.Delim = max_ch;
+				}
+			}
+		}
 		var res=c.Parse(data, true);
 		error=c.GetError();
 		if (error)
