@@ -2275,9 +2275,11 @@ class ConceptChild {
 					var app_id = tonumber(SubStr(apidbuf, 0, 4), 32);
 					apidbuf = SubStr(apidbuf, 4, length apidbuf - 4);
 					if (RemoveChild(app_id, ip)) {
-						disconnected = true;
 						pipein = -1;
-						this.Disconnect("clean");
+						if (!disconnected) {
+							disconnected = true;
+							this.Disconnect("clean");
+						}
 					}
 					if (this.ChildCount <= 0) {
 						this.HostID = "";
@@ -2346,6 +2348,11 @@ class ConceptChild {
 				console.info(LOG_THIS, "$ip:$apid done");
 		} else
 			console.info(LOG_THIS, "$ip:$apid Done (child)");
+
+		if (!disconnected) {
+			disconnected = true;
+			this.Disconnect("lazy disconnect");
+		}
 	}
 
 	Disconnect(reason = "") {
