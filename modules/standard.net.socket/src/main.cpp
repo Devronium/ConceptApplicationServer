@@ -747,7 +747,6 @@ CONCEPT_DLL_API CONCEPT_SocketGetOption CONCEPT_API_PARAMETERS {
     NUMBER sock    = INVALID_SOCKET;
     NUMBER nLevel  = 0;
     NUMBER nOption = 0;
-    int    nValue  = 0;
 
     GET_CHECK_NUMBER(0, sock, "SocketGetOption: parameter 1 should be a number");
     GET_CHECK_NUMBER(1, nLevel, "SocketGetOption: parameter 2 should be a number");
@@ -880,7 +879,6 @@ CONCEPT_DLL_API CONCEPT_SocketConnect CONCEPT_API_PARAMETERS {
                 return 0;
             }
 
-            int connected = 0;
             RETURN_NUMBER(-1);
             for (res = result; res != NULL; res = res->ai_next) {
                 char hostname[NI_MAXHOST] = "";
@@ -969,12 +967,6 @@ CONCEPT_DLL_API CONCEPT_SocketListen CONCEPT_API_PARAMETERS {
     }
 
     if (nPort >= 0) {
-        struct sockaddr addr;
-#ifdef _WIN32
-        int peerlen = sizeof(addr);
-#else
-        socklen_t peerlen = sizeof(addr);
-#endif
         if (family == AF_INET6) {
             struct sockaddr_in6 sin;
             memset(&sin, 0, sizeof(sin));
@@ -1103,7 +1095,6 @@ CONCEPT_DLL_API CONCEPT_SocketAccept CONCEPT_API_PARAMETERS {
     LOCAL_INIT;
 
     NUMBER sock  = INVALID_SOCKET;
-    NUMBER nPort = 0;
 
     GET_CHECK_NUMBER(0, sock, "SocketAccept: parameter 1 should be a number");
 
@@ -1355,7 +1346,6 @@ CONCEPT_DLL_API CONCEPT_SocketWrite CONCEPT_API_PARAMETERS {
                 RETURN_NUMBER(-2);
                 return 0;
             }
-            int connected = 0;
             RETURN_NUMBER(-1);
             for (res = result; res != NULL; res = res->ai_next) {
                 char hostname[NI_MAXHOST] = "";
@@ -1420,7 +1410,7 @@ CONCEPT_DLL_API CONCEPT_SocketInfo CONCEPT_API_PARAMETERS {
     struct sockaddr_storage addr;
     char        ipstr[INET6_ADDRSTRLEN];
     int         port     = 0;
-    static char *unknown = "unknown";
+    static const char *unknown = "unknown";
 
 #ifdef _WIN32
     int peerlen = sizeof(addr);
@@ -1485,7 +1475,6 @@ CONCEPT_DLL_API CONCEPT_SocketHasData CONCEPT_API_PARAMETERS {
 
     NUMBER sock = INVALID_SOCKET;
 
-    int has_data = 0;
     GET_CHECK_NUMBER(0, sock, "SocketHasData: parameter 1 should be a number");
     NUMBER t_out = -1;
     if (PARAMETERS_COUNT > 1) {
@@ -1496,6 +1485,7 @@ CONCEPT_DLL_API CONCEPT_SocketHasData CONCEPT_API_PARAMETERS {
         return 0;
     }
 #ifdef _WIN32
+    int has_data = 0;
     int ref_count = UnixSocketEmulation[(SYS_INT)sock];
     if (ref_count) {
         DWORD has_bytes = 0;
@@ -1639,7 +1629,6 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WSParseFrame, 1, 2)
     T_STRING(WSParseFrame, 0)
 
-    ws_frame_type ft_orig = WS_BINARY_FRAME;
     char   *buffer = 0;
     size_t out_len = 0;
 
@@ -1991,7 +1980,7 @@ CONCEPT_FUNCTION_IMPL(SocketErrno, 0)
     RETURN_NUMBER(res)
 END_IMPL
 //=====================================================================================//
-int STUN(int sockfd, char *stun_server, char *stun_port, char *return_ip, unsigned short *return_port) {
+int STUN(int sockfd, const char *stun_server, const char *stun_port, char *return_ip, unsigned short *return_port) {
     if ((sockfd < 0) || (sockfd == INVALID_SOCKET))
         return 0;
 
@@ -2011,7 +2000,7 @@ int STUN(int sockfd, char *stun_server, char *stun_port, char *return_ip, unsign
     *(short *)(&bindingReq[0]) = htons(0x0001);     // stun_method
     *(short *)(&bindingReq[2]) = htons(0x0000);     // msg_length
     *(int *)(&bindingReq[4])   = htonl(0x2112A442); // magic cookie
-    int _id = rand() & 0xff;
+    unsigned int _id = rand() & 0xff;
     _id |= (rand() & 0xff) << 8;
     _id |= (rand() & 0xff) << 16;
     _id |= (rand() & 0xff) << 24;
@@ -2051,7 +2040,6 @@ int STUN(int sockfd, char *stun_server, char *stun_port, char *return_ip, unsign
         return 0;
     n = recvfrom(sockfd, (char *)buf, 300, 0, NULL, 0); // recv UDP
     if ((n > 0) && (*(short *)(&buf[0]) == htons(0x0101))) {
-        // int n2 = htons(*(short *)(&buf[2]));
         if (ntohl(*(int *)(&buf[8])) != _id)
             return 0;
         int i = 20;
@@ -2518,7 +2506,6 @@ CONCEPT_FUNCTION_IMPL(SCTPConnectx, 5)
                     }
 
                     for (res = result; res != NULL; res = res->ai_next) {
-                        char hostname[NI_MAXHOST] = "";
                         if ((family == res->ai_family) || ((family == AF_INET6) && ((res->ai_family == AF_INET) || (res->ai_family == AF_INET6)))) {
                             int error = getnameinfo(res->ai_addr, res->ai_addrlen, szData, NI_MAXHOST, NULL, 0, 0);
                             if (!error) {
