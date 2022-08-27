@@ -190,7 +190,7 @@ public:
         if (OUT_SOCKETS) {
             for (int i = 0; i < outlist.fd_count; i++) {
                 FD_SET(outlist.fd_array[i], &fd_out_list);
-                FD_SET(chlist.fd_array[i], &fd_excepts);
+                FD_SET(outlist.fd_array[i], &fd_excepts);
             }
         }
 #else
@@ -244,7 +244,8 @@ public:
                 }
             }
 #endif
-        } else {
+        } else
+        if (err < 0) {
 #ifdef WIN32
             for (int i = 0; i < chlist.fd_count; i++) {
                 if (FD_ISSET(chlist.fd_array[i], &fd_excepts))
@@ -376,6 +377,10 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollAdd, 2, 3)
     T_NUMBER(PollAdd, 1);
     int fd = PARAM_INT(1);
+    if (fd < 0) {
+        RETURN_NUMBER(-2);
+        return 0;
+    }
     int err = -1;
     int mode = 0;
     if (PARAMETERS_COUNT > 2) {
@@ -514,6 +519,10 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(PollRemove, 2)
     T_NUMBER(PollRemove, 1);
     int fd = PARAM_INT(1);
+    if (fd < 0) {
+        RETURN_NUMBER(-1);
+        return 0;
+    }
     int err = -1;
 #ifdef WITH_SELECT_POLL
     T_HANDLE(PollRemove, 0);

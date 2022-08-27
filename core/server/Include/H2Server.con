@@ -705,25 +705,37 @@ class H2Server {
 		loop = new EventLoop();
 		loop.minSleep = 100;
 		loop.addSocket(tcp, function(tcp, loop) {
-			var socket = tcp.Accept();
-			if (socket) {
-				SocketSetBlocking(socket.Socket, false);
-				socket.SetOption(SOL_SOCKET, SO_KEEPALIVE, true);
-				loop.addSocket(new SocketContainer(socket), this.__consume, this.timeout_ms, null, POLL_READ | POLL_WRITE);
+			try {
+				var socket = tcp.Accept();
+				if (socket) {
+					SocketSetBlocking(socket.Socket, false);
+					socket.SetOption(SOL_SOCKET, SO_KEEPALIVE, true);
+					loop.addSocket(new SocketContainer(socket), this.__consume, this.timeout_ms, null, POLL_READ | POLL_WRITE);
+				}
+			} catch (var exc) {
+				var err = SocketErrno();
+				if ((err != 11) && (err != 35) && (err != 10035))
+					throw exc;				
 			}
 		});
 		if (tls) {
 			loop.addSocket(tls, function(tcp, loop) {
-				var socket = tcp.AcceptTCP();
-				if (socket) {
-					SocketSetBlocking(socket.Socket, false);
-					socket.SetOption(SOL_SOCKET, SO_KEEPALIVE, true);
-					socket.PrepareAcceptTLS();
-					if (this.OnRequest)
-						socket.MakeExportable();
-					var container = new SocketContainer(socket);
-					container.tls = true;
-					loop.addSocket(container, this.__consume_tls, this.timeout_ms, null, POLL_READ | POLL_WRITE);
+				try {
+					var socket = tcp.AcceptTCP();
+					if (socket) {
+						SocketSetBlocking(socket.Socket, false);
+						socket.SetOption(SOL_SOCKET, SO_KEEPALIVE, true);
+						socket.PrepareAcceptTLS();
+						if (this.OnRequest)
+							socket.MakeExportable();
+						var container = new SocketContainer(socket);
+						container.tls = true;
+						loop.addSocket(container, this.__consume_tls, this.timeout_ms, null, POLL_READ | POLL_WRITE);
+					}
+				} catch (var exc) {
+					var err = SocketErrno();
+					if ((err != 11) && (err != 35) && (err != 10035))
+						throw exc;				
 				}
 			});
 		}
