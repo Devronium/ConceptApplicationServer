@@ -48,13 +48,21 @@
     #include <sys/epoll.h>
 #endif
 
+#ifdef WITH_SELECT
+    struct io_fd {
+        int fd;
+        char mode;
+    };
+#endif
+
 #if defined(WITH_SELECT) || defined(WITH_POLL)
 #define WITH_SELECT_POLL
 class PollContainer {
 private:
 #ifdef WITH_SELECT
-    fd_set chlist;
-    fd_set outlist;
+    struct io_fd *chlist;
+    int chlist_len;
+    int chlist_pos;
 #endif
 #ifdef WITH_KQUEUE
     int fd;
@@ -70,17 +78,11 @@ public:
         this->fd = fd;
     }
 #endif
-#ifdef WITH_POLL
+#if defined(WITH_POLL) || defined(WITH_SELECT)
     PollContainer() {
         this->chlist = NULL;
         this->chlist_len = 0;
         this->chlist_pos = 0;
-    }
-#endif
-#ifdef WITH_SELECT
-    PollContainer() {
-        FD_ZERO(&chlist);
-        FD_ZERO(&outlist);
     }
 #endif
 
@@ -107,60 +109,54 @@ public:
         chlist_pos++;
 #endif
 #ifdef WITH_SELECT
-        switch (mode & 3) {
-            case 1:
-                FD_SET(efd, &outlist);
-                break;
-            case 3:
-                FD_SET(efd, &chlist);
-                FD_SET(efd, &outlist);
-                break;
-            default:
-                FD_SET(efd, &chlist);
+        if (chlist_pos <= chlist_len) {
+            chlist_len += 64;
+            chlist = (struct io_fd *)realloc(chlist, sizeof(struct io_fd) * chlist_len);
         }
+        for (int i = 0; i < chlist_pos; i ++) {
+            if (chlist[i].fd == efd) {
+                chlist[i].mode = mode & 3;
+                return 0;
+            }
+        }
+        if (!chlist)
+            return -2;
+        chlist[chlist_pos].fd = efd;
+        chlist[chlist_pos].mode = mode & 3;
+        chlist_pos ++;
 #endif
         return 0;
     }
 
     int Update(int efd, int mode) {
 #ifdef WITH_POLL
-        if (chlist_pos <= chlist_len) {
-            chlist_len += 64;
-            chlist = (struct pollfd *)realloc(chlist, sizeof(struct pollfd) * chlist_len);
-        }
         if (!chlist)
             return -2;
         for (int i = 0; i < chlist_pos; i ++) {
             if (chlist[i].fd == efd) {
                 switch (mode & 3) {
                     case 1:
-                        chlist[chlist_pos].events = POLLOUT;
+                        chlist[i].events = POLLOUT;
                         break;
                     case 3:
-                        chlist[chlist_pos].events = POLLIN | POLLPRI | POLLOUT | POLLHUP | POLLRDHUP;
+                        chlist[i].events = POLLIN | POLLPRI | POLLOUT | POLLHUP | POLLRDHUP;
                         break;
                     default:
-                        chlist[chlist_pos].events = POLLIN | POLLPRI | POLLHUP | POLLRDHUP;
+                        chlist[i].events = POLLIN | POLLPRI | POLLHUP | POLLRDHUP;
                 }
                 return 0;
             }
         }
 #endif
 #ifdef WITH_SELECT
-        switch (mode & 3) {
-            case 1:
-                FD_SET(efd, &outlist);
-                FD_CLR(efd, &chlist);
-                break;
-            case 3:
-                FD_SET(efd, &chlist);
-                FD_SET(efd, &outlist);
-                break;
-            default:
-                FD_SET(efd, &chlist);
-                FD_CLR(efd, &outlist);
+        if (!chlist)
+            return -2;
+        for (int i = 0; i < chlist_pos; i ++) {
+            if (chlist[i].fd == efd) {
+                chlist[i].mode = mode & 3;
+                return 0;
+            }
         }
-        return 0;
 #endif
         return -1;
     }
@@ -183,32 +179,16 @@ public:
             FD_ZERO(&fd_out_list);
         }
 #ifdef _WIN32
-        for (int i = 0; i < chlist.fd_count; i++) {
-            FD_SET(chlist.fd_array[i], &fd_list);
-            FD_SET(chlist.fd_array[i], &fd_excepts);
-        }
-        if (OUT_SOCKETS) {
-            for (int i = 0; i < outlist.fd_count; i++) {
-                FD_SET(outlist.fd_array[i], &fd_out_list);
-                FD_SET(outlist.fd_array[i], &fd_excepts);
-            }
-        }
-#else
-        for (int i = 0; i < FD_SETSIZE; i++) {
-            if (FD_ISSET(i, &chlist)) {
-                FD_SET(i, &fd_list);
-                FD_SET(i, &fd_excepts);
+        for (int i = 0; i < chlist_pos; i++) {
+            if (chlist[i].fd >= 0) {
+                FD_SET(chlist[i].fd, &fd_list);
+                FD_SET(chlist[i].fd, &fd_excepts);
             }
         }
         if (OUT_SOCKETS) {
-            for (int i = 0; i < FD_SETSIZE; i++) {
-                if (FD_ISSET(i, &outlist)) {
-                    FD_SET(i, &fd_out_list);
-                }
-                if (FD_ISSET(i, &chlist)) {
-                    FD_SET(i, &fd_excepts);
-                }
-
+            for (int i = 0; i < chlist_pos; i++) {
+                if ((chlist[i].fd >= 0) && (chlist[i].mode & 1))
+                    FD_SET(chlist[i].fd, &fd_out_list);
             }
         }
 #endif
@@ -221,42 +201,22 @@ public:
         else
             err = select(FD_SETSIZE, &fd_list, 0, &fd_excepts, &tout);
         if (err > 0) {
-#ifdef WIN32
-            for (int i = 0; i < chlist.fd_count; i++) {
-                if (FD_ISSET(chlist.fd_array[i], &fd_list))
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)chlist.fd_array[i]); 
+            for (int i = 0; i < chlist_pos; i++) {
+                if (FD_ISSET(chlist[i].fd, &fd_list))
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)chlist[i].fd); 
             }
             if (OUT_SOCKETS) {
-                for (int i = 0; i < outlist.fd_count; i++) {
-                    if (FD_ISSET(outlist.fd_array[i], &fd_out_list))
-                        Invoke(INVOKE_SET_ARRAY_ELEMENT, OUT_SOCKETS, out_index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)outlist.fd_array[i]); 
+                for (int i = 0; i < chlist_pos; i++) {
+                    if (FD_ISSET(chlist[i].fd, &fd_out_list))
+                        Invoke(INVOKE_SET_ARRAY_ELEMENT, OUT_SOCKETS, out_index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)chlist[i].fd); 
                 }
             }
-#else
-            for (int i = 0; i < FD_SETSIZE; i++) {
-                if (FD_ISSET(i, &fd_list))
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)i); 
-            }
-            if (OUT_SOCKETS) {
-                for (int i = 0; i < FD_SETSIZE; i++) {
-                    if (FD_ISSET(i, &fd_out_list))
-                        Invoke(INVOKE_SET_ARRAY_ELEMENT, OUT_SOCKETS, out_index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)i); 
-                }
-            }
-#endif
         } else
         if (err < 0) {
-#ifdef WIN32
-            for (int i = 0; i < chlist.fd_count; i++) {
-                if (FD_ISSET(chlist.fd_array[i], &fd_excepts))
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)chlist.fd_array[i]); 
+            for (int i = 0; i < chlist_pos; i++) {
+                if (FD_ISSET(chlist[i].fd, &fd_excepts))
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)chlist[i].fd); 
             }
-#else
-            for (int i = 0; i < FD_SETSIZE; i++) {
-                if (FD_ISSET(i, &fd_excepts))
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, index ++, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)i); 
-            }
-#endif
         }
         return err;
 #endif
@@ -281,28 +241,32 @@ public:
     }
 
     int Remove(int efd) {
-#ifdef WITH_POLL
+#if defined(WITH_POLL) || defined(WITH_SELECT)
         if ((chlist_pos) && (chlist)) {
             for (int i = 0; i < chlist_pos; i++) {
                 if (chlist[i].fd == efd) {
                     chlist_pos--;
                     for (int j = i; j < chlist_pos; j++) {
-                        chlist[i].fd = chlist[i + 1].fd;
-                        chlist[i].events = chlist[i + 1].events;
-                        chlist[i].revents = 0;
+                        chlist[j].fd = chlist[j + 1].fd;
+#ifdef WITH_POLL
+                        chlist[j].events = chlist[j + 1].events;
+                        chlist[j].revents = 0;
+#else
+                        chlist[j].mode = chlist[j + 1].mode;
+#endif
                     }
                     if (chlist_len - chlist_pos > 64) {
                         chlist_len -= 64;
+#ifdef WITH_SELECT
+                        chlist = (struct io_fd *)realloc(chlist, sizeof(struct io_fd) * chlist_len);
+#else
                         chlist = (struct pollfd *)realloc(chlist, sizeof(struct pollfd) * chlist_len);
+#endif
                     }
                     break;
                 }
             }
         }
-#endif
-#ifdef WITH_SELECT
-        FD_CLR(efd, &chlist);
-        FD_CLR(efd, &outlist);
 #endif
         return 0;
     }
@@ -311,7 +275,7 @@ public:
 #ifdef WITH_KQUEUE
         close(fd);
 #endif
-#ifdef WITH_POLL
+#if defined(WITH_POLL) || defined(WITH_SELECT)
         if (chlist)
             free(chlist);
 #endif
