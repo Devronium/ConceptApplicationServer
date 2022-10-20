@@ -1003,7 +1003,7 @@ void WSFrame(char *data_in, int data_len, char *out_frame, int *out_len) {
         size_len++;
         out_frame++;
     } else
-    if (tmp < 0xFFFF) {
+    if (tmp <= 0xFFFF) {
         *out_frame = 0x7E;
         out_frame++;
         *(unsigned short *)out_frame = htons((unsigned short)tmp);
