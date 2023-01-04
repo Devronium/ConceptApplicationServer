@@ -315,11 +315,18 @@ class IVR {
 		return false;
 	}
 
+	ParseFrom(from) {
+		from = StrReplace(from, "<sip:", "");
+		from = "" + StrSplit(from, "@")[0];
+		return trim(from);
+	}
+
 	OnInvite(session, msg) {
 		var from = "" + StrSplit("" + msg.Headers["from"], " ")[0];
 		if ((from) && ((from[0] == '"') && (from[length from - 1] == '"')))
 			from = SubStr(from, 1, length from - 2);
-
+		else
+			from = ParseFrom(from);
 		
 		var res;
 		if (Greeting)
