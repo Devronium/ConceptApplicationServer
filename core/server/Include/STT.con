@@ -1,0 +1,73 @@
+import standard.lib.stt
+
+class STT {
+	var _handle;
+
+	private var _external_scorer;
+	public property externalScorer { set setExternalScorer, get _external_scorer }
+	public property modelSampleRate { get getModelSampleRate }
+
+	STT(string model_path) {
+		STT_CreateModel(model_path, this._handle);
+	}
+
+	setExternalScorer(string scorer_path) {
+		_external_scorer = scorer_path;
+		var err;
+		if (scorer_path)
+			err = STT_EnableExternalScorer(this._handle, scorer_path);
+		else
+			err = STT_DisableExternalScorer(this._handle);
+		if (err)
+			throw "Error $err in enabling/disabling external scorer";
+	}
+
+	addHotWord(word, number boost) {
+		if (typeof word == "array") {
+			for (var i = 0; i < length word; i ++)
+				this.addHotWord(word[i], boost);
+		}
+			
+		return STT_AddHotWord(this._handle, word, boost);
+	}
+
+	eraseHotWord(word) {
+		if (typeof word == "array") {
+			for (var i = 0; i < length word; i ++)
+				this.eraseHotWord(word[i]);
+		}
+			
+		return STT_EraseHotWord(this._handle, word);
+	}
+
+	clearHotWords() {
+		return STT_ClearHotWord(this._handle, word);
+	}
+
+	setScorerAlphaBeta(aAlpha, aBeta) {
+		return STT_SetScorerAlphaBeta(this._handle, aAlpha, aBeta);
+	}
+
+	getModelSampleRate() {
+		return STT_GetModelSampleRate(this._handle);
+	}
+
+	speechToText(var buffer) {
+		return STT_SpeechToText(this._handle, buffer);
+	}
+
+	speechToTextWithData(var buffer, aNumResults) {
+		return STT_SpeechToTextWithMetadata(this._handle, buffer, aNumResults);
+	}
+
+	done() {
+		STT_FreeModel(this._handle);
+		this._handle = null;
+	}
+
+	finalize() {
+		if (this._handle)
+			STT_FreeModel(this._handle);
+	}
+}
+

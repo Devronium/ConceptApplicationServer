@@ -2745,8 +2745,10 @@ class SIPStack {
 								var pos = Pos(payload, "signal=");
 								if (pos > 0) {
 									var key = trim("" + StrSplit(SubStr(payload, pos + 6), "\n")[0]);
-									if (key)
+									if (key) {
+										sess.DTMFHistory += key;
 										this.OnDTMFRelay(sess, key);
+									}
 								}
 							}
 						}
