@@ -101,7 +101,7 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 PROGRAMS = $(libexec_PROGRAMS)
 am_standard_lib_stt_so_OBJECTS = stdlibrary.$(OBJEXT) main.$(OBJEXT)
 standard_lib_stt_so_OBJECTS = $(am_standard_lib_stt_so_OBJECTS)
-standard_lib_stt_so_LDADD = $(LDADD)
+standard_lib_stt_so_DEPENDENCIES =
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -276,7 +276,8 @@ top_srcdir = @top_srcdir@
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = -O2 @STT_CFLAGS@ -fPIC
 AM_CXXFLAGS = -O2 @STT_CFLAGS@ -fPIC
-AM_LDFLAGS = -shared @STT_LIBS@
+AM_LDFLAGS = -shared
+standard_lib_stt_so_LDADD = @STT_LIBS@
 standard_lib_stt_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h
 all: all-am
 
