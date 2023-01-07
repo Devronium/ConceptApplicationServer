@@ -1,0 +1,22 @@
+#ifndef __LIBRARY_H
+#define __LIBRARY_H
+
+#include "stdlibrary.h"
+
+extern "C" {
+    CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS;
+    CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS;
+    
+    CONCEPT_FUNCTION(resample)
+    CONCEPT_FUNCTION(to16bits)
+    CONCEPT_FUNCTION(to8bits)
+
+    CONCEPT_FUNCTION(alaw2ulaw)
+    CONCEPT_FUNCTION(ulaw2alaw)
+    CONCEPT_FUNCTION(alaw2pcm)
+    CONCEPT_FUNCTION(ulaw2pcm)
+
+    CONCEPT_FUNCTION(pcm2ulaw)
+    CONCEPT_FUNCTION(pcm2alaw) 
+}
+#endif // __LIBRARY_H
