@@ -1,5 +1,60 @@
 import standard.lib.stt
 
+class STTStream {
+	var _handle;
+	protected var _owner;
+
+	public property Owner { get _owner }
+
+	STTStream(owner) {
+		STT_CreateStream(owner._handle, this._handle);
+		this._owner = owner;
+	}
+
+	feed(var buffer) {
+		if (!_handle)
+			throw "STTStream is closed";
+		STT_FeedAudioContent(this._handle, buffer);
+	}
+
+	decode() {
+		if (!_handle)
+			throw "STTStream is closed";
+
+		return STT_IntermediateDecode(this._handle);
+	}
+
+	decodeWithData(aNumResults) {
+		if (!_handle)
+			throw "STTStream is closed";
+
+		return STT_IntermediateDecodeWithMetadata(this._handle, aNumResults);
+	}
+
+	finish() {
+		if (!_handle)
+			throw "STTStream is closed";
+		var str = STT_FinishStream(this._handle);
+		this._handle = null;
+		this._owner = null;
+		return str;
+	}
+
+	close() {
+		STT_FreeStream(this._handle);
+		this._handle = null;
+		this._owner = null;
+	}
+
+	finalize() {
+		if (this._handle) {
+			STT_FreeStream(this._handle);
+			this._handle = null;
+		}
+		this._owner = null;
+	}
+}
+
 class STT {
 	var _handle;
 
@@ -41,7 +96,7 @@ class STT {
 	}
 
 	clearHotWords() {
-		return STT_ClearHotWord(this._handle, word);
+		return STT_ClearHotWords(this._handle);
 	}
 
 	setScorerAlphaBeta(aAlpha, aBeta) {
@@ -70,4 +125,3 @@ class STT {
 			STT_FreeModel(this._handle);
 	}
 }
-

@@ -661,6 +661,8 @@ void Optimizer_BuildParameterList(struct Optimizer *self, struct OptimizerHelper
     if ((METHOD) && (delta)) {
         METHOD->_INFO_OPTIMIZED = -12;
         METHOD->_HASH_DATA      = new void * [delta + 1];
+
+        ((void **)METHOD->_HASH_DATA) [0] = 0;
     }
 
     for (INTEGER i = START_POS; i < helper->PIF_POSITION; i++) {
