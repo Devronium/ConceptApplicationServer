@@ -3,6 +3,10 @@
 //------------ end of standard header ----------------------------//
 #include "library.h"
 #include <stddef.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 extern "C" {
     #include <coqui-stt.h>
 }
@@ -147,14 +151,29 @@ void ToArrayData(void *RESULT, INVOKE_CALL Invoke, Metadata *stt) {
                 CREATE_ARRAY(element);
 
                 void *token = NULL;
-                Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, element, "tokens", &token);
 
-                CREATE_ARRAY(token);
+                int max_len = stt->transcripts[i].num_tokens * 4 + 1;
+                char *buffer = (char *)malloc(stt->transcripts[i].num_tokens * 4 + 1);
+                buffer[0] = 0;
+                int written = 0;
 
-                for (INTEGER j = 0; j < stt->transcripts[i].num_tokens; j ++)
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT, token, j, (INTEGER)VARIABLE_STRING, (char *)stt->transcripts[i].tokens[j].text, (NUMBER)0);
+                for (INTEGER j = 0; j < stt->transcripts[i].num_tokens; j ++) {
+                    if (stt->transcripts[i].tokens[j].text) {
+                        int token_len = strlen(stt->transcripts[i].tokens[j].text);
+                        if (token_len > 0) {
+                            snprintf(buffer + written, max_len, "%s", stt->transcripts[i].tokens[j].text);
+                            max_len -= token_len;
+                            written += token_len;
+                            if (max_len <= 0)
+                                break;
+                        }
+                    }
+                }
 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, element, "tokens", (INTEGER)VARIABLE_STRING, (char *)buffer, (NUMBER)0);
                 Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, element, "confidence", (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)stt->transcripts[i].confidence);
+
+                free(buffer);
         }
         STT_FreeMetadata(stt);
     }
@@ -174,7 +193,7 @@ CONCEPT_FUNCTION_IMPL(STT_SpeechToTextWithMetadata, 3)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(STT_CreateStream, 2)
-    T_HANDLE(STT_SpeechToTextWithMetadata, 0)
+    T_HANDLE(STT_CreateStream, 0)
 
     int err = -1;
     StreamingState *retval = NULL;
@@ -214,7 +233,7 @@ CONCEPT_FUNCTION_IMPL(STT_IntermediateDecode, 1)
     }
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL(STT_IntermediateDecodeWithMetadata, 1)
+CONCEPT_FUNCTION_IMPL(STT_IntermediateDecodeWithMetadata, 2)
     T_HANDLE(STT_IntermediateDecodeWithMetadata, 0)
     T_NUMBER(STT_IntermediateDecodeWithMetadata, 1)
 
