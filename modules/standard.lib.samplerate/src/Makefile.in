@@ -105,7 +105,7 @@ am__objects_1 = libsamplerate/samplerate.$(OBJEXT) \
 	libsamplerate/src_zoh.$(OBJEXT) \
 	libsamplerate/src_linear.$(OBJEXT)
 am_standard_lib_samplerate_so_OBJECTS = stdlibrary.$(OBJEXT) \
-	main.$(OBJEXT) $(am__objects_1)
+	main.$(OBJEXT) g711.$(OBJEXT) $(am__objects_1)
 standard_lib_samplerate_so_OBJECTS =  \
 	$(am_standard_lib_samplerate_so_OBJECTS)
 standard_lib_samplerate_so_LDADD = $(LDADD)
@@ -124,7 +124,8 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/main.Po ./$(DEPDIR)/stdlibrary.Po \
+am__depfiles_remade = ./$(DEPDIR)/g711.Po ./$(DEPDIR)/main.Po \
+	./$(DEPDIR)/stdlibrary.Po \
 	libsamplerate/$(DEPDIR)/samplerate.Po \
 	libsamplerate/$(DEPDIR)/src_linear.Po \
 	libsamplerate/$(DEPDIR)/src_sinc.Po \
@@ -289,7 +290,7 @@ samplerate_sources = \
   libsamplerate/src_zoh.c \
   libsamplerate/src_linear.c
 
-standard_lib_samplerate_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h $(samplerate_sources)
+standard_lib_samplerate_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h g711.c $(samplerate_sources)
 all: all-am
 
 .SUFFIXES:
@@ -391,6 +392,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/g711.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stdlibrary.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libsamplerate/$(DEPDIR)/samplerate.Po@am__quote@ # am--include-marker
@@ -565,7 +567,8 @@ clean: clean-am
 clean-am: clean-generic clean-libexecPROGRAMS mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/main.Po
+		-rm -f ./$(DEPDIR)/g711.Po
+	-rm -f ./$(DEPDIR)/main.Po
 	-rm -f ./$(DEPDIR)/stdlibrary.Po
 	-rm -f libsamplerate/$(DEPDIR)/samplerate.Po
 	-rm -f libsamplerate/$(DEPDIR)/src_linear.Po
@@ -616,7 +619,8 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/main.Po
+		-rm -f ./$(DEPDIR)/g711.Po
+	-rm -f ./$(DEPDIR)/main.Po
 	-rm -f ./$(DEPDIR)/stdlibrary.Po
 	-rm -f libsamplerate/$(DEPDIR)/samplerate.Po
 	-rm -f libsamplerate/$(DEPDIR)/src_linear.Po

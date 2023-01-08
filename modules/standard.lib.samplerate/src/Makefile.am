@@ -13,5 +13,4 @@ samplerate_sources = \
   libsamplerate/src_zoh.c \
   libsamplerate/src_linear.c
 
-standard_lib_samplerate_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h $(samplerate_sources)
-
+standard_lib_samplerate_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h g711.c $(samplerate_sources)
