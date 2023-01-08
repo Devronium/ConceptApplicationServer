@@ -174,10 +174,13 @@ class IVR {
 	var EndRecording;
 	var DTMF;
 	var WrongKey;
+	var AudioFrame;
+	var IVRFinished;
 	var TimedOutMessage = "";
 	var Debug = false;
 	var UserData;
 	var ReferError;
+	var LoopCallback;
 
 	Get(key, format = "alaw", dir = "repository") {
 		var key2 = "$key.$format";
@@ -278,6 +281,8 @@ class IVR {
 					session.Bye(true);
 				return;
 			}
+			if (this.AudioFrame)
+				this.AudioFrame(session.UserData, buffer, type);
 		}
 	}
 
@@ -393,6 +398,8 @@ class IVR {
 				session.UserData.StartRecording(session.UserData.RecordTimeout);
 			if (session.UserData.EndOnIVRFinished)
 				session.Bye(true);
+			if (this.IVRFinished)
+				this.IVRFinished(session.UserData);
 		};
 
 		stack.OnNotUnderstood = function(msg) {
@@ -425,6 +432,8 @@ class IVR {
 				Sleep(1);
 			if ((delta > 10) && (Debug))
 				console.info(LOG_THIS, "DELTA: $delta");
+			if (this.LoopCallback)
+				this.LoopCallback();
 		}
 	}
 }
