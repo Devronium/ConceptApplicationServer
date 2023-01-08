@@ -1,4 +1,24 @@
 import standard.lib.stt
+import standard.C.io
+import standard.lib.str
+
+class TTSHelper {
+	var modelName;
+
+	TTSHelper(model_name) {
+		this.modelName = model_name;
+	}
+
+	static tts(text, model, out_path) {
+		text = StrReplace(text, "\\", "\\\\");
+		text = StrReplace(text, "\"", "\\\"");
+		return _system("tts --text \"$text\" --model_name \"$model\" --out_path \"$out_path\"");
+	}
+
+	speak(text, out_path) {
+		return this.tts(text, modelName, out_path);
+	}
+}
 
 class STTStream {
 	var _handle;
