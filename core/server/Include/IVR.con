@@ -12,6 +12,7 @@ class DATASession {
 	var StartTime;
 	var CreateTime;
 	var From;
+	var To;
 	var EndOnIVRFinished;
 	var RecordOnIVRFinished;
 	var RecordEscapeKey = "#";
@@ -103,12 +104,13 @@ class DATASession {
 		Mode = 0;
 	}
 
-	DATASession(get_cache, session, from) {
+	DATASession(get_cache, session, from, to) {
 		this.Get = get_cache;
 		this.sip = session;
 		this.StartTime = time();
 		this.CreateTime = time();
 		this.From = from;
+		this.To = to;
 	}
 
 	ResetTime() {
@@ -169,6 +171,7 @@ class IVR {
 	var Connection;
 	var LastTime;
 	var Greeting;
+	var GreetingTo;
 	var Begin;
 	var End;
 	var EndRecording;
@@ -333,11 +336,14 @@ class IVR {
 		else
 			from = ParseFrom(from);
 		
+		var msg_to = this.ParseFrom(msg.Headers["to"]);
 		var res;
 		if (Greeting)
 			 res = this.Greeting(from);
+		if (GreetingTo)
+			 res = this.GreetingTo(from, msg_to);
 		if (res) {
-			session.UserData = new DATASession(this.Get, session, from);
+			session.UserData = new DATASession(this.Get, session, from, msg_to);
 			session.OnReferError = this.OnReferError;
 			session.LoadVoice(Get("empty"));
 			this.ParseArray(session, res);
@@ -347,6 +353,14 @@ class IVR {
 		} else {
 			session.Reject();
 		}
+	}
+
+	GetSessionById(id) {
+		if (id) {
+			var sip_session = this.stack.GetSessionById(id);
+			return sip_session.UserData;
+		}
+		return null;
 	}
 
 	static HourAndDay(var hour, var day = null, var minute = null) {
