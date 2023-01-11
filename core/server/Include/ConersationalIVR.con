@@ -208,6 +208,8 @@ class ConversationalIVR {
 	var defaultVoice = "tts_models/en/vctk/vits";
 	var[] sipUsers;
 
+	var every_second;
+
 	OnRegister(msg, auth, extra_headers) {
 		console.trace(LOG_THIS, "REGISTER");
 		if (auth) {
@@ -498,6 +500,10 @@ class ConversationalIVR {
 			for (var j = 0; j < length arr; j ++)
 				this.OnIdle_worker(arr[j]);
 		}
+		if (microseconds() - every_second >= 1000000) {
+			this.ivr.stack.Reregister();
+			this.every_second = microseconds();
+		}
 		if (this.LoopCallback)
 			this.LoopCallback();
 	}
@@ -700,6 +706,10 @@ class ConversationalIVR {
 		return ivr_tree;
 	}
 
+	OnClientRegister(registration) {
+		console.log(LOG_THIS, "${registration.username}@${registration.server} registered");
+	}
+
 	ConversationalIVR(sip_host, sip_port = 5060) {
 		ivr = new IVR(sip_host, sip_port);
 
@@ -710,6 +720,7 @@ class ConversationalIVR {
 		ivr.SessionFinished = this.OnEnd;
 
 		ivr.stack.OnRegister = this.OnRegister;
+		ivr.stack.OnClientRegister = this.OnClientRegister;
 
 		ivr.LoopCallback = this.OnIdle;
 	}
@@ -758,7 +769,8 @@ class ConversationalIVR {
 	}
 
 	register(username, password, sip_server, server_port = 5060) {
-		return this.ivr.stack.RegisterUDP(username, password, sip_server, server_port, 480);
+		this.every_second = microseconds();
+		return this.ivr.stack.Register(username, password, sip_server, server_port);
 	}
 
 	Start(loop_callback = null) {

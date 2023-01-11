@@ -919,6 +919,22 @@ class SIPRoute {
 	}
 }
 
+class RegistrationData {
+	var username;
+	var password;
+	var server;
+	var server_port;
+	var nonce = "";
+	var timestamp;
+
+	RegistrationData(username, password, server, server_port) {
+		this.username = username;
+		this.password = password;
+		this.server = server;
+		this.server_port = server_port;
+	}
+}
+
 class SIPStack {
 	var udpclientsocket;
 	var use_socket;
@@ -932,6 +948,7 @@ class SIPStack {
 	var[] Sessions;
 	var[] Routes;
 	var[] Users;
+	var[] Registrations;
 	var MaxTime = 3600;
 	var OnDTMF;
 	var OnDTMFRelay;
@@ -956,6 +973,7 @@ class SIPStack {
 	var OnInfo;
 	var OnPublish;
 	var OnAfterPublish;
+	var OnClientRegister;
 
 	var Transport = "UDP";
 	var sipproto = "sip:";
@@ -1246,7 +1264,7 @@ class SIPStack {
 		return res;
 	}
 
-	private Register(username, password, server, server_port = 5060, response = null, var nonce = null, max_forwards = 70) {
+	private RegisterMessage(username, password, server, server_port = 5060, response = null, var nonce = null, max_forwards = 70) {
 		var register = new SIPMessage();
 		register.Destination = sipproto + server;
 		if (server_port != 5060)
@@ -1270,7 +1288,7 @@ class SIPStack {
 		if (!branch)
 			branch = "z9hG4bK" + this.RandomString(14);
 		if (!callid)
-			callid = this.RandomString(32) + "@" + localhost;
+			callid = /* this.RandomString(32) */sha256(username + "|" + server + "|" + localhost) + "@" + localhost;
 
 		register.Headers["Via"] = "SIP/2.0/${Transport} " + full_host + ";rport;branch=" + branch;
 		var from = username + " <" + sipproto + username + "@" + server + ">";
@@ -1312,18 +1330,87 @@ class SIPStack {
 		return socket.Write(buffer);
 	}
 
+	Register(username, password, server, server_port=5060) {
+		var register = this.RegisterMessage(username, password, server, server_port, null, var nonce);
+		var local_udpclientsocket = use_socket ?? udpclientsocket;
+	
+		if (this.DoWrite(local_udpclientsocket, register.ToString(), server, server_port) < 0)
+			return null;
+
+		var key = register.Headers["Call-ID"];
+		this.Registrations[key] = new RegistrationData(username, password, server, server_port);
+	}
+
+	protected Register401(msg) {
+		if (msg.ServerCode != 401)
+			return;
+
+		var cseq = "" + msg.Headers["cseq"];
+		if (Pos(cseq, " REGISTER") <= 0)
+			return;
+
+		var callid = msg.Headers["call-id"];
+		if (IsSet(this.Registrations, callid)) {
+			var registration = this.Registrations[callid];
+			if (registration) {
+				var local_udpclientsocket = use_socket ?? udpclientsocket;
+				var register = this.RegisterMessage(registration.username, registration.password, registration.server, registration.server_port, msg, var nonce);
+				if (this.DoWrite(local_udpclientsocket, register.ToString(), registration.server, registration.server_port) < 0)
+					return;
+				registration.nonce = nonce;
+			}
+		}
+	}
+
+	protected Register200(msg) {
+		if (msg.ServerCode != 200)
+			return;
+
+		var cseq = "" + msg.Headers["cseq"];
+		if (Pos(cseq, " REGISTER") <= 0)
+			return;
+
+		var callid = msg.Headers["call-id"];
+		if (IsSet(this.Registrations, callid)) {
+			var registration = this.Registrations[callid];
+			if (registration) {
+				registration.timestamp = time();
+				if (this.OnClientRegister)
+					this.OnClientRegister(registration);
+			}
+		}
+	}
+
+	Reregister(timeout = 8) {
+		var registrations = this.Registrations;
+		var local_udpclientsocket = use_socket ?? udpclientsocket;
+		var count = 0;
+		for (var i = 0; i < length registrations; i ++) {
+			var registration = registrations[i];
+			if ((registration) && (time() - registration.timestamp >= timeout)) {
+				try {
+					var register = this.RegisterMessage(registration.username, registration.password, registration.server, registration.server_port);
+					if (this.DoWrite(local_udpclientsocket, register.ToString(), registration.server, registration.server_port) < 0)
+						return count;
+					count ++;
+				} catch (var exc) {
+				}
+			}
+		}
+		return count;
+	}
+
 	RegisterUDP(username, password, server, server_port=5060, timeout=5000) {
 		try {
-			var register = this.Register(username, password, server, server_port, null, var nonce);
+			var register = this.RegisterMessage(username, password, server, server_port, null, var nonce);
 			var local_udpclientsocket = use_socket ?? udpclientsocket;//new UDPSocket();
-			/*local_udpclientsocket.Write(register.ToString(), server, server_port)*/
+
 			if (this.DoWrite(local_udpclientsocket,  register.ToString(), server, server_port) <= 0)
 				return null;
 
 			var msg = this.TimedOutRead(local_udpclientsocket, timeout);
 			if ((msg) && (msg.ServerCode == 401)) {
-				register = this.Register(username, password, server, server_port, msg, nonce);
-				// if (local_udpclientsocket.Write(register.ToString(), server, server_port) < 0)
+				register = this.RegisterMessage(username, password, server, server_port, msg, nonce);
 				if (this.DoWrite(local_udpclientsocket, register.ToString(), server, server_port) < 0)
 					return null;
 				var msg2 = this.TimedOutRead(local_udpclientsocket, timeout);
@@ -2815,6 +2902,8 @@ class SIPStack {
 								if (Pos(cseq, " INVITE") > 0)
 									this.OnAnswered(sess, msg);
 							}
+							if ((!sess) && (this.Registrations) && (msg.ServerCode == 200))
+								this.Register200(msg);
 						}
 
 						if (this.OnResponse)
@@ -2838,7 +2927,9 @@ class SIPStack {
 								this.RemoveSessionByRef(sess, msg.ServerCode);
 								if (this.OnEnd)
 									this.OnEnd(sess, msg, msg.Headers["reason"] ?? "");
-							}
+							} else
+							if ((this.Registrations) && (msg.ServerCode == 401))
+								this.Register401(msg);
 						}
 					} else {
 						if (this.OnNotUnderstood)
