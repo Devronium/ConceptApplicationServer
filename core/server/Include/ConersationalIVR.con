@@ -1,0 +1,769 @@
+import standard.lib.samplerate
+import standard.lib.json
+
+include IVR.con
+include STT.con
+include Worker.con
+
+define STT_RESET	1
+define STT_ADDBUFFER	2
+define STT_TEXT		3
+define STT_SCORER	4
+
+define WORKER_MAX_BUFFER	48000
+
+class IVRClientData {
+	var count;
+	var ivr_branch;
+	var path;
+	var hash;
+	var ivr_path = "";
+	var api;
+	var UserData;
+
+	IVRClientData(ivr_tree, id) {
+		this.ivr_branch = ivr_tree;
+		this.hash = Murmur(id);
+	}
+}
+
+class STTWorkerData {
+	var id;
+	var type;
+	var buffer;
+
+	STTWorkerData(id, op_type, var buffer = "") {
+		this.id = id;
+		this.type = op_type;
+		this.buffer = buffer;
+	}
+}
+
+class STTWorkerObject {
+	var id;
+	var buffer_length;
+	var stream;
+	var timestamp;
+	var last_str = "";
+	var send_timestamp;
+
+	STTWorkerObject(id) {
+		this.id = id;
+		this.ping();
+	}
+
+	ping() {
+		this.timestamp = microseconds();
+	}
+
+	expired(max_timeout_ms) {
+		max_timeout_ms *= 1000;
+
+		if ((this.timestamp) && (microseconds() - this.timestamp > max_timeout_ms)) {
+			if ((this.stream) && (this.stream._handle))
+				this.stream.close();
+			delete this.stream;
+			return true;
+		}
+		return false;
+	}
+
+	canSend() {
+		if (!send_timestamp)
+			send_timestamp = microseconds();
+
+		if (microseconds() - send_timestamp >= 500000) {
+			send_timestamp = microseconds();
+			return true;
+		}
+
+		return false;
+	}
+
+	finalize() {
+		delete this.stream;
+	}
+}
+
+class STTWorker {
+	STTWorker(model_scorer) {
+		console.log(LOG_THIS, "created worker for $model_scorer");
+
+		var arr = StrSplit(model_scorer, ":");
+		var stt = new STT(arr[0]);
+		stt.externalScorer = arr[1];
+		var max_response_length = value (arr[2]) ?? 48;
+
+		var modelSampleRate = stt.modelSampleRate;
+		var[] objects;
+
+		var clear_time_stamp = microseconds();
+		while (true) {
+			if (Worker::Pending(var buffer, 1000)) {
+				var obj = UnBinarizeObject(buffer);
+				if (!obj)
+					continue;
+
+				try {
+					if (obj.type == STT_SCORER) {
+						stt.externalScorer = obj.buffer;
+						console.log(LOG_THIS, "new scorer loaded ${obj.buffer}");
+						continue;
+					}
+
+					var worker_obj;
+
+					if (obj.type == STT_RESET) {
+						worker_obj = objects[obj.id];
+						if (worker_obj) {
+							worker_obj.buffer_length = 0;
+							if ((worker_obj.stream) && (worker_obj.stream._handle))
+								worker_obj.stream.close();
+							delete worker_obj.stream;
+							worker_obj.last_str = "";
+						}
+						objects[obj.id] = null;
+					}
+					if (!obj.buffer)
+						continue;
+
+					worker_obj = objects[obj.id];
+					if (!worker_obj) {
+						worker_obj = new STTWorkerObject(obj.id);
+						objects[obj.id] = worker_obj;
+					}
+
+					if (!worker_obj.stream)
+						worker_obj.stream = new STTStream(stt);
+
+					var buf2 = resample(alaw2pcm(obj.buffer), 8000, modelSampleRate);
+					worker_obj.stream.feed(buf2);
+
+					worker_obj.buffer_length += length obj.buffer;
+
+					if (worker_obj.buffer_length >= 2400) {
+						var str = worker_obj.stream.decode();
+						if ((str)  && (worker_obj.canSend())) {
+							worker_obj.last_str = str;
+							Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TEXT, str)));
+							if (length str > max_response_length) {
+								console.trace(LOG_THIS, "resetting buffer for ${obj.id}");
+								worker_obj.buffer_length = 0;
+								worker_obj.stream.close();
+								delete worker_obj.stream;
+								worker_obj.last_str = "";
+							}
+						}
+					}
+					if (worker_obj.buffer_length >= WORKER_MAX_BUFFER) {
+						console.trace(LOG_THIS, "resetting buffer for ${obj.id}");
+						worker_obj.buffer_length = 0;
+						worker_obj.stream.close();
+						worker_obj.last_str = "";
+						delete worker_obj.stream;
+					}
+					worker_obj.ping();
+				} catch (var exc) {
+					console.warn(LOG_THIS, exc);
+				}
+			}
+			if (microseconds() - clear_time_stamp >= 3000000) {
+				var new_obj = new [];
+				var cleared = 0;
+				for (var i = 0; i < length objects; i ++) {
+					var ref_obj = objects[i];
+					if ((ref_obj) && (!ref_obj.expired(3000)))
+						new_obj[ref_obj.id] = ref_obj;
+					else
+						cleared ++;
+				}
+				objects = new_obj;
+				clear_time_stamp = microseconds();
+				if (cleared)
+					console.log(LOG_THIS, "cleared $cleared session(s)");
+			}
+		}
+	}
+}
+
+class ConversationalIVR {
+	var ivr;
+	var[] stt_workers;
+
+	var trunk_dir = "./trunks/";
+	var[] ivr_voice;
+	var[] ivr_trees;
+	var[] ivr_checksums;
+	var[] ivr_timestamps;
+	var[] ivr_model_keys;
+	var[] ivr_api_trees;
+	var ivr_api_trees_dirty;
+
+	var OnFinish;
+	var OnBranch;
+	var OnAPI;
+
+	var LoopCallback;
+
+	var defaultVoice = "tts_models/en/vctk/vits";
+	var[] sipUsers;
+
+	OnRegister(msg, auth, extra_headers) {
+		console.trace(LOG_THIS, "REGISTER");
+		if (auth) {
+			var code = ivr.stack.CheckAuth(auth, function(username) {
+				if (IsSet(this.sipUsers, username))
+					return this.sipUsers[username];
+				return "";
+			});
+			return code;
+		}
+		return 401;
+	}
+
+	static sessionTo(session) {
+		if (session.sip.is_invite)
+			return session.From;
+		return session.To;
+	}
+
+	sessionTree(session) {
+		var callid = session.sip.CallID;
+		var ivr_tree;
+		if (IsSet(ivr_api_trees, callid))
+			ivr_tree = ivr_api_trees[callid];
+		if (!ivr_tree)
+			ivr_tree = ivr_trees[sessionTo(session)];
+		return ivr_tree;
+	}
+
+	DoTTS(text, voice = "", session = null, append = false) {
+		var fname = sha1("" + text);
+
+		if (!voice)
+			voice = this.defaultVoice;
+
+		if (!FileExists("./repository/alaw/$fname.alaw")) {
+			TTSHelper::tts(text, voice, "./repository/$fname.wav");
+			_unlink("./repository/alaw/$fname.alaw");
+			_system("ffmpeg -loglevel error -i \"./repository/$fname.wav\" -ac 1 -ar 8000 -f s8 -acodec pcm_alaw \"./repository/alaw/$fname.alaw\"");
+		}
+		if (session) {
+			if (!session.ClientData)
+				session.ClientData = new IVRClientData(sessionTree(session), session.sip.CallID);
+			else
+				session.ClientData.count = 0;
+			if (append)
+				session.Append(fname);
+			else
+				session.Load(fname);
+		}
+
+		return fname;
+	}
+
+	voice(to) {
+		if (typeof to != "string") {
+			if (to.sip.is_invite)
+				to = to.From;
+			else
+				to = to.To;
+		}
+		if (IsSet(ivr_voice, to))
+			return ivr_voice[to];
+		return "";
+	}
+
+	OnGreeting(from, to, callid) {
+		console.info(LOG_THIS, "call from $from to $to");
+	
+		var ivr_data;
+
+		var ivr_tree;
+
+		var trunk_path = trunk_dir + to + ".json";
+		if (!FileExists(trunk_path)) {
+			console.warn(LOG_THIS, "invalid trunk $to ($trunk_path)");
+			return null;
+		}
+
+		ivr_tree = ivr_trees[to];
+		if ((ivr_tree) && (time() - ivr_timestamps[to] >= 8)) {
+			ivr_data = ReadFile(trunk_path);
+			if (sha256(ivr_data) != ivr_checksums[to]) {
+				ivr_tree = JSONDeserialize(ivr_data);
+				ivr_checksums[to] = sha256(ivr_data);
+				ivr_timestamps[to] = time();
+				ivr_trees[to] = ivr_tree;
+				console.info(LOG_THIS, "trunk $to reloaded");
+			}
+		}
+
+		if (!ivr_tree) {
+			ivr_data = ReadFile(trunk_path);
+			ivr_tree = JSONDeserialize(ivr_data);
+			if (ivr_tree) {
+				ivr_tree = this.loadTree(to, ivr_tree);
+				if (ivr_tree) {
+					ivr_checksums[to] = sha256(ivr_data);
+					ivr_timestamps[to] = time();
+					ivr_trees[to] = ivr_tree;
+				}
+			}
+		}
+		
+		if (IsSet(ivr_api_trees, callid))
+			ivr_tree = ivr_api_trees[callid] ?? ivr_tree;
+
+		if (!ivr_tree) {
+			console.warn(LOG_THIS, "invalid trunk $to");
+			return null;
+		}
+
+		var msg = ivr_tree[0];
+
+		return [this.DoTTS(msg, this.voice(to))];
+	}
+
+	OnAnswerGreeting(from, to, callid) {
+		return this.OnGreeting(to, from, callid);
+	}
+
+	protected chooseWorker(session, hash) {
+		if (!session)
+			return null;
+		var to = session.To;
+		if (session.sip.is_invite)
+			to = session.From;
+
+		if (!IsSet(this.ivr_model_keys, to))
+			return null;
+
+		var key = this.ivr_model_keys[to];
+		if (!key)
+			return null;
+
+		var workers = stt_workers[key];
+		if (!workers)
+			return null;
+
+		var len = length workers;
+		if (!len)
+			return null;
+		
+		return workers[hash % len];
+	}
+
+	OnAudioFrame(session, var buffer, var type) {
+		if (!session.ClientData)
+			session.ClientData = new IVRClientData(sessionTree(session), session.sip.CallID);
+
+		if (session.ClientData.count) {
+			if (session.ClientData.count < 2) {
+				session.ClientData.count ++;
+			} else {
+				var stt_worker = this.chooseWorker(session, session.ClientData.hash);
+				if (stt_worker)
+					stt_worker.AddData(BinarizeObject(new STTWorkerData(session.sip.CallID, STT_ADDBUFFER, buffer)));
+				else
+					console.error(LOG_THIS, "no workers for ${session.To}, callid ${session.sip.CallID}");
+			}
+		}
+	}
+
+	IVRFinished(session) {
+		if ((!session) || (session.EndOnIVRFinished))
+			return;
+
+		if (!session.ClientData)
+			session.ClientData = new IVRClientData(sessionTree(session), session.sip.CallID);
+
+		var branch = session.ClientData.ivr_branch;
+		if ((!branch) || (typeof branch == "string") || (length branch == 1)) {
+			session.Close();
+			return;
+		}
+
+		console.info(LOG_THIS, "start STT for ${session.sip.CallID}");
+		session.ClientData.count = 1;
+
+		var stt_worker = this.chooseWorker(session, session.ClientData.hash);
+		if (stt_worker)
+			stt_worker.AddData(BinarizeObject(new STTWorkerData(session.sip.CallID, STT_RESET)));
+		else
+			console.error(LOG_THIS, "no workers for ${session.To}, callid ${session.sip.CallID}");
+	}
+
+	OnEnd(session, callid, code) {
+		if (IsSet(ivr_api_trees, callid)) {
+			ivr_api_trees[callid] = null;
+			ivr_api_trees_dirty ++;
+			if (ivr_api_trees_dirty >= 8) {
+				var keys = GetKeys(ivr_api_trees);
+				var arr = new [];
+				for (var i = 0; i < length keys; i ++) {
+					var k = keys[i];
+					if (k) {
+						var tree = ivr_api_trees[k];
+						if (tree)
+							arr[k] = tree;
+					}
+				}
+				ivr_api_trees = arr;
+				console.log("cleared ${ivr_api_trees_dirty} placeholders");
+				ivr_api_trees_dirty = 0;
+			}
+		}
+
+		console.log(LOG_THIS, "call id ${callid} ended with code $code");
+	}
+
+	static getId(session) {
+		if (!session)
+			return 0;
+		return session.sip.CallID;
+	}
+
+	sessionById(id) {
+		return this.ivr.GetSessionById(id);
+	}
+
+	api(id_session, message, tree = null) {
+		if (typeof id_session == "string")
+			id_session = this.ivr.GetSessionById(id_session);
+		if (!id_session) {
+			console.warn("session does not exists anymore");
+			return false;
+		}
+
+		if ((!id_session.ClientData) || (!id_session.ClientData.api)) {
+			console.warn("session is not in async api state");
+			return false;
+		}
+
+		if ((id_session.ClientData.api == 2) && (!tree)) {
+			id_session.EndOnIVRFinished = true;
+			if (!message)
+				id_session.Close();
+		}
+
+		id_session.ClientData.api = false;
+
+		if (message)
+			this.checkMessage(id_session.sip.CallID, message);
+
+		if (tree)
+			id_session.ClientData.ivr_branch = tree;
+
+		return true;
+	}
+
+	Raspuns(id, text, append = false) {
+		console.log(LOG_THIS, "[$text]");
+		var session = this.ivr.GetSessionById(id);
+		if (!session) {
+			console.warn(LOG_THIS, "session $id does not exists");
+			return;
+		}
+
+		if ((this.OnAPI) && (text[0] == "\$")) {
+			if (Pos(text, "\$api") == 1) {
+				session.ClientData.api = true;
+				var message = this.OnAPI(session, session.ClientData.ivr_path, trim(SubStr(text, 4)));
+				session.ClientData.count = 0;
+				if (message) {
+					this.checkMessage(id, message);
+					session.ClientData.api = false;
+				} else {
+					// async call
+					session.EndOnIVRFinished = false;
+				}
+				return;
+			}
+		}
+
+
+		DoTTS(text, this.voice(session), session, append);
+
+		var stt_worker = this.chooseWorker(session, session.ClientData.hash);
+		if (stt_worker)
+			stt_worker.AddData(BinarizeObject(new STTWorkerData(id, STT_RESET)));
+		else
+			console.error(LOG_THIS, "no workers for ${session.To}, callid ${session.sip.CallID}");
+	}
+
+	OnIdle() {
+		for (var i = 0; i < length stt_workers; i ++) {
+			var arr = stt_workers[i];
+			for (var j = 0; j < length arr; j ++)
+				this.OnIdle_worker(arr[j]);
+		}
+		if (this.LoopCallback)
+			this.LoopCallback();
+	}
+
+	checkMessage(id, message, var append = false) {
+		if (message) {
+			if (typeof message == "array") {
+				for (var i = 0; i < length message; i ++)
+					Raspuns(id, message[i], append);
+			} else
+				Raspuns(id, message, append);
+			append = true;
+		}
+	}
+
+	OnIdle_worker(stt_worker) {
+		stt_worker.GetAll(var data, 0, 100);
+		if (data) {
+			var[] ids;
+			for (var i = length data - 1; i >= 0; i --) {
+				var obj = UnBinarizeObject(data[i]);
+				if ((!obj) || (ids[obj.id]))
+					continue;
+
+				ids[obj.id] = true;
+
+				var session = ivr.GetSessionById(obj.id);
+				if (!session) {
+					console.warn(LOG_THIS, "invalid session id ${obj.id}");
+					continue;
+				}
+
+				var text = obj.buffer;
+
+				console.log(LOG_THIS, "text (id: ${obj.id}): " + text);
+				if (!session.ClientData.ivr_branch) {
+					console.warn(LOG_THIS, "no branch");
+					session.ClientData.count = 0;
+					session.Close();
+					return;
+				}
+
+				var keys = GetKeys(session.ClientData.ivr_branch);
+				if (!keys) {
+					console.warn(LOG_THIS, "no keys");
+					return;
+				}
+				
+				var message_understood = false;
+				var append = false;
+				for (var j = 0; j < length keys; j ++) {
+					var k2 = keys[j];
+					if (!k2)
+						continue;
+					if ((k2[0] == "/") && (k2[length k2 - 1] == "/")) {
+						var regexp = new RegExp(SubStr(k2, 1, length k2 - 2));
+						if (regexp.test(text))
+							message_understood = true;
+					} else {
+						var arr = StrSplit(k2, "|");
+						for (var jj = 0; jj < length arr; jj ++) {
+							var k = arr[jj];
+							if ((k) && (Pos(text, k) > 0)) {
+								message_understood = true;
+								break;
+							}
+						}
+					}
+					if (message_understood) {
+						session.ClientData.ivr_path += "/" + k2;
+						session.ClientData.ivr_branch = session.ClientData.ivr_branch[k2];
+
+						try {
+							if (this.OnBranch)
+								this.checkMessage(obj.id, this.OnBranch(session, session.ClientData.ivr_path), append);
+						} catch (var exc) {
+							console.error(LOG_THIS, exc);
+						}
+
+						if (session.ClientData.ivr_branch) {
+							if (typeof session.ClientData.ivr_branch == "string") {
+								try {
+									if (this.OnFinish)
+										this.checkMessage(obj.id, this.OnFinish(session, session.ClientData.ivr_path), append);
+								} catch (exc) {
+									console.error(LOG_THIS, exc);
+								}
+								Raspuns(obj.id, session.ClientData.ivr_branch, append);
+								session.ClientData.ivr_branch = null;
+								if (session.ClientData.api)
+									session.ClientData.api = 2;
+								else
+									session.EndOnIVRFinished = true;
+							} else
+							if (session.ClientData.ivr_branch[0]) {
+								Raspuns(obj.id, session.ClientData.ivr_branch[0], append);
+								if (length session.ClientData.ivr_branch == 1) {
+									try {
+										if ((this.OnFinish) && (!session.ClientData.api))
+											this.checkMessage(obj.id, this.OnFinish(session, session.ClientData.ivr_path), append);
+									} catch (exc) {
+										console.error(LOG_THIS, exc);
+									}
+									session.ClientData.ivr_branch = null;
+									if (session.ClientData.api)
+										session.ClientData.api = 2;
+									else
+										session.EndOnIVRFinished = true;
+								}
+							} else {
+								try {
+									if (this.OnFinish)
+										this.checkMessage(obj.id, this.OnFinish(session, session.ClientData.ivr_path), append);
+								} catch (exc) {
+									console.error(LOG_THIS, exc);
+								}
+								session.Close();
+							}
+						} else {
+							try {
+								if (this.OnFinish)
+									this.checkMessage(obj.id, this.OnFinish(session, session.ClientData.ivr_path), append);
+							} catch (exc) {
+								console.error(LOG_THIS, exc);
+							}
+							session.Close();
+						}
+						break;
+					}
+				}
+				// if (!message_understood)
+				// 	stt_worker.AddData(BinarizeObject(new STTWorkerData(obj.id, STT_RESET)));
+			}
+		}
+	}
+
+	protected loadTree(to, ivr_tree, prev = null) {
+		if ((!prev) && (ivr_tree)) {
+			var config = ivr_tree["config"];
+			if (!config) {
+				console.error(LOG_THIS, "\"config\" field missing");
+				return null;
+			}
+			ivr_tree = ivr_tree["tree"];
+			if (ivr_tree) {
+				this.addWorker(to, config["model"], config["scorer"], value config["workers"]);
+				var voice = config["voice"];
+				if (voice)
+					ivr_voice[to] = voice;
+			} else
+				console.error(LOG_THIS, "\"tree\" field missing");
+		}
+
+		if (!ivr_tree)
+			return ivr_tree;
+
+		if (!prev)
+			prev = new [];
+
+		var keys = GetKeys(ivr_tree);
+		for (var i = 0; i < length ivr_tree; i ++) {
+			var branch = ivr_tree[i];
+			switch (typeof branch) {
+				case "array":
+					if (prev)
+						loadTree(to, branch, [ivr_tree] + prev);
+					else
+						loadTree(to, branch, [ivr_tree]);
+					break;
+				case "string":
+					if (branch[0] == "\$") {
+						var arr = StrSplit(StrReplace(branch, "\t", " "), " ");
+						switch (branch) {
+							case "\$up":
+							case "\$up1":
+								if ((prev) && (prev[0]) && (keys[i]))
+									ivr_tree[keys[i]] = prev[0];
+								else
+									console.warn(LOG_THIS, "invalid branch to go up");
+								break;
+							case "\$up2":
+								if ((prev) && (length prev > 1) && (keys[i]))
+									ivr_tree[keys[i]] = prev[1];
+								else
+									console.warn(LOG_THIS, "invalid branch to go up");
+								break;
+							case "\$include":
+								if (arr[1]) {
+									var trunk_path = trunk_dir + arr[1] + ".json";
+									ivr_tree[keys[i]] = this.loadTree(to, JSONDeserialize(ReadFile(trunk_path)), ivr_tree);
+								} else
+									console.warn(LOG_THIS, "include parameter missing");
+								break;
+						}
+					}
+					break;
+			}
+		}
+
+		return ivr_tree;
+	}
+
+	ConversationalIVR(sip_host, sip_port = 5060) {
+		ivr = new IVR(sip_host, sip_port);
+
+		ivr.GreetingTo = this.OnGreeting;
+		ivr.AnswerGreeting = this.OnAnswerGreeting;
+		ivr.AudioFrame = this.OnAudioFrame;
+		ivr.IVRFinished = this.IVRFinished;
+		ivr.SessionFinished = this.OnEnd;
+
+		ivr.stack.OnRegister = this.OnRegister;
+
+		ivr.LoopCallback = this.OnIdle;
+	}
+
+	addWorker(to, model, scorer = "", count = 2) {
+		if (!model) {
+			console.error("invalid model");
+			return;
+		}
+		if (!count)
+			count = 2;
+
+		var key = "$model:$scorer";
+		var arr = stt_workers[key];
+		if (!arr) {
+			arr = new [];
+			stt_workers[key] = arr;
+		}
+
+		var i;
+		for (i = 0; i < length arr; i ++) {
+			var stt_worker = arr[i];
+			stt_worker.AddData(BinarizeObject(new STTWorkerData("", STT_SCORER, scorer)));
+		}
+
+		while (length arr < count)
+			arr[length arr] = new Worker("STTWorker", "$model:$scorer");
+
+		this.ivr_model_keys[to] = key;
+	}
+
+	addRoute(route, host, port = 5060) {
+		this.ivr.stack.AddRoute(route, host, port);
+	}
+
+	call(who, from, tree = null) {
+		var session = this.ivr.stack.Invite(who, from);
+		console.log(LOG_THIS, "call $who by $from");
+		if (session) {
+			if (tree)
+				ivr_api_trees[session.CallID] = tree;
+			return session.CallID;
+		}
+		console.warn(LOG_THIS, "cannot call $who");
+		return false;
+	}
+
+	register(username, password, sip_server, server_port = 5060) {
+		return this.ivr.stack.RegisterUDP(username, password, sip_server, server_port, 480);
+	}
+
+	Start(loop_callback = null) {
+		this.LoopCallback = loop_callback;
+		this.ivr.stack.OnAnswered = this.ivr.OnAnswered;
+		ivr.Start();
+	}
+}

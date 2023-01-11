@@ -172,9 +172,11 @@ class IVR {
 	var LastTime;
 	var Greeting;
 	var GreetingTo;
+	var AnswerGreeting;
 	var Begin;
 	var End;
 	var EndRecording;
+	var SessionFinished;
 	var DTMF;
 	var WrongKey;
 	var AudioFrame;
@@ -299,6 +301,14 @@ class IVR {
 			if (End)
 				End(session.UserData);
 		}
+		if (SessionFinished) {
+			var data;
+			if (session)
+				data = session.UserData;
+
+			SessionFinished(session.UserData, session.CallID, reason ?? msg.ServerCode);
+		}
+
 		delete session.UserData;
 		if (Debug)
 			console.info(LOG_THIS, "Session closed ($reason), ${length stack.Sessions} sessions");
@@ -341,7 +351,7 @@ class IVR {
 		if (Greeting)
 			 res = this.Greeting(from);
 		if (GreetingTo)
-			 res = this.GreetingTo(from, msg_to);
+			 res = this.GreetingTo(from, msg_to, session.CallID);
 		if (res) {
 			session.UserData = new DATASession(this.Get, session, from, msg_to);
 			session.OnReferError = this.OnReferError;
@@ -352,6 +362,29 @@ class IVR {
 				Begin(session.UserData);
 		} else {
 			session.Reject();
+		}
+	}
+
+	OnAnswered(session, msg) {
+		var from = "" + StrSplit("" + msg.Headers["from"], " ")[0];
+		if ((from) && ((from[0] == '"') && (from[length from - 1] == '"')))
+			from = SubStr(from, 1, length from - 2);
+		else
+			from = ParseFrom(from);
+		
+		var msg_to = this.ParseFrom(msg.Headers["to"]);
+		var res;
+		if (AnswerGreeting)
+			 res = this.AnswerGreeting(from, msg_to, session.CallID);
+		if (res) {
+			session.UserData = new DATASession(this.Get, session, from, msg_to);
+			session.OnReferError = this.OnReferError;
+			session.LoadVoice(Get("empty"));
+			this.ParseArray(session, res);
+			if (Begin)
+				Begin(session.UserData);
+		} else {
+			session.Bye();
 		}
 	}
 

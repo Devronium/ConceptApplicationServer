@@ -944,6 +944,7 @@ class SIPStack {
 	var OnNotify;
 	var OnAfterNotify;
 	var OnResponse;
+	var OnAnswered;
 	var OnNotUnderstood;
 	var OnRegister;
 	var OnNeedAuthorization;
@@ -2259,8 +2260,8 @@ class SIPStack {
 		msg.Headers["max-forwards"] = max_forwards;
 
 		var tag = this.RandomString(20);
-		msg.Headers["from"] = sipproto + username + "@" + this.localhost + ";tag=" + tag;
-		msg.Headers["to"] = sipproto + "${target_user}@${full_server}";//"sip:${target_user}@${localhost}";//destination;
+		msg.Headers["from"] = "<" + sipproto + username + "@" + this.localhost + ">;tag=" + tag;
+		msg.Headers["to"] = "<" + sipproto + "${target_user}@${full_server}>";//"sip:${target_user}@${localhost}";//destination;
 		msg.Headers["contact"] = "<" + sipproto + username + "@" + this.full_host + ">";
 		msg.Headers["call-id"] = callid;
 		if (parent_session)
@@ -2807,6 +2808,12 @@ class SIPStack {
 								sess.accept_bye = true;
 								sess.bye_msg = msg;
 								sess.UpdateTags();
+							}
+
+							if ((sess) && (this.OnAnswered)) {
+								var cseq = "" + msg.Headers["cseq"];
+								if (Pos(cseq, " INVITE") > 0)
+									this.OnAnswered(sess, msg);
 							}
 						}
 
