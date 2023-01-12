@@ -104,6 +104,7 @@ class SIPSession {
 	public var msg;
 	public var bye_msg;
 	public var is_invite;
+	public var auth;
 	private var s;
 	private var sequence_number;
 	private var rtp_port;
@@ -1425,7 +1426,7 @@ class SIPStack {
 	}
 
 	Invite401(session, msg) {
-		if ((msg.ServerCode != 401) || (!session.is_invite) || (!session.msg) || (session.msg.Headers["Authorization"]))
+		if ((msg.ServerCode != 401) || (!session.is_invite) || (!session.msg) || (session.msg.Headers["Authorization"]) || (session.auth))
 			return false;
 
 		var auth = msg.Headers["www-authenticate"];
@@ -1434,7 +1435,6 @@ class SIPStack {
 
 		if (!this.ParseFullDestination(msg.Headers["to"], null, var server, null))
 			return false;
-
 
 		if (!this.ParseFullDestination(msg.Headers["from"], var target_user, null, null))
 			return false;
@@ -1450,9 +1450,9 @@ class SIPStack {
 		var authorization = this.WWWAuth(auth, registration.username, registration.password, "INVITE", registration.server, var nonce);
 		session.msg.Headers["Authorization"] = authorization;
 
+		session.auth = 2;
 		if (this.DoWrite(use_socket ?? udpclientsocket, session.msg.ToString(), registration.server, registration.server_port) <= 0)
 			return null;
-
 
 		return true;
 	}
@@ -1799,6 +1799,9 @@ class SIPStack {
 									session.OnReferred(child_session);
 							} else
 							if (msg.ServerCode >= 300) {
+								// is authorization
+								if ((msg.ServerCode == 401) && (this.Registrations) && (child_session.is_invite == true) && (child_session.auth == 2) && (msg.Headers["www-authenticate"]))
+									return true;
 								// busy/redirect/etc
 								var child_len = length session.Children;
 								if (msg.ServerCode >= 400)
@@ -2974,8 +2977,11 @@ class SIPStack {
 					if (!sess)
 						sess = GetSession(msg);
 
-					if ((sess) && (sess.OnMessage))
+					if ((sess) && (sess.OnMessage)) {
 						sess.OnMessage(sess, msg, parent);
+						if (sess.auth)
+							sess.auth = true;
+					}
 
 					if (sess)
 						var popped_msg = sess.Head();

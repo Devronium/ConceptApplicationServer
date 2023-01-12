@@ -481,6 +481,12 @@ class ConversationalIVR {
 					session.EndOnIVRFinished = false;
 				}
 				return;
+			} else
+			if (Pos(text, "\$redirect") == 1) {
+				this.refer(session, trim(SubStr(text, 9)));
+				session.ClientData.count = 0;
+				session.EndOnIVRFinished = false;
+				return;
 			}
 		}
 
@@ -772,6 +778,15 @@ class ConversationalIVR {
 	register(username, password, sip_server, server_port = 5060) {
 		this.every_second = microseconds();
 		return this.ivr.stack.Register(username, password, sip_server, server_port);
+	}
+
+	refer(session, destination) {
+		if (!session) {
+			console.warn(LOG_THIS, "cannot refer: invalid session");
+			return null;
+		}
+
+		return session.Refer(destination);
 	}
 
 	Start(loop_callback = null) {
