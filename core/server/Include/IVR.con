@@ -277,7 +277,7 @@ class IVR {
 				}
 			}
 		
-			if (((!session.Referred) && (session.UserData.TimedOut())) || (session.UserData.Expired())) {
+			if (((!session.Referred) && (!session.Parent) && (session.UserData.TimedOut())) || (session.UserData.Expired())) {
 				session.UserData.ResetTime();
 				session.UserData.EndOnIVRFinished = true;
 				if (TimedOutMessage)

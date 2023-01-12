@@ -20,6 +20,7 @@ class IVRClientData {
 	var ivr_path = "";
 	var api;
 	var UserData;
+	var redirect = "";
 
 	IVRClientData(ivr_tree, id) {
 		this.ivr_branch = ivr_tree;
@@ -293,7 +294,7 @@ class ConversationalIVR {
 		if ((ivr_tree) && (time() - ivr_timestamps[to] >= 8)) {
 			ivr_data = ReadFile(trunk_path);
 			if (sha256(ivr_data) != ivr_checksums[to]) {
-				ivr_tree = JSONDeserialize(ivr_data);
+				ivr_tree = this.loadTree(to, JSONDeserialize(ivr_data));
 				ivr_checksums[to] = sha256(ivr_data);
 				ivr_timestamps[to] = time();
 				ivr_trees[to] = ivr_tree;
@@ -379,6 +380,11 @@ class ConversationalIVR {
 
 		if (!session.ClientData)
 			session.ClientData = new IVRClientData(sessionTree(session), session.sip.CallID);
+
+		if (session.ClientData.redirect) {
+			this.Raspuns(session.sip.CallID, session.ClientData.redirect);
+			return;
+		}
 
 		var branch = session.ClientData.ivr_branch;
 		if ((!branch) || (typeof branch == "string") || (length branch == 1)) {
@@ -613,10 +619,14 @@ class ConversationalIVR {
 									} catch (exc) {
 										console.error(LOG_THIS, exc);
 									}
+									var key = GetKeys(session.ClientData.ivr_branch)[0];
+									if ((key) && (key[0] == "\$"))
+										session.ClientData.redirect = key;
 									session.ClientData.ivr_branch = null;
 									if (session.ClientData.api)
 										session.ClientData.api = 2;
 									else
+									if (!session.ClientData.redirect)
 										session.EndOnIVRFinished = true;
 								}
 							} else {
@@ -717,7 +727,7 @@ class ConversationalIVR {
 	}
 
 	ConversationalIVR(sip_host, sip_port = 5060) {
-		ivr = new IVR(sip_host, sip_port);
+		ivr = new IVR(sip_host, sip_port, 20);
 
 		ivr.GreetingTo = this.OnGreeting;
 		ivr.AnswerGreeting = this.OnAnswerGreeting;
@@ -785,7 +795,7 @@ class ConversationalIVR {
 			console.warn(LOG_THIS, "cannot refer: invalid session");
 			return null;
 		}
-
+		session.sip.ResetBuffers();
 		return session.Refer(destination);
 	}
 
