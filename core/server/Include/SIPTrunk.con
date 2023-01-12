@@ -1288,7 +1288,7 @@ class SIPStack {
 		if (!branch)
 			branch = "z9hG4bK" + this.RandomString(14);
 		if (!callid)
-			callid = /* this.RandomString(32) */sha256(username + "|" + server + "|" + localhost) + "@" + localhost;
+			callid = /* this.RandomString(32) */sha256(username + "|" + server) + "@" + localhost;
 
 		register.Headers["Via"] = "SIP/2.0/${Transport} " + full_host + ";rport;branch=" + branch;
 		var from = username + " <" + sipproto + username + "@" + server + ">";
@@ -1422,6 +1422,39 @@ class SIPStack {
 			// silently ignore the network error
 		}
 		return null;
+	}
+
+	Invite401(session, msg) {
+		if ((msg.ServerCode != 401) || (!session.is_invite) || (!session.msg) || (session.msg.Headers["Authorization"]))
+			return false;
+
+		var auth = msg.Headers["www-authenticate"];
+		if (!auth)
+			return false;
+
+		if (!this.ParseFullDestination(msg.Headers["to"], null, var server, null))
+			return false;
+
+
+		if (!this.ParseFullDestination(msg.Headers["from"], var target_user, null, null))
+			return false;
+
+		var key = sha256(target_user + "|" + server) + "@" + localhost;
+		if (!IsSet(this.Registrations, key))
+			return false;
+
+		var registration = this.Registrations[key];
+		if (!registration)
+			return false;
+
+		var authorization = this.WWWAuth(auth, registration.username, registration.password, "INVITE", registration.server, var nonce);
+		session.msg.Headers["Authorization"] = authorization;
+
+		if (this.DoWrite(use_socket ?? udpclientsocket, session.msg.ToString(), registration.server, registration.server_port) <= 0)
+			return null;
+
+
+		return true;
 	}
 
 	PerformUDP(method, from, destination, payload = "", payload_type = "application/sdp", max_forwards = 70, parent_msg = null, extra_headers = null, ip = "", port = 0, cache_session = null, validation_delegate = null) {
@@ -2385,7 +2418,6 @@ class SIPStack {
 
 				sess.ip = this.IPFromName(server);
 				sess.port = server_port;
-				// if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
 				if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(), server, server_port) <= 0)
 					return null;
 				return sess;
@@ -2897,10 +2929,12 @@ class SIPStack {
 								sess.UpdateTags();
 							}
 
-							if ((sess) && (this.OnAnswered)) {
+							if ((sess) && (this.OnAnswered) && (sess.is_invite == true)) {
 								var cseq = "" + msg.Headers["cseq"];
-								if (Pos(cseq, " INVITE") > 0)
+								if (Pos(cseq, " INVITE") > 0) {
 									this.OnAnswered(sess, msg);
+									sess.is_invite = 2;
+								}
 							}
 							if ((!sess) && (this.Registrations) && (msg.ServerCode == 200))
 								this.Register200(msg);
@@ -2922,11 +2956,13 @@ class SIPStack {
 								sess = GetSession(msg);
 
 							if (sess) {
-								parent = sess.Parent;
-								// sess.Bye();
-								this.RemoveSessionByRef(sess, msg.ServerCode);
-								if (this.OnEnd)
-									this.OnEnd(sess, msg, msg.Headers["reason"] ?? "");
+								if ((!this.Registrations) || (msg.ServerCode != 401) || (!this.Invite401(session, msg))) {
+									parent = sess.Parent;
+									// sess.Bye();
+									this.RemoveSessionByRef(sess, msg.ServerCode);
+									if (this.OnEnd)
+										this.OnEnd(sess, msg, msg.Headers["reason"] ?? "");
+								}
 							} else
 							if ((this.Registrations) && (msg.ServerCode == 401))
 								this.Register401(msg);

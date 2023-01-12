@@ -721,6 +721,7 @@ class ConversationalIVR {
 
 		ivr.stack.OnRegister = this.OnRegister;
 		ivr.stack.OnClientRegister = this.OnClientRegister;
+		ivr.stack.NATFriendly = true;
 
 		ivr.LoopCallback = this.OnIdle;
 	}
