@@ -417,6 +417,7 @@ class ConversationalIVR {
 				ivr_api_trees_dirty = 0;
 			}
 		}
+echo __callstack();
 		console.log(LOG_THIS, "call id ${callid} ended with code $code");
 	}
 
