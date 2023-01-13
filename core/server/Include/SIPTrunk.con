@@ -132,6 +132,10 @@ class SIPSession {
 	var chunk_size;
 	var timestamp;
 
+	var write_timestamp;
+	var write_retry = 4;
+	var write_server;
+
 	var[] out_stack;
 
 	var[] Children;
@@ -155,6 +159,8 @@ class SIPSession {
 	var Branch;
 	var NoForward;
 
+	var MaxJitter;
+
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
 		timestamp = RandomInteger(140, 140000) * 100;
@@ -164,6 +170,7 @@ class SIPSession {
 		this.s = s;
 		this.tcp_socket = s.use_socket;
 		this.msg = msg;
+		this.MaxJitter = s.MaxJitter;
 
 		this.ip = ip;
 		this.port = port;
@@ -257,18 +264,26 @@ class SIPSession {
 			var to = bye_msg.Headers["to"];
 			if (!to)
 				to = bye_msg.Headers["To"];
+
 			if ((from) && (to)) {
 				var from_tag = GetTag(from);
 				var to_tag = GetTag(to);
-				var msg_to = msg.Headers["to"];
-				var msg_from = msg.Headers["from"];
+				var msg_to = msg.Headers["to"] ?? msg.Headers["To"];
+				var msg_from = msg.Headers["from"] ?? msg.Headers["From"];
 				// from / to reversed
-				if ((msg_to) && (Pos(msg_to, ";tag=") <= 0)) {
-					msg_to += ";tag=$from_tag";
+				if (msg_to) {
+					if (Pos(msg_to, ";tag=") > 0)
+						msg_to = StrSplit(msg_to, ";tag=")[0];
+					msg_to += ";tag=$to_tag";
+					msg.Headers["To"] = msg_to;
 					msg.Headers["to"] = msg_to;
 				}
-				if ((msg_from) && (Pos(msg_from, ";tag=") <= 0)) {
-					msg_from += ";tag=$to_tag";
+				if (msg_from) {
+					if (Pos(msg_from, ";tag=") > 0)
+						msg_from = StrSplit(msg_from, ";tag=")[0];
+
+					msg_from += ";tag=$from_tag";
+					msg.Headers["From"] = msg_from;
 					msg.Headers["from"] = msg_from;
 				}
 
@@ -649,10 +664,35 @@ class SIPSession {
 		return this.s.Refer(msg, address);
 	}
 
+	setMaxJitter(max) {
+		this.MaxJitter = max;
+		if (Children) {
+			for (var i = 0; i < length Children; i++) {
+				var child = Children[i];
+				if (child)
+					child.MaxJitter = max;
+			}
+			if (Parent)
+				Parent.MaxJitter = max;
+		}
+	}
+
 	Iterate() {
 		var exc;
 		var ops = 0;
 		try {
+			// 500ms reinvite
+			if ((write_timestamp) && (msg) && (write_server) && (microseconds() - write_timestamp >= 500000)) {
+				if (write_retry) {
+					this.write_timestamp = microseconds();
+					this.s.DoWrite(this.s.use_socket ?? this.s.udpclientsocket, msg.ToString(), write_server[0], write_server[1]);
+					write_retry --;
+				} else {
+					write_timestamp = 0;
+					delete write_server;
+					throw "Session invite expired !\n";
+				}
+			}
 			var data = CheckMedia(var type);
 			if (data) {
 				ops++;
@@ -663,11 +703,11 @@ class SIPSession {
 					for (var i = 0; i < length Children; i++) {
 						var child = Children[i];
 						if (child)
-							child.Write(data, 10);
+							child.Write(data, this.MaxJitter);
 					}
 				} else
 				if (Parent) {
-					Parent.Write(data, 10);
+					Parent.Write(data, this.MaxJitter);
 				} else
 				if ((s.OnDTMF) || (this.OnDTMF)) {
 					if (!d) {
@@ -750,6 +790,8 @@ class SIPSession {
 				this.s.RemoveTCPSocket(this.tcp_socket);
 			this.s.RemoveSessionByRef(this);
 			this.Bye();
+			if (this.s.OnEnd)
+				this.s.OnEnd(this, msg, "");
 			ops++;
 		}
 		return ops;
@@ -981,6 +1023,7 @@ class SIPStack {
 	var tcp = false;
 	var[] TCPSockets;
 	var FrameSize = 20;
+	var MaxJitter = 10;
 
 	var RegisterTimeout = 600;
 	var NonRoutableRegisterTimeout = 5;
@@ -1451,6 +1494,8 @@ class SIPStack {
 		session.msg.Headers["Authorization"] = authorization;
 
 		session.auth = 2;
+		session.write_timestamp = microseconds();
+		session.write_server = [registration.server, registration.server_port];
 		if (this.DoWrite(use_socket ?? udpclientsocket, session.msg.ToString(), registration.server, registration.server_port) <= 0)
 			return null;
 
@@ -2421,6 +2466,8 @@ class SIPStack {
 
 				sess.ip = this.IPFromName(server);
 				sess.port = server_port;
+				sess.write_timestamp = microseconds();
+				sess.write_server = [server, server_port];
 				if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(), server, server_port) <= 0)
 					return null;
 				return sess;
@@ -2916,6 +2963,14 @@ class SIPStack {
 					if (msg.FromServer) {
 						var ctype = msg.Headers["content-type"];
 						sess = null;
+						if (!sess) {
+							sess = GetSession(msg);
+							if (sess) {
+								sess.write_timestamp = 0;
+								delete sess.write_server;
+							}
+						}
+
 						if ((ctype) && (ToLower(ctype) == "application/sdp") && (msg.Payload)) {
 							sess = GetSession(msg);
 							if (sess)
@@ -2923,8 +2978,6 @@ class SIPStack {
 						}
 
 						if ((msg.ServerCode >= 200) && (msg.ServerCode < 300)) {
-							if (!sess)
-								sess = GetSession(msg);
 							if ((sess) && (!session.bye_set)) {
 								sess.bye_set = true;
 								sess.accept_bye = true;
@@ -2976,6 +3029,11 @@ class SIPStack {
 					}
 					if (!sess)
 						sess = GetSession(msg);
+
+					if (sess) {
+						sess.write_timestamp = 0;
+						delete sess.write_server;
+					}
 
 					if ((sess) && (sess.OnMessage)) {
 						sess.OnMessage(sess, msg, parent);

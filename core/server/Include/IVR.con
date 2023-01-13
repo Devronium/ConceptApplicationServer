@@ -391,7 +391,8 @@ class IVR {
 	GetSessionById(id) {
 		if (id) {
 			var sip_session = this.stack.GetSessionById(id);
-			return sip_session.UserData;
+			if (sip_session)
+				return sip_session.UserData;
 		}
 		return null;
 	}

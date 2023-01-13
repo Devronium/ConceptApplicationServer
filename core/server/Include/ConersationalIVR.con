@@ -279,7 +279,6 @@ class ConversationalIVR {
 
 	OnGreeting(from, to, callid) {
 		console.info(LOG_THIS, "call from $from to $to");
-	
 		var ivr_data;
 
 		var ivr_tree;
@@ -362,15 +361,11 @@ class ConversationalIVR {
 			session.ClientData = new IVRClientData(sessionTree(session), session.sip.CallID);
 
 		if (session.ClientData.count) {
-			if (session.ClientData.count < 2) {
-				session.ClientData.count ++;
-			} else {
-				var stt_worker = this.chooseWorker(session, session.ClientData.hash);
-				if (stt_worker)
-					stt_worker.AddData(BinarizeObject(new STTWorkerData(session.sip.CallID, STT_ADDBUFFER, buffer)));
-				else
-					console.error(LOG_THIS, "no workers for ${session.To}, callid ${session.sip.CallID}");
-			}
+			var stt_worker = this.chooseWorker(session, session.ClientData.hash);
+			if (stt_worker)
+				stt_worker.AddData(BinarizeObject(new STTWorkerData(session.sip.CallID, STT_ADDBUFFER, buffer)));
+			else
+				console.error(LOG_THIS, "no workers for ${session.To}, callid ${session.sip.CallID}");
 		}
 	}
 
@@ -422,7 +417,6 @@ class ConversationalIVR {
 				ivr_api_trees_dirty = 0;
 			}
 		}
-
 		console.log(LOG_THIS, "call id ${callid} ended with code $code");
 	}
 
@@ -726,8 +720,12 @@ class ConversationalIVR {
 		console.log(LOG_THIS, "${registration.username}@${registration.server} registered");
 	}
 
+	OnResponseMessage(msg) {
+		console.log(LOG_THIS, "${msg.ServerCode} for ${msg.Headers["call-id"]} (${msg.Headers["cseq"]}) received ");
+	}
+
 	ConversationalIVR(sip_host, sip_port = 5060) {
-		ivr = new IVR(sip_host, sip_port, 20);
+		ivr = new IVR(sip_host, sip_port, 40);
 
 		ivr.GreetingTo = this.OnGreeting;
 		ivr.AnswerGreeting = this.OnAnswerGreeting;
@@ -738,6 +736,7 @@ class ConversationalIVR {
 		ivr.stack.OnRegister = this.OnRegister;
 		ivr.stack.OnClientRegister = this.OnClientRegister;
 		ivr.stack.NATFriendly = true;
+		ivr.stack.OnResponse = this.OnResponseMessage;
 
 		ivr.LoopCallback = this.OnIdle;
 	}
@@ -777,8 +776,11 @@ class ConversationalIVR {
 		var session = this.ivr.stack.Invite(who, from);
 		console.log(LOG_THIS, "call $who by $from");
 		if (session) {
-			if (tree)
+			if (tree) {
+				if (typeof tree == "string")
+					tree = [tree];
 				ivr_api_trees[session.CallID] = tree;
+			}
 			return session.CallID;
 		}
 		console.warn(LOG_THIS, "cannot call $who");
@@ -796,7 +798,10 @@ class ConversationalIVR {
 			return null;
 		}
 		session.sip.ResetBuffers();
-		return session.Refer(destination);
+		var refer_session = session.Refer(destination);
+		if (refer_session)
+			session.sip.setMaxJitter(1);
+		return refer_session;
 	}
 
 	Start(loop_callback = null) {
