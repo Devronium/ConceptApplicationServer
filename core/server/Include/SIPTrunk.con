@@ -973,12 +973,21 @@ class RegistrationData {
 	var server_port;
 	var nonce = "";
 	var timestamp;
+	var ip;
 
 	RegistrationData(username, password, server, server_port) {
 		this.username = username;
 		this.password = password;
 		this.server = server;
 		this.server_port = server_port;
+		this.ip = SIPStack::IPFromName(server) ?? server;
+	}
+
+	updateIp() {
+		if (this.ip == this.server)
+			return;
+
+		this.ip = SIPStack::IPFromName(server) ?? server;
 	}
 }
 
@@ -1110,7 +1119,7 @@ class SIPStack {
 	}
 
 	public ValidOrigin(ip) {
-		if ((!Routes) && (!Users) && (AllowAllOrigins))
+		if ((!Routes) && (!Users) && (!Registrations) && (AllowAllOrigins))
 			return true;
 		for (var i = 0; i < length Routes; i++) {
 			var route = Routes[i];
@@ -1120,6 +1129,11 @@ class SIPStack {
 		for (i = 0; i < length Users; i++) {
 			var user = Users[i];
 			if ((user) && (user.ip == ip) && (!user.Expired()))
+				return true;
+		}
+		for (i = 0; i < length Registrations; i++) {
+			var registration = Registrations[i];
+			if ((registration) && (registration.ip == ip))
 				return true;
 		}
 		if ((localip) && (ip == localip))
@@ -1436,6 +1450,7 @@ class SIPStack {
 		for (var i = 0; i < length registrations; i ++) {
 			var registration = registrations[i];
 			if ((registration) && (time() - registration.timestamp >= timeout)) {
+				registration.updateIp();
 				try {
 					var register = this.RegisterMessage(registration.username, registration.password, registration.server, registration.server_port);
 					if (this.DoWrite(local_udpclientsocket, register.ToString(), registration.server, registration.server_port) < 0)
