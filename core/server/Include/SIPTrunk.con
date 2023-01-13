@@ -411,6 +411,10 @@ class SIPSession {
 		return (time() > Expire);
 	}
 
+	setExpires(seconds) {
+		Expire = time() + seconds;
+	}
+
 	RecordID() {
 		return "" + ClsPtr(this);
 	}

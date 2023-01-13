@@ -37,6 +37,7 @@ class DATASession {
 	var RecordedData = "";
 	var RecordUntil = "#";
 	var SkipUntil = 0;
+	var Expires = 300;
 	var[] IVRHistory;
 	public property SkipSeconds { set SetSkipSeconds, get GetSkipSeconds }
 
@@ -142,7 +143,9 @@ class DATASession {
 		return false;
 	}
 
-	Expired(timeout = 300) {
+	Expired(timeout = 0) {
+		if (!timeout)
+			timeout = this.Expires;
 		if ((time() - CreateTime) >= timeout)
 			return true;
 		return false;

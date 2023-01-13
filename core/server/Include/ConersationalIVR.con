@@ -772,8 +772,9 @@ class ConversationalIVR {
 		this.ivr.stack.AddRoute(route, host, port);
 	}
 
-	call(who, from, tree = null) {
+	call(who, from, tree = null, max_duration = 300) {
 		var session = this.ivr.stack.Invite(who, from);
+		session.setExpires(max_duration);
 		console.log(LOG_THIS, "call $who by $from");
 		if (session) {
 			if (tree) {
