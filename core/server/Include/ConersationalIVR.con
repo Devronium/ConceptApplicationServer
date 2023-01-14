@@ -867,10 +867,13 @@ class ConversationalIVR {
 			console.warn(LOG_THIS, "cannot refer: invalid session");
 			return null;
 		}
+		session.Expires = 1800;
 		session.sip.ResetBuffers();
 		var refer_session = session.Refer(destination);
-		if (refer_session)
+		if (refer_session) {
 			session.sip.setMaxJitter(1);
+			session.Expires = 1800;
+		}
 		return refer_session;
 	}
 
