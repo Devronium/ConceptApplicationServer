@@ -5,12 +5,11 @@ include IVR.con
 include STT.con
 include Worker.con
 
-define STT_RESET	1
-define STT_ADDBUFFER	2
-define STT_TEXT		3
-define STT_SCORER	4
-
-define WORKER_MAX_BUFFER	48000
+define STT_RESET	0
+define STT_ADDBUFFER	1
+define STT_TEXT		2
+define STT_SCORER	3
+define STT_TIMEDOUT	4
 
 class IVRClientData {
 	var count;
@@ -21,10 +20,20 @@ class IVRClientData {
 	var api;
 	var UserData;
 	var redirect = "";
+	var finish_api = "";
 
-	IVRClientData(ivr_tree, id) {
+	IVRClientData(ivr, ivr_tree, session) {
 		this.ivr_branch = ivr_tree;
-		this.hash = Murmur(id);
+		this.hash = Murmur(session.sip.CallID);
+		if ((ivr.OnAPI) && (typeof ivr_tree == "array")) {
+			var k = GetKeys(ivr_tree)[0];
+			if (k) {
+				if (Pos(k, "\$api") == 1) {
+					this.finish_api = trim(SubStr(k, 4));
+					ivr.OnAPI(session, session.ClientData.ivr_path, this.finish_api, "open");
+				}
+			}
+		}
 	}
 }
 
@@ -42,19 +51,43 @@ class STTWorkerData {
 
 class STTWorkerObject {
 	var id;
-	var buffer_length;
 	var stream;
 	var timestamp;
+	var buffer_timestamp;
 	var last_str = "";
 	var send_timestamp;
+	var text_timestamp;
 
 	STTWorkerObject(id) {
 		this.id = id;
 		this.ping();
+		this.reset();
+		this.resetText();
 	}
 
 	ping() {
 		this.timestamp = microseconds();
+	}
+
+	reset() {
+		buffer_timestamp = microseconds();
+		if (stream) {
+			stream.close();
+			delete stream;
+		}
+		last_str = "";
+	}
+
+	resetText() {
+		this.text_timestamp = microseconds();
+	}
+
+	textAge() {
+		return (microseconds() - this.text_timestamp) / 1000;
+	}
+
+	age() {
+		return (microseconds() - this.buffer_timestamp) / 1000;
 	}
 
 	expired(max_timeout_ms) {
@@ -117,7 +150,6 @@ class STTWorker {
 					if (obj.type == STT_RESET) {
 						worker_obj = objects[obj.id];
 						if (worker_obj) {
-							worker_obj.buffer_length = 0;
 							if ((worker_obj.stream) && (worker_obj.stream._handle))
 								worker_obj.stream.close();
 							delete worker_obj.stream;
@@ -140,28 +172,23 @@ class STTWorker {
 					var buf2 = resample(alaw2pcm(obj.buffer), 8000, modelSampleRate);
 					worker_obj.stream.feed(buf2);
 
-					worker_obj.buffer_length += length obj.buffer;
 
-					if (worker_obj.buffer_length >= 2400) {
+					if (worker_obj.textAge() >= 250) {
 						var str = worker_obj.stream.decode();
 						if ((str)  && (worker_obj.canSend())) {
 							worker_obj.last_str = str;
 							Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TEXT, str)));
 							if (length str > max_response_length) {
 								console.trace(LOG_THIS, "resetting buffer for ${obj.id}");
-								worker_obj.buffer_length = 0;
-								worker_obj.stream.close();
-								delete worker_obj.stream;
-								worker_obj.last_str = "";
+								worker_obj.reset();
 							}
 						}
+						worker_obj.resetText();
 					}
-					if (worker_obj.buffer_length >= WORKER_MAX_BUFFER) {
+					if (worker_obj.age() >= 8000) {						
 						console.trace(LOG_THIS, "resetting buffer for ${obj.id}");
-						worker_obj.buffer_length = 0;
-						worker_obj.stream.close();
-						worker_obj.last_str = "";
-						delete worker_obj.stream;
+						worker_obj.reset();
+						Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TIMEDOUT, "")));
 					}
 					worker_obj.ping();
 				} catch (var exc) {
@@ -197,6 +224,7 @@ class ConversationalIVR {
 	var[] ivr_checksums;
 	var[] ivr_timestamps;
 	var[] ivr_model_keys;
+	var[] ivr_timeout;
 	var[] ivr_api_trees;
 	var ivr_api_trees_dirty;
 
@@ -253,7 +281,7 @@ class ConversationalIVR {
 		}
 		if (session) {
 			if (!session.ClientData)
-				session.ClientData = new IVRClientData(sessionTree(session), session.sip.CallID);
+				session.ClientData = new IVRClientData(this, sessionTree(session), session);
 			else
 				session.ClientData.count = 0;
 			if (append)
@@ -358,7 +386,7 @@ class ConversationalIVR {
 
 	OnAudioFrame(session, var buffer, var type) {
 		if (!session.ClientData)
-			session.ClientData = new IVRClientData(sessionTree(session), session.sip.CallID);
+			session.ClientData = new IVRClientData(this, sessionTree(session), session);
 
 		if (session.ClientData.count) {
 			var stt_worker = this.chooseWorker(session, session.ClientData.hash);
@@ -374,7 +402,7 @@ class ConversationalIVR {
 			return;
 
 		if (!session.ClientData)
-			session.ClientData = new IVRClientData(sessionTree(session), session.sip.CallID);
+			session.ClientData = new IVRClientData(this, sessionTree(session), session);
 
 		if (session.ClientData.redirect) {
 			this.Raspuns(session.sip.CallID, session.ClientData.redirect);
@@ -417,8 +445,11 @@ class ConversationalIVR {
 				ivr_api_trees_dirty = 0;
 			}
 		}
-echo __callstack();
 		console.log(LOG_THIS, "call id ${callid} ended with code $code");
+		if ((session) && (session.ClientData) && (session.ClientData.finish_api) && (this.OnAPI)) {
+			this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
+			session.ClientData.finish_api = "";
+		}
 	}
 
 	static getId(session) {
@@ -472,7 +503,7 @@ echo __callstack();
 		if ((this.OnAPI) && (text[0] == "\$")) {
 			if (Pos(text, "\$api") == 1) {
 				session.ClientData.api = true;
-				var message = this.OnAPI(session, session.ClientData.ivr_path, trim(SubStr(text, 4)));
+				var message = this.OnAPI(session, session.ClientData.ivr_path, trim(SubStr(text, 4)), "tree");
 				session.ClientData.count = 0;
 				if (message) {
 					this.checkMessage(id, message);
@@ -545,6 +576,17 @@ echo __callstack();
 
 				var text = obj.buffer;
 
+				if (obj.type == STT_TIMEDOUT) {
+					console.log(LOG_THIS, "session ${obj.id} stt timed out");
+					if ((typeof session.ClientData.ivr_branch == "array") && (IsSet(session.ClientData.ivr_branch, "\$timeout"))) {
+						text = "\$timeout";
+					} else {
+						if (IsSet(ivr_timeout, session.To))
+							Raspuns(obj.id, ivr_timeout[session.To]);
+						continue;
+					}
+				}
+
 				console.log(LOG_THIS, "text (id: ${obj.id}): " + text);
 				if (!session.ClientData.ivr_branch) {
 					console.warn(LOG_THIS, "no branch");
@@ -593,6 +635,11 @@ echo __callstack();
 						if (session.ClientData.ivr_branch) {
 							if (typeof session.ClientData.ivr_branch == "string") {
 								try {
+									if ((this.OnAPI) && (session.ClientData.finish_api)) {
+										this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
+										session.ClientData.finish_api = "";
+									}
+
 									if (this.OnFinish)
 										this.checkMessage(obj.id, this.OnFinish(session, session.ClientData.ivr_path), append);
 								} catch (exc) {
@@ -609,6 +656,11 @@ echo __callstack();
 								Raspuns(obj.id, session.ClientData.ivr_branch[0], append);
 								if (length session.ClientData.ivr_branch == 1) {
 									try {
+										if ((this.OnAPI) && (session.ClientData.finish_api)) {
+											this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
+											session.ClientData.finish_api = "";
+										}
+
 										if ((this.OnFinish) && (!session.ClientData.api))
 											this.checkMessage(obj.id, this.OnFinish(session, session.ClientData.ivr_path), append);
 									} catch (exc) {
@@ -626,6 +678,11 @@ echo __callstack();
 								}
 							} else {
 								try {
+									if ((this.OnAPI) && (session.ClientData.finish_api)) {
+										this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
+										session.ClientData.finish_api = "";
+									}
+
 									if (this.OnFinish)
 										this.checkMessage(obj.id, this.OnFinish(session, session.ClientData.ivr_path), append);
 								} catch (exc) {
@@ -635,6 +692,11 @@ echo __callstack();
 							}
 						} else {
 							try {
+								if ((this.OnAPI) && (session.ClientData.finish_api)) {
+									this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
+									session.ClientData.finish_api = "";
+								}
+
 								if (this.OnFinish)
 									this.checkMessage(obj.id, this.OnFinish(session, session.ClientData.ivr_path), append);
 							} catch (exc) {
@@ -666,6 +728,9 @@ echo __callstack();
 					ivr_voice[to] = voice;
 			} else
 				console.error(LOG_THIS, "\"tree\" field missing");
+			var ivr_timeout_message = config["timeout"];
+			if ((ivr_timeout_message) && (typeof ivr_timeout_message == "string"))
+				ivr_timeout[to] = ivr_timeout_message;
 		}
 
 		if (!ivr_tree)
@@ -707,6 +772,9 @@ echo __callstack();
 									ivr_tree[keys[i]] = this.loadTree(to, JSONDeserialize(ReadFile(trunk_path)), ivr_tree);
 								} else
 									console.warn(LOG_THIS, "include parameter missing");
+								break;
+							case "\$repeat":
+								ivr_tree[keys[i]] = ivr_tree;
 								break;
 						}
 					}
