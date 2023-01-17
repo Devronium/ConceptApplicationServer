@@ -21,10 +21,13 @@ class IVRClientData {
 	var UserData;
 	var redirect = "";
 	var finish_api = "";
+	var answered = false;
+	var timestamp;
 
 	IVRClientData(ivr, ivr_tree, session) {
 		this.ivr_branch = ivr_tree;
 		this.hash = Murmur(session.sip.CallID);
+		this.timestamp = microseconds();
 		if ((ivr.OnAPI) && (typeof ivr_tree == "array")) {
 			var k = GetKeys(ivr_tree)[0];
 			if (k) {
@@ -34,6 +37,10 @@ class IVRClientData {
 				}
 			}
 		}
+	}
+
+	callDuration() {
+		return floor((microseconds() - this.timestamp) / 1000);
 	}
 }
 
@@ -125,7 +132,7 @@ class STTWorker {
 
 		var arr = StrSplit(model_scorer, ":");
 		var stt = new STT(arr[0]);
-		stt.externalScorer = arr[1];
+		stt.externalScorer = arr[1] ?? "";
 		var max_response_length = value (arr[2]) ?? 48;
 
 		var modelSampleRate = stt.modelSampleRate;
@@ -140,7 +147,7 @@ class STTWorker {
 
 				try {
 					if (obj.type == STT_SCORER) {
-						stt.externalScorer = obj.buffer;
+						stt.externalScorer = obj.buffer ?? "";
 						console.log(LOG_THIS, "new scorer loaded ${obj.buffer}");
 						continue;
 					}
@@ -357,6 +364,12 @@ class ConversationalIVR {
 
 	OnAnswerGreeting(from, to, callid) {
 		return this.OnGreeting(to, from, callid);
+	}
+
+	OnBegin(session) {
+		if (!session.ClientData)
+			session.ClientData = new IVRClientData(this, sessionTree(session), session);
+		session.ClientData.answered = true;
 	}
 
 	protected chooseWorker(session, hash) {
@@ -801,6 +814,7 @@ class ConversationalIVR {
 		ivr.AudioFrame = this.OnAudioFrame;
 		ivr.IVRFinished = this.IVRFinished;
 		ivr.SessionFinished = this.OnEnd;
+		ivr.Begin = this.OnBegin;
 
 		ivr.stack.OnRegister = this.OnRegister;
 		ivr.stack.OnClientRegister = this.OnClientRegister;
