@@ -1403,6 +1403,25 @@ class SIPStack {
 		this.Registrations[key] = new RegistrationData(username, password, server, server_port);
 	}
 
+	Unregister(username) {
+		var[] new_registrations;
+		var keys = GetKeys(this.Registrations);
+		var cleared = 0;
+		for (var i = 0; i < length keys; i ++) {
+			var k = keys[i];
+			if (k) {
+				var reg = this.Registrations[k];
+				if ((reg) && (reg.username != username))
+					new_registrations[k] = reg;
+				else
+					cleared ++;
+			}
+		}
+		
+		this.Registrations = new_registrations;
+		return cleared;
+	}
+
 	protected Register401(msg) {
 		if (msg.ServerCode != 401)
 			return;

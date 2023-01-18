@@ -240,11 +240,13 @@ class ConversationalIVR {
 	var OnAPI;
 
 	var LoopCallback;
+	var OnReloadConfig;
 
 	var defaultVoice = "tts_models/en/vctk/vits";
 	var[] sipUsers;
 
 	var every_second;
+	var reload_config_second;
 
 	OnRegister(msg, auth, extra_headers) {
 		console.trace(LOG_THIS, "REGISTER");
@@ -555,6 +557,12 @@ class ConversationalIVR {
 			this.ivr.stack.Reregister();
 			this.every_second = microseconds();
 		}
+		if (this.OnReloadConfig) {
+			if (time() - reload_config_second >= 30) {
+				this.OnReloadConfig(this);
+				this.reload_config_second = time();
+			}
+		}
 		if (this.LoopCallback)
 			this.LoopCallback();
 	}
@@ -568,6 +576,131 @@ class ConversationalIVR {
 				Raspuns(id, message, append);
 			append = true;
 		}
+	}
+
+	TextEvent(session, text, id) {
+		console.log(LOG_THIS, "text (id: ${id}): " + text);
+		if (!session.ClientData.ivr_branch) {
+			console.warn(LOG_THIS, "no branch");
+			session.ClientData.count = 0;
+			session.Close();
+			return;
+		}
+
+		var keys = GetKeys(session.ClientData.ivr_branch);
+		if (!keys) {
+			console.warn(LOG_THIS, "no keys");
+			return;
+		}
+				
+		var message_understood = false;
+		var append = false;
+		for (var j = 0; j < length keys; j ++) {
+			var k2 = keys[j];
+			if (!k2)
+				continue;
+			if ((k2[0] == "/") && (k2[length k2 - 1] == "/")) {
+				var regexp = new RegExp(SubStr(k2, 1, length k2 - 2));
+				if (regexp.test(text))
+					message_understood = true;
+			} else {
+				var arr = StrSplit(k2, "|");
+				for (var jj = 0; jj < length arr; jj ++) {
+					var k = arr[jj];
+					if ((k) && (Pos(text, k) > 0)) {
+						message_understood = true;
+						break;
+					}
+				}
+			}
+			if (message_understood) {
+				session.ClientData.ivr_path += "/" + k2;
+				session.ClientData.ivr_branch = session.ClientData.ivr_branch[k2];
+
+				try {
+					if (this.OnBranch)
+						this.checkMessage(id, this.OnBranch(session, session.ClientData.ivr_path), append);
+				} catch (var exc) {
+					console.error(LOG_THIS, exc);
+				}
+
+				if (session.ClientData.ivr_branch) {
+					if (typeof session.ClientData.ivr_branch == "string") {
+						try {
+							if ((this.OnAPI) && (session.ClientData.finish_api)) {
+								this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
+								session.ClientData.finish_api = "";
+							}
+
+							if (this.OnFinish)
+								this.checkMessage(id, this.OnFinish(session, session.ClientData.ivr_path), append);
+						} catch (exc) {
+							console.error(LOG_THIS, exc);
+						}
+						Raspuns(id, session.ClientData.ivr_branch, append);
+						session.ClientData.ivr_branch = null;
+						if (session.ClientData.api)
+							session.ClientData.api = 2;
+						else
+							session.EndOnIVRFinished = true;
+					} else
+					if (session.ClientData.ivr_branch[0]) {
+						Raspuns(id, session.ClientData.ivr_branch[0], append);
+						if (length session.ClientData.ivr_branch == 1) {
+							try {
+								if ((this.OnAPI) && (session.ClientData.finish_api)) {
+									this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
+									session.ClientData.finish_api = "";
+								}
+
+								if ((this.OnFinish) && (!session.ClientData.api))
+									this.checkMessage(id, this.OnFinish(session, session.ClientData.ivr_path), append);
+							} catch (exc) {
+								console.error(LOG_THIS, exc);
+							}
+							var key = GetKeys(session.ClientData.ivr_branch)[0];
+							if ((key) && (key[0] == "\$"))
+								session.ClientData.redirect = key;
+							session.ClientData.ivr_branch = null;
+							if (session.ClientData.api)
+								session.ClientData.api = 2;
+							else
+							if (!session.ClientData.redirect)
+								session.EndOnIVRFinished = true;
+						}
+					} else {
+						try {
+							if ((this.OnAPI) && (session.ClientData.finish_api)) {
+								this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
+								session.ClientData.finish_api = "";
+							}
+
+							if (this.OnFinish)
+								this.checkMessage(id, this.OnFinish(session, session.ClientData.ivr_path), append);
+						} catch (exc) {
+							console.error(LOG_THIS, exc);
+						}
+						session.Close();
+					}
+				} else {
+					try {
+						if ((this.OnAPI) && (session.ClientData.finish_api)) {
+							this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
+							session.ClientData.finish_api = "";
+						}
+
+						if (this.OnFinish)
+							this.checkMessage(id, this.OnFinish(session, session.ClientData.ivr_path), append);
+					} catch (exc) {
+						console.error(LOG_THIS, exc);
+					}
+					session.Close();
+				}
+				break;
+			}
+		}
+		// if (!message_understood)
+		// 	stt_worker.AddData(BinarizeObject(new STTWorkerData(obj.id, STT_RESET)));
 	}
 
 	OnIdle_worker(stt_worker) {
@@ -599,130 +732,9 @@ class ConversationalIVR {
 						continue;
 					}
 				}
-
-				console.log(LOG_THIS, "text (id: ${obj.id}): " + text);
-				if (!session.ClientData.ivr_branch) {
-					console.warn(LOG_THIS, "no branch");
-					session.ClientData.count = 0;
-					session.Close();
-					return;
-				}
-
-				var keys = GetKeys(session.ClientData.ivr_branch);
-				if (!keys) {
-					console.warn(LOG_THIS, "no keys");
-					return;
-				}
-				
-				var message_understood = false;
-				var append = false;
-				for (var j = 0; j < length keys; j ++) {
-					var k2 = keys[j];
-					if (!k2)
-						continue;
-					if ((k2[0] == "/") && (k2[length k2 - 1] == "/")) {
-						var regexp = new RegExp(SubStr(k2, 1, length k2 - 2));
-						if (regexp.test(text))
-							message_understood = true;
-					} else {
-						var arr = StrSplit(k2, "|");
-						for (var jj = 0; jj < length arr; jj ++) {
-							var k = arr[jj];
-							if ((k) && (Pos(text, k) > 0)) {
-								message_understood = true;
-								break;
-							}
-						}
-					}
-					if (message_understood) {
-						session.ClientData.ivr_path += "/" + k2;
-						session.ClientData.ivr_branch = session.ClientData.ivr_branch[k2];
-
-						try {
-							if (this.OnBranch)
-								this.checkMessage(obj.id, this.OnBranch(session, session.ClientData.ivr_path), append);
-						} catch (var exc) {
-							console.error(LOG_THIS, exc);
-						}
-
-						if (session.ClientData.ivr_branch) {
-							if (typeof session.ClientData.ivr_branch == "string") {
-								try {
-									if ((this.OnAPI) && (session.ClientData.finish_api)) {
-										this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
-										session.ClientData.finish_api = "";
-									}
-
-									if (this.OnFinish)
-										this.checkMessage(obj.id, this.OnFinish(session, session.ClientData.ivr_path), append);
-								} catch (exc) {
-									console.error(LOG_THIS, exc);
-								}
-								Raspuns(obj.id, session.ClientData.ivr_branch, append);
-								session.ClientData.ivr_branch = null;
-								if (session.ClientData.api)
-									session.ClientData.api = 2;
-								else
-									session.EndOnIVRFinished = true;
-							} else
-							if (session.ClientData.ivr_branch[0]) {
-								Raspuns(obj.id, session.ClientData.ivr_branch[0], append);
-								if (length session.ClientData.ivr_branch == 1) {
-									try {
-										if ((this.OnAPI) && (session.ClientData.finish_api)) {
-											this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
-											session.ClientData.finish_api = "";
-										}
-
-										if ((this.OnFinish) && (!session.ClientData.api))
-											this.checkMessage(obj.id, this.OnFinish(session, session.ClientData.ivr_path), append);
-									} catch (exc) {
-										console.error(LOG_THIS, exc);
-									}
-									var key = GetKeys(session.ClientData.ivr_branch)[0];
-									if ((key) && (key[0] == "\$"))
-										session.ClientData.redirect = key;
-									session.ClientData.ivr_branch = null;
-									if (session.ClientData.api)
-										session.ClientData.api = 2;
-									else
-									if (!session.ClientData.redirect)
-										session.EndOnIVRFinished = true;
-								}
-							} else {
-								try {
-									if ((this.OnAPI) && (session.ClientData.finish_api)) {
-										this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
-										session.ClientData.finish_api = "";
-									}
-
-									if (this.OnFinish)
-										this.checkMessage(obj.id, this.OnFinish(session, session.ClientData.ivr_path), append);
-								} catch (exc) {
-									console.error(LOG_THIS, exc);
-								}
-								session.Close();
-							}
-						} else {
-							try {
-								if ((this.OnAPI) && (session.ClientData.finish_api)) {
-									this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
-									session.ClientData.finish_api = "";
-								}
-
-								if (this.OnFinish)
-									this.checkMessage(obj.id, this.OnFinish(session, session.ClientData.ivr_path), append);
-							} catch (exc) {
-								console.error(LOG_THIS, exc);
-							}
-							session.Close();
-						}
-						break;
-					}
-				}
-				// if (!message_understood)
-				// 	stt_worker.AddData(BinarizeObject(new STTWorkerData(obj.id, STT_RESET)));
+				this.TextEvent(session, text, obj.id);
 			}
+
 		}
 	}
 
@@ -806,8 +818,33 @@ class ConversationalIVR {
 		console.log(LOG_THIS, "${msg.ServerCode} for ${msg.Headers["call-id"]} (${msg.Headers["cseq"]}) received ");
 	}
 
-	ConversationalIVR(sip_host, sip_port = 5060) {
+	OnDTMF(session, key) {
+		if ((!session) || (!session.ClientData))
+			return;
+
+		// text event not started yet
+		if (!session.ClientData.count)
+			return;
+
+		this.TextEvent(session, key, session.sip.CallID);
+	}
+
+	OnDTMFRelay(session, key) {
+		if ((!session) || (!session.UserData) || (!session.UserData.ClientData))
+			return;
+
+		// text event not started yet
+		if (!session.UserData.ClientData.count)
+			return;
+
+		this.TextEvent(session.UserData, key, session.CallID);
+	}
+
+	ConversationalIVR(sip_host, sip_port = 5060, in_band_dtmf = true) {
 		ivr = new IVR(sip_host, sip_port, 40);
+
+		if (in_band_dtmf)
+			ivr.OnDTMF = this.OnDTMF;
 
 		ivr.GreetingTo = this.OnGreeting;
 		ivr.AnswerGreeting = this.OnAnswerGreeting;
@@ -820,6 +857,9 @@ class ConversationalIVR {
 		ivr.stack.OnClientRegister = this.OnClientRegister;
 		ivr.stack.NATFriendly = true;
 		ivr.stack.OnResponse = this.OnResponseMessage;
+
+		ivr.stack.OnDTMFRelay = this.OnDTMFRelay;
+
 
 		ivr.LoopCallback = this.OnIdle;
 	}
