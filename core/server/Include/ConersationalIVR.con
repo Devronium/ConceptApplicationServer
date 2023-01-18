@@ -221,9 +221,61 @@ class STTWorker {
 	}
 }
 
+class VoiceWorkerData {
+	var text;
+	var opaque;
+
+	VoiceWorkerData(text, opaque) {
+		this.text = text;
+		this.opaque = opaque;
+	}
+}
+
+class VoiceWorker {
+	static exists(text) {
+		var fname = sha1("" + text);
+		return FileExists("./repository/alaw/$fname.alaw");
+	}
+
+	static ensureAudio(text, voice) {
+		var fname = sha1("" + text);
+		if (!voice)
+			return fname;
+
+		console.log(LOG_THIS, "preparing $voice/[$text]");
+		if (!FileExists("./repository/alaw/$fname.alaw")) {
+			TTSHelper::tts(text, voice, "./repository/$fname.wav");
+			_unlink("./repository/alaw/$fname.alaw");
+			_system("ffmpeg -loglevel error -i \"./repository/$fname.wav\" -ac 1 -ar 8000 -f s8 -acodec pcm_alaw \"./repository/alaw/$fname.alaw\"");
+		}
+		return fname;
+	}
+
+	VoiceWorker(voice) {
+		while (true) {
+			if (Worker::Pending(var buffer, 1000)) {
+				var obj = UnBinarizeObject(buffer);
+				if (!obj)
+					continue;
+
+				if (obj.text) {
+					for (var i = 0; i < length obj.text; i ++) {
+						var text = obj.text[i];
+						if ((text) && (text[0] != "\$"))
+							this.ensureAudio(text, voice);
+					}
+				}
+				
+				Worker::Result(buffer);
+			}
+		}
+	}
+}
+
 class ConversationalIVR {
 	var ivr;
 	var[] stt_workers;
+	var[] voice_workers;
 
 	var trunk_dir = "./trunks/";
 	var[] ivr_voice;
@@ -278,16 +330,7 @@ class ConversationalIVR {
 	}
 
 	DoTTS(text, voice = "", session = null, append = false) {
-		var fname = sha1("" + text);
-
-		if (!voice)
-			voice = this.defaultVoice;
-
-		if (!FileExists("./repository/alaw/$fname.alaw")) {
-			TTSHelper::tts(text, voice, "./repository/$fname.wav");
-			_unlink("./repository/alaw/$fname.alaw");
-			_system("ffmpeg -loglevel error -i \"./repository/$fname.wav\" -ac 1 -ar 8000 -f s8 -acodec pcm_alaw \"./repository/alaw/$fname.alaw\"");
-		}
+		var fname = VoiceWorker::ensureAudio(text, voice ?? this.defaultVoice);
 		if (session) {
 			if (!session.ClientData)
 				session.ClientData = new IVRClientData(this, sessionTree(session), session);
@@ -553,6 +596,9 @@ class ConversationalIVR {
 			for (var j = 0; j < length arr; j ++)
 				this.OnIdle_worker(arr[j]);
 		}
+		for (i = 0; i < length voice_workers; i ++)
+			this.OnIdle_voiceWorker(voice_workers[i]);
+
 		if (microseconds() - every_second >= 1000000) {
 			this.ivr.stack.Reregister();
 			this.every_second = microseconds();
@@ -699,8 +745,6 @@ class ConversationalIVR {
 				break;
 			}
 		}
-		// if (!message_understood)
-		// 	stt_worker.AddData(BinarizeObject(new STTWorkerData(obj.id, STT_RESET)));
 	}
 
 	OnIdle_worker(stt_worker) {
@@ -891,11 +935,45 @@ class ConversationalIVR {
 		this.ivr_model_keys[to] = key;
 	}
 
+	voiceWorker(use_voice) {
+		if (!use_voice)
+			use_voice = this.defaultVoice;
+
+		if (!use_voice)
+			return null;
+
+		var worker = voice_workers[use_voice];
+		if (worker)
+			return worker;
+
+		worker = new Worker("VoiceWorker", use_voice);
+		voice_workers[use_voice] = worker;
+
+		return worker;
+	}
+
 	addRoute(route, host, port = 5060) {
 		this.ivr.stack.AddRoute(route, host, port);
 	}
 
-	call(who, from, tree = null, max_duration = 300) {
+	getVoices(tree, voice = "", var arr = null) {
+		if (!arr)
+			arr = new [];
+
+		switch (typeof tree) {
+			case "string":
+				if ((tree) && (tree[0] != '$') && (!VoiceWorker::exists(tree)))
+					arr[length arr] = tree;
+				break;
+			case "array":
+				for (var i = 0; i < length tree; i ++)
+					getVoices(tree[i], voice, arr);
+				break;
+		}
+		return arr;
+	}
+
+	callSync(who, from, tree = null, max_duration = 300) {
 		var session = this.ivr.stack.Invite(who, from);
 		session.setExpires(max_duration);
 		console.log(LOG_THIS, "call $who by $from");
@@ -911,6 +989,36 @@ class ConversationalIVR {
 		return false;
 	}
 
+	OnIdle_voiceWorker(worker) {
+		worker.GetAll(var data, 0, 100);
+		if (data) {
+			for (var i = 0; i < length data; i ++) {
+				var obj = UnBinarizeObject(data[i]);
+				if ((!obj) || (!obj.opaque))
+					continue;
+
+				this.callSync(obj.opaque[0], obj.opaque[1], obj.opaque[2], obj.opaque[3]);
+			}
+
+		}
+	}
+
+	call(who, from, tree = null, max_duration = 300) {
+		var texts = this.getVoices(tree);
+		if ((!texts) || (length texts == 0))
+			return callSync(who, from, tree, max_duration);
+
+		var voice = "";
+		if (!voice)
+			voice = this.defaultVoice;
+
+		var worker = voiceWorker(voice);
+		if (!worker)
+			return null;
+
+		return worker.AddData(BinarizeObject(new VoiceWorkerData(texts, [who, from, tree, max_duration])));
+	}
+
 	register(username, password, sip_server, server_port = 5060) {
 		this.every_second = microseconds();
 		return this.ivr.stack.Register(username, password, sip_server, server_port);
@@ -921,6 +1029,10 @@ class ConversationalIVR {
 			console.warn(LOG_THIS, "cannot refer: invalid session");
 			return null;
 		}
+		var arr = StrSplit(destination, "|");
+		if (length arr > 1)
+			destination = arr[rand() % (length arr)];
+
 		session.Expires = 1800;
 		session.sip.ResetBuffers();
 		var refer_session = session.Refer(destination);
