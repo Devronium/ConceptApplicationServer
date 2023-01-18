@@ -2036,10 +2036,12 @@ class SIPStack {
 		if (this.OnRecv)
 			this.OnRecv(msg, ip, port);
 		if (((msg.ServerCode >= 200) || (!msg.ServerCode)) && (msg.Method == "") && (!Pos(""+msg.Headers["cseq"], " ACK"))) {
-			if (this.ContactNonRoutable(msg.Headers))
+			if (this.ValidOrigin(ip))
 				this.Ack(msg, ip, port, max_forwards);
-			else
-				this.Ack(msg, "", 0, max_forwards);
+			// if (this.ContactNonRoutable(msg.Headers))
+			// 	this.Ack(msg, ip, port, max_forwards);
+			// else
+			// 	this.Ack(msg, "", 0, max_forwards);
 		}
 	}
 
@@ -2774,13 +2776,13 @@ class SIPStack {
 		return false;
 	}
 
-	ContactNonRoutable(headers) {
+	ContactNonRoutable(headers, parse_via = true) {
 		if (!headers)
 			return false;
 		var route = "";
 		if (IsSet(headers, "contact"))
 			route = headers["contact"];
-		if ((!route) && (IsSet(headers, "via")))
+		if ((!route) && (!parse_via) && (IsSet(headers, "via")))
 			route = headers["via"];
 		if (typeof route == "array")
 			route = route[0];
