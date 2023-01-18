@@ -225,13 +225,17 @@ class VoiceWorkerData {
 	var text;
 	var opaque;
 
-	VoiceWorkerData(text, opaque) {
+	VoiceWorkerData(text, opaque = null) {
 		this.text = text;
 		this.opaque = opaque;
 	}
 }
 
 class VoiceWorker {
+	static key(text, voice) {
+		return sha1("" + text);
+	}
+
 	static exists(text) {
 		var fname = sha1("" + text);
 		return FileExists("./repository/alaw/$fname.alaw");
@@ -252,6 +256,7 @@ class VoiceWorker {
 	}
 
 	VoiceWorker(voice) {
+		console.info(LOG_THIS, "created worker for $voice");
 		while (true) {
 			if (Worker::Pending(var buffer, 1000)) {
 				var obj = UnBinarizeObject(buffer);
@@ -330,7 +335,7 @@ class ConversationalIVR {
 	}
 
 	DoTTS(text, voice = "", session = null, append = false) {
-		var fname = VoiceWorker::ensureAudio(text, voice ?? this.defaultVoice);
+		var fname = VoiceWorker::key(text, voice);
 		if (session) {
 			if (!session.ClientData)
 				session.ClientData = new IVRClientData(this, sessionTree(session), session);
@@ -782,7 +787,25 @@ class ConversationalIVR {
 		}
 	}
 
-	protected loadTree(to, ivr_tree, prev = null) {
+	protected voiceWorker(use_voice) {
+		if (!use_voice)
+			use_voice = this.defaultVoice;
+
+		if (!use_voice)
+			return null;
+
+		var worker = voice_workers[use_voice];
+		if (worker)
+			return worker;
+
+		worker = new Worker("VoiceWorker", use_voice);
+		voice_workers[use_voice] = worker;
+
+		return worker;
+	}
+
+	protected loadTree(to, ivr_tree, prev = null, var texts = null) {
+		var voice = "";
 		if ((!prev) && (ivr_tree)) {
 			var config = ivr_tree["config"];
 			if (!config) {
@@ -792,7 +815,7 @@ class ConversationalIVR {
 			ivr_tree = ivr_tree["tree"];
 			if (ivr_tree) {
 				this.addWorker(to, config["model"], config["scorer"], value config["workers"]);
-				var voice = config["voice"];
+				voice = config["voice"];
 				if (voice)
 					ivr_voice[to] = voice;
 			} else
@@ -808,15 +831,21 @@ class ConversationalIVR {
 		if (!prev)
 			prev = new [];
 
+		var first_call = false;
+		if (!texts) {
+			texts = new [];
+			first_call = true;
+		}
+
 		var keys = GetKeys(ivr_tree);
 		for (var i = 0; i < length ivr_tree; i ++) {
 			var branch = ivr_tree[i];
 			switch (typeof branch) {
 				case "array":
 					if (prev)
-						loadTree(to, branch, [ivr_tree] + prev);
+						loadTree(to, branch, [ivr_tree] + prev, texts);
 					else
-						loadTree(to, branch, [ivr_tree]);
+						loadTree(to, branch, [ivr_tree], texts);
 					break;
 				case "string":
 					if (branch[0] == "\$") {
@@ -838,7 +867,7 @@ class ConversationalIVR {
 							case "\$include":
 								if (arr[1]) {
 									var trunk_path = trunk_dir + arr[1] + ".json";
-									ivr_tree[keys[i]] = this.loadTree(to, JSONDeserialize(ReadFile(trunk_path)), ivr_tree);
+									ivr_tree[keys[i]] = this.loadTree(to, JSONDeserialize(ReadFile(trunk_path)), ivr_tree, texts);
 								} else
 									console.warn(LOG_THIS, "include parameter missing");
 								break;
@@ -846,11 +875,18 @@ class ConversationalIVR {
 								ivr_tree[keys[i]] = ivr_tree;
 								break;
 						}
-					}
+					} else
+					if ((branch) && (!VoiceWorker::exists(branch)))
+						texts[length texts] = branch;
 					break;
 			}
 		}
 
+		if ((first_call) && (texts) && (length texts)) {
+			var worker = this.voiceWorker(voice);
+			if (worker)
+				worker.AddData(BinarizeObject(new VoiceWorkerData(texts)));
+		}
 		return ivr_tree;
 	}
 
@@ -933,23 +969,6 @@ class ConversationalIVR {
 			arr[length arr] = new Worker("STTWorker", "$model:$scorer");
 
 		this.ivr_model_keys[to] = key;
-	}
-
-	voiceWorker(use_voice) {
-		if (!use_voice)
-			use_voice = this.defaultVoice;
-
-		if (!use_voice)
-			return null;
-
-		var worker = voice_workers[use_voice];
-		if (worker)
-			return worker;
-
-		worker = new Worker("VoiceWorker", use_voice);
-		voice_workers[use_voice] = worker;
-
-		return worker;
 	}
 
 	addRoute(route, host, port = 5060) {
