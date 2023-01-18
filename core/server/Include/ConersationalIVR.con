@@ -1028,6 +1028,8 @@ class ConversationalIVR {
 			return callSync(who, from, tree, max_duration);
 
 		var voice = "";
+		if (IsSet(ivr_voice, from))
+			return ivr_voice[from];
 		if (!voice)
 			voice = this.defaultVoice;
 
