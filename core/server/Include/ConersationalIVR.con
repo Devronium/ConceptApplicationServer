@@ -409,6 +409,9 @@ class ConversationalIVR {
 
 		var msg = ivr_tree[0];
 
+		if (!VoiceWorker::exists(msg))
+			return null;
+
 		return [this.DoTTS(msg, this.voice(to))];
 	}
 
