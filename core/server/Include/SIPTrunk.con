@@ -1472,8 +1472,7 @@ class SIPStack {
 				registration.updateIp();
 				try {
 					var register = this.RegisterMessage(registration.username, registration.password, registration.server, registration.server_port);
-					if (this.DoWrite(local_udpclientsocket, register.ToString(), registration.server, registration.server_port) < 0)
-						return count;
+					this.DoWrite(local_udpclientsocket, register.ToString(), registration.server, registration.server_port);
 					count ++;
 				} catch (var exc) {
 				}

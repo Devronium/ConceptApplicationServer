@@ -11,6 +11,20 @@ define STT_TEXT		2
 define STT_SCORER	3
 define STT_TIMEDOUT	4
 
+class Scorer {
+	static ensure(model_name, text = "") {
+		if (!FileExists(model_name)) {
+			// avoid double call
+			WriteFile("", model_name);
+			var text_file = StrReplace(model_name, ".scorer", "");
+			if (text)
+				WriteFile(text, text_file);
+			return _system("./scripts/make_model.sh $text_file");
+		}
+		return 0;
+	}
+}
+
 class IVRClientData {
 	var count;
 	var ivr_branch;
@@ -132,7 +146,12 @@ class STTWorker {
 
 		var arr = StrSplit(model_scorer, ":");
 		var stt = new STT(arr[0]);
-		stt.externalScorer = arr[1] ?? "";
+		var scorer = arr[1] ?? "";
+		if (scorer) {
+			scorer = "./scorers/$scorer";		
+			Scorer::ensure(scorer);
+		}
+		stt.externalScorer = scorer;
 		var max_response_length = value (arr[2]) ?? 48;
 
 		var modelSampleRate = stt.modelSampleRate;
@@ -348,6 +367,23 @@ class ConversationalIVR {
 		}
 
 		return fname;
+	}
+
+	DoTTSAsync(text, voice = "", session = null, append = false) {
+		var worker = this.voiceWorker(voice);
+		if (!worker)
+			return "";
+
+		if (VoiceWorker::exists(text))
+			return DoTTS(text, voice, session, append);
+
+		if (session) {
+			var fname = VoiceWorker::key(text, voice ?? this.defaultVoice);
+			worker.AddData(BinarizeObject(new VoiceWorkerData([text], [2, session.sip.CallID, fname, append])));
+			return fname;
+		}
+		
+		return "";
 	}
 
 	voice(to) {
@@ -589,7 +625,7 @@ class ConversationalIVR {
 		}
 
 
-		DoTTS(text, this.voice(session), session, append);
+		DoTTSAsync(text, this.voice(session), session, append);
 
 		var stt_worker = this.chooseWorker(session, session.ClientData.hash);
 		if (stt_worker)
@@ -599,26 +635,30 @@ class ConversationalIVR {
 	}
 
 	OnIdle() {
-		for (var i = 0; i < length stt_workers; i ++) {
-			var arr = stt_workers[i];
-			for (var j = 0; j < length arr; j ++)
-				this.OnIdle_worker(arr[j]);
-		}
-		for (i = 0; i < length voice_workers; i ++)
-			this.OnIdle_voiceWorker(voice_workers[i]);
-
-		if (microseconds() - every_second >= 1000000) {
-			this.ivr.stack.Reregister();
-			this.every_second = microseconds();
-		}
-		if (this.OnReloadConfig) {
-			if (time() - reload_config_second >= 30) {
-				this.OnReloadConfig(this);
-				this.reload_config_second = time();
+		try {
+			for (var i = 0; i < length stt_workers; i ++) {
+				var arr = stt_workers[i];
+				for (var j = 0; j < length arr; j ++)
+					this.OnIdle_worker(arr[j]);
 			}
+			for (i = 0; i < length voice_workers; i ++)
+				this.OnIdle_voiceWorker(voice_workers[i]);
+
+			if (microseconds() - every_second >= 1000000) {
+				this.ivr.stack.Reregister();
+				this.every_second = microseconds();
+			}
+			if (this.OnReloadConfig) {
+				if (time() - reload_config_second >= 30) {
+					this.OnReloadConfig(this);
+					this.reload_config_second = time();
+				}
+			}
+			if (this.LoopCallback)
+				this.LoopCallback();
+		} catch (var exc) {
+			console.error(LOG_THIS, exc);
 		}
-		if (this.LoopCallback)
-			this.LoopCallback();
 	}
 
 	checkMessage(id, message, var append = false) {
@@ -1019,7 +1059,21 @@ class ConversationalIVR {
 				if ((!obj) || (!obj.opaque))
 					continue;
 
-				this.callSync(obj.opaque[0], obj.opaque[1], obj.opaque[2], obj.opaque[3]);
+				switch (obj.opaque[0]) {
+					case 1:
+						this.callSync(obj.opaque[1], obj.opaque[2], obj.opaque[3], obj.opaque[4]);
+						break;
+					case 2:
+						var session = this.ivr.GetSessionById(obj.opaque[1]);
+						var fname = obj.opaque[2];
+						if ((session) && (fname)) {
+							if (obj.opaque[3])
+								session.Append(fname);
+							else
+								session.Load(fname);
+						}
+						break;
+				}
 			}
 
 		}
@@ -1040,7 +1094,7 @@ class ConversationalIVR {
 		if (!worker)
 			return null;
 
-		return worker.AddData(BinarizeObject(new VoiceWorkerData(texts, [who, from, tree, max_duration])));
+		return worker.AddData(BinarizeObject(new VoiceWorkerData(texts, [1, who, from, tree, max_duration])));
 	}
 
 	register(username, password, sip_server, server_port = 5060) {
@@ -1065,6 +1119,26 @@ class ConversationalIVR {
 			session.Expires = 1800;
 		}
 		return refer_session;
+	}
+
+	getSessions(account, identity = "") {
+		var[] sess_ids;
+		var sessions = this.ivr.stack.Sessions;
+		for (var i = 0; i < length sessions; i ++) {
+			var session = sessions[i];
+			if ((session) && (session.UserData)) {
+				if ((!account) || (((session.is_invite) && (session.UserData.From == account)) || ((!session.is_invite) && (session.UserData.To == account)))) {
+					var duration = 0;
+					var path = "";
+					if (session.UserData.ClientData) {
+						duration = session.UserData.ClientData.callDuration();
+						path = session.UserData.ClientData.ivr_path;
+					}
+					sess_ids[session.CallID] = ["account" => account ?? identity, "isInvite" => session.is_invite, "from" => session.UserData.From, "to" => session.UserData.To, "callDuration" => duration, "path" => path];
+				}
+			}
+		}
+		return sess_ids;
 	}
 
 	Start(loop_callback = null) {
