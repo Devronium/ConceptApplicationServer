@@ -51,6 +51,8 @@ class IVRClientData {
 				}
 			}
 		}
+		// if (session.sip.is_invite)
+			session.sip.Record = true;
 	}
 
 	callDuration() {
@@ -315,6 +317,8 @@ class ConversationalIVR {
 	var OnBranch;
 	var OnAPI;
 
+	var OnFirewall;
+
 	var LoopCallback;
 	var OnReloadConfig;
 
@@ -325,13 +329,15 @@ class ConversationalIVR {
 	var reload_config_second;
 
 	OnRegister(msg, auth, extra_headers) {
-		console.trace(LOG_THIS, "REGISTER");
+		console.trace(LOG_THIS, "REGISTER ${msg.ip}:${msg.port}");
 		if (auth) {
 			var code = ivr.stack.CheckAuth(auth, function(username) {
 				if (IsSet(this.sipUsers, username))
 					return this.sipUsers[username];
 				return "";
 			});
+			if ((code != 200) && (this.OnFirewall))
+				this.OnFirewall(msg);
 			return code;
 		}
 		return 401;
@@ -527,6 +533,52 @@ class ConversationalIVR {
 			console.error(LOG_THIS, "no workers for ${session.To}, callid ${session.sip.CallID}");
 	}
 
+	protected writeRecording(session) {
+		if (!session.sip.RecordBuffers)
+			return;
+		var keys = GetKeys(session.sip.RecordBuffers);
+		if (keys) {
+			var min_len = 0;
+			for (var i = 0; i < length session.sip.RecordBuffers; i++) {
+				var buf = session.sip.RecordBuffers[i];
+				if (buf) {
+					if ((!min_len) || (min_len > length buf))
+						min_len = length buf;
+				}
+			}
+			var folder = session.To;
+			if (session.sip.is_invite)
+				folder = session.From;
+			_mkdir("rec/$folder");
+			var path = "rec/$folder/" + time() + "-" + session.From + "-" + session.To + ".alaw";
+			var params = "";
+			var filter = "";
+			var index = 0;
+			for (i = 0; i < length keys; i++) {
+				var k = keys[i];
+				if (k) {
+					buf = session.sip.RecordBuffers[k];
+					if (buf) {
+						var fname = path + ".$i.alaw";
+						if ((min_len > 0) && (length buf != min_len))
+							WriteFile(SubStr(buf, length buf - min_len), fname);
+						else
+							WriteFile(buf, fname);
+				
+						params += "-f alaw -ar 8000 -ac 1 -acodec pcm_alaw -i \"$fname\" ";
+						filter += "[$index:a]";
+						index++;
+					}
+				}
+			}
+			var output_file = path + ".mp3";
+			_unlink(output_file);
+			_system("ffmpeg -loglevel fatal $params-filter_complex \"${filter}amix\" -ac 1 -qscale:a 2 \"$output_file\" &");
+			session.StopRecording();
+			session.sip.RecordBuffers = null;
+		}
+	}
+
 	OnEnd(session, callid, code) {
 		if (IsSet(ivr_api_trees, callid)) {
 			ivr_api_trees[callid] = null;
@@ -552,6 +604,8 @@ class ConversationalIVR {
 			this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
 			session.ClientData.finish_api = "";
 		}
+		if (session)
+			this.writeRecording(session);
 	}
 
 	static getId(session) {
@@ -1113,6 +1167,7 @@ class ConversationalIVR {
 
 		session.Expires = 1800;
 		session.sip.ResetBuffers();
+		session.StartRecording(session.Expires);
 		var refer_session = session.Refer(destination);
 		if (refer_session) {
 			session.sip.setMaxJitter(1);

@@ -2865,8 +2865,11 @@ class SIPStack {
 					if (!auth)
 						extra_headers = RequestAuth(msg);
 
-					if (this.OnRegister)
+					if (this.OnRegister) {
+						msg.ip = ip;
+						msg.port = port;
 						register_response = this.OnRegister(msg, auth, extra_headers);
+					}
 					var contact = "";
 					if ((register_response == 200) && (auth)) {
 						var pauth = ParseAuth(auth);
