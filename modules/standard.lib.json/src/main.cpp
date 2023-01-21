@@ -171,7 +171,7 @@ struct json_object *do_array(void *arr, bool as_object, int level) {
     bool local_as_object = as_object;
     if ((count > 0) && (as_object)) {
         InvokePtr(INVOKE_GET_ARRAY_KEY, arr, 0, &key);
-        if ((!key) || (!key[0]))
+        if (!key)
             local_as_object = false;
     }
 
