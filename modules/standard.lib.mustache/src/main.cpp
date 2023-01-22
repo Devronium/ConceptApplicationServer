@@ -161,6 +161,13 @@ int mustache_enter(void *closure, const char *name) {
     else
         is_ok = IS_OK(mustacheclosure->Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, mustacheclosure->DATA, name, &var));
 
+    if (!is_ok) {
+        if (mustacheclosure->arrdata)
+            is_ok = IS_OK(mustacheclosure->Invoke(INVOKE_GET_CLASS_VARIABLE, mustacheclosure->arrdata, name, &var));
+        else
+            is_ok = IS_OK(mustacheclosure->Invoke(INVOKE_GET_CLASS_VARIABLE, mustacheclosure->DATA, name, &var));
+    }
+
     if (is_ok) {
         if (mustacheclosure->stack_level >= 0x100)
             return MUSTACH_ERROR_TOO_DEEP;
@@ -171,15 +178,47 @@ int mustache_enter(void *closure, const char *name) {
 
         if (!IS_OK(mustacheclosure->Invoke(INVOKE_GET_VARIABLE, var, &type, &str, &nr)))
             return 0;
+
         switch (type) {
             case VARIABLE_NUMBER:
-                return (int)(nr != 0.00f);
+                if ((int)(nr != 0.00f)) {
+                    mustacheclosure->stack[mustacheclosure->stack_level].DATA = mustacheclosure->DATA;
+                    mustacheclosure->stack[mustacheclosure->stack_level].pos = mustacheclosure->pos;
+                    mustacheclosure->stack[mustacheclosure->stack_level].count = mustacheclosure->count;
+                    mustacheclosure->stack[mustacheclosure->stack_level].arrdata = mustacheclosure->arrdata;
+                    mustacheclosure->stack_level++;
+                    mustacheclosure->DATA = var;
+                    mustacheclosure->arrdata = NULL;
+                    mustacheclosure->pos = 0;
+                    mustacheclosure->count = (int)1;
+                    return mustacheclosure->count;
+                }
+                return 0;
             case VARIABLE_STRING:
-                if (((int)nr > 0) && (str) && (str[0]))
-                    return (int)nr;
+                if (((int)nr > 0) && (str) && (str[0])) {
+                    mustacheclosure->stack[mustacheclosure->stack_level].DATA = mustacheclosure->DATA;
+                    mustacheclosure->stack[mustacheclosure->stack_level].pos = mustacheclosure->pos;
+                    mustacheclosure->stack[mustacheclosure->stack_level].count = mustacheclosure->count;
+                    mustacheclosure->stack[mustacheclosure->stack_level].arrdata = mustacheclosure->arrdata;
+                    mustacheclosure->stack_level++;
+                    mustacheclosure->DATA = var;
+                    mustacheclosure->arrdata = NULL;
+                    mustacheclosure->pos = 0;
+                    mustacheclosure->count = 1;
+                    return mustacheclosure->count;
+                }
                 return 0;
             case VARIABLE_CLASS:
             case VARIABLE_DELEGATE:
+                mustacheclosure->stack[mustacheclosure->stack_level].DATA = mustacheclosure->DATA;
+                mustacheclosure->stack[mustacheclosure->stack_level].pos = mustacheclosure->pos;
+                mustacheclosure->stack[mustacheclosure->stack_level].count = mustacheclosure->count;
+                mustacheclosure->stack[mustacheclosure->stack_level].arrdata = mustacheclosure->arrdata;
+                mustacheclosure->stack_level++;
+                mustacheclosure->DATA = var;
+                mustacheclosure->arrdata = NULL;
+                mustacheclosure->pos = 0;
+                mustacheclosure->count = 1;
                 return 1;
         }
 
@@ -196,8 +235,6 @@ int mustache_enter(void *closure, const char *name) {
                 mustacheclosure->arrdata = arr2;
                 mustacheclosure->pos = 0;
                 mustacheclosure->count = count;
-                if (count < 0)
-                    return 0;
                 return count;
             }
         }
