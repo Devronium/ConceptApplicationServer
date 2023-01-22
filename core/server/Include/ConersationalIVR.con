@@ -752,6 +752,10 @@ class ConversationalIVR {
 				if (regexp.test(text))
 					message_understood = true;
 			} else {
+				k2 = StrReplace(k2, ",", "|");
+				k2 = StrReplace(k2, ".", "|");
+				k2 = StrReplace(k2, ";", "|");
+				k2 = StrReplace(k2, ":", "|");
 				var arr = StrSplit(k2, "|");
 				for (var jj = 0; jj < length arr; jj ++) {
 					var k = arr[jj];

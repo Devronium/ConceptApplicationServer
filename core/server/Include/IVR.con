@@ -304,15 +304,14 @@ class IVR {
 			if (End)
 				End(session.UserData);
 		}
-		if (SessionFinished) {
-			var data;
-			if (session)
-				data = session.UserData;
+		var server_code = 0;
+		if (msg)
+			server_code = msg.ServerCode;
+		if ((SessionFinished) && (session))
+			SessionFinished(session.UserData, session.CallID, reason ?? server_code);
 
-			SessionFinished(session.UserData, session.CallID, reason ?? msg.ServerCode);
-		}
-
-		delete session.UserData;
+		if (session)
+			delete session.UserData;
 		if (Debug)
 			console.info(LOG_THIS, "Session closed ($reason), ${length stack.Sessions} sessions");
 	}

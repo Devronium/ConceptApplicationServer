@@ -1806,6 +1806,62 @@ CONCEPT_DLL_API CONCEPT__DirectoryExists CONCEPT_API_PARAMETERS {
     return 0;
 }
 //-----------------------------------------------------------------------------------
+CONCEPT_DLL_API CONCEPT__AppendFile CONCEPT_API_PARAMETERS {
+    if (PARAMETERS->COUNT != 2)
+        return (void *)": 'WriteFile' parameters error. This fuction takes 2 parameters.";
+
+    // General variables
+    NUMBER  NUMBER_DUMMY;
+    NUMBER  STR_LEN = 0;
+    INTEGER TYPE;
+
+    // Result
+    FILE *FOUT;
+    // Specific variables
+    char *szParam0;
+    char *szParam1;
+
+    // Variable type check
+    // Parameter 1
+    GetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[0] - 1], &TYPE, &szParam0, &STR_LEN);
+    if (TYPE != VARIABLE_STRING)
+        return (void *)"WriteFile: parameter 1 should be of STATIC STRING type";
+
+    GetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], &TYPE, &szParam1, &NUMBER_DUMMY);
+    if (TYPE != VARIABLE_STRING)
+        return (void *)"WriteFile: parameter 2 should be of STATIC STRING type";
+
+    szParam1 = SafePath(szParam1, Invoke, PARAMETERS->HANDLER);
+#ifdef _WIN32
+    wchar_t *fname = wstr(szParam1);
+    if (fname) {
+        FOUT = _wfopen(fname, L"ab");
+        if (!FOUT)
+            FOUT = _wfopen(fname, L"wb");
+        free(fname);
+    } else {
+        FOUT = fopen((char *)szParam1, "ab");
+        if (!FOUT)
+            FOUT = fopen((char *)szParam1, "wb");
+    }
+#else
+    FOUT = (FILE *)fopen((char *)szParam1, "ab");
+    if (!FOUT)
+        FOUT = (FILE *)fopen((char *)szParam1, "wb");
+#endif
+    free(szParam1);
+    // function call
+    if (FOUT) {
+        long size = (long)STR_LEN;
+        fwrite(szParam0, 1, size, FOUT);
+        fclose(FOUT);
+        SetVariable(RESULT, VARIABLE_NUMBER, "", 1);
+    } else
+        SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
+    return 0;
+}
+//-----------------------------------------------------------------------------------
+
 CONCEPT_DLL_API CONCEPT__fflush CONCEPT_API_PARAMETERS {
     PARAMETERS_CHECK(1, "'fflush' takes 1 parameters. See help for details.");
     LOCAL_INIT;

@@ -79,6 +79,15 @@ class fs {
 			return true;
 		return false;
 	}
+
+	appendFile(path, var data = "", callback = null) {
+		var written = AppendFile(data, this.safepath(path));
+		if (callback)
+			callback(_errno());
+		if (written)
+			return true;
+		return false;
+	}
 }
 
 class accesstoken {
