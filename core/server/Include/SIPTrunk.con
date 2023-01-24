@@ -3020,7 +3020,7 @@ class SIPStack {
 						}
 
 						if ((msg.ServerCode >= 200) && (msg.ServerCode < 300)) {
-							if ((sess) && (!session.bye_set)) {
+							if ((sess) && (!sess.bye_set)) {
 								sess.bye_set = true;
 								sess.accept_bye = true;
 								sess.bye_msg = msg;
@@ -3054,7 +3054,7 @@ class SIPStack {
 								sess = GetSession(msg);
 
 							if (sess) {
-								if ((!this.Registrations) || (msg.ServerCode != 401) || (!this.Invite401(session, msg))) {
+								if ((!this.Registrations) || (msg.ServerCode != 401) || (!this.Invite401(sess, msg))) {
 									parent = sess.Parent;
 									// sess.Bye();
 									this.RemoveSessionByRef(sess, msg.ServerCode);
