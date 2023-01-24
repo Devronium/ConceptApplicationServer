@@ -11,20 +11,6 @@ define STT_TEXT		2
 define STT_SCORER	3
 define STT_TIMEDOUT	4
 
-class Scorer {
-	static ensure(model_name, text = "") {
-		if (!FileExists(model_name)) {
-			// avoid double call
-			WriteFile("", model_name);
-			var text_file = StrReplace(model_name, ".scorer", "");
-			if (text)
-				WriteFile(text, text_file);
-			return _system("./scripts/make_model.sh $text_file");
-		}
-		return 0;
-	}
-}
-
 class IVRClientData {
 	var count;
 	var ivr_branch;
@@ -149,11 +135,17 @@ class STTWorker {
 		var arr = StrSplit(model_scorer, ":");
 		var stt = new STT(arr[0]);
 		var scorer = arr[1] ?? "";
-		if (scorer) {
+		var scorer_timestamp;
+		if (scorer)
 			scorer = "./scorers/$scorer";		
-			Scorer::ensure(scorer);
+		scorer_timestamp = _filelast_mod(scorer);
+		if (FileExists(scorer)) {
+			try {
+				stt.externalScorer = scorer;
+			} catch (var scorer_exc) {
+				console.error(LOG_THIS, scorer_exc);
+			}
 		}
-		stt.externalScorer = scorer;
 		var max_response_length = value (arr[2]) ?? 48;
 
 		var modelSampleRate = stt.modelSampleRate;
@@ -237,6 +229,16 @@ class STTWorker {
 				clear_time_stamp = microseconds();
 				if (cleared)
 					console.log(LOG_THIS, "cleared $cleared session(s)");
+
+				if (_filelast_mod(scorer) != scorer_timestamp) {
+					try {
+						scorer_timestamp = _filelast_mod(scorer);
+						stt.externalScorer = scorer;
+						console.log(LOG_THIS, "reloaded scorer (changed)");
+					} catch (scorer_exc) {
+						console.error(LOG_THIS, scorer_exc);
+					}
+				}
 			}
 		}
 	}
@@ -254,16 +256,16 @@ class VoiceWorkerData {
 
 class VoiceWorker {
 	static key(text, voice) {
-		return sha1("" + text);
+		return sha1("" + voice + "/" + text);
 	}
 
-	static exists(text) {
-		var fname = sha1("" + text);
+	static exists(text, voice) {
+		var fname = VoiceWorker::key(text, voice);
 		return FileExists("./repository/alaw/$fname.alaw");
 	}
 
 	static ensureAudio(text, voice) {
-		var fname = sha1("" + text);
+		var fname = VoiceWorker::key(text, voice);
 		if (!voice)
 			return fname;
 
@@ -380,7 +382,7 @@ class ConversationalIVR {
 		if (!worker)
 			return "";
 
-		if (VoiceWorker::exists(text))
+		if (VoiceWorker::exists(text, voice))
 			return DoTTS(text, voice, session, append);
 
 		if (session) {
@@ -450,11 +452,11 @@ class ConversationalIVR {
 		}
 
 		var msg = ivr_tree[0];
-
-		if (!VoiceWorker::exists(msg))
+		var use_voice = this.voice(to);
+		if (!VoiceWorker::exists(msg, use_voice))
 			return null;
 
-		return [this.DoTTS(msg, this.voice(to))];
+		return [this.DoTTS(msg, use_voice)];
 	}
 
 	OnAnswerGreeting(from, to, callid) {
@@ -938,6 +940,7 @@ class ConversationalIVR {
 			first_call = true;
 		}
 
+		var use_voice = this.voice(to);
 		var keys = GetKeys(ivr_tree);
 		for (var i = 0; i < length ivr_tree; i ++) {
 			var branch = ivr_tree[i];
@@ -977,7 +980,7 @@ class ConversationalIVR {
 								break;
 						}
 					} else
-					if ((branch) && (!VoiceWorker::exists(branch)))
+					if ((branch) && (!VoiceWorker::exists(branch, use_voice)))
 						texts[length texts] = branch;
 					break;
 			}
@@ -1053,6 +1056,13 @@ class ConversationalIVR {
 		if (!count)
 			count = 2;
 
+		if (!scorer) {
+			var auto_scorer = StrReplace(model, ".tflite", "");
+			if (length auto_scorer > 2) {
+				auto_scorer = auto_scorer[length auto_scorer - 2] + auto_scorer[length auto_scorer - 1];
+				scorer = "default/$auto_scorer.scorer";
+			}
+		}
 		var key = "$model:$scorer";
 		var arr = stt_workers[key];
 		if (!arr) {
@@ -1076,13 +1086,13 @@ class ConversationalIVR {
 		this.ivr.stack.AddRoute(route, host, port);
 	}
 
-	getVoices(tree, voice = "", var arr = null) {
+	getVoices(tree, voice, var arr = null) {
 		if (!arr)
 			arr = new [];
 
 		switch (typeof tree) {
 			case "string":
-				if ((tree) && (tree[0] != '$') && (!VoiceWorker::exists(tree)))
+				if ((tree) && (tree[0] != '$') && (!VoiceWorker::exists(tree, voice)))
 					arr[length arr] = tree;
 				break;
 			case "array":
@@ -1138,15 +1148,15 @@ class ConversationalIVR {
 	}
 
 	call(who, from, tree = null, max_duration = 300) {
-		var texts = this.getVoices(tree);
-		if ((!texts) || (length texts == 0))
-			return callSync(who, from, tree, max_duration);
-
 		var voice = "";
 		if (IsSet(ivr_voice, from))
 			voice = ivr_voice[from];
 		if (!voice)
 			voice = this.defaultVoice;
+
+		var texts = this.getVoices(tree, voice);
+		if ((!texts) || (length texts == 0))
+			return callSync(who, from, tree, max_duration);
 
 		var worker = voiceWorker(voice);
 		if (!worker)
@@ -1204,5 +1214,43 @@ class ConversationalIVR {
 		this.LoopCallback = loop_callback;
 		this.ivr.stack.OnAnswered = this.ivr.OnAnswered;
 		ivr.Start();
+	}
+}
+
+include XMLDocument.con
+include include/DataStore.con
+
+class ScorerWorker {
+	ScorerWorker(source) {
+		console.log(LOG_THIS, "started grammar model generator worker");
+		while (true) {
+			var data = ReadFile(source);
+			if (data) {
+				_unlink(source);
+				var arr = StrSplit(data, "\n");
+				var[] models;
+				for (var i = 0; i < length arr; i ++) {
+					var line = trim(arr[i]);
+					if (line) {
+						var model = StrSplit(line, ":");
+						if (length model == 2) {
+							console.log(LOG_THIS, "preparing model $line");
+							models[line] = model;
+						}
+					}
+				}
+
+				if (models) {
+					for (i = 0; i < length models; i ++) {
+						line = models[i];
+						if (line) {
+							var lang_id = line[1];
+							_system("./scripts/make_model.sh ./scorers/${line[0]} ./models/$lang_id");
+						}
+					}
+				}
+			}
+			Sleep(1000);
+		}
 	}
 }
