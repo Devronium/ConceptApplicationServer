@@ -1858,6 +1858,7 @@ class SIPStack {
 				if (child_session) {
 					child_session._private_data = session.CallID;
 					session.AddChild(child_session);
+					child_session.Expire = session.Expire;
 					child_session.OnMessage = function(child_session, msg, parent_session) {
 						var session = this.GetSessionById(child_session._private_data);
 						if (!session)

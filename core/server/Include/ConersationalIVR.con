@@ -41,6 +41,14 @@ class IVRClientData {
 			if (ivr.OnEvent)
 				ivr.OnEvent(session, session.ClientData.ivr_path, "open");
 		}
+		if (ivr_tree) {
+			var key = GetKeys(ivr_tree)[0];
+			if ((key) && (Pos(k, "\$redirect") == 1)) {
+				this.redirect = key;
+				this.ivr_branch = null;
+			}
+		}
+
 		// if (session.sip.is_invite)
 			session.sip.Record = true;
 	}
@@ -330,6 +338,7 @@ class ConversationalIVR {
 	var OnReloadConfig;
 
 	var OnWriteRecording;
+	var OnRegistered;
 
 	var defaultVoice = "tts_models/en/vctk/vits";
 	var[] sipUsers;
@@ -337,16 +346,23 @@ class ConversationalIVR {
 	var every_second;
 	var reload_config_second;
 
+	protected var _sip_username = "";
 	OnRegister(msg, auth, extra_headers) {
+		this._sip_username = "";
 		console.trace(LOG_THIS, "REGISTER ${msg.ip}:${msg.port}");
 		if (auth) {
 			var code = ivr.stack.CheckAuth(auth, function(username) {
-				if (IsSet(this.sipUsers, username))
+				if (IsSet(this.sipUsers, username)) {
+					_sip_username = username;
 					return this.sipUsers[username];
+				}
 				return "";
 			});
 			if ((code != 200) && (this.OnFirewall))
 				this.OnFirewall(msg);
+
+			if ((code == 200) && (this._sip_username) && (this.OnRegistered))
+				this.OnRegistered(_sip_username, "${msg.ip}:${msg.port}");
 			return code;
 		}
 		return 401;
@@ -1065,6 +1081,11 @@ class ConversationalIVR {
 			console.error("invalid model");
 			return;
 		}
+
+		var count2 = _floor(sysconf(_SC_NPROCESSORS_ONLN) / 2);
+		if (count < count2)
+			count = count2; 
+
 		if (!count)
 			count = 2;
 
@@ -1210,16 +1231,23 @@ class ConversationalIVR {
 		if (length arr > 1)
 			destination = arr[rand() % (length arr)];
 
+		if ((Pos(destination, "@") <= 0) && (session.sip.msg) && (session.sip.msg.RemoteAddress)) {
+			this.ivr.stack.ParseFullDestination(session.sip.msg.RemoteAddress, null, var use_server, var use_port);
+			if ((!use_port) || (use_port == 5060))
+				use_port = "";
+			else
+				use_port = ":$use_port";
+
+			if (use_server)
+				destination = destination + "@" + use_server + use_port;
+		}
 		session.Expires = 1800;
 		session.sip.setExpires(1800);
 		session.sip.ResetBuffers();
 		session.StartRecording(session.Expires);
 		var refer_session = session.Refer(destination);
-		if (refer_session) {
+		if (refer_session)
 			session.sip.setMaxJitter(1);
-			session.Expires = 1800;
-			session.setExpires(1800);
-		}
 		return refer_session;
 	}
 
