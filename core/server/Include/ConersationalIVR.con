@@ -48,6 +48,7 @@ class IVRClientData {
 				this.ivr_branch = null;
 			}
 		}
+		session.sip.NATMode = true;
 
 		// if (session.sip.is_invite)
 			session.sip.Record = true;
@@ -361,8 +362,13 @@ class ConversationalIVR {
 			if ((code != 200) && (this.OnFirewall))
 				this.OnFirewall(msg);
 
-			if ((code == 200) && (this._sip_username) && (this.OnRegistered))
-				this.OnRegistered(_sip_username, "${msg.ip}:${msg.port}");
+			if ((code == 200) && (this._sip_username) && (this.OnRegistered)) {
+				var msg_server = msg.ip;
+				if (msg.port != 5060)
+					msg_server += ":" + msg.port;
+
+				this.OnRegistered(_sip_username, msg_server);
+			}
 			return code;
 		}
 		return 401;
@@ -1136,11 +1142,11 @@ class ConversationalIVR {
 		return arr;
 	}
 
-	callSync(who, from, tree = null, max_duration = 300) {
+	callSync(who, from, tree = null, max_duration = 1800) {
 		var session = this.ivr.stack.Invite(who, from);
-		session.setExpires(max_duration);
 		console.log(LOG_THIS, "call $who by $from");
 		if (session) {
+			session.setExpires(max_duration);
 			if (tree) {
 				if (typeof tree == "string")
 					tree = [tree];
@@ -1152,7 +1158,7 @@ class ConversationalIVR {
 		return false;
 	}
 
-	callSyncAll(who, from, tree = null, max_duration = 300) {
+	callSyncAll(who, from, tree = null, max_duration = 1800) {
 		var gateway_arr = StrSplit(who, "@");
 		var gateway = "";
 		if (length gateway_arr == 2) {
@@ -1199,7 +1205,7 @@ class ConversationalIVR {
 		}
 	}
 
-	call(who, from, tree = null, max_duration = 300) {
+	call(who, from, tree = null, max_duration = 1800) {
 		var voice = "";
 		if (IsSet(ivr_voice, from))
 			voice = ivr_voice[from];
@@ -1247,7 +1253,7 @@ class ConversationalIVR {
 		session.StartRecording(session.Expires);
 		var refer_session = session.Refer(destination);
 		if (refer_session)
-			session.sip.setMaxJitter(1);
+			session.sip.setMaxJitter(2);
 		return refer_session;
 	}
 

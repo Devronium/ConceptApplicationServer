@@ -15,7 +15,7 @@ include TLSESocket.con
 include Speex.con
 
 define SIP_CODES	["100" => "Trying", "180" => "Ringing", "181" => "Call Is Being Forwarded", "182" => "Queued", "200" => "OK", "300" => "Multiple Choices", "301" => "Moved Permanently", "302" => "Moved Temporarily", "303" => "See Other", "305" => "Use Proxy", "380" => "Alternative Service", "400" => "Bad Request", "401" => "Unauthorized", "402" => "Payment Required", "403" => "Forbidden", "404" => "Not Found", "405" => "Method Not Allowed", "406" => "Not Acceptable", "407" => "Proxy Authentication Required", "408" => "Request Timeout", "409" => "Conflict", "410" => "Gone", "411" => "Length Required", "413" => "Request Entity Too Large", "414" => "Request-URI Too Large", "415" => "Unsupported Media Type", "420" => "Bad Extension", "480" => "Temporarily not available", "481" => "Call Leg/Transaction Does Not Exist", "482" => "Loop Detected", "483" => "Too Many Hops", "484" => "Address Incomplete", "485" => "Ambiguous", "486" => "Busy Here", "500" => "Internal Server Error", "501" => "Not Implemented", "502" => "Bad Gateway", "503" => "Service Unavailable", "504" => "Gateway Time-out", "505" => "SIP Version not supported", "600" => "Busy Everywhere", "603" => "Decline", "604" => "Does not exist anywhere", "606" => "Not Acceptable"]
-define SIP_ALLOW	"REGISTER,INVITE,ACK,CANCEL,BYE,REFER,NOTIFY,MESSAGE"
+define SIP_ALLOW	"REGISTER,INVITE,ACK,CANCEL,BYE,REFER,NOTIFY,MESSAGE,INFO"
 define SIP_SUPPORTED	"replaces, 100rel, timer, tdialog"
 define RTP_START_PORT	16000
 define RTP_END_PORT	32000
@@ -114,6 +114,8 @@ class SIPSession {
 
 	var remote_port = -1;
 	var remote_host = "";
+	var nat_remote_port = -1;
+	var nat_remote_host = "";
 	var remote_id = 0;
 	var ip;
 	var port;
@@ -133,7 +135,7 @@ class SIPSession {
 	var timestamp;
 
 	var write_timestamp;
-	var write_retry = 4;
+	var write_retry = 24;
 	var write_server;
 
 	var[] out_stack;
@@ -161,6 +163,8 @@ class SIPSession {
 
 	var MaxJitter;
 
+	var NATMode = false;
+
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
 		timestamp = RandomInteger(140, 140000) * 100;
@@ -179,6 +183,7 @@ class SIPSession {
 		ssrc_id = ClsPtr(this);
 		sequence_number = RandomInteger(0, 0xFFF);
 
+		NATMode = s.NATFriendly;
 		this.UpdateMedia(msg);
 	}
 
@@ -307,13 +312,18 @@ class SIPSession {
 			field += ";tag=" + SIPStack::RandomString(20);
 	}
 
-	Accept(code=200) {
+	Accept(code = 200) {
 		accept_bye = true;
 		bye_set = true;
 		var exc;
 		try {
 			this.s.use_socket = tcp_socket;
 			this.bye_msg = this.s.ResponseUDP(code, msg, msg.Headers["from"], this.GetSDP(), "application/sdp", 70, null, "", ip, port, true);
+			if ((code >= 200) && (code < 400)) {
+				this.write_timestamp = microseconds();
+				this.write_server = [ip, port];	
+			}
+
 			UpdateTags();
 			return true;
 		} catch (exc) {
@@ -321,7 +331,7 @@ class SIPSession {
 		}
 	}
 
-	Reject(code=486) {
+	Reject(code = 486) {
 		var exc;
 		try {
 			this.s.use_socket = tcp_socket;
@@ -535,8 +545,11 @@ class SIPSession {
 	}
 
 	CheckMedia(var type = null) {
-		if ((rtp) && (rtp.HasData))
-			return ParseRTP(rtp.Read(), type);
+		if ((rtp) && (rtp.HasData)) {
+			if (nat_remote_host)
+				return ParseRTP(rtp.Read(), type);
+			return ParseRTP(rtp.Read(nat_remote_host, nat_remote_port), type);
+		}
 
 		return "";
 	}
@@ -689,7 +702,13 @@ class SIPSession {
 			if ((write_timestamp) && (msg) && (write_server) && (microseconds() - write_timestamp >= 500000)) {
 				if (write_retry) {
 					this.write_timestamp = microseconds();
-					this.s.DoWrite(this.s.use_socket ?? this.s.udpclientsocket, msg.ToString(), write_server[0], write_server[1]);
+					if (bye_msg) {
+						this.s.DoWrite(this.s.use_socket ?? this.s.udpclientsocket, bye_msg.ToString(), write_server[0], write_server[1]);
+						console.warn(LOG_THIS, "rewrite response to ${write_server[0]}:${write_server[1]}");
+					} else {
+						this.s.DoWrite(this.s.use_socket ?? this.s.udpclientsocket, msg.ToString(), write_server[0], write_server[1]);
+						console.warn(LOG_THIS, "rewrite " + msg.Method + " to ${write_server[0]}:${write_server[1]}");
+					}
 					write_retry --;
 				} else {
 					write_timestamp = 0;
@@ -746,7 +765,10 @@ class SIPSession {
 							if (d_ivr) {
 								if (this.s.OnAudioOut)
 									this.s.OnAudioOut(s, d_ivr);
-								rtp.Write(SimpleRTP(d_ivr), remote_host, remote_port);
+								var rtp_payload = SimpleRTP(d_ivr);
+								rtp.Write(rtp_payload, remote_host, remote_port);
+								if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
+									rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
 							} else {
 								ivr = "";
 								ivr_chunk = 0;
@@ -765,7 +787,10 @@ class SIPSession {
 								buf = SubStr(buf, /*160*/f_size);
 								if (this.s.OnAudioOut)
 									this.s.OnAudioOut(s, d_buf);
-								rtp.Write(SimpleRTP(d_buf), remote_host, remote_port);
+								rtp_payload = SimpleRTP(d_buf);
+								rtp.Write(rtp_payload, remote_host, remote_port);
+								if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
+									rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
 							}
 							ops++;
 						}
@@ -780,7 +805,10 @@ class SIPSession {
 						for (i = 0; i < blocks; i++)
 							str += '\0\0\0\0\0\0\0\0\0\0';
 						buf = str;
-						rtp.Write(this.SimpleRTP(str), remote_host, remote_port);
+						rtp_payload = this.SimpleRTP(str);
+						rtp.Write(rtp_payload, remote_host, remote_port);
+						if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
+							rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
 					}
 					packet_time = microseconds() + 19000;
 					ops++;
@@ -915,6 +943,7 @@ class SIPUserInfo {
 
 	SIPUserInfo(username) {
 		this.username = username;
+		this.Update(600);
 	}
 
 	Update(timeout) {
@@ -1039,7 +1068,7 @@ class SIPStack {
 	var MaxJitter = 10;
 
 	var RegisterTimeout = 600;
-	var NonRoutableRegisterTimeout = 5;
+	var NonRoutableRegisterTimeout = 400;
 	var AllowAllOrigins = true;
 
 	var NATFriendly = false;
@@ -1420,6 +1449,21 @@ class SIPStack {
 		
 		this.Registrations = new_registrations;
 		return cleared;
+	}
+
+	GetRegistrationInfo(username) {
+		for (var i = 0; i < length this.Registrations; i ++) {
+			var reg = this.Registrations[i];
+			if ((reg) && (reg.username == username))
+				return reg;
+		}
+		return null;	
+	}
+
+	GetRegisteredInfo(username) {
+		if (IsSet(this.Users, username))
+			return this.Users[username];
+		return null;	
 	}
 
 	protected Register401(msg) {
@@ -2111,7 +2155,7 @@ class SIPStack {
 		return null;
 	}
 
-	CreateSession(msg, ip, port, check_branch = false) {
+	CreateSession(msg, ip, port, check_branch = false, var ref_session = null) {
 		var id = msg.Headers["call-id"];
 		if (id) {
 			var parent_session = Sessions[id];
@@ -2126,7 +2170,8 @@ class SIPStack {
 						return parent_session;
 					}
 				}
-				echo "Session $id already exists\n";
+				ref_session = parent_session;
+				console.warn(LOG_THIS, "Session $id already exists");
 				return null;
 			}
 
@@ -2844,7 +2889,7 @@ class SIPStack {
 				case "INVITE":
 					SIPSession::EnsureTag(msg.Headers["from"]);
 					SIPSession::EnsureTag(msg.Headers["to"]);
-					var sess = this.CreateSession(msg, ip, port, true);
+					var sess = this.CreateSession(msg, ip, port, true, var ref_session);
 					if (sess) {
 						if (non_routable)
 							this.ResponseUDP(180, msg, msg.Headers["from"], "", "", 70, null, "", sess.ip, sess.port);
@@ -2854,8 +2899,14 @@ class SIPStack {
 						if (this.OnInvite)
 							this.OnInvite(sess, msg);
 					} else {
-						echo "Cannot create session (session/branch already exists?)\n";
-						// this.ResponseUDP(430, msg, msg.Headers["from"], "", "", 70, null, "", ip, port);
+						console.warn(LOG_THIS, "Cannot create session (session/branch already exists?)");
+						if ((ref_session) && (ref_session.ip == ip) && (ref_session.port == port)) {
+							console.info(LOG_THIS, "Repeating 180 response");
+							if (non_routable)
+								this.ResponseUDP(180, msg, msg.Headers["from"], "", "", 70, null, "", ref_session.ip, ref_session.port);
+							else
+								this.ResponseUDP(180, msg, msg.Headers["from"]);
+						}
 					}
 					break;
 				case "REGISTER":
@@ -2931,7 +2982,11 @@ class SIPStack {
 					}
 					break;
 				case "ACK":
-					// ignore it
+					sess = this.GetSession(msg);
+					if (sess) {
+						sess.write_timestamp = 0;
+						delete sess.write_server;
+					}
 					break;
 				case "MESSAGE":
 					var message_response = 202;
@@ -3000,6 +3055,14 @@ class SIPStack {
 						this.ResponseUDP(code, msg, msg.Headers["from"]);
 					if (this.OnAfterPublish)
 						this.OnAfterPublish(msg);
+					break;
+				case "OPTIONS":
+					if (!extra_headers)
+						extra_headers = new [];
+					if (non_routable)
+						this.ResponseUDP(200, msg, msg.Headers["from"], "", "", 70, extra_headers, "", ip, port);
+					else
+						this.ResponseUDP(200, msg, msg.Headers["from"], "", "", 70, extra_headers);
 					break;
 				default:
 					var parent = null;
