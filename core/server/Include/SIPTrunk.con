@@ -704,10 +704,8 @@ class SIPSession {
 					this.write_timestamp = microseconds();
 					if (bye_msg) {
 						this.s.DoWrite(this.s.use_socket ?? this.s.udpclientsocket, bye_msg.ToString(), write_server[0], write_server[1]);
-						console.warn(LOG_THIS, "rewrite response to ${write_server[0]}:${write_server[1]}");
 					} else {
 						this.s.DoWrite(this.s.use_socket ?? this.s.udpclientsocket, msg.ToString(), write_server[0], write_server[1]);
-						console.warn(LOG_THIS, "rewrite " + msg.Method + " to ${write_server[0]}:${write_server[1]}");
 					}
 					write_retry --;
 				} else {
@@ -1092,7 +1090,7 @@ class SIPStack {
 				tcpsocket = new TLSESocket();
 				tcpsocket.Listen(bind_port, 0xFFFF, "", force_tls_version);
 				if (!tcpsocket.LoadKeys(public_key, private_key))
-					echo "Warning: Error loading TLS/SSL keys. TLS will not be supported.";
+					echo "Warning: Error loading TLS/SSL keys. TLS will not be supported.\n";
 				Transport = "TLS";
 				tcp = true;
 				break;
@@ -2171,7 +2169,7 @@ class SIPStack {
 					}
 				}
 				ref_session = parent_session;
-				console.warn(LOG_THIS, "Session $id already exists");
+				echo "Session $id already exists\n";
 				return null;
 			}
 
@@ -2899,9 +2897,9 @@ class SIPStack {
 						if (this.OnInvite)
 							this.OnInvite(sess, msg);
 					} else {
-						console.warn(LOG_THIS, "Cannot create session (session/branch already exists?)");
+						echo "Cannot create session (session/branch already exists?)\n";
 						if ((ref_session) && (ref_session.ip == ip) && (ref_session.port == port)) {
-							console.info(LOG_THIS, "Repeating 180 response");
+							echo "Repeating 180 response\n";
 							if (non_routable)
 								this.ResponseUDP(180, msg, msg.Headers["from"], "", "", 70, null, "", ref_session.ip, ref_session.port);
 							else
