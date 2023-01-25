@@ -28,14 +28,18 @@ class IVRClientData {
 		this.ivr_branch = ivr_tree;
 		this.hash = Murmur(session.sip.CallID);
 		this.timestamp = microseconds();
-		if ((ivr.OnAPI) && (typeof ivr_tree == "array")) {
-			var k = GetKeys(ivr_tree)[0];
-			if (k) {
-				if (Pos(k, "\$api") == 1) {
-					this.finish_api = trim(SubStr(k, 4));
-					ivr.OnAPI(session, session.ClientData.ivr_path, this.finish_api, "open");
+		if (((ivr.OnAPI) || (ivr.OnEvent)) && (typeof ivr_tree == "array")) {
+			if (ivr.OnAPI) {
+				var k = GetKeys(ivr_tree)[0];
+				if (k) {
+					if (Pos(k, "\$api") == 1) {
+						this.finish_api = trim(SubStr(k, 4));
+						ivr.OnAPI(session, session.ClientData.ivr_path, this.finish_api, "open");
+					}
 				}
 			}
+			if (ivr.OnEvent)
+				ivr.OnEvent(session, session.ClientData.ivr_path, "open");
 		}
 		// if (session.sip.is_invite)
 			session.sip.Record = true;
@@ -318,11 +322,14 @@ class ConversationalIVR {
 	var OnFinish;
 	var OnBranch;
 	var OnAPI;
+	var OnEvent;
 
 	var OnFirewall;
 
 	var LoopCallback;
 	var OnReloadConfig;
+
+	var OnWriteRecording;
 
 	var defaultVoice = "tts_models/en/vctk/vits";
 	var[] sipUsers;
@@ -578,6 +585,8 @@ class ConversationalIVR {
 			_system("ffmpeg -loglevel fatal $params-filter_complex \"${filter}amix\" -ac 1 -qscale:a 2 \"$output_file\" &");
 			session.StopRecording();
 			session.sip.RecordBuffers = null;
+			if (this.OnWriteRecording)
+				this.OnWriteRecording(session, output_file);
 		}
 	}
 
@@ -606,6 +615,8 @@ class ConversationalIVR {
 			this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
 			session.ClientData.finish_api = "";
 		}
+		if ((session) && (session.ClientData) && (this.OnEvent))
+			this.OnEvent(session, session.ClientData.ivr_path, "close");
 		if (session)
 			this.writeRecording(session);
 	}
@@ -658,8 +669,8 @@ class ConversationalIVR {
 			return;
 		}
 
-		if ((this.OnAPI) && (text[0] == "\$")) {
-			if (Pos(text, "\$api") == 1) {
+		if (text[0] == "\$") {
+			if ((this.OnAPI) && (Pos(text, "\$api") == 1)) {
 				session.ClientData.api = true;
 				var message = this.OnAPI(session, session.ClientData.ivr_path, trim(SubStr(text, 4)), "tree");
 				session.ClientData.count = 0;
@@ -676,6 +687,8 @@ class ConversationalIVR {
 				this.refer(session, trim(SubStr(text, 9)));
 				session.ClientData.count = 0;
 				session.EndOnIVRFinished = false;
+				if (this.OnEvent)
+					this.OnEvent(session, session.ClientData.ivr_path, "redirect");
 				return;
 			}
 		}
@@ -785,7 +798,6 @@ class ConversationalIVR {
 								this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
 								session.ClientData.finish_api = "";
 							}
-
 							if (this.OnFinish)
 								this.checkMessage(id, this.OnFinish(session, session.ClientData.ivr_path), append);
 						} catch (exc) {
@@ -1119,6 +1131,25 @@ class ConversationalIVR {
 		return false;
 	}
 
+	callSyncAll(who, from, tree = null, max_duration = 300) {
+		var gateway_arr = StrSplit(who, "@");
+		var gateway = "";
+		if (length gateway_arr == 2) {
+			who = gateway_arr[0];
+			gateway = "@" + gateway_arr[1];
+		}
+		var arr = StrSplit(who, ",");
+		var idx = 0;
+		for (var i = 0; i < length arr; i ++) {
+			var phone = trim(arr[i]);
+			if (phone) {
+				if (this.callSync(phone + gateway, from, tree, max_duration))
+					idx ++;
+			}
+		}
+		return idx;
+	}
+
 	OnIdle_voiceWorker(worker) {
 		worker.GetAll(var data, 0, 100);
 		if (data) {
@@ -1129,7 +1160,7 @@ class ConversationalIVR {
 
 				switch (obj.opaque[0]) {
 					case 1:
-						this.callSync(obj.opaque[1], obj.opaque[2], obj.opaque[3], obj.opaque[4]);
+						this.callSyncAll(obj.opaque[1], obj.opaque[2], obj.opaque[3], obj.opaque[4]);
 						break;
 					case 2:
 						var session = this.ivr.GetSessionById(obj.opaque[1]);
@@ -1156,7 +1187,7 @@ class ConversationalIVR {
 
 		var texts = this.getVoices(tree, voice);
 		if ((!texts) || (length texts == 0))
-			return callSync(who, from, tree, max_duration);
+			return callSyncAll(who, from, tree, max_duration);
 
 		var worker = voiceWorker(voice);
 		if (!worker)
@@ -1180,12 +1211,14 @@ class ConversationalIVR {
 			destination = arr[rand() % (length arr)];
 
 		session.Expires = 1800;
+		session.sip.setExpires(1800);
 		session.sip.ResetBuffers();
 		session.StartRecording(session.Expires);
 		var refer_session = session.Refer(destination);
 		if (refer_session) {
 			session.sip.setMaxJitter(1);
 			session.Expires = 1800;
+			session.setExpires(1800);
 		}
 		return refer_session;
 	}
@@ -1214,43 +1247,5 @@ class ConversationalIVR {
 		this.LoopCallback = loop_callback;
 		this.ivr.stack.OnAnswered = this.ivr.OnAnswered;
 		ivr.Start();
-	}
-}
-
-include XMLDocument.con
-include include/DataStore.con
-
-class ScorerWorker {
-	ScorerWorker(source) {
-		console.log(LOG_THIS, "started grammar model generator worker");
-		while (true) {
-			var data = ReadFile(source);
-			if (data) {
-				_unlink(source);
-				var arr = StrSplit(data, "\n");
-				var[] models;
-				for (var i = 0; i < length arr; i ++) {
-					var line = trim(arr[i]);
-					if (line) {
-						var model = StrSplit(line, ":");
-						if (length model == 2) {
-							console.log(LOG_THIS, "preparing model $line");
-							models[line] = model;
-						}
-					}
-				}
-
-				if (models) {
-					for (i = 0; i < length models; i ++) {
-						line = models[i];
-						if (line) {
-							var lang_id = line[1];
-							_system("./scripts/make_model.sh ./scorers/${line[0]} ./models/$lang_id");
-						}
-					}
-				}
-			}
-			Sleep(1000);
-		}
 	}
 }
