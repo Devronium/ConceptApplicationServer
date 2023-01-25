@@ -100,7 +100,7 @@ class SIPSession {
 	public var UserData;
 	public var tcp_socket;
 
-	private var Expire = 0;
+	public var Expire = 0;
 	public var msg;
 	public var bye_msg;
 	public var is_invite;

@@ -357,6 +357,11 @@ class IVR {
 		if (res) {
 			session.UserData = new DATASession(this.Get, session, from, msg_to);
 			session.OnReferError = this.OnReferError;
+			if (session.Parent) {
+				var delta = session.Expire - time();
+				if (delta > 0)
+					session.UserData.Expires = delta;
+			}
 			session.LoadVoice(Get("empty"));
 			this.ParseArray(session, res);
 			session.Accept();
@@ -381,6 +386,11 @@ class IVR {
 		if (res) {
 			session.UserData = new DATASession(this.Get, session, from, msg_to);
 			session.OnReferError = this.OnReferError;
+			if (session.Parent) {
+				var delta = session.Expire - time();
+				if (delta > 0)
+					session.UserData.Expires = delta;
+			}
 			session.LoadVoice(Get("empty"));
 			this.ParseArray(session, res);
 			if (Begin)
