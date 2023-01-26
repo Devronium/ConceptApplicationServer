@@ -284,6 +284,7 @@ public:
     INTEGER IncludePackage(const char *filename);
     INTEGER IncludeFile(const char *MODULE_NAME, INTEGER on_line);
     INTEGER RuntimeIncludeCode(const char *CODE);
+    INTEGER BuiltInCode(const char *cls, const char *CODE);
 
     AnsiString NormalizePath(AnsiString *MODULE_NAME);
 

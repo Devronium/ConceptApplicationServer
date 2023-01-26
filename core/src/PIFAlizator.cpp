@@ -2924,6 +2924,23 @@ INTEGER PIFAlizator::RuntimeIncludeCode(const char *CODE) {
     return 1;
 }
 
+INTEGER PIFAlizator::BuiltInCode(const char *cls, const char *CODE) {
+    INCLUDE_LEVEL++;
+    AnsiString ModuleStream = CODE;
+    AnsiString OldFile = FileName;
+    FileName = "*/";
+    FileName += cls;
+
+    if (!ListContains(FileName.c_str(), IncludedList))
+        IncludedList->Add(new TinyString(FileName.c_str()), DATA_TINYSTRING);
+
+    Execute(&ModuleStream, 0, USE_WARN, USE_EXC, USE_IMPLICIT);
+    FileName = OldFile;
+
+    INCLUDE_LEVEL--;
+    return 1;
+}
+
 INTEGER PIFAlizator::IncludeFile(const char *MODULE_NAME, INTEGER on_line) {
     INCLUDE_LEVEL++;
     AnsiString FILENAME             = MODULE_NAME;
@@ -2933,6 +2950,15 @@ INTEGER PIFAlizator::IncludeFile(const char *MODULE_NAME, INTEGER on_line) {
     AnsiString OldFile;
     AnsiString OLD_TEMP_INC_DIR;
     AnsiString MODULE_NAME_DIR;
+
+
+    if ((MODULE_NAME) && (MODULE_NAME[0]) && (MODULE_NAME[0] == '*') && (MODULE_NAME[1] == '/')) {
+        int found = 1;
+        if (!ListContains(FILENAME.c_str(), IncludedList))
+            BUILTINOBJECTS(this, MODULE_NAME + 2);
+        INCLUDE_LEVEL--;
+        return found;
+    }
 
     RELATIVE_MODULE_NAME = this->NormalizePath(&RELATIVE_MODULE_NAME);
 
@@ -3640,8 +3666,6 @@ struct PromiseData *PIFAlizator::GetPromise(void  *ID) {
 }
 
 void PIFAlizator::ResolvePromise(struct PromiseData *pdata) {
-    INTEGER i;
-
     if (!pdata)
         return;
 

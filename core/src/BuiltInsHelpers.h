@@ -155,7 +155,7 @@
 #define IS_BUILTIN2(name, funcname, builtinfunction)    if (!strcmp(name, funcname)) return (void *)&CONCEPT_ ## builtinfunction;
 
 #define BUILTINCLASS(cls, code)                         BUILTINCLASS2(classname, PIF, cls, code)
-#define BUILTINCLASS2(name, PIF, cls, code)             if (!strcmp(name, cls)) { PIF->enable_private = 1; PIF->RuntimeIncludeCode(code); PIF->enable_private = 0; return 1; }
+#define BUILTINCLASS2(name, PIF, cls, code)             if (!strcmp(name, cls)) { PIF->enable_private = 1; PIF->BuiltInCode(cls, code); PIF->enable_private = 0; return 1; }
 
 #define WRAP_FUNCTION(lib, name)     CONCEPT_FUNCTION_IMPL(name, 1) T_NUMBER(name, 0) RETURN_NUMBER(name(PARAM(0))); END_IMPL
 #define WRAP_FUNCTION2(lib, name)    CONCEPT_FUNCTION_IMPL(name, 2) T_NUMBER(name, 0) T_NUMBER(name, 1) RETURN_NUMBER(name(PARAM(0), PARAM(1))); END_IMPL
