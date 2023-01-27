@@ -260,6 +260,7 @@ class _webrequest {
 	var session;
 	var token;
 	var template = "";
+	var lang = "";
 
 	protected var _onpost;
 	protected var _ondata;
@@ -360,22 +361,48 @@ class _webrequest {
 		this.web.flush();
 	}
 
+	protected addLangToPath(path) {
+		if (!lang)
+			return path;
+
+		for (var i = length path - 1; i >= 0; i --) {
+			var e = path[i];
+			if ((e == "/") || (e == "\\")) {
+				path[i] = path[i] + lang + e;
+				return path;
+			}
+		}
+
+		return lang + "/" + path;
+	}
+
+	protected templateData(template) {
+		var fullpath;
+
+		if (lang) {
+			var template_lang = this.addLangToPath(template);
+			if (template_lang[0] != "/")
+				fullpath = this.web.fs.safepath(this.web.path) + template_lang;
+			else
+				fullpath = template_lang;
+			if (FileExists(fullpath))
+				return ReadFile(fullpath);
+		}
+
+		if (template[0] != "/")
+			fullpath = this.web.fs.safepath(this.web.path) + template;
+		else
+			fullpath = template;
+
+		return ReadFile(fullpath);
+	}
+
 	put(array data) {
 		if (template) {
-			var fullpath;
-			if (template[0] != "/")
-				fullpath = this.web.fs.safepath(this.web.path) + template;
-			else
-				fullpath = template;
-			var tpl = ReadFile(fullpath);
+			var tpl = this.templateData(this.template);
 			if (tpl) {
 				var str = mustache(tpl, data, var err, function(template) {
-					var fullpath;
-					if (template[0] != "/")
-						fullpath = this.web.fs.safepath(this.web.path) + template;
-					else
-						fullpath = template;
-					var tpl = ReadFile(fullpath);
+					var tpl = this.templateData(template);
 					if (tpl)
 						return tpl;
 				});
