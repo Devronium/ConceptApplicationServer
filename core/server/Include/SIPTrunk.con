@@ -522,9 +522,9 @@ class SIPSession {
 		if (this.s.SRTP) {
 			if (!srtp)
 				srtp = new SRTPContext();
-			res = "v=0\r\no=somebody ${ClsPtr(this)} ${VarPtr(this)} IN IP4 ${s.localip}\t\ns=Concept\r\nc=IN IP4 ${s.localip}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/SAVP $codec\r\na=crypto:1 AES_CM_128_HMAC_SHA1_32 inline:${srtp.RandomInit(32)}\r\n";
+			res = "v=0\r\no=somebody ${ClsPtr(this)} ${VarPtr(this)} IN IP4 ${s.localip}\r\ns=Concept\r\nc=IN IP4 ${s.localip}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/SAVP $codec\r\na=crypto:1 AES_CM_128_HMAC_SHA1_32 inline:${srtp.RandomInit(32)}\r\n";
 		} else
-			res = "v=0\r\no=somebody ${ClsPtr(this)} ${VarPtr(this)} IN IP4 ${s.localip}\t\ns=Concept\r\nc=IN IP4 ${s.localip}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/AVP $codec\r\na=rtpmap:$codec PCMA/8000\r\n";
+			res = "v=0\r\no=somebody ${ClsPtr(this)} ${VarPtr(this)} IN IP4 ${s.localip}\r\ns=Concept\r\nc=IN IP4 ${s.localip}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/AVP $codec\r\na=rtpmap:$codec PCMA/8000\r\n";
 		if (extra)
 			res += "a=$extra\r\n";
 		sdp_out = res;

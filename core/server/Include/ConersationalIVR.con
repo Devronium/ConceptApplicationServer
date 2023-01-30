@@ -48,7 +48,7 @@ class IVRClientData {
 				this.ivr_branch = null;
 			}
 		}
-		session.sip.NATMode = true;
+		// session.sip.NATMode = true;
 
 		// if (session.sip.is_invite)
 			session.sip.Record = true;
