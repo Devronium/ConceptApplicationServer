@@ -1747,6 +1747,12 @@ class SIPStack {
 		} else
 			return null;
 
+		if ((!ip) && (!port)) {
+			var contact_header = parent_msg.Headers["contact"];
+			if (contact_header)
+				this.ParseFullDestination(contact_header, null, ip, port);
+		}
+
 
 		msg.Destination = sipproto + server;
 		if (server_port != 5060)
