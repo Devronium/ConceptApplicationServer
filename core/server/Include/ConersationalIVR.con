@@ -694,14 +694,20 @@ class ConversationalIVR {
 		if (text[0] == "\$") {
 			if ((this.OnAPI) && (Pos(text, "\$api") == 1)) {
 				session.ClientData.api = true;
-				var message = this.OnAPI(session, session.ClientData.ivr_path, trim(SubStr(text, 4)), "tree");
+				var action = trim(SubStr(text, 4));
+				var message = this.OnAPI(session, session.ClientData.ivr_path, action, "tree");
 				session.ClientData.count = 0;
 				if (message) {
 					this.checkMessage(id, message);
 					session.ClientData.api = false;
 				} else {
 					// async call
-					session.EndOnIVRFinished = false;
+					if ((Pos(ToLower(action), "mailto:") == 1) || (Pos(ToLower(action), "sms:") == 1)) {
+						session.EndOnIVRFinished = true;
+						session.Close();
+					} else {
+						session.EndOnIVRFinished = false;
+					}
 				}
 				return;
 			} else
