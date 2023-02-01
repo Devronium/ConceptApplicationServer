@@ -605,8 +605,11 @@ class web {
 			case "post":
 				if ((id) && (typeof id == "string") && (IsSet(requestdata, id))) {
 					obj = requestdata[id];
-					if ((obj) && (obj.onpost))
-						obj.onpost(data["data"]);
+					if ((obj) && (obj.onpost)) {
+						var data_len = data["len"];
+						if ((data_len) && (data_len >= obj.headers["content-length"]))
+							obj.onpost(data["data"]);
+					}
 				}
 				break;
 			case "data":

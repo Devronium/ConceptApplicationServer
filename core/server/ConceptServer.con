@@ -14,7 +14,7 @@ define CONCEPT_STRICT_EXECUTE	false
 define SERVER_NAME		"cas"
 define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/cgi1.1/http2/ess/async)"
 define USE_DB_SERVICE		true
-define CONCEPT_LEGACY_PROTOCOL	false
+define CONCEPT_LEGACY_PROTOCOL	true
 define CONCEPT_ENABLE_REWRITE	true
 define CONCEPT_APP_SANDBOX	false
 define CONCEPT_CAS_SANDBOX	CONCEPT_APP_SANDBOX
@@ -968,11 +968,13 @@ class ConceptCASChild extends ConceptAsyncChild {
 			owner.ClearCache(this);
 	}
 
-	remotenotify(action, data = null, priority = 0) {
+	remotenotify(action, data = null, priority = 0, buffer_len = 0) {
 		if (worker) {
 			var arr = ["q" => reqid, "do" => action, "_" => microseconds()];
 			if (data)
 				arr["data"] = data;
+			if (buffer_len)
+				arr["len"] = buffer_len;
 			worker.CacheData(arr, priority);
 		}
 	}
@@ -994,7 +996,7 @@ class ConceptCASChild extends ConceptAsyncChild {
 		if (is_url_encoded) {
 			url_buffer += data;
 			var parsed = ParseQueryString(trim(url_buffer));
-			this.remotenotify("post", parsed);
+			this.remotenotify("post", parsed, 0, length url_buffer);
 			if (length url_buffer > MAX_RECV_BUFFER)
 				url_buffer = "";
 			if (env_data)

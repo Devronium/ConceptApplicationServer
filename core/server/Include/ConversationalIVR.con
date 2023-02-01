@@ -1,3 +1,5 @@
+#!/usr/local/bin/conceptcli -chdir
+
 import standard.lib.samplerate
 import standard.lib.json
 
@@ -790,6 +792,7 @@ class ConversationalIVR {
 			var k2 = keys[j];
 			if (!k2)
 				continue;
+
 			if ((k2[0] == "/") && (k2[length k2 - 1] == "/")) {
 				var regexp = new RegExp(SubStr(k2, 1, length k2 - 2));
 				if (regexp.test(text))
@@ -801,7 +804,7 @@ class ConversationalIVR {
 				k2 = StrReplace(k2, ":", "|");
 				var arr = StrSplit(k2, "|");
 				for (var jj = 0; jj < length arr; jj ++) {
-					var k = arr[jj];
+					var k = trim(arr[jj]);
 					if ((k) && (Pos(text, k) > 0)) {
 						message_understood = true;
 						break;
@@ -1067,9 +1070,6 @@ class ConversationalIVR {
 	ConversationalIVR(sip_host, sip_port = 5060, in_band_dtmf = true) {
 		ivr = new IVR(sip_host, sip_port, 40);
 
-		if (in_band_dtmf)
-			ivr.OnDTMF = this.OnDTMF;
-
 		ivr.GreetingTo = this.OnGreeting;
 		ivr.AnswerGreeting = this.OnAnswerGreeting;
 		ivr.AudioFrame = this.OnAudioFrame;
@@ -1083,7 +1083,8 @@ class ConversationalIVR {
 		ivr.stack.OnResponse = this.OnResponseMessage;
 
 		ivr.stack.OnDTMFRelay = this.OnDTMFRelay;
-
+		if (in_band_dtmf)
+			ivr.stack.OnDTMF = this.OnDTMFRelay;
 
 		ivr.LoopCallback = this.OnIdle;
 	}
