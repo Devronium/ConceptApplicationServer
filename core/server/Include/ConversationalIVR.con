@@ -79,6 +79,7 @@ class STTWorkerObject {
 	var last_str = "";
 	var send_timestamp;
 	var text_timestamp;
+	var words;
 
 	STTWorkerObject(id) {
 		this.id = id;
@@ -128,7 +129,7 @@ class STTWorkerObject {
 		if (!send_timestamp)
 			send_timestamp = microseconds();
 
-		if (microseconds() - send_timestamp >= 1200000) {
+		if (microseconds() - send_timestamp >= 800000) {
 			send_timestamp = microseconds();
 			return true;
 		}
@@ -187,6 +188,7 @@ class STTWorker {
 								worker_obj.stream.close();
 							delete worker_obj.stream;
 							worker_obj.last_str = "";
+							worker_obj.words = obj.buffer;
 						}
 						objects[obj.id] = null;
 					}
@@ -209,11 +211,14 @@ class STTWorker {
 					if (worker_obj.textAge() >= 250) {
 						var str = worker_obj.stream.decode();
 						if ((str) && (worker_obj.canSend())) {
-							worker_obj.last_str = str;
-							Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TEXT, str)));
-							if (length str > max_response_length) {
-								console.trace(LOG_THIS, "resetting buffer for ${obj.id}");
-								worker_obj.reset();
+							if (worker_obj.last_str != str) {
+								worker_obj.last_str = str;
+							} else {
+								Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TEXT, str)));
+								if (length str > max_response_length) {
+									console.trace(LOG_THIS, "resetting buffer for ${obj.id}");
+									worker_obj.reset();
+								}
 							}
 						}
 						worker_obj.resetText();
@@ -536,6 +541,35 @@ class ConversationalIVR {
 		}
 	}
 
+	setWords(session) {
+		var[] arr;
+		var[] set_words;
+		var keys = GetKeys(session.ClientData.ivr_branch);
+		for (var i = 0; i < length keys; i ++) {
+			var k2 = keys[i];
+			if ((k2[0] == "/") && (k2[length k2 - 1] == "/")) {
+				return null;
+			} else {
+				k2 = StrReplace(k2, ",", "|");
+				k2 = StrReplace(k2, ".", "|");
+				k2 = StrReplace(k2, ";", "|");
+				k2 = StrReplace(k2, ":", "|");
+				var subkeys = StrSplit(k2, "|");
+				for (var jj = 0; jj < length subkeys; jj ++) {
+					var k = trim(subkeys[jj]);
+					if ((k) && (!set_words[k])) {
+						arr[length arr] = k;
+						set_words[k] = true;
+					}
+				}
+			}
+
+		}
+		if (arr)
+			return arr;
+		return null;
+	}
+
 	IVRFinished(session) {
 		if ((!session) || (session.EndOnIVRFinished))
 			return;
@@ -559,7 +593,7 @@ class ConversationalIVR {
 
 		var stt_worker = this.chooseWorker(session, session.ClientData.hash);
 		if (stt_worker)
-			stt_worker.AddData(BinarizeObject(new STTWorkerData(session.sip.CallID, STT_RESET)));
+			stt_worker.AddData(BinarizeObject(new STTWorkerData(session.sip.CallID, STT_RESET, this.setWords(session))));
 		else
 			console.error(LOG_THIS, "no workers for ${session.To}, callid ${session.sip.CallID}");
 	}
@@ -726,7 +760,7 @@ class ConversationalIVR {
 
 		var stt_worker = this.chooseWorker(session, session.ClientData.hash);
 		if (stt_worker)
-			stt_worker.AddData(BinarizeObject(new STTWorkerData(id, STT_RESET)));
+			stt_worker.AddData(BinarizeObject(new STTWorkerData(id, STT_RESET, this.setWords(session))));
 		else
 			console.error(LOG_THIS, "no workers for ${session.To}, callid ${session.sip.CallID}");
 	}

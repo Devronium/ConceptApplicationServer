@@ -41,6 +41,7 @@ define H2_ERR_HTTP_1_1_REQUIRED	0x0d
 define H2_MAX_LEN		16384
 define H2_MAX_PROTO_ERROR_FRAME	16777215
 define H2_SEND_WINDOWUPDATE	32767
+define H2_X_SEND_WINDOWUPDATE	H2_SEND_WINDOWUPDATE
 define H2_INITIAL_WINDOW	0xFFFF
 define H2_WINDOWUPDATE_VALUE	0xFFFF
 
@@ -227,7 +228,7 @@ class HTTP2 {
 			if (typeof headers_e != "array") {
 				headers_e = [ headers_e ];
 				headers[e_val] = headers_e;
-			}								
+			}
 			headers_e[length headers_e] = val;
 		} else
 			headers[e_val] = val;
@@ -824,7 +825,7 @@ class HTTP2Socket {
 								this.AddBuffer(HTTP2::Frame(streamid, pack("U32", H2_X_INITIAL_WINDOW_SIZE_VAL), H2_WINDOWUPDATE));
 								stream.TotalReceived = 0;
 							}
-							if (this.TotalReceived >= H2_X_INITIAL_WINDOW_SIZE) {
+							if (this.TotalReceived >= H2_X_SEND_WINDOWUPDATE) {
 								this.AddBuffer(HTTP2::Frame(0, pack("U32", H2_X_INITIAL_WINDOW_SIZE_VAL), H2_WINDOWUPDATE));
 								this.TotalReceived = 0;
 							}
