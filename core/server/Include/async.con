@@ -607,8 +607,11 @@ class web {
 					obj = requestdata[id];
 					if ((obj) && (obj.onpost)) {
 						var data_len = data["len"];
-						if ((data_len) && (data_len >= obj.headers["content-length"]))
-							obj.onpost(data["data"]);
+						if ((data_len) && (data_len >= obj.headers["content-length"])) {
+							var arr = data["data"];
+							obj.POST = arr;
+							obj.onpost(arr);
+						}
 					}
 				}
 				break;

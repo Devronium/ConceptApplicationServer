@@ -737,12 +737,14 @@ class HTTP2Socket {
 		if (Status < 0)
 			throw "HTTP2Socket/ReadPending: Connection is no longer active";
 
-		var buf = this.Socket.Read();
-		if (!buf) {
+		try {
+			var buf = this.Socket.Read();
+			if (buf)
+				InBuffer += buf;
+		} catch (var exc) {
 			this.Reset(-4);
 			throw "Broken HTTP2Socket/Read";
 		}
-		InBuffer += buf;
 		return length InBuffer;
 	}
 
@@ -1022,6 +1024,7 @@ class HTTP2Socket {
 			return 0;
 
 		if (OutBuffer) {
+
 			if ((MaxOutputBuffer) && (length OutBuffer > MaxOutputBuffer))
 				throw "HTTP2Socket/WritePendig: buffer overflow";
 
