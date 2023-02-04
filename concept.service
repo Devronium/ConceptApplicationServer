@@ -1,0 +1,11 @@
+[Unit]
+Description=Concept Application Server
+
+[Service]
+User=root
+WorkingDirectory=/usr/local/sbin/
+ExecStart=/usr/local/sbin/ConceptServer.con
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -14,7 +14,7 @@ define CONCEPT_STRICT_EXECUTE	false
 define SERVER_NAME		"cas"
 define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/cgi1.1/http2/ess/async)"
 define USE_DB_SERVICE		true
-define CONCEPT_LEGACY_PROTOCOL	true
+define CONCEPT_LEGACY_PROTOCOL	false
 define CONCEPT_ENABLE_REWRITE	true
 define CONCEPT_APP_SANDBOX	false
 define CONCEPT_CAS_SANDBOX	CONCEPT_APP_SANDBOX
