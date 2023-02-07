@@ -9,10 +9,12 @@ class TTSHelper {
 		this.modelName = model_name;
 	}
 
-	static tts(text, model, out_path) {
+	static tts(text, model, out_path, extra_params = "") {
 		text = StrReplace(text, "\\", "\\\\");
 		text = StrReplace(text, "\"", "\\\"");
-		return _system("tts --text \"$text\" --model_name \"$model\" --out_path \"$out_path\"");
+		if (extra_params)
+			extra_params = " " + extra_params;
+		return _system("tts --text \"$text\" --model_name \"$model\" --out_path \"$out_path\"$extra_params");
 	}
 
 	speak(text, out_path) {

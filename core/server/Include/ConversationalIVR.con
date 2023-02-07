@@ -208,7 +208,6 @@ class STTWorker {
 					var buf2 = resample(alaw2pcm(obj.buffer), 8000, modelSampleRate);
 					worker_obj.stream.feed(buf2);
 
-
 					if (worker_obj.textAge() >= 250) {
 						var str = worker_obj.stream.decode();
 						if ((str) && (worker_obj.canSend())) {
@@ -234,6 +233,7 @@ class STTWorker {
 					console.warn(LOG_THIS, exc);
 				}
 			}
+
 			if (microseconds() - clear_time_stamp >= 3000000) {
 				var new_obj = new [];
 				var cleared = 0;
@@ -292,7 +292,7 @@ class VoiceWorker {
 		if (!FileExists("./repository/alaw/$fname.alaw")) {
 			TTSHelper::tts(text, voice, "./repository/$fname.wav");
 			_unlink("./repository/alaw/$fname.alaw");
-			_system("ffmpeg -loglevel error -i \"./repository/$fname.wav\" -ac 1 -ar 8000 -f s8 -acodec pcm_alaw \"./repository/alaw/$fname.alaw\"");
+			_system("ffmpeg -loglevel error -i \"./repository/$fname.wav\" -ac 1 -ar 8000 -f s8 -acodec pcm_alaw \"./repository/alaw/$fname.alaw\"; rm \"./repository/$fname.wav\"");
 		}
 		return fname;
 	}
@@ -413,6 +413,11 @@ class ConversationalIVR {
 	}
 
 	DoTTSAsync(text, voice = "", session = null, append = false) {
+		if (!voice) {
+			console.warn(LOG_THIS, "using default voice");
+			voice = this.defaultVoice;
+		}
+
 		var worker = this.voiceWorker(voice);
 		if (!worker)
 			return "";
@@ -421,7 +426,7 @@ class ConversationalIVR {
 			return DoTTS(text, voice, session, append);
 
 		if (session) {
-			var fname = VoiceWorker::key(text, voice ?? this.defaultVoice);
+			var fname = VoiceWorker::key(text, voice);
 			worker.AddData(BinarizeObject(new VoiceWorkerData([text], [2, session.sip.CallID, fname, append])));
 			return fname;
 		}
@@ -441,10 +446,51 @@ class ConversationalIVR {
 		return "";
 	}
 
-	OnGreeting(from, to, callid) {
-		console.info(LOG_THIS, "call from $from to $to");
-		var ivr_data;
+        langId(language) {
+                if (!language)
+                        return "";
+                return StrSplit(language, "/")[1] ?? "";
+        }
 
+	ensureWords(to, voice, words) {
+		if ((!to) || (!words))
+			return;
+
+		var word_str = "\n";
+		var word;
+		for (var i = 0; i < length words; i ++) {
+			word = words[i];
+			if ((word[0] != "\$") && (word[0] != '_'))
+				word_str += word + "\n";
+		}
+
+		if (word_str) {
+			var data = StrReplace(ReadFile("./scorers/$to"), "\r", "");
+			if (data) {
+				data = "\n" + trim(data) + "\n";
+				var arr = StrSplit(data, "\n");
+				for (i = 0; i < length arr; i ++) {
+					word = trim(arr[i]);
+					if (word)
+						word_str = StrReplace(word_str, "\n" + word + "\n", "\n");
+				}
+				word_str = trim(word_str);
+				data = trim(data);
+				if ((word_str) && (data))
+					word_str += "\n" + data;
+
+				if (word_str) {
+					data = "\n${trim(word_str)}\n";
+					WriteFile(data, "./scorers/$to");
+					var lang = langId(voice);
+					AppendFile(to + ":" + lang + "\n", "./scorers/_build");
+				}
+			}
+		}
+	}
+
+	loadDefaultTree(to) {
+		var ivr_data;
 		var ivr_tree;
 
 		var trunk_path = trunk_dir + to + ".json";
@@ -454,10 +500,11 @@ class ConversationalIVR {
 		}
 
 		ivr_tree = ivr_trees[to];
+		var used_words;
 		if ((ivr_tree) && (time() - ivr_timestamps[to] >= 8)) {
 			ivr_data = ReadFile(trunk_path);
 			if (sha256(ivr_data) != ivr_checksums[to]) {
-				ivr_tree = this.loadTree(to, this.fromJSON(ivr_data));
+				ivr_tree = this.loadTree(to, this.fromJSON(ivr_data), null, null, true, used_words);
 				ivr_checksums[to] = sha256(ivr_data);
 				ivr_timestamps[to] = time();
 				ivr_trees[to] = ivr_tree;
@@ -469,7 +516,7 @@ class ConversationalIVR {
 			ivr_data = ReadFile(trunk_path);
 			ivr_tree = this.fromJSON(ivr_data);
 			if (ivr_tree) {
-				ivr_tree = this.loadTree(to, ivr_tree);
+				ivr_tree = this.loadTree(to, ivr_tree, null, null, true, used_words);
 				if (ivr_tree) {
 					ivr_checksums[to] = sha256(ivr_data);
 					ivr_timestamps[to] = time();
@@ -477,9 +524,46 @@ class ConversationalIVR {
 				}
 			}
 		}
-		
+
+		if (used_words)
+			this.ensureWords(to, this.voice(to), used_words);
+
+		return ivr_tree;
+	}
+
+	loadConfig(to) {
+		var trunk_path = trunk_dir + to + ".json";
+		if (!FileExists(trunk_path)) {
+			console.warn(LOG_THIS, "invalid trunk $to ($trunk_path)");
+			return;
+		}
+
+		var ivr_data = JSONDeserialize(ReadFile(trunk_path));
+		if ((ivr_data) && (ivr_data["config"])) {
+			var config = ivr_data["config"];
+			if (config["model"]) {
+				this.addWorker(to, config["model"], config["scorer"], value config["workers"]);
+				var voice = config["voice"];
+				if (voice)
+					ivr_voice[to] = voice;
+			} else
+				console.error(LOG_THIS, "\"config\" field missing");
+
+			var ivr_timeout_message = config["timeout"];
+			if ((ivr_timeout_message) && (typeof ivr_timeout_message == "string"))
+				ivr_timeout[to] = ivr_timeout_message;
+		}
+	}
+
+	OnGreeting(from, to, callid) {
+		console.info(LOG_THIS, "call from $from to $to");
+
+		var ivr_tree;
+
 		if (IsSet(ivr_api_trees, callid))
 			ivr_tree = ivr_api_trees[callid] ?? ivr_tree;
+		else
+			ivr_tree = this.loadDefaultTree(to);
 
 		if (!ivr_tree) {
 			console.warn(LOG_THIS, "invalid trunk $to");
@@ -533,7 +617,8 @@ class ConversationalIVR {
 		if (!session.ClientData)
 			session.ClientData = new IVRClientData(this, sessionTree(session), session);
 
-		if (session.ClientData.count) {
+		// count == 2 means DTMF only
+		if (session.ClientData.count == 1) {
 			var stt_worker = this.chooseWorker(session, session.ClientData.hash);
 			if (stt_worker)
 				stt_worker.AddData(BinarizeObject(new STTWorkerData(session.sip.CallID, STT_ADDBUFFER, buffer)));
@@ -542,10 +627,11 @@ class ConversationalIVR {
 		}
 	}
 
-	setWords(session) {
+	setWords(session, var is_dtmf = null) {
 		var[] arr;
 		var[] set_words;
 		var keys = GetKeys(session.ClientData.ivr_branch);
+		is_dtmf = true;
 		for (var i = 0; i < length keys; i ++) {
 			var k2 = keys[i];
 			if (!k2)
@@ -562,6 +648,23 @@ class ConversationalIVR {
 					var k = trim(subkeys[jj]);
 					if ((k) && (!set_words[k])) {
 						arr[length arr] = k;
+						switch (k) {
+							case "0":
+							case "1":
+							case "2":
+							case "3":
+							case "4":
+							case "5":
+							case "6":
+							case "7":
+							case "8":
+							case "9":
+							case "*":
+							case "#":
+								break;
+							default:
+								is_dtmf = false;
+						}
 						set_words[k] = true;
 					}
 				}
@@ -591,12 +694,19 @@ class ConversationalIVR {
 			return;
 		}
 
-		console.info(LOG_THIS, "start STT for ${session.sip.CallID}");
-		session.ClientData.count = 1;
+		var session_words = this.setWords(session, var dtmf);
+
+		if (dtmf) {
+			console.info(LOG_THIS, "DTMF-only for ${session.sip.CallID}");
+			session.ClientData.count = 2;
+		} else {
+			console.info(LOG_THIS, "start STT for ${session.sip.CallID}");
+			session.ClientData.count = 1;
+		}
 
 		var stt_worker = this.chooseWorker(session, session.ClientData.hash);
 		if (stt_worker)
-			stt_worker.AddData(BinarizeObject(new STTWorkerData(session.sip.CallID, STT_RESET, this.setWords(session))));
+			stt_worker.AddData(BinarizeObject(new STTWorkerData(session.sip.CallID, STT_RESET, session_words)));
 		else
 			console.error(LOG_THIS, "no workers for ${session.To}, callid ${session.sip.CallID}");
 	}
@@ -622,6 +732,7 @@ class ConversationalIVR {
 			var params = "";
 			var filter = "";
 			var index = 0;
+			var rm_str = "";
 			for (i = 0; i < length keys; i++) {
 				var k = keys[i];
 				if (k) {
@@ -632,6 +743,7 @@ class ConversationalIVR {
 							WriteFile(SubStr(buf, length buf - min_len), fname);
 						else
 							WriteFile(buf, fname);
+						rm_str += "; rm \"$fname\"";
 				
 						params += "-f alaw -ar 8000 -ac 1 -acodec pcm_alaw -i \"$fname\" ";
 						filter += "[$index:a]";
@@ -641,7 +753,7 @@ class ConversationalIVR {
 			}
 			var output_file = path + ".mp3";
 			_unlink(output_file);
-			_system("ffmpeg -loglevel fatal $params-filter_complex \"${filter}amix\" -ac 1 -qscale:a 2 \"$output_file\" &");
+			_system("(ffmpeg -loglevel fatal $params-filter_complex \"${filter}amix\" -ac 1 -qscale:a 2 \"$output_file\"$rm_str) &");
 			session.StopRecording();
 			session.sip.RecordBuffers = null;
 			if (this.OnWriteRecording)
@@ -971,8 +1083,10 @@ class ConversationalIVR {
 	}
 
 	protected voiceWorker(use_voice) {
-		if (!use_voice)
+		if (!use_voice) {
+			console.warn(LOG_THIS, "using default voice");
 			use_voice = this.defaultVoice;
+		}
 
 		if (!use_voice)
 			return null;
@@ -998,7 +1112,7 @@ class ConversationalIVR {
 		return this.fromTree(JSONDeserialize(json_str));
 	}
 
-	protected loadTree(to, ivr_tree, prev = null, var texts = null, read_config = true) {
+	protected loadTree(to, ivr_tree, prev = null, var texts = null, read_config = true, var used_words = null) {
 		var voice = "";
 		if ((!prev) && (ivr_tree) && (read_config)) {
 			var config = ivr_tree["config"];
@@ -1031,16 +1145,53 @@ class ConversationalIVR {
 			first_call = true;
 		}
 
+		if (!IsSet(ivr_voice, to))
+			this.loadConfig(to);
+
 		var use_voice = this.voice(to);
 		var keys = GetKeys(ivr_tree);
 		for (var i = 0; i < length ivr_tree; i ++) {
 			var branch = ivr_tree[i];
+			var key = keys[i];
+			if (key) {
+				var k2 = StrReplace(key, ",", "|");
+				k2 = StrReplace(k2, ".", "|");
+				k2 = StrReplace(k2, ";", "|");
+				k2 = StrReplace(k2, ":", "|");
+
+				var key_arr = StrSplit(k2, "|");
+				if (!used_words)
+					used_words = new [];
+				for (var j = 0; j < length key_arr; j ++) {
+					k2 = trim(key_arr[j]);
+					if ((k2) && (k2 != "_") && (k2[0] != "\$") && (k2[0] != "/")) {
+						switch (k2) {
+							case "0":
+							case "1":
+							case "2":
+							case "3":
+							case "4":
+							case "5":
+							case "6":
+							case "7":
+							case "8":
+							case "9":
+							case "*":
+							case "#":
+								break;
+							default:
+								used_words[length used_words] = k2;
+								break;
+						}
+					}
+				}
+			}
 			switch (typeof branch) {
 				case "array":
 					if (prev)
-						loadTree(to, branch, [ivr_tree] + prev, texts);
+						loadTree(to, branch, [ivr_tree] + prev, texts, true, used_words);
 					else
-						loadTree(to, branch, [ivr_tree], texts);
+						loadTree(to, branch, [ivr_tree], texts, true, used_words);
 					break;
 				case "string":
 					if (branch[0] == "\$") {
@@ -1062,7 +1213,7 @@ class ConversationalIVR {
 							case "\$include":
 								if (arr[1]) {
 									var trunk_path = trunk_dir + arr[1] + ".json";
-									ivr_tree[keys[i]] = this.loadTree(to, this.fromJSON(ReadFile(trunk_path)), ivr_tree, texts);
+									ivr_tree[keys[i]] = this.loadTree(to, this.fromJSON(ReadFile(trunk_path)), ivr_tree, texts, true, used_words);
 								} else
 									console.warn(LOG_THIS, "include parameter missing");
 								break;
@@ -1078,7 +1229,7 @@ class ConversationalIVR {
 		}
 
 		if ((first_call) && (texts) && (length texts)) {
-			var worker = this.voiceWorker(voice);
+			var worker = this.voiceWorker(voice ?? use_voice);
 			if (worker)
 				worker.AddData(BinarizeObject(new VoiceWorkerData(texts)));
 		}
@@ -1137,13 +1288,16 @@ class ConversationalIVR {
 		ivr.LoopCallback = this.OnIdle;
 	}
 
-	addWorker(to, model, scorer = "", count = 2) {
+	addWorker(to, model, scorer = "", count = 2, max_workers = 4) {
 		if (!model) {
 			console.error("invalid model");
 			return;
 		}
 
 		var count2 = _floor(sysconf(_SC_NPROCESSORS_ONLN) / 2);
+		if (count2 > max_workers)
+			count2 = max_workers;
+
 		if (count < count2)
 			count = count2; 
 
@@ -1262,16 +1416,24 @@ class ConversationalIVR {
 
 	call(who, from, tree = null, max_duration = 1800) {
 		var voice = "";
+
+		this.loadConfig(from);
+
 		if (IsSet(ivr_voice, from))
 			voice = ivr_voice[from];
-		if (!voice)
+		if (!voice) {
+			console.warn(LOG_THIS, "using default voice for $from");
 			voice = this.defaultVoice;
+		}
 
 		// get before parsing tree to avoid stack overflow
 		var texts = this.getVoices(tree, voice);
 
-		if (typeof tree == "array")
-			tree = this.loadTree(from, this.fromTree(tree), null, null, false);
+		if (typeof tree == "array") {
+			var used_words;
+			tree = this.loadTree(from, this.fromTree(tree), null, null, false, used_words);
+			this.ensureWords(from, voice, used_words);
+		}
 
 		if ((!texts) || (length texts == 0))
 			return callSyncAll(who, from, tree, max_duration);
@@ -1340,6 +1502,13 @@ class ConversationalIVR {
 					}
 					sess_ids[session.CallID] = ["account" => account ?? identity, "isInvite" => session.is_invite, "from" => session.UserData.From, "to" => session.UserData.To, "callDuration" => duration, "path" => path];
 				}
+			} else
+			if (session) {
+				var from = this.ivr.ParseFrom("" + StrSplit("" + session.msg.Headers["from"], " ")[0]);
+				var to = this.ivr.ParseFrom("" + StrSplit("" + session.msg.Headers["to"], " ")[0]);
+
+				if ((!account) || (((session.is_invite) && (from == account)) || ((!session.is_invite) && (to == account))))
+					sess_ids[session.CallID] = ["account" => account ?? identity, "isInvite" => session.is_invite, "from" => from, "to" => to, "callDuration" => 0, "path" => "(setting up call - not answered yet)"];
 			}
 		}
 		return sess_ids;
