@@ -950,8 +950,29 @@ pragma used
 		return [ ];
 	}
 
+	static AutoNodeInfo(data = null) {
+		if (data)
+			return data;
+
+		var hostname = GetHostName();
+		if (hostname) {
+			var host = GetHostByName(GetHostName())["h_addr_list0"];
+			data = ["name" => hostname, "host" => host];
+			console.info(LOG_THIS, "node info is set to auto (node.json missing) to $hostname, $host");
+		} else {
+			data = new [];
+		}
+		return data;
+	}
+
 	static NodeInfo(path = ".") {
-		return QueryWorkerBase::ReadJSON(path + "/node.json");
+		return QueryWorkerBase::AutoNodeInfo(QueryWorkerBase::ReadJSON(path + "/node.json"));
+	}
+
+	static AutoNodeJSON(json_str = "") {
+		if (json_str)
+			return json_str;
+		return JSONSerialize(QueryWorkerBase::AutoNodeInfo(), true);
 	}
 
 	static ClusterInfo(path = ".") {
@@ -4176,7 +4197,7 @@ class QuerySyncWorker {
 		// set timeout here, in case we fail
 		RingTimeout = time() + RING_RELOAD_TIMEOUT;
 
-		var node = ReadFile(path + "/node.json");
+		var node = QueryWorkerBase::AutoNodeJSON(ReadFile(path + "/node.json"));
 		if (!node)
 			return;
 

@@ -1750,7 +1750,7 @@ CONCEPT_FUNCTION_IMPL(GetHostByName, 1)
         for (char **pAlias = he->h_aliases; *pAlias != 0; pAlias++) {
             AnsiString h_aliases("h_aliases");
             h_aliases += AnsiString((long)idx);
-            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, h_aliases.c_str(), (INTEGER)VARIABLE_STRING, (char *)pAlias, (NUMBER)0);
+            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, h_aliases.c_str(), (INTEGER)VARIABLE_STRING, (char *)*pAlias, (NUMBER)0);
         }
 
         if (he->h_addrtype == AF_INET) {
