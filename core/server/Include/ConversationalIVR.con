@@ -191,6 +191,7 @@ class STTWorker {
 							worker_obj.words = obj.buffer;
 						}
 						objects[obj.id] = null;
+						continue;
 					}
 					if (!obj.buffer)
 						continue;
@@ -547,6 +548,8 @@ class ConversationalIVR {
 		var keys = GetKeys(session.ClientData.ivr_branch);
 		for (var i = 0; i < length keys; i ++) {
 			var k2 = keys[i];
+			if (!k2)
+				continue;
 			if ((k2[0] == "/") && (k2[length k2 - 1] == "/")) {
 				return null;
 			} else {
@@ -1283,6 +1286,14 @@ class ConversationalIVR {
 	register(username, password, sip_server, server_port = 5060) {
 		this.every_second = microseconds();
 		return this.ivr.stack.Register(username, password, sip_server, server_port);
+	}
+
+	unregister(username) {
+		return this.ivr.stack.Unregister(username);
+	}
+
+	resetRegistrations() {
+		this.ivr.stack.Registrations = new [];
 	}
 
 	refer(session, destination) {
