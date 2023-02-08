@@ -10,6 +10,7 @@ extern "C" {
     CONCEPT_FUNCTION(resample)
     CONCEPT_FUNCTION(to16bits)
     CONCEPT_FUNCTION(to8bits)
+    CONCEPT_FUNCTION(level)
 
     CONCEPT_FUNCTION(alaw2ulaw)
     CONCEPT_FUNCTION(ulaw2alaw)

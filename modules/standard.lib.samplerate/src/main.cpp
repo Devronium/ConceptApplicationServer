@@ -61,8 +61,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(resample, 3, 5)
         data.data_in = input;
         data.input_frames = len / channels;
 
-	    data.data_out = output;
-	    data.output_frames = len_output / channels;
+        data.data_out = output;
+        data.output_frames = len_output / channels;
 
         data.src_ratio = src_ratio;
 
@@ -81,6 +81,38 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(resample, 3, 5)
     } else {
         RETURN_STRING("");
     }
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL(level, 1)
+    T_STRING(level, 0)
+
+    int len = PARAM_LEN(0) / 2;
+    if (!len) {
+        RETURN_NUMBER(0);
+        return 0;
+    }
+
+    unsigned short *buf = (unsigned short *)PARAM(0);
+    float *input = (float *)malloc((len + 1) * sizeof(float));
+    src_short_to_float_array((short *)PARAM(0), input, len);
+
+    double sum = 0.0;
+    for (int i = 0; i < len; i ++)
+        sum += input[i];
+
+    double average = sum / len;
+
+    double sumMeanSquare = 0.0;
+
+    for (int i = 0; i < len; i ++)
+        sumMeanSquare += pow(input[i] - average, 2);
+
+    double averageMeanSquare = sumMeanSquare/len;
+    double rootMeanSquare = sqrt(averageMeanSquare);
+
+    free(input);
+
+    RETURN_NUMBER(rootMeanSquare);
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(to16bits, 1)
