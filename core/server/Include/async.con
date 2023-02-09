@@ -88,6 +88,24 @@ class fs {
 			return true;
 		return false;
 	}
+
+	unlink(path, callback = null) {
+		var err = _unlink(this.safepath(path));
+		if (callback)
+			callback(_errno());
+		if (err)
+			return false;
+		return true;
+	}
+
+	rmdir(path, callback = null) {
+		var err = _rmdir(this.safepath(path));
+		if (callback)
+			callback(_errno());
+		if (err)
+			return false;
+		return true;
+	}
 }
 
 class accesstoken {
@@ -509,6 +527,67 @@ class _webrequest {
 		this._onoutput = deleg;
 		return deleg;
 	}
+
+	boundary() {
+		var content_type = "" + this.headers["content-type"];
+		var boundary = StrSplit(content_type, "boundary=")[1];
+		if ((boundary) && (Pos(content_type, "multipart/form-data;") == 1)) {
+			if ((boundary[0] == "\"") && (boundary[length boundary - 1] == "\""))
+				boundary = SubStr(boundary, 1, length boundary - 2);
+			return boundary;
+		}
+
+		return "";
+	}
+
+	parseData(var data, var stream_ended = false, var info = null) {
+		info = new [];
+		if (!data)
+			return data;
+
+		var boundary = this.boundary();
+		if (!boundary) {
+			stream_ended = true;
+			data = "";
+			return data;
+		}
+		var res = "";
+		var start_pos = Pos(data, "--" + boundary);
+		if (start_pos > 0) {
+			if (start_pos > 1) {
+				res = SubStr(data, 0, start_pos - 3);
+				// "--" + crlf
+				if (SubStr(data, start_pos + length boundary + 1, 2) == "--")
+					stream_ended = true;
+
+				data = SubStr(data, start_pos + length boundary + 3);
+				if (data[0] + data[1] == "--")
+					stream_ended = true;
+			} else {
+				data = SubStr(data, start_pos + length boundary + 3);
+				var content_start = Pos(data, "\r\n\r\n");
+				if (content_start > 0) {
+					var info_arr = StrSplit(SubStr(data, 0, content_start - 1), "\r\n");
+					for (var i = 0; i < length info_arr; i ++) {
+						var arr = StrSplit(info_arr[i], ";");
+						for (var j = 0; j < length arr; j ++) {
+							var e = trim(arr[j]);
+							if (e)
+								info[length info] = e;
+						}
+					}
+				}
+				if (data[0] + data[1] == "--")
+					stream_ended = true;
+				data = SubStr(data, content_start + 3);
+				return this.parseData(data, stream_ended);
+			}
+		} else {
+			res = data;
+			data = "";
+		}
+		return res;
+	}	
 
 	finalize() {
 		this.sync();
