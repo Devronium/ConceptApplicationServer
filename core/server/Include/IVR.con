@@ -308,7 +308,7 @@ class IVR {
 		if (msg)
 			server_code = msg.ServerCode;
 		if ((SessionFinished) && (session))
-			SessionFinished(session.UserData, session.CallID, reason ?? server_code);
+			SessionFinished(session, session.CallID, reason ?? server_code);
 
 		if (session)
 			delete session.UserData;
