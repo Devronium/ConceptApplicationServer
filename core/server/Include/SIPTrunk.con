@@ -1142,6 +1142,8 @@ class SIPStack {
 	}
 
 	private ParseDestination(destination) {
+		if (typeof destination == "array")
+			destination = destination[0];
 		var arr = StrSplit(destination, ";");
 		return arr[0];
 	}
