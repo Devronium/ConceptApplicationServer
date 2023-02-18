@@ -113,6 +113,35 @@ CONCEPT_FUNCTION_IMPL(_zip_open, 3)
 
 END_IMPL
 //---------------------------------------------------------------------------
+#ifdef NO_DEPENDECIES
+CONCEPT_FUNCTION_IMPL(_unzip, 1)
+    T_STRING(_unzip, 0)
+
+    CREATE_ARRAY(RESULT);
+	mz_zip_archive za;
+    memset(&za, 0, sizeof(mz_zip_archive));
+	if (!mz_zip_reader_init_mem(&za, PARAM(0), PARAM_LEN(0), 0))
+		return 0;
+
+	for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&za); i++) {
+		mz_zip_archive_file_stat file_stat;
+		if (!mz_zip_reader_file_stat(&za, i, &file_stat))
+			break;
+
+		const char* filename = file_stat.m_filename;
+		if (!mz_zip_reader_is_file_a_directory(&za, i)) {
+            size_t uncompressed_size = 0;
+            void *p = mz_zip_reader_extract_file_to_heap(&za, file_stat.m_filename, &uncompressed_size, 0);
+            if (p) {
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, filename, (INTEGER)VARIABLE_STRING, (char *)((uncompressed_size > 0) ? p : ""), (NUMBER)uncompressed_size);
+                mz_free(p);
+            }
+		}
+	}
+	mz_zip_reader_end(&za);
+END_IMPL
+#endif
+//---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(__zip_name_locate, 3)
     T_NUMBER(__zip_name_locate, 0)
     T_STRING(__zip_name_locate, 1)

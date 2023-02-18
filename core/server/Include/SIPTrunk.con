@@ -18,7 +18,7 @@ define SIP_CODES	["100" => "Trying", "180" => "Ringing", "181" => "Call Is Being
 define SIP_ALLOW	"REGISTER,INVITE,ACK,CANCEL,BYE,REFER,NOTIFY,MESSAGE,INFO"
 define SIP_SUPPORTED	"replaces, 100rel, timer, tdialog"
 define RTP_START_PORT	16000
-define RTP_END_PORT	32000
+define RTP_END_PORT	48000
 
 define SIP_TRANSPORT_UDP	0
 define SIP_TRANSPORT_TCP	1
@@ -1104,6 +1104,8 @@ class SIPStack {
 			this.full_host += ":" + bind_port;
 
 		RandomSeed(unpack("u32", CryptoRandom(4))[0]);
+
+		this.rtp_port_index = RandomInteger(RTP_START_PORT, RTP_END_PORT);
 	}
 
 	static IPFromName(host) {

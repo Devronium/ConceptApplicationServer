@@ -1,0 +1,123 @@
+import standard.lang.serialize
+import standard.C.io
+import standard.arch.zip
+import standard.lib.str
+
+include CSV.con
+
+class XLSX {
+	static csvSafe(val) {
+		val = "" + val;
+		if ((Pos(val, ",") > 0) || (Pos(val, "\"") > 0) || (Pos(val, "\r") > 0) || (Pos(val, "\n") > 0)) {
+			val = StrReplace(val, "\\", "\\\\");
+			val = StrReplace(val, "\"", "\\\"");
+			val = StrReplace(val, "\r\n", "\n");
+			val = StrReplace(val, "\r", "\\r");
+			val = StrReplace(val, "\n", "\\n");
+			val = "\"$val\"";
+		}
+		return val;
+	}
+
+	static getDictionary(var data) {
+		var[] dictionary;
+		if (!data)
+			return dictionary;
+
+		var xml = FromXML(data);
+		if (!xml)
+			return dictionary;
+
+		xml = xml["sst"];
+		if (!xml)
+			return dictionary;
+
+		var index = 0;
+		for (var i = 0; i < length xml; i ++) {
+			var e = xml[i];
+			if ((e) && (typeof e == "array")) {
+				e = e["si"];
+				if (e) {
+					var val = e[0];
+					if ((val) && (typeof val == "array")) {
+						val = val["t"];
+						if (typeof val == "string")
+							dictionary[index] = XLSX::csvSafe(val);
+					}
+				}
+				index ++;
+			}
+		}
+		return dictionary;
+	}
+
+	static CSV(var xlsx, sheet = "sheet1") {
+		var zip = unzip(xlsx);
+		if (!zip)
+			return "";
+
+		var excel_data = zip["xl/worksheets/$sheet.xml"];
+
+		if (!excel_data)
+			return "";
+
+		var dictionary = XLSX::getDictionary(zip["xl/sharedStrings.xml"]);
+
+		var data = FromXML(excel_data);
+		if (!data)
+			return "";
+		data = data["worksheet"];
+		if (!data)
+			return "";
+
+		var csv = "";
+		for (var i = 0; i < length data; i ++) {
+			var arr = data[i];
+			if ((typeof arr == "array") && (arr["sheetData"])) {
+				var xls_data = arr["sheetData"];
+				for (var j = 0; j < length xls_data; j ++) {
+					var line = xls_data[j];
+					if (line)
+						line = line["row"];
+					if ((line) && (typeof line == "array")) {
+						var csv_line = "";
+						for (var i1 = 0; i1 < length line; i1 ++) {
+							var e = line[i1];
+							if ((e) && (typeof e == "array")) {
+								e = e["c"];
+								if ((e) && (typeof e == "array")) {
+									if (csv_line)
+										csv_line += ", ";
+
+									var val = e[length e - 1];
+									if (typeof val == "array")
+										val = val["v"];
+
+									switch ("" + e["t"]) {
+										case "s":
+											csv_line += dictionary[value val];
+											break;
+										default:
+											csv_line += XLSX::csvSafe(val);
+											break;
+									}
+								}
+							}
+						}
+						if (csv_line)
+							csv += csv_line + "\r\n";
+					}
+				}
+				break;
+			}
+		}
+		return csv;
+	}
+
+	parse(var data, sheet = "sheet1") {
+		var csv = XLSX::CSV(data, sheet);
+		if (!csv)
+			return [ ];
+		return CSV::Do(csv);
+	}
+}

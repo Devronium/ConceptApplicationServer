@@ -1,7 +1,6 @@
 import standard.lib.csv
 import standard.lib.str
 
-
 define CSV_VALIDATE_THIS	if (!this._HANDLE) throw "Invalid CSV instance (handle is null)";
 
 class CSV {
