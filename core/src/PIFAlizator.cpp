@@ -3688,8 +3688,8 @@ void PIFAlizator::ResolveWithExceptionByID(struct PromiseData *pdata) {
     pdata->THROW_DATA = (VariableDATA *)VAR_ALLOC(this);
     pdata->THROW_DATA->IS_PROPERTY_RESULT = 0;
     pdata->THROW_DATA->LINKS = 1;
-    pdata->THROW_DATA->TYPE  = VARIABLE_NUMBER;
-    pdata->THROW_DATA->NUMBER_DATA = -1;
+    pdata->THROW_DATA->TYPE  = VARIABLE_STRING;
+    pdata->THROW_DATA->CLASS_DATA = plainstring_new_str("cannot await in a constructor");
 
     VariableDATA *EXCEPTION = NULL;
     VariableDATA *RES = ((ClassMember *)pdata->CM)->Execute(this, ((ClassCode *)((ClassMember *)pdata->CM)->Defined_In)->CLSID, NULL, NULL, NULL, EXCEPTION, STACK_TRACE, NULL, MAY_IGNORE_RESULT, pdata, 0);

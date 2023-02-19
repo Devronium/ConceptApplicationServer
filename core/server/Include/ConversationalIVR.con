@@ -17,6 +17,7 @@ class IVRClientData {
 	var path;
 	var hash;
 	var ivr_path = "";
+	var last_text = "";
 	var api;
 	var UserData;
 	var redirect = "";
@@ -51,7 +52,7 @@ class IVRClientData {
 		// session.sip.NATMode = true;
 
 		// if (session.sip.is_invite)
-			session.sip.Record = true;
+		// 	session.sip.Record = true;
 	}
 
 	callDuration() {
@@ -229,9 +230,9 @@ class STTWorker {
 					if (!worker_obj.stream)
 						worker_obj.stream = new STTStream(stt);
 
-					var buf2 = resample(alaw2pcm(obj.buffer), 8000, modelSampleRate, SRC_SINC_FASTEST);
+					var buf2 = resample(alaw2pcm(obj.buffer), 8000, modelSampleRate, SRC_SINC_MEDIUM_QUALITY);
 					var level_val = level(buf2);
-					if (level_val < 0.0003)
+					if (level_val < 0.00028)
 						worker_obj.silence ++;
 					else
 						worker_obj.silence = 0;
@@ -500,7 +501,7 @@ class ConversationalIVR {
 		for (var i = 0; i < length words; i ++) {
 			word = words[i];
 			if ((word[0] != "\$") && (word[0] != '_'))
-				word_str += word + "\n";
+				word_str += word + ".\n";
 		}
 
 		if (word_str) {
@@ -950,7 +951,7 @@ class ConversationalIVR {
 				this.every_second = microseconds();
 			}
 			if (this.OnReloadConfig) {
-				if (time() - reload_config_second >= 30) {
+				if (time() - reload_config_second >= 48) {
 					this.OnReloadConfig(this);
 					this.reload_config_second = time();
 				}
@@ -981,6 +982,7 @@ class ConversationalIVR {
 			session.Close();
 			return;
 		}
+		session.ClientData.last_text = text ?? "";
 
 		var keys = GetKeys(session.ClientData.ivr_branch);
 		if (!keys) {
@@ -1541,6 +1543,7 @@ class ConversationalIVR {
 		session.Expires = 1800;
 		session.sip.setExpires(1800);
 		session.sip.ResetBuffers();
+		session.sip.Record = true;
 		session.StartRecording(session.Expires);
 		var refer_session = session.Refer(destination);
 		if (refer_session)
@@ -1557,11 +1560,13 @@ class ConversationalIVR {
 				if ((!account) || (((session.is_invite) && (session.UserData.From == account)) || ((!session.is_invite) && (session.UserData.To == account)))) {
 					var duration = 0;
 					var path = "";
+					var text = "";
 					if (session.UserData.ClientData) {
 						duration = session.UserData.ClientData.callDuration();
 						path = session.UserData.ClientData.ivr_path;
+						text = session.UserData.ClientData.last_text;
 					}
-					sess_ids[session.CallID] = ["account" => account ?? identity, "isInvite" => session.is_invite, "from" => session.UserData.From, "to" => session.UserData.To, "callDuration" => duration, "path" => path];
+					sess_ids[session.CallID] = ["account" => account ?? identity, "isInvite" => session.is_invite, "from" => session.UserData.From, "to" => session.UserData.To, "callDuration" => duration, "path" => path, "text" => text];
 				}
 			} else
 			if (session) {
@@ -1569,7 +1574,7 @@ class ConversationalIVR {
 				var to = this.ivr.ParseFrom("" + StrSplit("" + session.msg.Headers["to"], " ")[0]);
 
 				if ((!account) || (((session.is_invite) && (from == account)) || ((!session.is_invite) && (to == account))))
-					sess_ids[session.CallID] = ["account" => account ?? identity, "isInvite" => session.is_invite, "from" => from, "to" => to, "callDuration" => 0, "path" => "(setting up call - not answered yet)"];
+					sess_ids[session.CallID] = ["account" => account ?? identity, "isInvite" => session.is_invite, "from" => from, "to" => to, "callDuration" => 0, "path" => "(setting up call - not answered yet)", "text" => ""];
 			}
 		}
 		return sess_ids;

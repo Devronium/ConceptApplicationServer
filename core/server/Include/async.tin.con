@@ -18,8 +18,10 @@ class tinasync extends TinConnection {
 	protected PromiseHandler(data, id, err, p) {
 		if (err)
 			return p.reject(err);
-		if ((!data) && (id))
-			return p.resolve(id);
+		if (!data)
+			data = id;
+		if ((typeof data == "numeric") && (data == -1))
+			data = [ ];
 		return p.resolve(data);	
 	}
 

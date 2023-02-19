@@ -1,5 +1,4 @@
 import standard.lang.serialize
-import standard.C.io
 import standard.arch.zip
 import standard.lib.str
 
@@ -70,10 +69,21 @@ class XLSX {
 		if (!data)
 			return "";
 
+		var first_row = "A";
+
 		var csv = "";
 		for (var i = 0; i < length data; i ++) {
 			var arr = data[i];
-			if ((typeof arr == "array") && (arr["sheetData"])) {
+			if (typeof arr != "array")
+				continue;
+
+			if (arr["dimension"]) {
+				first_row = arr["dimension"]["ref"][0];
+				if (!first_row)
+					first_row = "A";
+			}
+
+			if (arr["sheetData"]) {
 				var xls_data = arr["sheetData"];
 				for (var j = 0; j < length xls_data; j ++) {
 					var line = xls_data[j];
@@ -81,6 +91,7 @@ class XLSX {
 						line = line["row"];
 					if ((line) && (typeof line == "array")) {
 						var csv_line = "";
+						var index = 0;
 						for (var i1 = 0; i1 < length line; i1 ++) {
 							var e = line[i1];
 							if ((e) && (typeof e == "array")) {
@@ -88,6 +99,17 @@ class XLSX {
 								if ((e) && (typeof e == "array")) {
 									if (csv_line)
 										csv_line += ", ";
+
+									var row = e['r'];
+									if (row) {
+										row = row[0];
+										var delta = ord(row) - ord(first_row);
+
+										while (index < delta) {
+											csv_line += ",";
+											index ++;
+										}
+									}
 
 									var val = e[length e - 1];
 									if (typeof val == "array")
@@ -101,6 +123,7 @@ class XLSX {
 											csv_line += XLSX::csvSafe(val);
 											break;
 									}
+									index ++;
 								}
 							}
 						}

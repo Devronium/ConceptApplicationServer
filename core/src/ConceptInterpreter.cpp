@@ -5408,7 +5408,7 @@ tail_call:
     INTEGER CATCH_INSTRUCTION_POINTER = 0;
     INTEGER CATCH_VARIABLE            = 0;
     INTEGER PREVIOUS_TRY = 0;
-    INTEGER IS_AWAIT;
+    INTEGER IS_AWAIT = 0;
 
     RuntimeOptimizedElement *OE;
     OPERATOR_ID_TYPE OE_Operator_ID;
