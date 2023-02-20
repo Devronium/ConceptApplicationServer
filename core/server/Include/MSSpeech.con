@@ -1,0 +1,80 @@
+import standard.lib.msspeech
+import standard.C.io
+import standard.lib.str
+
+class MSTTSHelper {
+	var modelName;
+
+	MSTTSHelper(model_name) {
+		this.modelName = model_name;
+	}
+
+	static tts(text, model, out_path, extra_params = "") {
+		text = StrReplace(text, "\\", "\\\\");
+		text = StrReplace(text, "\"", "\\\"");
+		if (extra_params)
+			extra_params = " " + extra_params;
+		return _system("tts --text \"$text\" --model_name \"$model\" --out_path \"$out_path\"$extra_params");
+	}
+
+	speak(text, out_path) {
+		return this.tts(text, modelName, out_path);
+	}
+}
+
+class MSSpeechStream {
+	var _handle;
+
+	MSSpeechStream(object owner, format = 0) {
+		if (!owner)
+			return;
+
+		this._handle = MsSpeech_Create(owner.language, owner.key, owner.region, format);
+	}
+
+	feed(var buffer) {
+		if (!_handle)
+			throw "MSSpeechStream is closed";
+		MsSpeech_FeedAudioContent(this._handle, buffer);
+	}
+
+	decode() {
+		if (!_handle)
+			throw "MSSpeechStream is closed";
+
+		return MsSpeech_Decode(this._handle);
+	}
+
+	finish() {
+		if (!_handle)
+			throw "MSSpeechStream is closed";
+		MsSpeech_Free(this._handle);
+		this._handle = null;
+		return "";
+	}
+
+	close() {
+		if (this._handle)
+			MsSpeech_Free(this._handle);
+		this._handle = null;
+	}
+
+	finalize() {
+		if (this._handle) {
+			MsSpeech_Free(this._handle);
+			this._handle = null;
+		}
+	}
+}
+
+class MSSpeech {
+	var language;
+	var key;
+	var region;
+
+	MSSpeech(string language, key, region) {
+		this.language = language;
+		this.key = key;
+		this.region = region;
+	}
+}

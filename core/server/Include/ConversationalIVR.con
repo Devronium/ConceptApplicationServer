@@ -3,7 +3,10 @@ import standard.lib.json
 
 include IVR.con
 include STT.con
+include MSSpeech.con
 include Worker.con
+
+define SETTINGS_ENSURE_WORDS	false
 
 define STT_RESET	0
 define STT_ADDBUFFER	1
@@ -232,7 +235,7 @@ class STTWorker {
 
 					var buf2 = resample(alaw2pcm(obj.buffer), 8000, modelSampleRate, SRC_SINC_MEDIUM_QUALITY);
 					var level_val = level(buf2);
-					if (level_val < 0.00028)
+					if (level_val < 0.0028)
 						worker_obj.silence ++;
 					else
 						worker_obj.silence = 0;
@@ -243,8 +246,9 @@ class STTWorker {
 							worker_obj.silence_buffer = "";
 						}
 						worker_obj.stream.feed(buf2);
-					} else
+					} else {
 						worker_obj.silence_buffer = buf2;
+					}
 
 					if (worker_obj.textAge() >= 250) {
 						var str = worker_obj.stream.decode();
@@ -261,7 +265,10 @@ class STTWorker {
 						}
 						worker_obj.resetText();
 					}
-					if (worker_obj.age() >= 8000) {						
+					// if ((worker_obj.silence >= 16) && (worker_obj.silence % 16 == 0))
+					//  	worker_obj.reset();
+
+					if (worker_obj.age() >= 14000) {						
 						console.trace(LOG_THIS, "resetting buffer for ${obj.id}");
 						worker_obj.reset();
 						Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TIMEDOUT, "")));
@@ -296,6 +303,104 @@ class STTWorker {
 						console.error(LOG_THIS, scorer_exc);
 					}
 				}
+			}
+		}
+	}
+}
+
+class MSSWorker {
+	parse(str) {
+		str = StrReplace(str, ".", " ");
+		str = StrReplace(str, ",", " ");
+		str = StrReplace(str, "?", " ");
+		str = StrReplace(str, "!", " ");
+		str = StrReplace(str, "  ", " ");
+
+		return UTF8ToLower(trim(str));
+	}
+
+	MSSWorker(data) {
+		data = UnBinarizeObject(data);
+
+		console.log(LOG_THIS, "created MSS worker for ${data["language"]}");
+
+		var clear_time_stamp = microseconds();
+		var stt = new MSSpeech(data["language"], data["key"], data["region"]);
+		var[] objects;
+
+		while (true) {
+			if (Worker::Pending(var buffer, 1000)) {
+				var obj = UnBinarizeObject(buffer);
+				if (!obj)
+					continue;
+
+				try {
+					if (obj.type == STT_SCORER) {
+						console.log(LOG_THIS, "ignored scorer");
+						continue;
+					}
+
+					var worker_obj = objects[obj.id];
+
+					if (obj.type == STT_RESET) {
+						if (worker_obj) {
+							if ((worker_obj.stream) && (worker_obj.stream._handle))
+								worker_obj.stream.close();
+							delete worker_obj.stream;
+							worker_obj.last_str = "";
+							worker_obj.words = obj.buffer;
+						}
+						objects[obj.id] = null;
+						continue;
+					}
+					if (!obj.buffer)
+						continue;
+
+					if (!worker_obj) {
+						worker_obj = new STTWorkerObject(obj.id);
+						objects[obj.id] = worker_obj;
+					}
+
+					if (!worker_obj.stream)
+						worker_obj.stream = new MSSpeechStream(stt, 4);
+
+
+					// worker_obj.silence_buffer += obj.buffer;
+					// if (length worker_obj.silence_buffer >= 8000) {
+						worker_obj.stream.feed(obj.buffer);
+					//	worker_obj.silence_buffer = "";
+					//}
+					var str = worker_obj.stream.decode();
+					if ((str) && (worker_obj.canSend())) {
+						Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TEXT, this.parse(str))));
+						worker_obj.resetText();
+					}
+
+					if (worker_obj.age() >= 14000) {
+						console.trace(LOG_THIS, "resetting buffer for ${obj.id}");
+						worker_obj.reset();
+						Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TIMEDOUT, "")));
+					}
+					worker_obj.ping();
+				} catch (var exc) {
+					console.warn(LOG_THIS, exc);
+				}
+			}
+
+			if (microseconds() - clear_time_stamp >= 3000000) {
+				var new_obj = new [];
+				var cleared = 0;
+				for (var i = 0; i < length objects; i ++) {
+					var ref_obj = objects[i];
+					if ((ref_obj) && (!ref_obj.expired(3000)))
+						new_obj[ref_obj.id] = ref_obj;
+					else
+						cleared ++;
+				}
+				objects = new_obj;
+				clear_time_stamp = microseconds();
+				if (cleared)
+					console.log(LOG_THIS, "cleared $cleared session(s)");
 			}
 		}
 	}
@@ -392,6 +497,8 @@ class ConversationalIVR {
 
 	var every_second;
 	var reload_config_second;
+
+	var[] mss_keys;
 	
 	protected var _sip_username = "";
 	OnRegister(msg, auth, extra_headers) {
@@ -493,7 +600,7 @@ class ConversationalIVR {
         }
 
 	ensureWords(to, voice, words) {
-		if ((!to) || (!words))
+		if ((!to) || (!words) || (!SETTINGS_ENSURE_WORDS))
 			return;
 
 		var word_str = "\n";
@@ -1326,7 +1433,7 @@ class ConversationalIVR {
 		this.TextEvent(session.UserData, key, session.CallID);
 	}
 
-	ConversationalIVR(sip_host, sip_port = 5060, in_band_dtmf = true) {
+	ConversationalIVR(sip_host, sip_port = 5060, in_band_dtmf = true, mss_keys = null) {
 		ivr = new IVR(sip_host, sip_port, 40);
 
 		ivr.GreetingTo = this.OnGreeting;
@@ -1346,6 +1453,8 @@ class ConversationalIVR {
 			ivr.stack.OnDTMF = this.OnDTMFRelay;
 
 		ivr.LoopCallback = this.OnIdle;
+
+		this.mss_keys = mss_keys ?? [ ];
 	}
 
 	addWorker(to, model, scorer = "", count = 2, max_workers = 4) {
@@ -1364,12 +1473,13 @@ class ConversationalIVR {
 		if (!count)
 			count = 2;
 
-		if (!scorer) {
-			var auto_scorer = StrReplace(model, ".tflite", "");
-			if (length auto_scorer > 2) {
-				auto_scorer = auto_scorer[length auto_scorer - 2] + auto_scorer[length auto_scorer - 1];
+		var language = "";
+		var auto_scorer = StrReplace(model, ".tflite", "");
+		if (length auto_scorer > 2) {
+			auto_scorer = auto_scorer[length auto_scorer - 2] + auto_scorer[length auto_scorer - 1];
+			language = auto_scorer;
+			if (!scorer)
 				scorer = "default/$auto_scorer.scorer";
-			}
 		}
 		var key = "$model:$scorer";
 		var arr = stt_workers[key];
@@ -1379,13 +1489,27 @@ class ConversationalIVR {
 		}
 
 		var i;
-		for (i = 0; i < length arr; i ++) {
-			var stt_worker = arr[i];
-			stt_worker.AddData(BinarizeObject(new STTWorkerData("", STT_SCORER, scorer)));
+
+		var mss_key = null;
+		if (mss_keys) {
+			mss_key = mss_keys[language];
+			if (mss_key)
+				mss_key = BinarizeObject(mss_key);
 		}
 
-		while (length arr < count)
-			arr[length arr] = new Worker("STTWorker", "$model:$scorer");
+		if (!mss_key) {
+			for (i = 0; i < length arr; i ++) {
+				var stt_worker = arr[i];
+				stt_worker.AddData(BinarizeObject(new STTWorkerData("", STT_SCORER, scorer)));
+			}
+		}
+
+		while (length arr < count) {
+			if (mss_key)
+				arr[length arr] = new Worker("MSSWorker", mss_key);
+			else
+				arr[length arr] = new Worker("STTWorker", "$model:$scorer");
+		}
 
 		this.ivr_model_keys[to] = key;
 	}
