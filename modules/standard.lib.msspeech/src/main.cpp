@@ -11,6 +11,8 @@
 
 struct STT_Container {
         SPXSPEECHCONFIGHANDLE hconfig;
+        SPXPROPERTYBAGHANDLE hpropbag;
+
         SPXAUDIOCONFIGHANDLE haudioConfig;
         SPXAUDIOSTREAMHANDLE haudioStream;
         SPXAUDIOSTREAMFORMATHANDLE hformat;
@@ -47,6 +49,7 @@ CONCEPT_FUNCTION_IMPL(MsSpeech_Create, 4)
         if (container) {
             memset(container, 0, sizeof(struct STT_Container));
             container->hconfig = hconfig;
+            container->hpropbag = hpropbag;
 
             switch (PARAM_INT(3)) {
                 case 4:
@@ -65,6 +68,8 @@ CONCEPT_FUNCTION_IMPL(MsSpeech_Create, 4)
             if (recognizer_create_speech_recognizer_from_config(&container->hreco, hconfig, container->haudioConfig)) {
                 if (speech_config_is_handle_valid(container->hconfig))
                     speech_config_release(container->hconfig);
+                if (container->hpropbag)
+                    property_bag_release(container->hpropbag);
                 if (audio_stream_is_handle_valid(container->haudioStream))
                     audio_stream_release(container->haudioStream);
                 if (audio_stream_format_is_handle_valid(container->hformat))
@@ -91,6 +96,8 @@ CONCEPT_FUNCTION_IMPL(MsSpeech_Free, 1)
     if (container) {
         if (speech_config_is_handle_valid(container->hconfig))
             speech_config_release(container->hconfig);
+        if (container->hpropbag)
+            property_bag_release(container->hpropbag);
         if (audio_stream_is_handle_valid(container->haudioStream))
             audio_stream_release(container->haudioStream);
         if (audio_stream_format_is_handle_valid(container->hformat))
