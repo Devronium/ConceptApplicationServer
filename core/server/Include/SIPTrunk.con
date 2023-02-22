@@ -1905,6 +1905,10 @@ class SIPStack {
 		}
 
 		if (contact) {
+			var pos = Pos(contact, "<");
+			if (pos > 0)
+				contact = SubStr(contact, pos - 1);
+
 			var session = this.GetSession(msg);
 			if (session) {
 				var child_session = this.Invite(address, contact, max_forwards);
@@ -1989,6 +1993,10 @@ class SIPStack {
 
 		var msg2 = null;
 		if (contact) {
+			var pos = Pos(contact, "<");
+			if (pos > 0)
+				contact = SubStr(contact, pos - 1);
+
 			var session = this.GetSession(msg);
 			var extra_headers = ["Refer-To" => address, "Tartget-Dialog" => target_dialog + ";tag=" + this.RandomString(20)];
 			msg2 = this.PerformUDP("REFER", msg.Headers["to"], contact, "", "", 70, msg, extra_headers, "", 0, session, function(msg, new_msg) {
@@ -2013,6 +2021,10 @@ class SIPStack {
 
 		var msg2 = null;
 		if (contact) {
+			var pos = Pos(contact, "<");
+			if (pos > 0)
+				contact = SubStr(contact, pos - 1);
+
 			var session = this.GetSession(msg);
 			this.Reinvite(msg.Headers["from"], msg.Headers["to"], msg.Headers["call-id"], "", "", "sendonly");
 			msg2 = PerformUDP("REFER", msg.Headers["to"], contact, "", "", 70, msg, ["Refer-To" => address, "Referred-By" => contact], "", 0, session, function(msg, new_msg) {
@@ -2034,9 +2046,14 @@ class SIPStack {
 		var contact = msg.Headers["contact"];
 		if (!contact)
 			contact = msg.Headers["from"];
+
 		var msg2 = null;
-		if (contact)
+		if (contact) {
+			var pos = Pos(contact, "<");
+			if (pos > 0)
+				contact = SubStr(contact, pos - 1);
 			msg2 = PerformUDP("BYE", msg.Headers["to"], contact, "", "", max_forwards, msg, null, ip, port);
+		}
 		return msg2;
 	}
 
@@ -2047,8 +2064,13 @@ class SIPStack {
 		if (!contact)
 			contact = msg.Headers["from"];
 
-		if (contact)
+		if (contact) {
+			var pos = Pos(contact, "<");
+			if (pos > 0)
+				contact = SubStr(contact, pos - 1);
+
 			msg2 = PerformUDP("CANCEL", msg.Headers["to"], contact, "", "", max_forwards, msg, null, ip, port);
+		}
 		return msg2;
 	}
 
