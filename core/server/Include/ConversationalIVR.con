@@ -27,6 +27,8 @@ class IVRClientData {
 	var finish_api = "";
 	var answered = false;
 	var timestamp;
+	var expectedWords;
+	var worker;
 
 	IVRClientData(ivr, ivr_tree, session) {
 		this.ivr_branch = ivr_tree;
@@ -233,9 +235,9 @@ class STTWorker {
 					if (!worker_obj.stream)
 						worker_obj.stream = new STTStream(stt);
 
-					var buf2 = resample(alaw2pcm(obj.buffer), 8000, modelSampleRate, SRC_SINC_MEDIUM_QUALITY);
+					var buf2 = resample(alaw2pcm(obj.buffer), 8000, modelSampleRate, SRC_SINC_FASTEST);
 					var level_val = level(buf2);
-					if (level_val < 0.0028)
+					if (level_val < 0.003)
 						worker_obj.silence ++;
 					else
 						worker_obj.silence = 0;
@@ -367,7 +369,8 @@ class MSSWorker {
 
 					// worker_obj.silence_buffer += obj.buffer;
 					// if (length worker_obj.silence_buffer >= 8000) {
-						worker_obj.stream.feed(obj.buffer);
+						if (worker_obj.age() < 10000)
+							worker_obj.stream.feed(obj.buffer);
 					//	worker_obj.silence_buffer = "";
 					//}
 					var str = worker_obj.stream.decode();
@@ -462,9 +465,19 @@ class VoiceWorker {
 	}
 }
 
+class WorkerWithData extends Worker {
+	var UserData;
+
+	WorkerWithData(classname, string parameter = "", data = null) {
+		super(classname, parameter);
+		this.UserData = data;
+	}
+}
+
 class ConversationalIVR {
 	var ivr;
 	var[] stt_workers;
+	var[] cheap_workers;
 	var[] voice_workers;
 
 	var trunk_dir = "./trunks/";
@@ -543,7 +556,14 @@ class ConversationalIVR {
 		return ivr_tree;
 	}
 
-	DoTTS(text, voice = "", session = null, append = false) {
+	DoTTS(text, voice = "", session = null, append = false, level = 0) {
+		var text_arr = StrSplit(text, "|");
+		if (length text_arr > 0) {
+			if (level >= length text_arr)
+				level = (length text_arr) - 1;
+			text = trim(text_arr[level]) ?? text;
+		}
+
 		var fname = VoiceWorker::key(text, voice);
 		if (session) {
 			if (!session.ClientData)
@@ -559,7 +579,7 @@ class ConversationalIVR {
 		return fname;
 	}
 
-	DoTTSAsync(text, voice = "", session = null, append = false) {
+	DoTTSAsync(text, voice = "", session = null, append = false, level = 1) {
 		if (!voice) {
 			console.warn(LOG_THIS, "using default voice");
 			voice = this.defaultVoice;
@@ -569,11 +589,15 @@ class ConversationalIVR {
 		if (!worker)
 			return "";
 
-		if (VoiceWorker::exists(text, voice))
-			return DoTTS(text, voice, session, append);
+		var text_arr = StrSplit(text, "|");
+		if (length text_arr > 1)
+			text = trim(text_arr[level]) ?? trim(text_arr[length text_arr - 1]);
 
 		if (session) {
 			var fname = VoiceWorker::key(text, voice);
+			if (VoiceWorker::exists(text, voice))
+				return DoTTS(text, voice, session, append, level);
+
 			worker.AddData(BinarizeObject(new VoiceWorkerData([text], [2, session.sip.CallID, fname, append])));
 			return fname;
 		}
@@ -726,7 +750,7 @@ class ConversationalIVR {
 			return null;
 		}
 
-		var msg = ivr_tree[0];
+		var msg = trim(StrSplit(ivr_tree[0], "|")[0]);
 		var use_voice = this.voice(to);
 		if (!VoiceWorker::exists(msg, use_voice))
 			return null;
@@ -747,6 +771,10 @@ class ConversationalIVR {
 	protected chooseWorker(session, hash) {
 		if (!session)
 			return null;
+
+		if (session.ClientData.worker)
+			return session.ClientData.worker;
+
 		var to = session.To;
 		if (session.sip.is_invite)
 			to = session.From;
@@ -758,15 +786,44 @@ class ConversationalIVR {
 		if (!key)
 			return null;
 
-		var workers = stt_workers[key];
+		var len;
+		var workers;
+
+		if ((cheap_workers) && (session.ClientData.ivr_branch) && (typeof session.ClientData.ivr_branch == "array")) {
+			workers = cheap_workers[key];
+			if (workers) {
+				len = length workers;
+				if (len) {
+					var keys = GetKeys(session.ClientData.ivr_branch);
+					var worker = workers[hash % len];
+					if ((worker) && (keys) && (worker.UserData)) {
+						for (var i = 0; i < length keys; i ++) {
+							var k = keys[i];
+							if ((k) && (k[0] != "\$") && (k != "_") && (k != "*")  && (!IsSet(worker.UserData, k)) && (!worker.UserData[k])) {
+								worker = null;
+								break;
+							}						
+						}
+						if (worker) {
+							console.info(LOG_THIS, "enabling cheap worker");
+							session.ClientData.worker = worker;
+							return worker;
+						}
+					}
+				}
+			}
+		}
+
+		workers = stt_workers[key];
 		if (!workers)
 			return null;
 
-		var len = length workers;
+		len = length workers;
 		if (!len)
 			return null;
 		
-		return workers[hash % len];
+		session.ClientData.worker = workers[hash % len];
+		return session.ClientData.worker;
 	}
 
 	OnAudioFrame(session, var buffer, var type) {
@@ -1050,6 +1107,11 @@ class ConversationalIVR {
 				for (var j = 0; j < length arr; j ++)
 					this.OnIdle_worker(arr[j]);
 			}
+			for (i = 0; i < length cheap_workers; i ++) {
+				arr = cheap_workers[i];
+				for (j = 0; j < length arr; j ++)
+					this.OnIdle_worker(arr[j]);
+			}
 			for (i = 0; i < length voice_workers; i ++)
 				this.OnIdle_voiceWorker(voice_workers[i]);
 
@@ -1083,6 +1145,7 @@ class ConversationalIVR {
 
 	TextEvent(session, text, id) {
 		console.log(LOG_THIS, "text (id: ${id}): " + text);
+		session.ClientData.worker = null;
 		if (!session.ClientData.ivr_branch) {
 			console.warn(LOG_THIS, "no branch");
 			session.ClientData.count = 0;
@@ -1105,6 +1168,7 @@ class ConversationalIVR {
 			if (!k2)
 				continue;
 
+			var k_orig = k2;
 			if ((k2[0] == "/") && (k2[length k2 - 1] == "/")) {
 				var regexp = new RegExp(SubStr(k2, 1, length k2 - 2));
 				if (regexp.test(text))
@@ -1115,18 +1179,44 @@ class ConversationalIVR {
 				k2 = StrReplace(k2, ";", "|");
 				k2 = StrReplace(k2, ":", "|");
 				var arr = StrSplit(k2, "|");
+
+				var arr_text = StrSplit(text, " ");
+
+				var has_default = false;
 				for (var jj = 0; jj < length arr; jj ++) {
 					var k = trim(arr[jj]);
-					if ((k) && (Pos(text, k) > 0)) {
-						k4 = k;
-						message_understood = true;
-						break;
+
+					k = trim(k);
+					if (k) {
+						if (k == "*") {
+							has_default = true;
+							continue;
+						}
+						for (var kk = 0; kk < length arr_text; kk ++) {						
+							var k_text = trim(arr_text[kk]);
+							if (k_text == k) {
+								k4 = k;
+								message_understood = true;
+								break;
+							}
+						}
+						// search for phrases
+						if ((!message_understood) && (Pos(k, " ") > 0) && (Pos(text, k) > 0)) {
+							k4 = k;
+							message_understood = true;
+						}
+						if (message_understood)
+							break;
 					}
+				}
+				if ((has_default) && (!message_understood)) {
+					k4 = "*";
+					message_understood = true;
 				}
 			}
 			if (message_understood) {
 				session.ClientData.ivr_path += "/" + k4;
-				session.ClientData.ivr_branch = session.ClientData.ivr_branch[k2];
+				session.ClientData.ivr_branch = session.ClientData.ivr_branch[k_orig];
 
 				try {
 					if (this.OnBranch)
@@ -1231,6 +1321,7 @@ class ConversationalIVR {
 				var text = obj.buffer;
 
 				if (obj.type == STT_TIMEDOUT) {
+					session.ClientData.worker = null;
 					console.log(LOG_THIS, "session ${obj.id} stt timed out");
 					if ((typeof session.ClientData.ivr_branch == "array") && (IsSet(session.ClientData.ivr_branch, "\$timeout"))) {
 						text = "\$timeout";
@@ -1389,8 +1480,14 @@ class ConversationalIVR {
 								break;
 						}
 					} else
-					if ((branch) && (!VoiceWorker::exists(branch, use_voice)))
-						texts[length texts] = branch;
+					if (branch) {
+						var branch_arr = StrSplit(branch, "|");
+						for (var branch_i = 0; branch_i < length branch_arr; branch_i ++) {
+							var branch_e = trim(branch_arr[branch_i]);
+							if ((branch_e) && (!VoiceWorker::exists(branch_e, use_voice)))
+								texts[length texts] = branch_e;
+						}
+					}
 					break;
 			}
 		}
@@ -1491,10 +1588,19 @@ class ConversationalIVR {
 		var i;
 
 		var mss_key = null;
+		var use_cheap_workers = false;
 		if (mss_keys) {
 			mss_key = mss_keys[language];
-			if (mss_key)
+			if (mss_key) {
+				use_cheap_workers = mss_key["cheap"];
 				mss_key = BinarizeObject(mss_key);
+
+				var arr2 = cheap_workers[key];
+				if (!arr2) {
+					arr2 = new [];
+					cheap_workers[key] = arr2;
+				}
+			}
 		}
 
 		if (!mss_key) {
@@ -1505,9 +1611,11 @@ class ConversationalIVR {
 		}
 
 		while (length arr < count) {
-			if (mss_key)
+			if (mss_key) {
 				arr[length arr] = new Worker("MSSWorker", mss_key);
-			else
+				if (use_cheap_workers)
+					arr2[length arr2] = new WorkerWithData("STTWorker", "$model:default/$auto_scorer.scorer", use_cheap_workers);
+			} else
 				arr[length arr] = new Worker("STTWorker", "$model:$scorer");
 		}
 
@@ -1524,8 +1632,18 @@ class ConversationalIVR {
 
 		switch (typeof tree) {
 			case "string":
-				if ((tree) && (tree[0] != '$') && (!VoiceWorker::exists(tree, voice)))
-					arr[length arr] = tree;
+				if ((tree) && (tree[0] != '$')) {
+					var tree_arr = StrSplit(tree, "|");
+					if (tree_arr) {
+						for (var tree_i = 0; tree_i < length tree_arr; tree_i ++) {
+							var tree_e = trim(tree_arr[tree_i]);
+							if (tree_e) {
+								if (!VoiceWorker::exists(tree_e, voice))
+									arr[length arr] = tree_e;
+							}
+						}
+					}
+				}
 				break;
 			case "array":
 				for (var i = 0; i < length tree; i ++)
