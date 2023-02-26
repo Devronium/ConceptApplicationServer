@@ -18,7 +18,7 @@ struct duk_wrapper_container {
     void **HANDLERS;
     unsigned short HLEN;
     unsigned char binary_mode;
-    unsigned int timeout;
+    clock_t timeout;
     void *HANDLER;
 };
 
@@ -47,7 +47,7 @@ extern "C" {
         if (!udata)
             return 0;
         struct duk_wrapper_container *ref = (struct duk_wrapper_container *)udata;
-        if ((ref->timeout) && (time(NULL) > ref->timeout))
+        if ((ref->timeout) && (clock() > ref->timeout))
             return 1;
         return 0;
     }
@@ -397,7 +397,7 @@ CONCEPT_FUNCTION_IMPL(JSTimeout, 2)
     duk_wrapper_container *container = (duk_wrapper_container *)(intptr_t)PARAM(0);
     int timeout = PARAM_INT(1);
     if (timeout > 0)
-        container->timeout = time(NULL) + timeout;
+        container->timeout = clock() + timeout * CLOCKS_PER_SEC / 1000;
     else
         container->timeout = 0;
     RETURN_NUMBER(0);
