@@ -5,6 +5,8 @@ include IVR.con
 include STT.con
 include MSSpeech.con
 include Worker.con
+include URL.con
+include DUKJS.con
 
 define SETTINGS_ENSURE_WORDS	false
 
@@ -17,10 +19,11 @@ define STT_TIMEDOUT	4
 class IVRClientData {
 	var count;
 	var ivr_branch;
-	var path;
+	var ivr_tree;
 	var hash;
 	var ivr_path = "";
 	var last_text = "";
+	var debug_text = "";
 	var api;
 	var UserData;
 	var redirect = "";
@@ -32,6 +35,7 @@ class IVRClientData {
 
 	IVRClientData(ivr, ivr_tree, session) {
 		this.ivr_branch = ivr_tree;
+		this.ivr_tree = ivr_tree;
 		this.hash = Murmur(session.sip.CallID);
 		this.timestamp = microseconds();
 		if (((ivr.OnAPI) || (ivr.OnEvent)) && (typeof ivr_tree == "array")) {
@@ -237,7 +241,7 @@ class STTWorker {
 
 					var buf2 = resample(alaw2pcm(obj.buffer), 8000, modelSampleRate, SRC_SINC_FASTEST);
 					var level_val = level(buf2);
-					if (level_val < 0.003)
+					if (level_val < 0.0028)
 						worker_obj.silence ++;
 					else
 						worker_obj.silence = 0;
@@ -369,7 +373,7 @@ class MSSWorker {
 
 					// worker_obj.silence_buffer += obj.buffer;
 					// if (length worker_obj.silence_buffer >= 8000) {
-						if (worker_obj.age() < 10000)
+						if (worker_obj.age() < 12000)
 							worker_obj.stream.feed(obj.buffer);
 					//	worker_obj.silence_buffer = "";
 					//}
@@ -377,6 +381,9 @@ class MSSWorker {
 					if ((str) && (worker_obj.canSend())) {
 						Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TEXT, this.parse(str))));
 						worker_obj.resetText();
+						// soft reset buffer
+						worker_obj.stream.close();
+						delete worker_obj.stream;
 					}
 
 					if (worker_obj.age() >= 14000) {
@@ -420,6 +427,17 @@ class VoiceWorkerData {
 }
 
 class VoiceWorker {
+	static adjustVoice(var text, voice, tts_keys) {
+		var text_ref = trim(text);
+		if ((text_ref) && (text_ref[0] == "[") && (text_ref[3] == "]")) {
+			var voice_id = ToLower(text_ref[1] + text_ref[2]);
+			text = trim(SubStr(text_ref, 4));
+			if (IsSet(tts_keys, voice_id))
+				return tts_keys[voice_id] ?? voice;
+		}
+		return voice;
+	}
+
 	static key(text, voice) {
 		return sha1("" + voice + "/" + text);
 	}
@@ -429,10 +447,13 @@ class VoiceWorker {
 		return FileExists("./repository/alaw/$fname.alaw");
 	}
 
-	static ensureAudio(text, voice) {
+	static ensureAudio(text, voice, tts_keys = null) {
 		var fname = VoiceWorker::key(text, voice);
 		if (!voice)
 			return fname;
+
+		if (tts_keys)
+			voice = VoiceWorker::adjustVoice(text, voice, tts_keys);
 
 		console.log(LOG_THIS, "preparing $voice/[$text]");
 		if (!FileExists("./repository/alaw/$fname.alaw")) {
@@ -443,7 +464,10 @@ class VoiceWorker {
 		return fname;
 	}
 
-	VoiceWorker(voice) {
+	VoiceWorker(data) {
+		data = UnBinarizeObject(data);
+		var voice = data[0];
+		var tts_keys = data[1];
 		console.info(LOG_THIS, "created worker for $voice");
 		while (true) {
 			if (Worker::Pending(var buffer, 1000)) {
@@ -454,8 +478,8 @@ class VoiceWorker {
 				if (obj.text) {
 					for (var i = 0; i < length obj.text; i ++) {
 						var text = obj.text[i];
-						if ((text) && (text[0] != "\$"))
-							this.ensureAudio(text, voice);
+						if ((text) && (text[0] != "\$") && (!VoiceWorker::exists(text, voice)))
+							this.ensureAudio(text, voice, tts_keys);
 					}
 				}
 				
@@ -474,11 +498,98 @@ class WorkerWithData extends Worker {
 	}
 }
 
+class BromblerJS {
+	var duk;
+
+	BromblerJS(js_timeout_ms = 2480) {
+		duk = new JS(this.error_handler);
+		duk.wrap(this.getURL, "GET");
+		duk.wrap(this.postURL, "POST");
+		duk.wrap(this.print, "print");
+		duk.wrap(this.error, "error");
+		duk.timeout(js_timeout_ms);
+	}
+
+	error_handler(err) {
+		this.error(err);
+	}
+
+	safeURL(url_str) {
+		var url = trim(ToLower(url_str));
+		if (Pos(url, "file:") == 1)
+			return false;
+		return true;
+	}
+
+	getURL(url_str, headers = null) {
+		if (!this.safeURL(url_str))
+			return "";
+		var url = new URL();
+		url.Get(url_str, null, true, "Brombler", true, headers, [[CURLOPT_TIMEOUT, 2]]);
+		return url.Data;
+	}
+
+	postURL(url_str, post_array, headers = null) {
+		if (!this.safeURL(url_str))
+			return "";
+		var url = new URL();
+		url.Get(url_str, post_array, true, "Brombler", false, headers, [[CURLOPT_TIMEOUT, 2]]);
+		return url.Data;
+	}
+
+	print(data) {
+		console.log(LOG_THIS, data);
+	}
+
+	error(data) {
+		console.error(LOG_THIS, data);
+	}
+
+	load(var code) {
+		try {
+			return duk.script(code);
+		} catch (var exc) {
+			return exc;
+		}
+	}
+
+	call(function_name, parameters = null) {
+		try {
+			return duk.call(function_name, parameters);
+		} catch (var exc) {
+			return exc;
+		}
+	}
+}
+
+class JSWorker {
+	JSWorker(data) {
+		console.info(LOG_THIS, "created JS worker");
+		while (true) {
+			if (Worker::Pending(var buffer, 1000)) {
+				var obj = UnBinarizeObject(buffer);
+				if ((!obj) || (!obj["identity"]))
+					continue;
+
+				var identity = obj["identity"];
+				var code = ReadFile("./trunks/${identity}.js");
+				if (code) {
+					var js = new BromblerJS();
+					js.load(code);
+					obj["data"] = js.load(obj["apiCall"]);
+				}
+				Worker::Result(BinarizeObject(obj));
+			}
+		}
+	}
+}
+
 class ConversationalIVR {
 	var ivr;
 	var[] stt_workers;
 	var[] cheap_workers;
 	var[] voice_workers;
+	var[] js_workers;
 
 	var trunk_dir = "./trunks/";
 	var[] ivr_voice;
@@ -512,7 +623,10 @@ class ConversationalIVR {
 	var reload_config_second;
 
 	var[] mss_keys;
+	var[] tts_keys;
 	
+	protected var dummySession;
+
 	protected var _sip_username = "";
 	OnRegister(msg, auth, extra_headers) {
 		this._sip_username = "";
@@ -712,8 +826,18 @@ class ConversationalIVR {
 		var ivr_data = JSONDeserialize(ReadFile(trunk_path));
 		if ((ivr_data) && (ivr_data["config"])) {
 			var config = ivr_data["config"];
+			var workers = value config["workers"];
+			if (config["limit"]) {
+				var limit = value config["limit"];
+				ivr_limits[to] = limit;
+
+				var workers_limit = floor(limit / 4);
+				if (workers_limit > workers)
+					workers = workers_limit;
+			}
+
 			if (config["model"]) {
-				this.addWorker(to, config["model"], config["scorer"], value config["workers"]);
+				this.addWorker(to, config["model"], config["scorer"], workers);
 				var voice = config["voice"];
 				if (voice)
 					ivr_voice[to] = voice;
@@ -723,9 +847,6 @@ class ConversationalIVR {
 			var ivr_timeout_message = config["timeout"];
 			if ((ivr_timeout_message) && (typeof ivr_timeout_message == "string"))
 				ivr_timeout[to] = ivr_timeout_message;
-
-			if (config["limit"])
-				ivr_limits[to] = value config["limit"];
 		}
 	}
 
@@ -736,7 +857,7 @@ class ConversationalIVR {
 
 		var limit = ivr_limits[to];
 		if ((limit) && (length this.getSessions(to) > limit)) {
-			console.warn(LOG_THIS, "call limit exceeded for $to");
+			console.warn(LOG_THIS, "call limit exceeded for $to (more than $limit calls)");
 			return null;
 		}
 
@@ -799,7 +920,7 @@ class ConversationalIVR {
 					if ((worker) && (keys) && (worker.UserData)) {
 						for (var i = 0; i < length keys; i ++) {
 							var k = keys[i];
-							if ((k) && (k[0] != "\$") && (k != "_") && (k != "*")  && (!IsSet(worker.UserData, k)) && (!worker.UserData[k])) {
+							if ((k) && (k[0] != "\$") && (k != "_") && (k != "*")  && ((!IsSet(worker.UserData, k)) || (!worker.UserData[k]))) {
 								worker = null;
 								break;
 							}						
@@ -826,6 +947,17 @@ class ConversationalIVR {
 		return session.ClientData.worker;
 	}
 
+	protected chooseJSWorker(hash, default_workers = 2) {
+		var len = length js_workers;
+		if (!len) {
+			len = default_workers;
+			for (var i = 0; i < len; i ++)
+				js_workers[i] = new Worker("JSWorker", "");
+		}
+
+		return js_workers[hash % len];
+	}
+
 	OnAudioFrame(session, var buffer, var type) {
 		if (!session.ClientData)
 			session.ClientData = new IVRClientData(this, sessionTree(session), session);
@@ -843,7 +975,7 @@ class ConversationalIVR {
 	setWords(session, var is_dtmf = null) {
 		var[] arr;
 		var[] set_words;
-		if (!session.ClientData.ivr_branch)
+		if ((!session.ClientData.ivr_branch) || ((typeof session.ClientData.ivr_branch) != "array"))
 			return null;
 		var keys = GetKeys(session.ClientData.ivr_branch);
 		is_dtmf = true;
@@ -1000,9 +1132,33 @@ class ConversationalIVR {
 			}
 		}
 		console.log(LOG_THIS, "call id ${callid} ended with code $code");
-		if ((session) && (session.UserData) && (session.UserData.ClientData) && (session.UserData.ClientData.finish_api) && (this.OnAPI)) {
-			this.OnAPI(session, session.UserData.ClientData.ivr_path, session.UserData.ClientData.finish_api, "close");
-			session.UserData.ClientData.finish_api = "";
+		if ((session) && (session.UserData) && (session.UserData.ClientData) && (this.OnAPI)) {
+			if ((session.UserData.ClientData.ivr_branch) && ((typeof session.UserData.ClientData.ivr_branch) == "array") && (IsSet(session.UserData.ClientData.ivr_branch, "*"))) {
+				var default_api = session.UserData.ClientData.ivr_branch["*"];
+				if ((default_api) && ((typeof default_api) == "array"))
+					default_api = default_api[0];
+				if (typeof default_api != "string")
+					default_api = "";
+				if (default_api) {
+					if (session.UserData.ClientData.ivr_path)
+						session.UserData.ClientData.ivr_path += "/";
+					session.UserData.ClientData.ivr_path += "*[default]";
+					if (Pos(default_api, "\$api") == 1) {
+						ivr.OnAPI(session, session.UserData.ClientData.ivr_path, trim(SubStr(default_api, 4)), "tree");
+						session.UserData.ClientData.ivr_branch = "";
+					} else
+					if (Pos(default_api, "\$js") == 1) {
+						this.js(session.UserData, trim(SubStr(default_api, 3)));
+						if (this.OnEvent)
+							this.OnEvent(session.UserData, session.UserData.ClientData.ivr_path, "js");
+						session.UserData.ClientData.ivr_branch = "";
+					}
+				}
+			}
+			if (session.UserData.ClientData.finish_api) {
+				this.OnAPI(session, session.UserData.ClientData.ivr_path, session.UserData.ClientData.finish_api, "close");
+				session.UserData.ClientData.finish_api = "";
+			}
 		}
 		if ((session) && (session.UserData) && (session.UserData.ClientData) && (this.OnEvent))
 			this.OnEvent(session.UserData, session.UserData.ClientData.ivr_path, "close");
@@ -1060,6 +1216,7 @@ class ConversationalIVR {
 			return;
 		}
 
+		var stt_worker = this.chooseWorker(session, session.ClientData.hash);
 		if (text[0] == "\$") {
 			if ((this.OnAPI) && (Pos(text, "\$api") == 1)) {
 				session.ClientData.api = true;
@@ -1084,16 +1241,51 @@ class ConversationalIVR {
 				this.refer(session, trim(SubStr(text, 9)));
 				session.ClientData.count = 0;
 				session.EndOnIVRFinished = false;
+				session.ClientData.redirect = "";
 				if (this.OnEvent)
 					this.OnEvent(session, session.ClientData.ivr_path, "redirect");
+
+				if (stt_worker)
+					stt_worker.AddData(BinarizeObject(new STTWorkerData(id, STT_RESET, [ ])));
+				return;
+			} else
+			if (Pos(text, "\$js") == 1) {
+				this.js(session, trim(SubStr(text, 3)));
+				session.ClientData.count = 0;
+				session.EndOnIVRFinished = false;
+				session.ClientData.redirect = "";
+				if (this.OnEvent)
+					this.OnEvent(session, session.ClientData.ivr_path, "js");
+
+				if (stt_worker)
+					stt_worker.AddData(BinarizeObject(new STTWorkerData(id, STT_RESET, [ ])));
+				return;
+			} else
+			if (Pos(text, "\$reset") == 1) {
+				session.EndOnIVRFinished = false;
+				// reset
+				session.ClientData.ivr_branch = session.ClientData.ivr_tree;
+				session.ClientData.redirect = "";
+
+				if (stt_worker)
+					stt_worker.AddData(BinarizeObject(new STTWorkerData(id, STT_RESET, this.setWords(session, var dtmf))));
+
+				if ((dtmf) || (!stt_worker))
+					session.ClientData.count = 2;
+				else
+					session.ClientData.count = 1;
+
+				if (this.OnEvent)
+					this.OnEvent(session, session.ClientData.ivr_path, "reset");
 				return;
 			}
 		}
 
 
+		session.ClientData.count = 0;
+
 		DoTTSAsync(text, this.voice(session), session, append);
 
-		var stt_worker = this.chooseWorker(session, session.ClientData.hash);
 		if (stt_worker)
 			stt_worker.AddData(BinarizeObject(new STTWorkerData(id, STT_RESET, this.setWords(session))));
 		else
@@ -1114,6 +1306,9 @@ class ConversationalIVR {
 			}
 			for (i = 0; i < length voice_workers; i ++)
 				this.OnIdle_voiceWorker(voice_workers[i]);
+
+			for (i = 0; i < length js_workers; i ++)
+				this.OnIdle_jsWorker(js_workers[i]);
 
 			if (microseconds() - every_second >= 1000000) {
 				this.ivr.stack.Reregister();
@@ -1146,15 +1341,25 @@ class ConversationalIVR {
 	TextEvent(session, text, id) {
 		console.log(LOG_THIS, "text (id: ${id}): " + text);
 		session.ClientData.worker = null;
+		if (!session.ClientData.count) {
+			console.warn(LOG_THIS, "dropping text [$text]");
+			return;
+		}
+
 		if (!session.ClientData.ivr_branch) {
 			console.warn(LOG_THIS, "no branch");
 			session.ClientData.count = 0;
 			session.Close();
 			return;
 		}
+		if ((session.ClientData.last_text != text) && (text)) {
+			if (session.ClientData.debug_text)
+				session.ClientData.debug_text += "; ";
+			session.ClientData.debug_text += text;
+		}
 		session.ClientData.last_text = text ?? "";
 
-		var keys = GetKeys(session.ClientData.ivr_branch);
+		var keys = GetKeys(KeySorted(session.ClientData.ivr_branch));
 		if (!keys) {
 			console.warn(LOG_THIS, "no keys");
 			return;
@@ -1163,16 +1368,28 @@ class ConversationalIVR {
 		var message_understood = false;
 		var append = false;
 		var k4 = "";
+		var has_default = false;
+
+		var arr_text = StrSplit(text, " ");
+
 		for (var j = 0; j < length keys; j ++) {
 			var k2 = keys[j];
 			if (!k2)
 				continue;
 
 			var k_orig = k2;
+
+			k2 = trim(k2);
+			while ((k2) && ((k2[0] == "!") || (k2[0] == "~")))
+				k2 = SubStr(k2, 1);
+
 			if ((k2[0] == "/") && (k2[length k2 - 1] == "/")) {
-				var regexp = new RegExp(SubStr(k2, 1, length k2 - 2));
-				if (regexp.test(text))
+				var regexp_str = SubStr(k2, 1, length k2 - 2);
+				var regexp = new RegExp(regexp_str);
+				if (regexp.test(text)) {
+					k4 = regexp_str;
 					message_understood = true;
+				}
 			} else {
 				k2 = StrReplace(k2, ",", "|");
 				k2 = StrReplace(k2, ".", "|");
@@ -1180,16 +1397,11 @@ class ConversationalIVR {
 				k2 = StrReplace(k2, ":", "|");
 				var arr = StrSplit(k2, "|");
 
-				var arr_text = StrSplit(text, " ");
-
-				var has_default = false;
 				for (var jj = 0; jj < length arr; jj ++) {
 					var k = trim(arr[jj]);
-
-					k = trim(k);
 					if (k) {
 						if (k == "*") {
-							has_default = true;
+							has_default = k_orig;
 							continue;
 						}
 						for (var kk = 0; kk < length arr_text; kk ++) {						
@@ -1209,10 +1421,11 @@ class ConversationalIVR {
 							break;
 					}
 				}
-				if ((has_default) && (!message_understood)) {
-					k4 = "*";
-					message_understood = true;
-				}
+			}
+			if ((has_default) && (!message_understood) && (j == ((length keys) - 1))) {
+				k4 = "*";
+				message_understood = true;
+				k_orig = has_default;
 			}
 			if (message_understood) {
 				session.ClientData.ivr_path += "/" + k4;
@@ -1350,7 +1563,7 @@ class ConversationalIVR {
 		if (worker)
 			return worker;
 
-		worker = new Worker("VoiceWorker", use_voice);
+		worker = new Worker("VoiceWorker", BinarizeObject([use_voice, tts_keys]));
 		voice_workers[use_voice] = worker;
 
 		return worker;
@@ -1377,7 +1590,16 @@ class ConversationalIVR {
 			}
 			ivr_tree = ivr_tree["tree"];
 			if (ivr_tree) {
-				this.addWorker(to, config["model"], config["scorer"], value config["workers"]);
+				var workers = value config["workers"];
+				if (config["limit"]) {
+					var limit = value config["limit"];
+					ivr_limits[to] = limit;
+
+					var workers_limit = floor(limit / 4);
+					if (workers_limit > workers)
+						workers = workers_limit;
+				}
+				this.addWorker(to, config["model"], config["scorer"], workers);
 				voice = config["voice"];
 				if (voice)
 					ivr_voice[to] = voice;
@@ -1476,7 +1698,16 @@ class ConversationalIVR {
 									console.warn(LOG_THIS, "include parameter missing");
 								break;
 							case "\$repeat":
-								ivr_tree[keys[i]] = ivr_tree;
+								if ((prev) && (length prev > 0)) {
+									var prev_tree = prev[length prev - 1];
+									if (typeof prev_tree == "array") {
+										var prev_keys = GetKeys(prev_tree);
+										for (var j2 = 0; j2 < length prev_keys; j2 ++)
+											ivr_tree[prev_keys[j2]] = prev_tree[j2];
+										i = length ivr_tree;
+									}
+								} else
+									console.warn(LOG_THIS, "invalid branch to repeat");
 								break;
 						}
 					} else
@@ -1530,7 +1761,7 @@ class ConversationalIVR {
 		this.TextEvent(session.UserData, key, session.CallID);
 	}
 
-	ConversationalIVR(sip_host, sip_port = 5060, in_band_dtmf = true, mss_keys = null) {
+	ConversationalIVR(sip_host, sip_port = 5060, in_band_dtmf = true, mss_keys = null, tts_keys = null) {
 		ivr = new IVR(sip_host, sip_port, 40);
 
 		ivr.GreetingTo = this.OnGreeting;
@@ -1550,6 +1781,8 @@ class ConversationalIVR {
 			ivr.stack.OnDTMF = this.OnDTMFRelay;
 
 		ivr.LoopCallback = this.OnIdle;
+
+		this.tts_keys = tts_keys ?? [ ];
 
 		this.mss_keys = mss_keys ?? [ ];
 	}
@@ -1717,6 +1950,86 @@ class ConversationalIVR {
 			}
 
 		}
+	}
+
+	OnIdle_jsWorker(worker) {
+		worker.GetAll(var data, 0, 100);
+		if (data) {
+			for (var i = 0; i < length data; i ++) {
+				var obj = UnBinarizeObject(data[i]);
+				if (!obj)
+					continue;
+
+				var ivr_branch = obj["data"] ?? "";
+				var session = this.ivr.GetSessionById(obj["id"]);
+				if (!session) {
+					console.log(LOG_THIS, "session does not exists anymore, creating virtual session for JS");
+
+					if (!dummySession) {
+						dummySession = new DATASession(null, __object("SIPSession"), "", "");
+						dummySession.ClientData = __object("IVRClientData");
+						dummySession.ClientData.ivr_path = "";
+					}
+					session = dummySession;
+					session.sip.CallID = obj["id"];
+					session.From = obj["from"] ?? "";
+					session.To = obj["to"] ?? "";
+					session.sip.is_invite = obj["invite"];
+					// continue;
+				}
+
+				session.ClientData.ivr_branch = ivr_branch ?? "javascript error";
+				var text = "";
+				if (typeof ivr_branch == "string") {
+					text = ivr_branch;
+					session.EndOnIVRFinished = true;
+				} else
+				if (typeof ivr_branch == "array") {
+					text = ivr_branch[0] ?? "";
+					if (this.OnAPI) {
+						var k = GetKeys(ivr_branch)[0];
+						if (k[0] == "\$") {
+							if (Pos(k, "\$api") == 1)
+								this.OnAPI(session, session.ClientData.ivr_path, trim(SubStr(k, 4)), "tree");
+						}
+					}
+
+					if (length ivr_branch > 1) {
+						session.EndOnIVRFinished = false;
+					} else {
+						session.EndOnIVRFinished = true;
+					}
+				}
+
+				if (typeof text != "string") {
+					text = "javascript type error";
+					session.EndOnIVRFinished = true;
+				}
+
+				this.Raspuns(session.sip.CallID, text);
+			}
+		}
+	}
+
+	js(session, call_function) {
+		if (!session)
+			return null;
+
+		var worker = this.chooseJSWorker(session.ClientData.hash);
+		if (worker) {
+			if (session.sip.is_invite)
+				call_function = StrReplace(call_function, "self", session.To);
+			else
+				call_function = StrReplace(call_function, "self", session.From);
+
+			call_function = StrReplace(call_function, "path", session.ClientData.ivr_path);
+			call_function = StrReplace(call_function, "timestamp", "" + session.ClientData.timestamp);
+			call_function = StrReplace(call_function, "text", session.ClientData.last_text);
+			call_function = StrReplace(call_function, "debug", session.ClientData.debug_text);
+
+			return worker.AddData(BinarizeObject(["id" => session.sip.CallID, "apiCall" => call_function, "identity" => sessionTo(session), "from" => session.From, "to" => session.To, "invite" => session.sip.is_invite]));
+		}
+		return null;
 	}
 
 	call(who, from, tree = null, max_duration = 1800) {

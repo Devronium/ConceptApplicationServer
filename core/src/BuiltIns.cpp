@@ -138,7 +138,7 @@ CONCEPT_FUNCTION_IMPL(RE_exec, 2)
             if ((sub.sub[1].sp) && (sub.sub[1].ep)) {
                 CREATE_ARRAY(RESULT);
 
-                INTEGER index = 0;;
+                INTEGER index = 0;
                 do {
                     delta = ep - sp;
                     if (delta) {

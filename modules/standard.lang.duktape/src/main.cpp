@@ -19,6 +19,7 @@ struct duk_wrapper_container {
     unsigned short HLEN;
     unsigned char binary_mode;
     clock_t timeout;
+    clock_t expires;
     void *HANDLER;
 };
 
@@ -47,7 +48,7 @@ extern "C" {
         if (!udata)
             return 0;
         struct duk_wrapper_container *ref = (struct duk_wrapper_container *)udata;
-        if ((ref->timeout) && (clock() > ref->timeout))
+        if ((ref->expires) && (clock() > ref->expires))
             return 1;
         return 0;
     }
@@ -72,6 +73,8 @@ CONCEPT_FUNCTION_IMPL(JSNewRuntime, 0)
         if (ref) {
             memset(ref, 0, sizeof(struct duk_wrapper_container));
             ref->ctx = ctx;
+            ref->timeout = 0;
+            ref->expires = 0;
             ref->HANDLER = PARAMETERS->HANDLER;
 
             duk_push_global_stash(ctx);
@@ -201,7 +204,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSEvaluateScript, 2, 4)
     T_HANDLE(JSEvaluateScript, 0)
     T_STRING(JSEvaluateScript, 1)
 
-    duk_context *ctx = DUK_CTX((duk_wrapper_container *)(intptr_t)PARAM(0));
+    duk_wrapper_container *container = (duk_wrapper_container *)(intptr_t)PARAM(0);
+    if (container->timeout)
+        container->expires = clock() + container->timeout * CLOCKS_PER_SEC / 1000;
+    else
+        container->expires = 0;
+
+    duk_context *ctx = DUK_CTX(container);
 
     if (PARAMETERS_COUNT > 2) {
         T_STRING(JSEvaluateScript, 2)
@@ -214,8 +223,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSEvaluateScript, 2, 4)
                 RecursiveValue(ctx, PARAMETER(3), -1, Invoke);
             }
         } else {
-            duk_call(ctx, 0);
-            RecursiveValue(ctx, RESULT, -1, Invoke);
+            if (duk_pcall(ctx, 0)) {
+                if (PARAMETERS_COUNT > 3) {
+                    const char *err = duk_safe_to_string(ctx, -1);
+                    SET_STRING(3, err);
+                }
+            } else
+                RecursiveValue(ctx, RESULT, -1, Invoke);
         }
         duk_pop(ctx);
     } else {
@@ -397,7 +411,7 @@ CONCEPT_FUNCTION_IMPL(JSTimeout, 2)
     duk_wrapper_container *container = (duk_wrapper_container *)(intptr_t)PARAM(0);
     int timeout = PARAM_INT(1);
     if (timeout > 0)
-        container->timeout = clock() + timeout * CLOCKS_PER_SEC / 1000;
+        container->timeout = timeout;
     else
         container->timeout = 0;
     RETURN_NUMBER(0);
@@ -411,7 +425,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSCall, 3, 4)
         SET_STRING(3, "");
     }
 
-    duk_context *ctx = DUK_CTX((duk_wrapper_container *)(intptr_t)PARAM(0));
+    duk_wrapper_container *container = (duk_wrapper_container *)(intptr_t)PARAM(0);
+    if (container->timeout)
+        container->expires = clock() + container->timeout * CLOCKS_PER_SEC / 1000;
+    else
+        container->expires = 0;
+
+    duk_context *ctx = DUK_CTX(container);
     unsigned char binary_mode = DUK_BINARY((duk_wrapper_container *)(intptr_t)PARAM(0));
     const char *func = PARAM(1);
     if ((func) && (func[0])) {

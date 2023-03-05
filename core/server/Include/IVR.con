@@ -189,6 +189,7 @@ class IVR {
 	var UserData;
 	var ReferError;
 	var LoopCallback;
+	var callbackOps;
 
 	Get(key, format = "alaw", dir = "repository") {
 		var key2 = "$key.$format";
@@ -495,8 +496,10 @@ class IVR {
 				Sleep(1);
 			if ((delta > 10) && (Debug))
 				console.info(LOG_THIS, "DELTA: $delta");
-			if (this.LoopCallback)
+			if (this.LoopCallback) {
+				this.callbackOps = ops;
 				this.LoopCallback();
+			}
 		}
 	}
 }
