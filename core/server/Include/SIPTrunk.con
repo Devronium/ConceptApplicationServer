@@ -108,7 +108,7 @@ class SIPSession {
 	private var s;
 	private var sequence_number;
 	private var rtp_port;
-	private var rtp;
+	public var rtp;
 	private var srtp;
 	private var d;
 
@@ -2869,6 +2869,26 @@ class SIPStack {
 			if (ip)
 				return NonRoutable(ip);
 		}
+		return false;
+	}
+
+	needsIO(var out_sockets = null, timeout = 0, base_sockets = null) {
+		var sessions = this.Sessions;
+		var[] sockets;
+		if (base_sockets)
+			sockets = base_sockets;
+		sockets[length sockets] = udpclientsocket.Socket;
+		for (var i = 0; i < length sessions; i++) {
+			var session = sessions[i];
+			if (session) {
+				if ((session.rtp) && (session.rtp.Socket > 0))
+					sockets[length sockets] = session.rtp.Socket;
+			}
+		}
+		if (SocketPoll(sockets, out_sockets, timeout))
+			return true;
+
+		out_sockets = null;
 		return false;
 	}
 
