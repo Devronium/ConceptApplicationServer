@@ -197,28 +197,35 @@ CONCEPT_FUNCTION_IMPL(WhisperDecode, 2)
     float *input = (float *)malloc((len + 1) * sizeof(float));
     src_short_to_float_array((short *)buf, input, len);
 
-    ctx->wparams.offset_ms = 0;
-    ctx->wparams.duration_ms = len / (WHISPER_SAMPLE_RATE / 1000);
+    whisper_full_params wparams = ctx->wparams;
 
-    int old_running = ctx->running;
-    if (whisper_full_parallel(ctx->ctx, ctx->wparams, input, len, 1) != 0) {
-        ctx->running = old_running;
+    wparams.offset_ms = 0;
+    wparams.duration_ms = len / (WHISPER_SAMPLE_RATE / 1000);
+
+    struct stt_context ref_ctx = *ctx;
+
+    wparams.new_segment_callback_user_data = &ref_ctx;
+    wparams.encoder_begin_callback_user_data = &ref_ctx;
+
+    struct whisper_state *state = whisper_init_state(ctx->ctx);
+    if (whisper_full_with_state(ctx->ctx, state, wparams, input, len) != 0) {
+        whisper_free_state(state);
         free(input);
         RETURN_STRING("");
         return 0;
     }
-    ctx->running = old_running;
     free(input);
 
     std::string str;
-    const int n_segments = whisper_full_n_segments(ctx->ctx);
+    const int n_segments = whisper_full_n_segments_from_state(state);
     for (int i = 0; i < n_segments; ++i) {
-        const char * text = whisper_full_get_segment_text(ctx->ctx, i);
+        const char * text = whisper_full_get_segment_text_from_state(state, i);
         if (str.length())
             str += "\n";
         str += text;
     }
 
+    whisper_free_state(state);
     RETURN_STRING(str.c_str());
 END_IMPL
 //=====================================================================================//
