@@ -1,0 +1,152 @@
+import standard.C.io
+import standard.lang.serialize
+import standard.lib.str
+import standard.lib.cripto
+import standard.C.time
+
+class WhisperTTSHelper {
+	var modelName;
+
+	WhisperTTSHelper(model_name) {
+		this.modelName = model_name;
+	}
+
+	static tts(text, model, out_path, extra_params = "") {
+		text = StrReplace(text, "\\", "\\\\");
+		text = StrReplace(text, "\"", "\\\"");
+		if (extra_params)
+			extra_params = " " + extra_params;
+		return _system("tts --text \"$text\" --model_name \"$model\" --out_path \"$out_path\"$extra_params");
+	}
+
+	speak(text, out_path) {
+		return this.tts(text, modelName, out_path);
+	}
+}
+
+class WhisperSpeechStream {
+	protected var audio_buffer = "";
+	protected var language;
+	protected var model;
+	protected var _handle;
+	protected var _io_file;
+	protected var _started;
+	protected var _audio_len;
+
+	public var BufferTimeout = 1000;
+	public var MinBufferSize = 24000;
+
+	WhisperSpeechStream(object owner) {
+		this.language = owner.language;
+		this.model = owner.model;
+		
+		var tmp = _getenv("temp");
+		if (!tmp)
+			tmp = _getenv("tmp");
+		if (!tmp)
+			tmp = "/tmp";
+		_mkdir(tmp);
+
+		this._io_file = "$tmp/whisper_" + SubStr(sha1(CryptoRandom(32)), 0, 16) + ".wav";
+		_unlink(this._io_file);
+
+		WriteFile(this._wavHeader(1024), "test.wav");
+	}
+
+	feed(var buffer) {
+		_started = true;
+		audio_buffer += buffer;
+		_audio_len += length buffer;
+	}
+
+	_wavHeader(datasize) {
+		var header = "RIFF";
+		header += pack("u32", datasize + 44 - 8);
+		header += "WAVEfmt ";
+		header += pack("u32u16u16u32u32u16u16", 16, 1, 1, 16000, 32000, 2, 16);
+		header += "data";
+		header += pack("u32", datasize);
+
+		return header;
+	}
+
+	_decodeOnce() {
+		var buffer = "";
+		if (!this._handle)
+			return buffer;
+		if (!feof(this._handle)) {
+			var bytes_read = fread(buffer, 1, 1024, this._handle);
+			if (bytes_read != 0) {
+				pclose(this._handle);
+				this._handle = 0;
+				_unlink(this._io_file);
+			}
+		}
+
+		return buffer;
+	}
+
+	WriteWav() {
+		WriteFile(_wavHeader(length audio_buffer) + audio_buffer, _io_file);
+		_audio_len = 0;
+	}
+
+	decode() {
+		if ((!audio_buffer) || (_audio_len < MinBufferSize))
+			return this._decodeOnce();
+
+		WriteWav();
+
+		if (!this._handle)
+			this._handle = popen("whisper --language \"${this.language}\" --model \"${this.model}\" --output_format txt \"${this._io_file}\"", "r");
+		if (!this._handle)
+			throw "Cannot execute";
+
+		return this._decodeOnce();
+	}
+
+	finish() {
+		var buffer = _decodeOnce();
+		if (_handle) {
+			pclose(_handle);
+			_handle = null;
+			_unlink(this._io_file);
+		}
+		audio_buffer = "";
+		_audio_len = 0;
+		_started = false;
+		return buffer;
+	}
+
+	close() {
+		if (this._handle) {
+			pclose(this._handle);
+			this._handle = null;
+		}
+		_unlink(this._io_file);
+		audio_buffer = "";
+		_audio_len = 0;
+		_started = false;
+	}
+
+	finalize() {
+		if (this._handle) {
+			fclose(this._handle);
+			this._handle = null;
+		}
+		_started = false;
+		_unlink(this._io_file);
+	}
+}
+
+class WhisperSpeech {
+	var language;
+	var model;
+
+	var modelSampleRate = 16000;
+
+	WhisperSpeech(string language, model = "tiny") {
+		this.language = language;
+		this.model = model;
+	}
+}

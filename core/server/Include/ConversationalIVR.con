@@ -601,6 +601,7 @@ class ConversationalIVR {
 	var[] ivr_api_trees;
 	var[] ivr_limits;
 	var[] ivr_queues;
+	var[] ivr_blacklist;
 	var ivr_api_trees_dirty;
 
 	var OnFinish;
@@ -859,6 +860,14 @@ class ConversationalIVR {
 		if ((limit) && (length this.getSessions(to) > limit)) {
 			console.warn(LOG_THIS, "call limit exceeded for $to (more than $limit calls)");
 			return null;
+		}
+
+		if ((ivr_blacklist) && (IsSet(ivr_blacklist, to))) {
+			var to_blacklist = ivr_blacklist[to];
+			if ((to_blacklist) && (IsSet(to_blacklist, from)) && ((time() - to_blacklist[from]) < 24 * 3600)) {
+				console.warn(LOG_THIS, "call from $from is blacklisted");
+				return null;
+			}
 		}
 
 		if (IsSet(ivr_api_trees, callid))
@@ -1208,6 +1217,22 @@ class ConversationalIVR {
 		return true;
 	}
 
+	blacklist(session) {
+		var account = session.To;
+		var blacklist_number = session.From;
+		if (session.sip.is_invite) {
+			account = session.From;
+			blacklist_number = session.To;
+		}
+
+		var to_blacklist = ivr_blacklist[account];
+		if (!to_blacklist) {
+			to_blacklist = new [];
+			ivr_blacklist[account] = to_blacklist;
+		}
+		to_blacklist[blacklist_number] = time();
+	}
+
 	Raspuns(id, text, append = false) {
 		console.log(LOG_THIS, "[$text]");
 		var session = this.ivr.GetSessionById(id);
@@ -1277,6 +1302,16 @@ class ConversationalIVR {
 
 				if (this.OnEvent)
 					this.OnEvent(session, session.ClientData.ivr_path, "reset");
+				return;
+			} else
+			if (Pos(text, "\$blacklist") == 1) {
+				session.ClientData.count = 0;
+				session.EndOnIVRFinished = true;
+				session.ClientData.redirect = "";
+				blacklist(session);
+				if (stt_worker)
+					stt_worker.AddData(BinarizeObject(new STTWorkerData(id, STT_RESET, [ ])));
+				session.Close();
 				return;
 			}
 		}
