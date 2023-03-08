@@ -114,6 +114,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 5)
         RETURN_NUMBER(0);
         return 0;
     }
+
+    fprintf(stderr, "system_info: n_threads = %d | %s\n", threads, whisper_print_system_info());
+
     whisper_ctx->ctx = ctx;
 
     whisper_ctx->wparams = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
@@ -143,7 +146,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 5)
     whisper_ctx->wparams.prompt_tokens     = NULL;
     whisper_ctx->wparams.prompt_n_tokens   = 0;
 
-    whisper_ctx->wparams.greedy.best_of        = 5;
+    whisper_ctx->wparams.greedy.best_of        = params.best_of;
     whisper_ctx->wparams.beam_search.beam_size = -1;
 
     whisper_ctx->wparams.temperature_inc  = 0.0f;

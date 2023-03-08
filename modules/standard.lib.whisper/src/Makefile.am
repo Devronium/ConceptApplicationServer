@@ -1,7 +1,7 @@
 # what flags you want to pass to the C compiler & linker
-AM_CFLAGS = -O2 -fPIC
-AM_CXXFLAGS = -O2 -fPIC
-AM_LDFLAGS = -shared
+AM_CFLAGS = -O3 -fPIC -march=haswell
+AM_CXXFLAGS = -O3 -fPIC -march=haswell
+AM_LDFLAGS = -shared -lpthread
 
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
 # the previous manual Makefile
