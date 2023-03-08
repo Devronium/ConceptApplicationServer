@@ -77,15 +77,17 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 5)
     int translate = 0;
     int running_flag = 1;
 
-    const char *lang = "en";
+    const char *lang = "auto";
 
     if (PARAMETERS_COUNT > 1) {
         T_STRING(WhisperCreate, 1)
-        lang = PARAM(1);
-        lang_id = whisper_lang_id(lang);
-        if (lang_id == -1) {
-            RETURN_NUMBER(0);
-            return 0;
+        if (PARAM_LEN(1) > 0) {
+            lang = PARAM(1);
+            lang_id = whisper_lang_id(lang);
+            if (lang_id == -1) {
+                RETURN_NUMBER(0);
+                return 0;
+            }
         }
     }
     if (PARAMETERS_COUNT > 2) {
