@@ -3,6 +3,8 @@ import standard.lib.str
 import standard.lib.whisper
 import standard.C.time
 import standard.lang.serialize
+import standard.lib.samplerate
+import standard.math.rand
 
 include Worker.con
 
@@ -28,11 +30,13 @@ class WhisperTTSHelper {
 
 class WhisperMessage {
 	var id;
+	var stream_id;
 	var buffer;
 
-	WhisperMessage(id, buffer = "") {
+	WhisperMessage(id, buffer = "", stream_id = 0) {
 		this.id = id;
 		this.buffer = buffer;
+		this.stream_id = stream_id;
 	}
 }
 
@@ -49,6 +53,7 @@ class WhisperWorker {
 				if (obj) {
 					if (obj.id < 0)
 						break;
+
 					obj.buffer = WhisperDecode(handle, obj.buffer);
 					Worker::Result(BinarizeObject(obj));
 				}
@@ -60,19 +65,27 @@ class WhisperWorker {
 
 class WhisperSpeechStream {
 	protected var audio_buffer = "";
-	protected var _handle;
 	protected var _started;
+	protected var _start_voice;
+	protected var _end_voice;
 	protected var _audio_len;
 	protected var _owner;
 	protected var _worker_id;
 	protected var _worker;
 	protected var _buffer_offset;
+	protected var _last_text = "";
+	protected var _pending = false;
 
 	public var BufferTimeout = 1000;
 	public var MinBufferSize = 24000;
 
+	var stream_id;
+	var _handle;
+
 	WhisperSpeechStream(object owner) {
 		this._owner = owner;
+		this._handle = true;
+		this.stream_id = RandomInteger(0, 0x10000000);
 	}
 
 	feed(var buffer) {
@@ -80,6 +93,20 @@ class WhisperSpeechStream {
 			_started = microseconds();
 		audio_buffer += buffer;
 		_audio_len += length buffer;
+
+		var level_val = level(buffer);
+		if (_start_voice) {
+			if (level_val < 0.01) {
+				if (!_end_voice)
+					_end_voice = microseconds();
+			} else
+			if (level_val > 0.0031)
+				_end_voice = 0;
+		} else
+		if (level_val >= 0.1) {
+			_start_voice = microseconds();
+			_end_voice = 0;
+		}
 	}
 
 	decode() {
@@ -91,19 +118,28 @@ class WhisperSpeechStream {
 		if (!_worker)
 			throw "WhisperSpeechStream: No available workers";
 
-		if ((audio_buffer) && (_buffer_offset < length audio_buffer) && ((_audio_len > MinBufferSize) || (((microseconds() - _started) / 1000) >= BufferTimeout))) {
-			_worker.AddData(BinarizeObject(new WhisperMessage(_worker_id, audio_buffer)));
-			_buffer_offset += length audio_buffer;
+		if ((!_pending) && (audio_buffer) && (_buffer_offset < length audio_buffer) && (((_end_voice) && ((microseconds() - _end_voice) >= 1000000)) || ((_audio_len > MinBufferSize) || (((microseconds() - _started) / 1000) >= BufferTimeout)))) {
+			_worker.AddData(BinarizeObject(new WhisperMessage(_worker_id, audio_buffer, stream_id)));
+			_pending = true;
 			_started = microseconds();
+
+			audio_buffer = "";
+			_buffer_offset = 0;
+			_audio_len = 0;
+
+			_start_voice = 0;
+			_end_voice = 0;
 		}
 
 		_worker.GetResult(var data);
 		if (data) {
 			var obj = UnBinarizeObject(data);
-			if (obj)
-				return obj.buffer;
+			if ((obj) && (obj.stream_id == stream_id)) {
+				_last_text = obj.buffer;
+				_pending = false;
+			}
 		}
-		return "";
+		return _last_text;
 	}
 
 	finish() {
@@ -111,6 +147,8 @@ class WhisperSpeechStream {
 		_audio_len = 0;
 		_started = 0;
 		_buffer_offset = 0;
+		_start_voice = 0;
+		_end_voice = 0;
 		return "";
 	}
 
@@ -119,12 +157,16 @@ class WhisperSpeechStream {
 		_audio_len = 0;
 		_started = 0;
 		_buffer_offset = 0;
+		_start_voice = 0;
+		_end_voice = 0;
+		this._handle = false;
 		this._owner.freeWorker(_worker_id);
 	}
 
 	finalize() {
 		if (this._owner)
 			this._owner.freeWorker(_worker_id);
+		this._handle = false;
 		_started = 0;
 	}
 }
