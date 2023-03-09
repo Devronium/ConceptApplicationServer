@@ -132,7 +132,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 5)
     whisper_ctx->wparams.print_timestamps = 0;
     whisper_ctx->wparams.print_special    = 0;
     whisper_ctx->wparams.translate        = translate;
-    whisper_ctx->wparams.language         = lang;
+    whisper_ctx->wparams.language         = lang ? strdup(lang) : NULL;
     whisper_ctx->wparams.n_threads        = threads;
     whisper_ctx->wparams.n_max_text_ctx   = params.max_context >= 0 ? params.max_context : whisper_ctx->wparams.n_max_text_ctx;
     whisper_ctx->wparams.offset_ms        = params.offset_t_ms;
@@ -234,6 +234,7 @@ CONCEPT_FUNCTION_IMPL(WhisperFree, 1)
 
     struct stt_context *ctx = (struct stt_context *)(SYS_INT)PARAM(0);
     if (ctx) {
+        free((void *)ctx->wparams.language);
         whisper_free(ctx->ctx);
         free(ctx);
     }

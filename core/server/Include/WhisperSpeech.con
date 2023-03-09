@@ -1,8 +1,10 @@
 import standard.C.io
-import standard.lang.serialize
 import standard.lib.str
-import standard.lib.cripto
+import standard.lib.whisper
 import standard.C.time
+import standard.lang.serialize
+
+include Worker.con
 
 class WhisperTTSHelper {
 	var modelName;
@@ -24,129 +26,180 @@ class WhisperTTSHelper {
 	}
 }
 
+class WhisperMessage {
+	var id;
+	var buffer;
+
+	WhisperMessage(id, buffer = "") {
+		this.id = id;
+		this.buffer = buffer;
+	}
+}
+
+class WhisperWorker {
+	WhisperWorker(data) {
+		var arr = UnBinarizeObject(data);
+		var handle = arr[0];
+		var id = arr[1];
+
+		console.log(LOG_THIS, "created worker $id");
+		while (true) {
+			if (Worker::Pending(var buffer, 1000)) {
+				var obj = UnBinarizeObject(buffer);
+				if (obj) {
+					if (obj.id < 0)
+						break;
+					obj.buffer = WhisperDecode(handle, obj.buffer);
+					Worker::Result(BinarizeObject(obj));
+				}
+			}
+		}
+		console.log(LOG_THIS, "removed worker");
+	}
+}
+
 class WhisperSpeechStream {
 	protected var audio_buffer = "";
-	protected var language;
-	protected var model;
 	protected var _handle;
-	protected var _io_file;
 	protected var _started;
 	protected var _audio_len;
+	protected var _owner;
+	protected var _worker_id;
+	protected var _worker;
+	protected var _buffer_offset;
 
 	public var BufferTimeout = 1000;
 	public var MinBufferSize = 24000;
 
 	WhisperSpeechStream(object owner) {
-		this.language = owner.language;
-		this.model = owner.model;
-		
-		var tmp = _getenv("temp");
-		if (!tmp)
-			tmp = _getenv("tmp");
-		if (!tmp)
-			tmp = "/tmp";
-		_mkdir(tmp);
-
-		this._io_file = "$tmp/whisper_" + SubStr(sha1(CryptoRandom(32)), 0, 16) + ".wav";
-		_unlink(this._io_file);
-
-		WriteFile(this._wavHeader(1024), "test.wav");
+		this._owner = owner;
 	}
 
 	feed(var buffer) {
-		_started = true;
+		if (!_started)
+			_started = microseconds();
 		audio_buffer += buffer;
 		_audio_len += length buffer;
 	}
 
-	_wavHeader(datasize) {
-		var header = "RIFF";
-		header += pack("u32", datasize + 44 - 8);
-		header += "WAVEfmt ";
-		header += pack("u32u16u16u32u32u16u16", 16, 1, 1, 16000, 32000, 2, 16);
-		header += "data";
-		header += pack("u32", datasize);
+	decode() {
+		if (!_started)
+			return "";
 
-		return header;
-	}
+		if (!_worker)
+			_worker = _owner.findWorker(_worker_id);
+		if (!_worker)
+			throw "WhisperSpeechStream: No available workers";
 
-	_decodeOnce() {
-		var buffer = "";
-		if (!this._handle)
-			return buffer;
-		if (!feof(this._handle)) {
-			var bytes_read = fread(buffer, 1, 1024, this._handle);
-			if (bytes_read != 0) {
-				pclose(this._handle);
-				this._handle = 0;
-				_unlink(this._io_file);
-			}
+		if ((audio_buffer) && (_buffer_offset < length audio_buffer) && ((_audio_len > MinBufferSize) || (((microseconds() - _started) / 1000) >= BufferTimeout))) {
+			_worker.AddData(BinarizeObject(new WhisperMessage(_worker_id, audio_buffer)));
+			_buffer_offset += length audio_buffer;
+			_started = microseconds();
 		}
 
-		return buffer;
-	}
-
-	WriteWav() {
-		WriteFile(_wavHeader(length audio_buffer) + audio_buffer, _io_file);
-		_audio_len = 0;
-	}
-
-	decode() {
-		if ((!audio_buffer) || (_audio_len < MinBufferSize))
-			return this._decodeOnce();
-
-		WriteWav();
-
-		if (!this._handle)
-			this._handle = popen("whisper --language \"${this.language}\" --model \"${this.model}\" --output_format txt \"${this._io_file}\"", "r");
-		if (!this._handle)
-			throw "Cannot execute";
-
-		return this._decodeOnce();
+		_worker.GetResult(var data);
+		if (data) {
+			var obj = UnBinarizeObject(data);
+			if (obj)
+				return obj.buffer;
+		}
+		return "";
 	}
 
 	finish() {
-		var buffer = _decodeOnce();
-		if (_handle) {
-			pclose(_handle);
-			_handle = null;
-			_unlink(this._io_file);
-		}
 		audio_buffer = "";
 		_audio_len = 0;
-		_started = false;
-		return buffer;
+		_started = 0;
+		_buffer_offset = 0;
+		return "";
 	}
 
 	close() {
-		if (this._handle) {
-			pclose(this._handle);
-			this._handle = null;
-		}
-		_unlink(this._io_file);
 		audio_buffer = "";
 		_audio_len = 0;
-		_started = false;
+		_started = 0;
+		_buffer_offset = 0;
+		this._owner.freeWorker(_worker_id);
 	}
 
 	finalize() {
-		if (this._handle) {
-			fclose(this._handle);
-			this._handle = null;
-		}
-		_started = false;
-		_unlink(this._io_file);
+		if (this._owner)
+			this._owner.freeWorker(_worker_id);
+		_started = 0;
 	}
 }
 
 class WhisperSpeech {
-	var language;
-	var model;
+	var _handle;
 
 	var modelSampleRate = 16000;
+	var maxWorkers = 0;
 
-	WhisperSpeech(string language, model = "tiny") {
-		this.language = language;
-		this.model = model;
+	var[] workers;
+	var[] worker_busy;
+
+	protected var _round_robin;
+
+	WhisperSpeech(string language, model = "tiny", threads_per_worker = 1) {
+		_handle = WhisperCreate(model, language, false, threads_per_worker);
+		modelSampleRate = WhisperSampleRate();
+	}
+
+	freeWorker(id) {
+		if ((id < 0) || (id >= length worker_busy))
+			return;
+
+		if (worker_busy[id] > 0)
+			worker_busy[id] --;
+	}
+
+	findWorker(var id = -1) {
+		id = -1;
+
+		if (!this._handle)
+			throw "Whisper context is not created";
+		for (var i = 0; i < length worker_busy; i ++) {
+			if (!worker_busy[i]) {
+				worker_busy[i] = 1;
+				id = i;
+				return workers[i];
+			}
+		}
+
+		var worker;
+
+		if ((maxWorkers > 0) && (length workers >= maxWorkers)) {
+			worker = workers[_round_robin];
+			worker_busy[_round_robin] ++;
+			id = _round_robin;
+			_round_robin ++;
+			return worker;
+		}
+		
+		worker = new Worker("WhisperWorker", BinarizeObject([this._handle, length workers]));
+		// length workers instead of length worker_busy (should be the same)
+		worker_busy[length workers] = true;
+		id = length workers;
+		workers[length workers] = worker;
+
+		return worker;
+	}
+
+	close() {
+		if (!_handle)
+			return;
+		if (this.workers) {
+			var msg = BinarizeObject(new WhisperMessage(-1));
+			for (var i = 0; i < length workers; i ++) {
+				workers[i].AddData(msg, 1);
+				workers[i].Join();
+			}
+		}
+		if (_handle)
+			WhisperFree(_handle);
+	}
+
+	finalize() {
+		this.close();
 	}
 }
