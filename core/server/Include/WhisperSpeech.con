@@ -140,8 +140,11 @@ class WhisperSpeech {
 
 	protected var _round_robin;
 
-	WhisperSpeech(string language, model = "tiny", threads_per_worker = 1) {
-		_handle = WhisperCreate(model, language, false, threads_per_worker);
+	WhisperSpeech(string language, model = "tiny", threads_per_worker = 1, whisper_parent = null, offline = false) {
+		if (typeof whisper_parent == "class")
+			whisper_parent = whisper_parent._handle;
+
+		_handle = WhisperCreate(model, language, false, threads_per_worker, offline, whisper_parent);
 		modelSampleRate = WhisperSampleRate();
 	}
 

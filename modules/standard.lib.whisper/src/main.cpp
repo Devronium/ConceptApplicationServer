@@ -46,6 +46,7 @@ struct stt_context {
     struct whisper_context *ctx;
     whisper_full_params wparams;
     int running;
+    int main_context;
 };
 
 static void src_short_to_float_array (const short *in, float *out, int len) {
@@ -69,7 +70,7 @@ void whisper_print_segment_callback(struct whisper_context * ctx, struct whisper
         whisper_ctx->running = 0;
 }
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 5)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 6)
     T_STRING(WhisperCreate, 0)
 
     int lang_id = -1;
@@ -78,6 +79,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 5)
     int running_flag = 1;
 
     const char *lang = "auto";
+
+    struct stt_context *owner_ctx = NULL;
 
     if (PARAMETERS_COUNT > 1) {
         T_STRING(WhisperCreate, 1)
@@ -104,10 +107,25 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 5)
             running_flag = 2;
     }
 
-    struct whisper_context *ctx = whisper_init_from_file(PARAM(0));
+    if (PARAMETERS_COUNT > 5) {
+        T_NUMBER(WhisperCreate, 5)
+        owner_ctx = (struct stt_context *)(SYS_INT)PARAM(5);
+    }
+
+
+    struct whisper_context *ctx = NULL;
+    int ctx_created = 0;
+
+    if (owner_ctx)
+        ctx = owner_ctx->ctx;
+    
     if (!ctx) {
-        RETURN_NUMBER(0);
-        return 0;
+        ctx = whisper_init_from_file(PARAM(0));
+        if (!ctx) {
+            RETURN_NUMBER(0);
+            return 0;
+        }
+        ctx_created = 1;
     }
 
     struct stt_context *whisper_ctx = (struct stt_context *)malloc(sizeof(struct stt_context));
@@ -120,6 +138,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 5)
     fprintf(stderr, "system_info: n_threads = %d | %s\n", threads, whisper_print_system_info());
 
     whisper_ctx->ctx = ctx;
+    whisper_ctx->main_context = ctx_created;
 
     whisper_ctx->wparams = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
     whisper_ctx->wparams.strategy = WHISPER_SAMPLING_GREEDY;
@@ -235,7 +254,8 @@ CONCEPT_FUNCTION_IMPL(WhisperFree, 1)
     struct stt_context *ctx = (struct stt_context *)(SYS_INT)PARAM(0);
     if (ctx) {
         free((void *)ctx->wparams.language);
-        whisper_free(ctx->ctx);
+        if (ctx->main_context)
+            whisper_free(ctx->ctx);
         free(ctx);
     }
     SET_NUMBER(0, 0); 
