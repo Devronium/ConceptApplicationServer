@@ -1,0 +1,208 @@
+import standard.lang.serialize
+import standard.lib.str
+import standard.C.time
+
+include TCPSocket.con
+include TLSESocket.con
+include Promise.con
+
+class asyncRequest {
+	var url_data;
+	var socket;
+	var[] headers;
+	var data = "";
+	var code = 0;
+	var text = "";
+	var timeout = 4000;
+	var start = 0;
+	var timedOut = false;
+	var _promise;
+
+	protected var _pending = "";
+
+	static parseURL(url) {
+		// var re = /^((http[s]?|ftp):\/)?\/?([^:\/\s]+)((\/\w+)*\/)?([\w\-\.]*[^#?\s]+)?(.*)?(#[\w\-]+)?$/;
+		var re = /^((\w+):)?(\/\/((\w+)?(:(\w+))?@)?([^\/\?:]+)(:(\d+))?)?(\/?([^\/\?#][^\?#]*)?)?(\?([^#]+))?(#(\w*))?/;
+		var arr = re.exec(url);
+		var port = value arr[10];
+		var protocol = arr[2] ?? "http";
+		if (!port) {
+			switch (protocol) {
+				case "http":
+					port = 80;
+					break;
+				case "https":
+					port = 443;
+					break;
+				default:
+					port = 21;
+			}
+		}
+		return ["url" => arr[0], "protocol" => protocol, "username" => arr[5] ?? "", "password" => arr[7], "host" => arr[8] ?? "", "port" => port, "path" => arr[11] ?? "/", "querystring" => arr[14] ?? "", "fragment" => arr[16] ?? ""];
+	}
+
+	asyncRequest(url) {
+		url_data = this.parseURL(url);
+		if (url_data["protocol"] == "https")
+			socket = new TLSESocket();
+		else
+			socket = new TCPSocket();
+	}
+
+	request(method = "GET", headers = null, var data = "", connect_timeout_ms = 2000) {
+		if (socket.Connect(url_data["host"], url_data["port"], connect_timeout_ms) <= 0)
+			return null;
+
+		method = ToUpper(method);
+
+		var link = url_data["path"];
+		var querystring = url_data["querystring"];
+		if (querystring)
+			link += "?" + querystring;
+		
+		var request = "$method $link HTTP/1.1\r\n";
+		if (!headers)
+			headers = new [];
+
+		if (!headers["Host"])		
+			headers["Host"] = url_data["host"];
+
+		if (!headers["User-Agent"])
+			headers["User-Agent"] = "asyncURL";
+
+		if ((method != "GET") || (data))
+			headers["Content-Length"] = length data;
+
+		headers["Connection"] = "close";
+
+		var keys = GetKeys(headers);
+		for (var i = 0; i < length keys; i ++) {
+			var header = keys[i];
+			if (header) {
+				var val = headers[header];
+				request += "$header: $val\r\n";
+			}
+		}
+
+		request += "\r\n";
+		if (data)
+			request += data;
+
+		var written = socket.Write(request);
+		if (written <= 0) {
+			socket.Close();
+			delete socket;
+			return null;
+		}
+
+		if (written < length request)
+			_pending = SubStr(request, written);
+
+		start = microseconds();
+		_promise = new Promise();
+		return _promise;
+	}
+
+	static fetch(url_string, method = "GET", headers = null, var data = "", connect_timeout_ms = 2000) {
+		var url = new asyncRequest(url_string);
+		if (url.request(method, headers, data, connect_timeout_ms))
+			return url;
+
+		return null;
+	}
+
+	protected _parseHeaders() {
+		var header_start = Pos(data, "\r\n\r\n");
+		if (header_start > 0) {
+			var header = SubStr(data, 0, header_start - 1);
+			var arr = StrSplit(header, "\r\n");
+			var i;
+			if (length arr > 0) {
+				var arr2 = StrSplit(arr[0], " ");
+				code = value arr2[1];
+				for (i = 2; i < length arr2; i ++) {
+					if (text)
+						text += " ";
+					text += arr2[i];
+				}
+			}
+			for (i = 1; i < length arr; i ++) {
+				var line = arr[i];
+				var pos = Pos(line, ":");
+				if (pos > 0) {
+					var key = ToLower(trim(SubStr(line, 0, pos - 1)));
+					var val = trim(SubStr(line, pos));
+					headers[key] = val;
+				}
+			}
+			data = SubStr(data, header_start + 3);
+		}
+	}
+
+	async iterate(timeout = 0) {
+		if (!this.socket)
+			return true;
+
+		try {
+			if (this._pending) {
+				var written = this.socket.Write(this._pending);
+				if (written <= 0) {
+					this._promise.reject("error in socket write");
+					this.socket.Close();
+					delete this.socket;
+				}
+				if (written < length this._pending)
+					this._pending = SubStr(this._pending, written);
+				else
+					this._pending = "";
+			}
+
+
+			if (this.socket.GetHasData(timeout)) {
+				var buf = this.socket.Read(0x10000);
+				if (buf) {
+					this.data += buf;
+
+					if (!this.headers)
+						this._parseHeaders();
+
+					if (this.headers) {
+						var len = 0;
+						if (IsSet(this.headers, "content-length")) {
+							len = value this.headers["content-length"];
+							if (length this.data >= len) {
+								this._promise.resolve(this);
+								this.socket.Close();
+								delete this.socket;
+							}
+						}
+					}
+				} else {
+					if (this.data)
+						this._promise.resolve(this);
+					else
+						this._promise.reject("no data");
+					
+					this.socket.Close();
+					delete this.socket;
+				}
+			} else
+			if (timeout > 0) {
+				if (microseconds() - this.start >= this.timeout * 1000) {
+					this.timedOut = true;
+					if (this.data)
+						this._promise.resolve(this);
+					else
+						this._promise.reject("timed out");
+					this.socket.Close();
+					delete this.socket;
+				}
+			}
+		} catch (var exc) {
+			this._promise.reject(exc);
+			this.socket.Close();
+			delete this.socket;
+		}
+		return false;
+	}
+}

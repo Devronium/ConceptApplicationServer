@@ -2024,7 +2024,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
             }
         }
-        if ((!STATIC) && (!_ID) && (TYPE == TYPE_METHOD)) {
+        if ((!(STATIC & 0x01)) && (!_ID) && (TYPE == TYPE_METHOD)) {
             is_cached = false;
             if (sPARSE == cachedMember)
                 is_cached = true;
@@ -3651,7 +3651,7 @@ struct PromiseData *PIFAlizator::AllocatePromise(void *ID) {
     return NULL;
 }
 
-struct PromiseData *PIFAlizator::GetPromise(void  *ID) {
+struct PromiseData *PIFAlizator::GetPromise(void *ID) {
     INTEGER i;
 
     if (!ID)

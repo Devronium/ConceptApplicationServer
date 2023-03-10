@@ -1,0 +1,39 @@
+import standard.lib.json
+include async.url.con
+include Loop.con
+
+class OpenAI {
+	var OPENAI_API_KEY;
+	var data;
+
+	OpenAI(key) {
+		this.OPENAI_API_KEY = key;
+	}
+
+	v1(json) {
+		data = null;
+		if (typeof json != "string")
+			json = JSONSerialize(json, true, 2);
+
+		return asyncRequest::fetch("https://api.openai.com/v1/completions", "POST", [
+			"Content-Type" => "application/json",
+			"Authorization" => "Bearer ${OPENAI_API_KEY}"
+		], json);
+	}
+
+	run(json) {
+		data = null;
+		var url = this.v1(json);
+		if (url) {
+			Loop::add(url);
+			return url._promise;
+		}
+		return url;
+	}
+
+	static parse(request) {
+		if (!request)
+			return null;
+		return JSONDeserialize(request.data);
+	}
+}

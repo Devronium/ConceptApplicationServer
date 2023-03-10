@@ -1,8 +1,10 @@
 import win32.base.messages
 
 class Loop {
-	static add(delegate) {
-		RegisterLooper(delegate);
+	static add(d) {
+		if (typeof d == "class")
+			d = d.iterate;
+		RegisterLooper(d);
 	}
 
 	static main(sleep_iterations = 100) {
