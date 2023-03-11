@@ -4,9 +4,11 @@ import standard.lib.json
 include IVR.con
 include STT.con
 include MSSpeech.con
+include WhisperSpeech.con
 include Worker.con
 include URL.con
 include DUKJS.con
+include OpenAI.con
 
 define SETTINGS_ENSURE_WORDS	false
 
@@ -19,6 +21,7 @@ define STT_TIMEDOUT	4
 class IVRClientData {
 	var count;
 	var ivr_branch;
+	var prev_branch;
 	var ivr_tree;
 	var hash;
 	var ivr_path = "";
@@ -219,10 +222,11 @@ class STTWorker {
 
 					if (obj.type == STT_RESET) {
 						if (worker_obj) {
-							if ((worker_obj.stream) && (worker_obj.stream._handle))
+							/* if ((worker_obj.stream) && (worker_obj.stream._handle))
 								worker_obj.stream.close();
 							delete worker_obj.stream;
-							worker_obj.last_str = "";
+							worker_obj.last_str = "";  */
+							worker_obj.reset();
 							worker_obj.words = obj.buffer;
 						}
 						objects[obj.id] = null;
@@ -350,10 +354,11 @@ class MSSWorker {
 
 					if (obj.type == STT_RESET) {
 						if (worker_obj) {
-							if ((worker_obj.stream) && (worker_obj.stream._handle))
+							/* if ((worker_obj.stream) && (worker_obj.stream._handle))
 								worker_obj.stream.close();
 							delete worker_obj.stream;
-							worker_obj.last_str = "";
+							worker_obj.last_str = ""; */
+							worker_obj.reset();
 							worker_obj.words = obj.buffer;
 						}
 						objects[obj.id] = null;
@@ -379,16 +384,118 @@ class MSSWorker {
 					//}
 					var str = worker_obj.stream.decode();
 					if ((str) && (worker_obj.canSend())) {
-						Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TEXT, this.parse(str))));
+						Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TIMEDOUT, this.parse(str))));
 						worker_obj.resetText();
 						// soft reset buffer
-						worker_obj.stream.close();
-						delete worker_obj.stream;
+						// worker_obj.stream.close();
+						// delete worker_obj.stream;
+						worker_obj.reset();
 					}
 
 					if (worker_obj.age() >= 14000) {
 						console.trace(LOG_THIS, "resetting buffer for ${obj.id}");
 						worker_obj.reset();
+						Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TIMEDOUT, "")));
+					}
+					worker_obj.ping();
+				} catch (var exc) {
+					console.warn(LOG_THIS, exc);
+				}
+			}
+
+			if (microseconds() - clear_time_stamp >= 3000000) {
+				var new_obj = new [];
+				var cleared = 0;
+				for (var i = 0; i < length objects; i ++) {
+					var ref_obj = objects[i];
+					if ((ref_obj) && (!ref_obj.expired(3000)))
+						new_obj[ref_obj.id] = ref_obj;
+					else
+						cleared ++;
+				}
+				objects = new_obj;
+				clear_time_stamp = microseconds();
+				if (cleared)
+					console.log(LOG_THIS, "cleared $cleared session(s)");
+			}
+		}
+	}
+}
+
+
+class WhisperSpeechWorker {
+	parse(str) {
+		str = StrReplace(str, ".", " ");
+		str = StrReplace(str, ",", " ");
+		str = StrReplace(str, "?", " ");
+		str = StrReplace(str, "!", " ");
+		str = StrReplace(str, "  ", " ");
+
+		return UTF8ToLower(trim(str));
+	}
+
+	WhisperSpeechWorker(data) {
+		data = UnBinarizeObject(data);
+
+		console.log(LOG_THIS, "created WS worker for ${data["language"]}");
+
+		var clear_time_stamp = microseconds();
+		var stt = new WhisperSpeech(data["language"], data["model"], data["threads"] ?? 2, data["whisper"]);
+		var[] objects;
+
+		var modelSampleRate = stt.modelSampleRate;
+
+		while (true) {
+			if (Worker::Pending(var buffer, 1000)) {
+				var obj = UnBinarizeObject(buffer);
+				if (!obj)
+					continue;
+
+				try {
+					if (obj.type == STT_SCORER) {
+						console.log(LOG_THIS, "ignored scorer");
+						continue;
+					}
+
+					var worker_obj = objects[obj.id];
+
+					if (obj.type == STT_RESET) {
+						if (worker_obj) {
+							/* if ((worker_obj.stream) && (worker_obj.stream._handle))
+								worker_obj.stream.close();
+							delete worker_obj.stream;
+							worker_obj.last_str = ""; */
+							worker_obj.reset();
+							worker_obj.words = obj.buffer;
+						}
+						objects[obj.id] = null;
+						continue;
+					}
+					if (!obj.buffer)
+						continue;
+
+					if (!worker_obj) {
+						worker_obj = new STTWorkerObject(obj.id);
+						objects[obj.id] = worker_obj;
+					}
+
+					if (!worker_obj.stream) {
+						worker_obj.stream = new WhisperSpeechStream(stt);
+						worker_obj.stream.BufferTimeout = 8000;
+						worker_obj.stream.MinBufferSize = 32000 * 8;
+					}
+
+					if (worker_obj.age() < 12000)
+						worker_obj.stream.feed(resample(alaw2pcm(obj.buffer), 8000, modelSampleRate, SRC_SINC_MEDIUM_QUALITY));
+
+					var str = worker_obj.stream.decode();
+					if ((str) && (worker_obj.canSend())) {
+						Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TEXT, this.parse(str))));
+						worker_obj.resetText();
+					}
+
+					if (worker_obj.age() >= 14000) {
+						worker_obj.reset(false);
 						Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TIMEDOUT, "")));
 					}
 					worker_obj.ping();
@@ -584,6 +691,63 @@ class JSWorker {
 	}
 }
 
+class OpenAIWorker {
+	var default_data;
+	var key;
+
+	OpenAIWorker(key) {
+		console.info(LOG_THIS, "created openAI worker");
+		this.key = key;
+		this.default_data = [
+			"model": "text-davinci-003",
+			"prompt": "",
+			"temperature": 0.4,
+			"max_tokens": 160,
+			"top_p": 1,
+			"stop": ".",
+			"frequency_penalty": 0.5,
+			"presence_penalty": 0.0
+		];
+
+		Loop::add(this);
+		Loop::main();
+	}
+
+	sendResponse(url, obj) {
+		obj["text"] = OpenAI::simple(url);
+		Worker::Result(BinarizeObject(obj));
+	}
+
+	sendError(err, obj) {
+		obj["text"] = "error";
+		Worker::Result(BinarizeObject(obj));
+	}
+
+	iterate() {
+		try {
+			if (Worker::PendingAll(var arr, 100)) {
+				for (var i = 0; i < length arr; i ++) {
+					var obj = UnBinarizeObject(arr[i]);
+					if (obj) {
+						var ai = new OpenAI(key);
+						try {
+							default_data["prompt"] = obj["text"];
+							var p = ai.run(default_data);
+							p.parameters = obj;
+							p.onFulfilled = sendResponse;
+							p.onRejected = sendError;
+						} catch (var exc) {
+							console.warn(LOG_THIS, exc);
+						}
+					}
+				}
+			}
+		} catch (var exc2) {
+			console.warn(LOG_THIS, exc2);
+		}
+	}
+}
+
 class ConversationalIVR {
 	var ivr;
 	var[] stt_workers;
@@ -625,6 +789,11 @@ class ConversationalIVR {
 
 	var[] mss_keys;
 	var[] tts_keys;
+	var whisper;
+	var whisper_model = "";
+
+	var openAIKey = "";
+	var openAIWorker;
 	
 	protected var dummySession;
 
@@ -927,14 +1096,18 @@ class ConversationalIVR {
 					var keys = GetKeys(session.ClientData.ivr_branch);
 					var worker = workers[hash % len];
 					if ((worker) && (keys) && (worker.UserData)) {
+						var key_count = 0;
 						for (var i = 0; i < length keys; i ++) {
 							var k = keys[i];
-							if ((k) && (k[0] != "\$") && (k != "_") && (k != "*")  && ((!IsSet(worker.UserData, k)) || (!worker.UserData[k]))) {
-								worker = null;
-								break;
+							if ((k) && (k[0] != "\$") && (k != "_") && (k != "*")) {
+								key_count ++;
+								if ((!IsSet(worker.UserData, k)) || (!worker.UserData[k])) {
+									worker = null;
+									break;
+								}
 							}						
 						}
-						if (worker) {
+						if ((worker) && (key_count)) {
 							console.info(LOG_THIS, "enabling cheap worker");
 							session.ClientData.worker = worker;
 							return worker;
@@ -1313,6 +1486,18 @@ class ConversationalIVR {
 					stt_worker.AddData(BinarizeObject(new STTWorkerData(id, STT_RESET, [ ])));
 				session.Close();
 				return;
+			} else
+			if ((Pos(text, "\$chatgpt") == 1) && (openAIWorker)) {
+				if (session.ClientData.prev_branch) {
+					session.ClientData.ivr_branch = session.ClientData.prev_branch;
+					session.ClientData.api = 2;
+				}
+				console.log(LOG_THIS, "chatgpt text [${session.ClientData.last_text}]");
+				if (stt_worker)
+					stt_worker.AddData(BinarizeObject(new STTWorkerData(id, STT_RESET, [ ])));
+				if (session.ClientData.last_text)
+					openAIWorker.AddData(BinarizeObject(["id" => id, "text" => session.ClientData.last_text]));
+				return;
 			}
 		}
 
@@ -1344,6 +1529,9 @@ class ConversationalIVR {
 
 			for (i = 0; i < length js_workers; i ++)
 				this.OnIdle_jsWorker(js_workers[i]);
+
+			if (this.openAIWorker)
+				this.OnIdle_openAIWorker(this.openAIWorker);
 
 			if (microseconds() - every_second >= 1000000) {
 				this.ivr.stack.Reregister();
@@ -1464,6 +1652,7 @@ class ConversationalIVR {
 			}
 			if (message_understood) {
 				session.ClientData.ivr_path += "/" + k4;
+				session.ClientData.prev_branch = session.ClientData.ivr_branch;
 				session.ClientData.ivr_branch = session.ClientData.ivr_branch[k_orig];
 
 				try {
@@ -1544,9 +1733,10 @@ class ConversationalIVR {
 					}
 					session.Close();
 				}
-				break;
+				return true;
 			}
 		}
+		return false;
 	}
 
 	OnIdle_worker(stt_worker) {
@@ -1568,10 +1758,14 @@ class ConversationalIVR {
 
 				var text = obj.buffer;
 
+				if (this.TextEvent(session, text, obj.id))
+					continue;
+
 				if (obj.type == STT_TIMEDOUT) {
 					session.ClientData.worker = null;
 					console.log(LOG_THIS, "session ${obj.id} stt timed out");
 					if ((typeof session.ClientData.ivr_branch == "array") && (IsSet(session.ClientData.ivr_branch, "\$timeout"))) {
+						session.ClientData.prev_branch = session.ClientData.ivr_branch;
 						text = "\$timeout";
 					} else {
 						if (IsSet(ivr_timeout, session.To))
@@ -1579,7 +1773,6 @@ class ConversationalIVR {
 						continue;
 					}
 				}
-				this.TextEvent(session, text, obj.id);
 			}
 
 		}
@@ -1796,7 +1989,7 @@ class ConversationalIVR {
 		this.TextEvent(session.UserData, key, session.CallID);
 	}
 
-	ConversationalIVR(sip_host, sip_port = 5060, in_band_dtmf = true, mss_keys = null, tts_keys = null) {
+	ConversationalIVR(sip_host, sip_port = 5060, in_band_dtmf = true, mss_keys = null, tts_keys = null, use_whisper = "") {
 		ivr = new IVR(sip_host, sip_port, 40);
 
 		ivr.GreetingTo = this.OnGreeting;
@@ -1820,6 +2013,11 @@ class ConversationalIVR {
 		this.tts_keys = tts_keys ?? [ ];
 
 		this.mss_keys = mss_keys ?? [ ];
+
+		if (use_whisper) {
+			whisper_model = use_whisper;
+			whisper = new WhisperSpeech("", use_whisper, 2);
+		}
 	}
 
 	addWorker(to, model, scorer = "", count = 2, max_workers = 4) {
@@ -1878,13 +2076,26 @@ class ConversationalIVR {
 			}
 		}
 
+		var whisper_data;
+		if (whisper)
+			whisper_data = BinarizeObject(["language" => language, "model" => whisper_model, "whisper" => whisper._handle]);
+
 		while (length arr < count) {
 			if (mss_key) {
 				arr[length arr] = new Worker("MSSWorker", mss_key);
-				if (use_cheap_workers)
-					arr2[length arr2] = new WorkerWithData("STTWorker", "$model:default/$auto_scorer.scorer", use_cheap_workers);
-			} else
-				arr[length arr] = new Worker("STTWorker", "$model:$scorer");
+				if (use_cheap_workers) {
+					if (whisper)
+						arr[length arr] = new Worker("WhisperSpeechWorker", whisper_data);
+					else
+						arr2[length arr2] = new WorkerWithData("STTWorker", "$model:default/$auto_scorer.scorer", use_cheap_workers);
+				} else {
+				}
+			} else {
+				if (whisper)
+					arr[length arr] = new Worker("WhisperSpeechWorker", whisper_data);
+				else
+					arr[length arr] = new Worker("STTWorker", "$model:$scorer");
+			}
 		}
 
 		this.ivr_model_keys[to] = key;
@@ -2065,6 +2276,25 @@ class ConversationalIVR {
 			return worker.AddData(BinarizeObject(["id" => session.sip.CallID, "apiCall" => call_function, "identity" => sessionTo(session), "from" => session.From, "to" => session.To, "invite" => session.sip.is_invite]));
 		}
 		return null;
+	}
+
+	OnIdle_openAIWorker(worker) {
+		worker.GetAll(var data, 0, 100);
+		if (data) {
+			for (var i = 0; i < length data; i ++) {
+				var obj = UnBinarizeObject(data[i]);
+				if ((!obj) || (!obj["text"]))
+					continue;
+
+				var session = this.ivr.GetSessionById(obj["id"]);
+				if (!session) {
+					console.log(LOG_THIS, "session does not exists anymore");
+					continue;
+				}
+
+				this.Raspuns(session.sip.CallID, obj["text"]);
+			}
+		}
 	}
 
 	call(who, from, tree = null, max_duration = 1800) {
@@ -2297,6 +2527,9 @@ class ConversationalIVR {
 	}
 
 	Start(loop_callback = null) {
+		if (this.openAIKey)
+			this.openAIWorker = new Worker("OpenAIWorker", this.openAIKey);
+
 		try {
 			this.LoopCallback = loop_callback;
 			this.ivr.stack.OnAnswered = this.ivr.OnAnswered;
