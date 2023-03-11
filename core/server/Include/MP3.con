@@ -3,7 +3,8 @@ import standard.lib.str
 
 class MP3Encoder {
 	protected var encoder;
-	protected var _buffer = "";
+	protected var _buffer1 = "";
+	protected var _buffer2 = "";
 	protected var _channels = 1;
 	protected var _samples;
 	protected var _mp3 = "";
@@ -20,7 +21,7 @@ class MP3Encoder {
 		if (_channels > 2)
 			_channels = 2;
 
-		encoder = MP3EncoderCreate();
+		encoder = MP3EncoderCreate(parameters);
 
 		_samples = MP3EncoderSamples(encoder) * _channels;
 	}
@@ -37,16 +38,19 @@ class MP3Encoder {
 		_mp3 = "";
 	}
 
-	encode(var buf) {
-		_buffer += buf;
+	encode(var buf, var buf2 = "") {
+		_buffer1 += buf;
+		if (_channels > 1)
+			_buffer2 += buf2;
 		var buf_len = _samples * 2;
-		while (length _buffer >= buf_len) {
+		while (length _buffer1 >= buf_len) {
 			if (_channels > 1) {
-				_mp3 += MP3EncoderEncode(encoder, _buffer, SubStr(_buffer, buf_len, buf_len));
-				_buffer = SubStr(_buffer, buf_len * 2);
+				_mp3 += MP3EncoderEncode(encoder, _buffer1, _buffer2);
+				_buffer1 = SubStr(_buffer1, buf_len);
+				_buffer2 = SubStr(_buffer2, buf_len);
 			} else {
-				_mp3 += MP3EncoderEncode(encoder, _buffer);
-				_buffer = SubStr(_buffer, buf_len);
+				_mp3 += MP3EncoderEncode(encoder, _buffer1);
+				_buffer1 = SubStr(_buffer1, buf_len);
 			}
 		}
 	}

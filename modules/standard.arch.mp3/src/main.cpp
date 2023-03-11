@@ -17,17 +17,15 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MP3EncoderCreate, 0, 1)
-    shine_config_t config;
+    static shine_config_t config;
 
     memset(&config, 0, sizeof(shine_config_t));
     config.wave.channels = PCM_MONO;
     config.wave.samplerate = 8000;
     shine_set_config_mpeg_defaults(&config.mpeg);
     config.mpeg.bitr = 16;
-
     if (PARAMETERS_COUNT > 0) {
         T_ARRAY(MP3EncoderCreate, 0);
-
         char *key;
         int  count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(0));
 
@@ -70,7 +68,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MP3EncoderCreate, 0, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MP3EncoderSamples, 1)
-    T_HANDLE(MP3EncoderFlush, 0)
+    T_HANDLE(MP3EncoderSamples, 0)
     shine_t s = (shine_t)(intptr_t)PARAM(0);
     RETURN_NUMBER(shine_samples_per_pass(s));
 END_IMPL
@@ -82,22 +80,23 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MP3EncoderEncode, 2, 3)
     shine_t s = (shine_t)(intptr_t)PARAM(0);
     int written = 0;
     
-    int samples = shine_samples_per_pass(s);
+    ptr[0] = (int16_t *)PARAM(1);
+    int samples = shine_samples_per_pass(s) * 2;
     if (PARAMETERS_COUNT > 2) {
         T_STRING(MP3EncoderEncode, 2)
-        if (PARAM_LEN(2) * 2 < samples) {
+        if (PARAM_LEN(2) < samples) {
             RETURN_STRING("");
             return 0;
         }
-        ptr[0] = (int16_t *)PARAM(1);
         ptr[1] = (int16_t *)PARAM(2);
-    }
-    if (PARAM_LEN(1) * 2 < samples) {
+    } else
+        ptr[1] = NULL;
+
+    if (PARAM_LEN(1) < samples) {
         RETURN_STRING("");
         return 0;
     }
     unsigned char *data;
-    
     if (PARAMETERS_COUNT > 2)
         data = shine_encode_buffer(s, ptr, &written);
     else

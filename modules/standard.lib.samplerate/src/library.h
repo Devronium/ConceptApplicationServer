@@ -19,5 +19,7 @@ extern "C" {
 
     CONCEPT_FUNCTION(pcm2ulaw)
     CONCEPT_FUNCTION(pcm2alaw) 
+
+    CONCEPT_FUNCTION(mix)
 }
 #endif // __LIBRARY_H

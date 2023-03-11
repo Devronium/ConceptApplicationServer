@@ -18,11 +18,11 @@ extern "C" {
 }
 
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
-	DEFINE_SCONSTANT("SRC_SINC_BEST_QUALITY", "0")
-	DEFINE_SCONSTANT("SRC_SINC_MEDIUM_QUALITY", "1")
-	DEFINE_SCONSTANT("SRC_SINC_FASTEST", "2")
-	DEFINE_SCONSTANT("SRC_ZERO_ORDER_HOLD", "3")
-	DEFINE_SCONSTANT("SRC_LINEAR", "4")
+    DEFINE_SCONSTANT("SRC_SINC_BEST_QUALITY", "0")
+    DEFINE_SCONSTANT("SRC_SINC_MEDIUM_QUALITY", "1")
+    DEFINE_SCONSTANT("SRC_SINC_FASTEST", "2")
+    DEFINE_SCONSTANT("SRC_ZERO_ORDER_HOLD", "3")
+    DEFINE_SCONSTANT("SRC_LINEAR", "4")
     return 0;
 }
 //=====================================================================================//
@@ -268,5 +268,53 @@ CONCEPT_FUNCTION_IMPL(pcm2alaw, 1)
     }
 
     SetVariable(RESULT, -1, (char *)output, length);
+END_IMPL
+//------------------------------------------------------------------------ 
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(mix, 2, 128)
+    int i = 1;
+    int max_len = 0;
+    int j = 0;
+    int l = 0;
+    T_NUMBER(mix, 0)
+
+    char *params[128];
+    int params_len[128];
+
+    int sample_size = PARAM_INT(0) / 8;
+    if (sample_size <= 0)
+        sample_size = 1;
+    if (sample_size > 2)
+        sample_size = 2;
+
+    for (i = 1; i < PARAMETERS_COUNT; i ++) {
+        T_STRING(mix, i);
+
+        params[i] = PARAM(i);
+        params_len[i] = PARAM_LEN(i);
+
+        if (PARAM_LEN(i) > max_len)
+            max_len = PARAM_LEN(i);
+    }
+
+    char *buffer = NULL;
+    CORE_NEW((PARAMETERS_COUNT * max_len * sample_size) + 1, buffer);
+    if (buffer) {
+        memset(buffer, 0, (PARAMETERS_COUNT * max_len) + 1);
+        int buf_offset = 0;
+        for (j = 0; j < max_len; j += sample_size) {
+            for (i = 1; i < PARAMETERS_COUNT; i ++) {
+                for (l = 0; l < sample_size; l ++) {
+                    int index = j + l;
+                    if (index < params_len[i])
+                        buffer[buf_offset ++] = params[i][index];
+                    else
+                        buffer[buf_offset ++] = 0;
+                }
+            }
+        }
+        SetVariable(RESULT, -1, buffer, buf_offset);
+    } else {
+        RETURN_STRING("");
+    }
 END_IMPL
 //------------------------------------------------------------------------ 
