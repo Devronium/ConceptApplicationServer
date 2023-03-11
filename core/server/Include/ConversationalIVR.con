@@ -10,6 +10,7 @@ include URL.con
 include DUKJS.con
 include OpenAI.con
 
+define SETTINTS_MAX_TIMEOUTS	4
 define SETTINGS_ENSURE_WORDS	false
 
 define STT_RESET	0
@@ -35,6 +36,7 @@ class IVRClientData {
 	var timestamp;
 	var expectedWords;
 	var worker;
+	var timeouts;
 
 	IVRClientData(ivr, ivr_tree, session) {
 		this.ivr_branch = ivr_tree;
@@ -533,7 +535,176 @@ class VoiceWorkerData {
 	}
 }
 
+class ro_numbers {
+	static division(div, unitati, superunitati=null) {
+		var UNITATI2		= ["zero", "unu", "doi", "trei", "patru", "cinci", "È™ai", "È™apte", "opt", "nouÄƒ"];
+		var ZECI		= ["zece", "zeci"];
+		var SUTE		= ["o sutÄƒ","sute"];
+		var UNITATI_FEM	 	= ["zero", "o", "douÄƒ", "trei", "patru", "cinci", "È™ase", "È™apte", "opt", "nouÄƒ"];
+		var UNITATI_FEM2	= ["zero", "o", "douÄƒ", "trei", "patru", "cinci", "È™ai", "È™apte", "opt", "nouÄƒ"];
+		var result = "";
+		if (div) {
+			if (div == 1) {
+				if (superunitati)
+					result += superunitati[0];
+				else
+					result += unitati[1];
+			} else {
+				if (div >= 100) {
+					if (div < 200)
+						result += SUTE[0];
+					else {
+						result += UNITATI_FEM[floor(div / 100)];
+						result += " " + SUTE[1];
+					}
+				}
+				div %= 100;
+
+				var has_zeci = false;
+				if (div >= 10) {
+					
+					if (result)
+						result += " ";
+					if ((div > 10) && (div < 20)) {
+						result += UNITATI2[floor(div % 10)];
+						result += "spre";
+						result += ZECI[0];
+						div=0;
+					} else
+					if (div == 10) {
+						result += ZECI[0];
+					} else {
+						result += UNITATI_FEM2[floor(div / 10)];
+						result += ZECI[1];
+						has_zeci = true;
+					}
+				}
+				div %= 10;
+
+				if (div) {
+					if (has_zeci)
+						result += " È™i ";
+					else
+					if (result)
+						result += " ";
+					result += unitati[div];
+				}
+				if ((result) && (superunitati))
+					result += " " + superunitati[1];
+			}
+		}
+		return result;
+	}
+
+	static toWord(val) {
+		var UNITATI		= ["zero", "unu", "doi", "trei", "patru", "cinci", "È™ase", "È™apte", "opt", "nouÄƒ"];
+		var UNITATI_FEM	 	= ["zero", "o", "douÄƒ", "trei", "patru", "cinci", "È™ase", "È™apte", "opt", "nouÄƒ"];
+		var MII			= ["o mie", "mii"];
+		var MILIOANE		= ["un milion", "milioane"];
+		var MILIARDE		= ["un miliard", "miliarde"];
+
+		var result = "";
+		val = value number_format(value (""+val),2,".","");
+
+		var zecimale = (val - floor(val))*100;
+
+		val = floor(val);
+
+		var rem = val % 1000000000;
+		var div = floor(val/1000000000);
+		result  +=  ro_numbers::division(div, UNITATI_FEM, MILIARDE);
+
+		val = rem;
+		rem = val % 1000000;
+		div = floor(val / 1000000);
+		var temp = ro_numbers::division(div, UNITATI_FEM, MILIOANE);
+		if (result && temp)
+			result += " ";
+		result += temp;
+
+		val = rem;
+		rem = val % 1000;
+		div = floor(val / 1000);
+		temp = ro_numbers::division(div, UNITATI_FEM, MII);
+		if (result && temp)
+			result += " ";
+		result += temp;
+
+		val = rem;
+		div = floor(val);
+		temp = ro_numbers::division(div, UNITATI);
+		if (result && temp)
+			result += " ";
+		result += temp;
+		if (zecimale) {
+			result += " virgulÄƒ ";
+			result += ro_numbers::toWord(zecimale);
+		}
+
+		return result;
+	}
+
+	static text(text) {
+		var new_text = "";
+		var number = "";
+		for (var i = 0; i < length text; i ++) {
+			var char = text[i];
+			if (((char >= '0') && (char <= '9')) || (char == ',') || (char == '.')) {
+				if (char == ",")
+					char = ".";
+				if (char == ".")
+					continue;
+				number += char;
+			} else {
+				if (number) {
+					new_text += ro_numbers::toWord(number);
+					if (number[length number - 1] == ',')
+						new_text += ",";
+					number = "";
+				}
+				new_text += char;
+			}
+		}
+		if (number) {
+			new_text += ro_numbers::toWord(number);
+			if (number[length number - 1] == ',')
+				new_text += ",";
+		}
+		return new_text;
+	}
+}
+
 class VoiceWorker {
+	static tts(text, voice, output) {
+		try {
+			if (Pos(voice, "/ro/") > 0)
+				text = ro_numbers::text(text);
+
+			var data = ["text" => text, "model" => voice, "output" => output];
+			var socket = new UDPSocket();
+
+			socket.Write(JSONSerialize(data, true), "127.0.0.1", 20048);
+
+			// 10ms per character
+			var max_timeout = 2000 + (length text) * 10;
+			if (!socket.GetHasData(max_timeout)) {
+				console.warn(LOG_THIS, "tts service timed out in ${max_timeout}ms");
+				return TTSHelper::tts(text, voice, output);
+			}
+			var buffer = socket.Read(var ip);
+			if ((!buffer) || (ip != "127.0.0.1"))
+				return TTSHelper::tts(text, voice, output);
+
+			var json = JSONDeserialize(buffer);
+			if ((!json) || (json["error"]))
+				return TTSHelper::tts(text, voice, output);
+		} catch (var exc) {
+			console.warn(LOG_THIS, exc);
+			return TTSHelper::tts(text, voice, output);
+		}
+		return 0;
+	}
+
 	static adjustVoice(var text, voice, tts_keys) {
 		var text_ref = trim(text);
 		if ((text_ref) && (text_ref[0] == "[") && (text_ref[3] == "]")) {
@@ -564,7 +735,7 @@ class VoiceWorker {
 
 		console.log(LOG_THIS, "preparing $voice/[$text]");
 		if (!FileExists("./repository/alaw/$fname.alaw")) {
-			TTSHelper::tts(text, voice, "./repository/$fname.wav");
+			VoiceWorker::tts(text, voice, "./repository/$fname.wav");
 			_unlink("./repository/alaw/$fname.alaw");
 			_system("ffmpeg -loglevel error -i \"./repository/$fname.wav\" -ac 1 -ar 8000 -f s8 -acodec pcm_alaw \"./repository/alaw/$fname.alaw\"; rm \"./repository/$fname.wav\"");
 		}
@@ -704,7 +875,7 @@ class OpenAIWorker {
 			"temperature": 0.4,
 			"max_tokens": 160,
 			"top_p": 1,
-			"stop": ".",
+			// "stop": ".",
 			"frequency_penalty": 0.5,
 			"presence_penalty": 0.0
 		];
@@ -714,13 +885,22 @@ class OpenAIWorker {
 	}
 
 	sendResponse(url, obj) {
-		obj["text"] = OpenAI::simple(url);
+		var text = OpenAI::simple(url);
+		if ((text[0] == '?') || (text[0] == '!'))
+			text = trim(SubStr(text, 1));
+		console.log(LOG_THIS, "got ChatGPT message [$text]");
+		obj["text"] = text;
 		Worker::Result(BinarizeObject(obj));
 	}
 
 	sendError(err, obj) {
 		obj["text"] = "error";
 		Worker::Result(BinarizeObject(obj));
+	}
+
+	prefix(text) {
+		var date = (new Date()).toUTCString();
+		return "Current date and time: $date." + text;
 	}
 
 	iterate() {
@@ -731,7 +911,13 @@ class OpenAIWorker {
 					if (obj) {
 						var ai = new OpenAI(key);
 						try {
-							default_data["prompt"] = obj["text"];
+							var text = obj["text"];
+							if (length StrSplit(text, " ") < 2) {
+								obj["text"] = "";
+								Worker::Result(BinarizeObject(obj));
+								continue;
+							}
+							default_data["prompt"] = this.prefix(text);
 							var p = ai.run(default_data);
 							p.parameters = obj;
 							p.onFulfilled = sendResponse;
@@ -854,6 +1040,12 @@ class ConversationalIVR {
 				session.ClientData = new IVRClientData(this, sessionTree(session), session);
 			else
 				session.ClientData.count = 0;
+
+			if (session.ClientData.debug_text)
+				session.ClientData.debug_text += ";";
+
+			session.ClientData.debug_text += "[$text]";
+
 			if (append)
 				session.Append(fname);
 			else
@@ -881,6 +1073,11 @@ class ConversationalIVR {
 			var fname = VoiceWorker::key(text, voice);
 			if (VoiceWorker::exists(text, voice))
 				return DoTTS(text, voice, session, append, level);
+
+			if (session.ClientData.debug_text)
+				session.ClientData.debug_text += ";";
+
+			session.ClientData.debug_text += "[$text]";
 
 			worker.AddData(BinarizeObject(new VoiceWorkerData([text], [2, session.sip.CallID, fname, append])));
 			return fname;
@@ -1189,7 +1386,7 @@ class ConversationalIVR {
 							case "7":
 							case "8":
 							case "9":
-							case "*":
+							// case "*":
 							case "#":
 								at_least_one_dtmf = true;
 								break;
@@ -1505,7 +1702,6 @@ class ConversationalIVR {
 		session.ClientData.count = 0;
 
 		DoTTSAsync(text, this.voice(session), session, append);
-
 		if (stt_worker)
 			stt_worker.AddData(BinarizeObject(new STTWorkerData(id, STT_RESET, this.setWords(session))));
 		else
@@ -1758,19 +1954,26 @@ class ConversationalIVR {
 
 				var text = obj.buffer;
 
-				if (this.TextEvent(session, text, obj.id))
+				if (this.TextEvent(session, text, obj.id)) {
+					session.ClientData.timeouts = 0;
 					continue;
+				}
 
 				if (obj.type == STT_TIMEDOUT) {
 					session.ClientData.worker = null;
+					session.ClientData.timeouts ++;
 					console.log(LOG_THIS, "session ${obj.id} stt timed out");
 					if ((typeof session.ClientData.ivr_branch == "array") && (IsSet(session.ClientData.ivr_branch, "\$timeout"))) {
 						session.ClientData.prev_branch = session.ClientData.ivr_branch;
-						text = "\$timeout";
+						this.TextEvent(session, "\$timeout", obj.id);
 					} else {
 						if (IsSet(ivr_timeout, session.To))
 							Raspuns(obj.id, ivr_timeout[session.To]);
-						continue;
+					}
+					if (session.ClientData.timeouts >= SETTINTS_MAX_TIMEOUTS) {
+						session.EndOnIVRFinished = true;
+						session.ClientData.count = 0;
+						session.ClientData.redirect = "";
 					}
 				}
 			}
@@ -2360,14 +2563,21 @@ class ConversationalIVR {
 			if (use_server)
 				destination = destination + "@" + use_server + use_port;
 		}
+		console.log(LOG_THIS, "refering $destination");
+
+		var ref_contact = "";
+		this.ivr.stack.ParseFullDestination(session.sip.msg.LocalAddress, ref_contact, null, null);
+
 		session.Expires = 1800;
 		session.sip.setExpires(1800);
 		session.sip.ResetBuffers();
 		session.sip.Record = true;
 		session.StartRecording(session.Expires);
-		var refer_session = session.Refer(destination);
+		var refer_session = session.Refer(destination, ref_contact);
 		if (refer_session)
 			session.sip.setMaxJitter(2);
+		else
+			console.warn(LOG_THIS, "error refering");
 		return refer_session;
 	}
 

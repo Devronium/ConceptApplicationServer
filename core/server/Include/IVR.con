@@ -159,8 +159,8 @@ class DATASession {
 		return false;
 	}
 
-	Refer(address) {
-		return this.sip.Refer(address);
+	Refer(address, contact = "") {
+		return this.sip.Refer(address, contact);
 	}
 
 	Close() {

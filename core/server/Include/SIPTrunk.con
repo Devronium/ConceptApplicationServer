@@ -678,8 +678,8 @@ class SIPSession {
 		return null;
 	}
 
-	Refer(address) {
-		return this.s.Refer(msg, address);
+	Refer(address, contact = "") {
+		return this.s.Refer(msg, address, 70, contact);
 	}
 
 	setMaxJitter(max) {
@@ -1942,6 +1942,7 @@ class SIPStack {
 								// is authorization
 								if ((msg.ServerCode == 401) && (this.Registrations) && (child_session.is_invite == true) && (child_session.auth == 2) && (msg.Headers["www-authenticate"]))
 									return true;
+
 								// busy/redirect/etc
 								var child_len = length session.Children;
 								if (msg.ServerCode >= 400)
@@ -2526,10 +2527,10 @@ class SIPStack {
 		else
 			full_server = server;
 
+		var local_server = "";
+		var local_port = 0;
 		if (Pos(username, "@") > 0) {
 			var user_destination = username;
-			var local_server = "";
-			var local_port = 0;
 			ParseFullDestination(user_destination, var username2, local_server, local_port);
 			username = username2;
 		}
@@ -2577,6 +2578,10 @@ class SIPStack {
 				return sess;
 			}
 			try {
+				if (local_server) {
+					server = local_server;
+					server_port = local_port ?? 5060;
+				}
 				if (this.OnSend)
 					this.OnSend(msg, server, server_port);
 
@@ -2584,6 +2589,7 @@ class SIPStack {
 				sess.port = server_port;
 				sess.write_timestamp = microseconds();
 				sess.write_server = [server, server_port];
+
 				if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(), server, server_port) <= 0)
 					return null;
 				return sess;
