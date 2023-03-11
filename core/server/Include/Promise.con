@@ -85,7 +85,7 @@ class Promise {
 	}
 
 	reject(p = null) {
-		__resolve(this, null, "rejected");
+		__resolve(this, null, p ?? "rejected");
 		try {
 			if (_state != PROMISE_PENDING)
 				throw "Invalid promise state in ::reject";

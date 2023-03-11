@@ -36,4 +36,11 @@ class OpenAI {
 			return null;
 		return JSONDeserialize(request.data);
 	}
+
+	static simple(request) {
+		var data = OpenAI::parse(request);
+		if ((!data) || (!data["choices"]))
+			return "";
+		return trim("" + data["choices"][0]["text"]);
+	}
 }

@@ -13,9 +13,10 @@ class asyncRequest {
 	var data = "";
 	var code = 0;
 	var text = "";
-	var timeout = 4000;
+	var timeout = 8000;
 	var start = 0;
 	var timedOut = false;
+	var _chunked = false;
 	var _promise;
 
 	protected var _pending = "";
@@ -132,6 +133,9 @@ class asyncRequest {
 				if (pos > 0) {
 					var key = ToLower(trim(SubStr(line, 0, pos - 1)));
 					var val = trim(SubStr(line, pos));
+					if ((key == "transfer-encoding") && (val == "chunked"))
+						_chunked = true;
+
 					headers[key] = val;
 				}
 			}
@@ -139,7 +143,25 @@ class asyncRequest {
 		}
 	}
 
-	async iterate(timeout = 0) {
+	protected _unchunk() {
+		if (!_chunked)
+			return;
+
+		var new_data = "";
+
+		while (data) {
+			var pos = Pos(data, "\r\n");
+			var len = HexToNumber(SubStr(data, 0, pos - 1));
+
+			data = SubStr(data, pos + 1);
+			new_data += SubStr(data, 0, len);
+
+			data = SubStr(data, len);
+		}
+		data = new_data;
+	}
+
+	async iterate(data_timeout = 0) {
 		if (!this.socket)
 			return true;
 
@@ -158,7 +180,7 @@ class asyncRequest {
 			}
 
 
-			if (this.socket.GetHasData(timeout)) {
+			if (this.socket.GetHasData(data_timeout)) {
 				var buf = this.socket.Read(0x10000);
 				if (buf) {
 					this.data += buf;
@@ -178,28 +200,37 @@ class asyncRequest {
 						}
 					}
 				} else {
-					if (this.data)
+					if (this.data) {
+						this._unchunk();
 						this._promise.resolve(this);
-					else
+					} else {
 						this._promise.reject("no data");
+					}
 					
 					this.socket.Close();
 					delete this.socket;
 				}
 			} else
-			if (timeout > 0) {
+			if (this.timeout > 0) {
 				if (microseconds() - this.start >= this.timeout * 1000) {
 					this.timedOut = true;
-					if (this.data)
+					if (this.data) {
+						this._unchunk();
 						this._promise.resolve(this);
-					else
+					} else {
 						this._promise.reject("timed out");
+					}
 					this.socket.Close();
 					delete this.socket;
 				}
 			}
 		} catch (var exc) {
-			this._promise.reject(exc);
+			if (this.data) {
+				this._unchunk();
+				this._promise.resolve(this);
+			} else {
+				this._promise.reject(exc);
+			}
 			this.socket.Close();
 			delete this.socket;
 		}
