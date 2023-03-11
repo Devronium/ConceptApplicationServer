@@ -9,6 +9,7 @@ include Worker.con
 include URL.con
 include DUKJS.con
 include OpenAI.con
+include MP3.con
 
 define SETTINTS_MAX_TIMEOUTS	4
 define SETTINGS_ENSURE_WORDS	false
@@ -934,6 +935,34 @@ class OpenAIWorker {
 	}
 }
 
+class RecordingWorker {
+	mp3(buffers) {
+		var encoder = new MP3Encoder(["channels" => 1, "bitrate" => 8, "samplerate" => 8000]);
+		for (var i = 0; i < length buffers; i ++)
+			buffers[i] = alaw2pcm(buffers[i]);
+		encoder.encode(Mix(buffers));
+		encoder.close();
+
+		return encoder.Data;
+	}
+
+	RecordingWorker(not_used) {
+		console.log(LOG_THIS, "created MP3 worker");
+		while (true) {
+			if (Worker::Pending(var buffer, 10000)) {
+				var obj = UnBinarizeObject(buffer);
+				if (!obj)
+					continue;
+
+				var start = microseconds();
+				WriteFile(mp3(obj["buffers"]), obj["output"]);
+				var delta = floor((microseconds() - start) / 1000);
+				console.log(LOG_THIS, "written ${obj["output"]} in ${delta}ms");
+			}
+		}
+	}
+}
+
 class ConversationalIVR {
 	var ivr;
 	var[] stt_workers;
@@ -980,6 +1009,8 @@ class ConversationalIVR {
 
 	var openAIKey = "";
 	var openAIWorker;
+
+	var recordingWorker;
 	
 	protected var dummySession;
 
@@ -1445,44 +1476,26 @@ class ConversationalIVR {
 			return;
 		var keys = GetKeys(session.sip.RecordBuffers);
 		if (keys) {
-			var min_len = 0;
-			for (var i = 0; i < length session.sip.RecordBuffers; i++) {
-				var buf = session.sip.RecordBuffers[i];
-				if (buf) {
-					if ((!min_len) || (min_len > length buf))
-						min_len = length buf;
-				}
-			}
 			var folder = session.To;
 			if (session.sip.is_invite)
 				folder = session.From;
 			_mkdir("rec/$folder");
-			var path = "rec/$folder/" + time() + "-" + session.From + "-" + session.To + ".alaw";
-			var params = "";
-			var filter = "";
-			var index = 0;
-			var rm_str = "";
-			for (i = 0; i < length keys; i++) {
+			var[] buffers;
+			for (var i = 0; i < length keys; i++) {
 				var k = keys[i];
 				if (k) {
-					buf = session.sip.RecordBuffers[k];
-					if (buf) {
-						var fname = path + ".$i.alaw";
-						if ((min_len > 0) && (length buf != min_len))
-							WriteFile(SubStr(buf, length buf - min_len), fname);
-						else
-							WriteFile(buf, fname);
-						rm_str += "; rm \"$fname\"";
-				
-						params += "-f alaw -ar 8000 -ac 1 -acodec pcm_alaw -i \"$fname\" ";
-						filter += "[$index:a]";
-						index++;
-					}
+					var buf = session.sip.RecordBuffers[k];
+					if (buf)
+						buffers[length buffers] = buf;
 				}
 			}
-			var output_file = path + ".mp3";
-			_unlink(output_file);
-			_system("(ffmpeg -loglevel fatal $params-filter_complex \"${filter}amix\" -ac 1 -qscale:a 2 \"$output_file\"$rm_str) &");
+			var output_file = "rec/$folder/" + time() + "-" + session.From + "-" + session.To + ".mp3";
+			if (buffers) {
+				if (!recordingWorker)
+					recordingWorker = new Worker("RecordingWorker", "");
+				
+				recordingWorker.AddData(BinarizeObject(["buffers" => buffers, "output" => output_file]));
+			}
 			session.StopRecording();
 			session.sip.RecordBuffers = null;
 			if (this.OnWriteRecording)
