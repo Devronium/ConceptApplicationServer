@@ -382,7 +382,7 @@ CONCEPT_FUNCTION_IMPL(log_colors, 1)
         RETURN_NUMBER(0);
         return 0;
     }
-    context->colors = PARAM_INT(0) ? 1 : 0;
+    context->colors = PARAM_INT(0);
     RETURN_NUMBER(1);
 END_IMPL
 

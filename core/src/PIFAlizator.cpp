@@ -112,9 +112,12 @@ void log_log(PIFAlizator *pif, int level, const char *file, int line, const char
     if (!log_context->quiet) {
         char buf[16];
         buf[strftime(buf, sizeof(buf), "%H:%M:%S", lt)] = '\0';
-        if (log_context->colors)
-            fprintf(stderr, "%s.%03d %s%-5s\x1b[0m \x1b[90m%s:%d:\x1b[0m %s\n", buf, (int)(now % 1000), level_colors[level], level_names[level], file, line, data);
-        else
+        if (log_context->colors) {
+            if (log_context->colors == -1)
+                fprintf(stderr, "%-5s %s:%d: %s\n", level_names[level], file, line, data);
+            else
+                fprintf(stderr, "%s.%03d %s%-5s\x1b[0m \x1b[90m%s:%d:\x1b[0m %s\n", buf, (int)(now % 1000), level_colors[level], level_names[level], file, line, data);
+        } else
             fprintf(stderr, "%s.%03d %-5s %s:%d: %s\n", buf, (int)(now % 1000), level_names[level], file, line, data);
         fflush(stderr);
     }
