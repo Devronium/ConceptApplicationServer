@@ -1,6 +1,7 @@
 import standard.lang.serialize
 import standard.lib.str
 import standard.C.time
+import standard.lib.cripto
 
 include TCPSocket.con
 include TLSESocket.con
@@ -50,7 +51,29 @@ class asyncRequest {
 			socket = new TCPSocket();
 	}
 
+	buildData(data, boundary) {
+		if (typeof data != "array")
+			return data;
+
+		var multipart_data = "";
+		var keys = GetKeys(data);
+		for (var i = 0; i < length keys; i ++) {
+			var k = keys[i] ?? "";
+
+			if (Pos(k, "=") <= 0)
+				k = "name=\"" + StrReplace(StrReplace(k, "\\", "\\\\"), "\"", "\\\"") + "\"";
+
+			multipart_data += boundary + "\r\nContent-Disposition: form-data; $k\r\n\r\n" + data[i] + "\r\n";
+		}
+		multipart_data += "--" + boundary + "\r\n";
+		return multipart_data;
+	}
+
 	request(method = "GET", headers = null, var data = "", connect_timeout_ms = 2000) {
+		if (classof socket == "TCPSocket") {
+			if (socket.Connect(url_data["host"], url_data["port"]) <= 0)
+				return null;
+		} else
 		if (socket.Connect(url_data["host"], url_data["port"], connect_timeout_ms) <= 0)
 			return null;
 
@@ -64,6 +87,15 @@ class asyncRequest {
 		var request = "$method $link HTTP/1.1\r\n";
 		if (!headers)
 			headers = new [];
+
+		if (IsSet(headers, "Content-Type")) {
+			var content_type = trim("" + headers["Content-Type"]);
+			if (content_type == "multipart/form-data") {
+				var boundary = "------------------------" + SubStr(sha1(CryptoRandom(32)), 0, 16);
+				headers["Content-Type"] += "; boundary = $boundary";
+				data = buildData(data, boundary);
+			}
+		}
 
 		if (!headers["Host"])		
 			headers["Host"] = url_data["host"];

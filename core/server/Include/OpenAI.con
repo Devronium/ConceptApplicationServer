@@ -31,6 +31,23 @@ class OpenAI {
 		return url;
 	}
 
+	whisper(audio_file, model = "whisper-1") {
+		return asyncRequest::fetch("https://api.openai.com/v1/audio/transcriptions", "POST", [
+			"Content-Type" => "multipart/form-data",
+			"Authorization" => "Bearer ${OPENAI_API_KEY}"
+		], ["model" => model, "name=\"file\"; filename=\"filename.mp3\"" => audio_file]);
+	}
+
+	runWhisper(audio_file, model = "whisper-1") {
+		data = null;
+		var url = this.whisper(audio_file, model);
+		if (url) {
+			Loop::add(url);
+			return url._promise;
+		}
+		return url;
+	}
+
 	static parse(request) {
 		if (!request)
 			return null;
