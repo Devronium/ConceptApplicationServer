@@ -31,6 +31,27 @@ class OpenAI {
 		return url;
 	}
 
+	chat(json) {
+		data = null;
+		if (typeof json != "string")
+			json = JSONSerialize(json, true, 2);
+
+		return asyncRequest::fetch("https://api.openai.com/v1/chat/completions", "POST", [
+			"Content-Type" => "application/json",
+			"Authorization" => "Bearer ${OPENAI_API_KEY}"
+		], json);
+	}
+
+	runChat(json) {
+		data = null;
+		var url = this.chat(json);
+		if (url) {
+			Loop::add(url);
+			return url._promise;
+		}
+		return url;
+	}
+
 	whisper(audio_file, model = "whisper-1") {
 		return asyncRequest::fetch("https://api.openai.com/v1/audio/transcriptions", "POST", [
 			"Content-Type" => "multipart/form-data",
@@ -58,6 +79,11 @@ class OpenAI {
 		var data = OpenAI::parse(request);
 		if ((!data) || (!data["choices"]))
 			return "";
-		return trim("" + data["choices"][0]["text"]);
+		var choice = data["choices"][0];
+		if (IsSet(choice, "text"))
+			return trim("" + choice["text"]);
+		if (IsSet(choice, "message"))
+			return trim("" + choice["message"]["content"]);
+		return "";
 	}
 }

@@ -924,7 +924,7 @@ class OpenAIWorker {
 	OpenAIWorker(key) {
 		console.info(LOG_THIS, "created openAI worker");
 		this.key = key;
-		this.default_data = [
+		/* this.default_data = [
 			"model": "text-davinci-003",
 			"prompt": "",
 			"temperature": 0.4,
@@ -933,6 +933,10 @@ class OpenAIWorker {
 			// "stop": ".",
 			"frequency_penalty": 0.5,
 			"presence_penalty": 0.0
+		]; */
+		this.default_data = [
+			"model": "gpt-3.5-turbo",
+			"messages": [["role": "system", "content": ""], ["role": "user", "content": ""]]
 		];
 
 		Loop::add(this);
@@ -955,7 +959,7 @@ class OpenAIWorker {
 
 	prefix(text) {
 		var date = (new Date()).toUTCString();
-		return "Data de astazi este: $date." + text;
+		return "You are Maria, a robot. Answer concisely. Knowledge cutoff: 2021-09-01 Current date: $date.\n" + text;
 	}
 
 	iterate() {
@@ -972,8 +976,13 @@ class OpenAIWorker {
 								Worker::Result(BinarizeObject(obj));
 								continue;
 							}
-							default_data["prompt"] = this.prefix(text);
-							var p = ai.run(default_data);
+							// default_data["prompt"] = this.prefix(text);
+							// var p = ai.run(default_data);
+
+							default_data["messages"][0]["content"] = this.prefix("");
+							default_data["messages"][1]["content"] = text;
+							var p = ai.runChat(default_data);
+
 							p.parameters = obj;
 							p.onFulfilled = sendResponse;
 							p.onRejected = sendError;
