@@ -671,11 +671,61 @@ class ro_numbers {
 			if (number[length number - 1] == ',')
 				new_text += ",";
 		}
+		new_text = StrReplace(new_text, "+", " adunat cu ");
+		new_text = StrReplace(new_text, "=", " este egal cu ");
+		new_text = StrReplace(new_text, "*", " înmul?it cu ");
+		new_text = StrReplace(new_text, "/", " împar?it la ");
 		return new_text;
 	}
 }
 
 class VoiceWorker {
+	static alaw(wav_data) {
+		var header = unpack("s4u32s4s4u32u16u16u32u32u16u16", wav_data);
+		if ((header[0] != "RIFF") || (header[2] != "WAVE"))
+			return "";
+
+		var data_offset = header[4] + 20;
+		var format = header[5];
+		var channels = header[6];
+		var samplerate = header[7];
+		var bits = header[10];
+		do {
+			var header2 = unpack("s4u32", wav_data, data_offset);
+			if (header2[0] == "data") {
+				data_offset += 8;
+				break;
+			}
+
+			data_offset += header2[1] + 8;
+		} while (data_offset < length wav_data);
+
+		if (data_offset >= length wav_data)
+			return "";
+
+		wav_data = SubStr(wav_data, data_offset);
+
+		// already alaw format
+		if ((bits == 8) && (format == 6) && (samplerate == 8000))
+			return wav_data;
+
+		if (bits == 8) {
+			bits = 16;
+			wav_data = to16bits(wav_data);
+		}
+
+		if ((bits == 16) && (samplerate == 8000))
+			return pcm2alaw(wav_data);
+
+		if (channels == 2) {
+			var channel_data = "";
+			for (var i = 0; i < length wav_data; i += 4)
+				channel_data += wav_data[i] + wav_data[i + 1];
+			wav_data = channel_data;
+		}
+		return pcm2alaw(resample(wav_data, samplerate, 8000, 1, SRC_SINC_MEDIUM_QUALITY));
+	}
+
 	static tts(text, voice, output) {
 		try {
 			if (Pos(voice, "/ro/") > 0)
@@ -737,8 +787,12 @@ class VoiceWorker {
 		console.log(LOG_THIS, "preparing $voice/[$text]");
 		if (!FileExists("./repository/alaw/$fname.alaw")) {
 			VoiceWorker::tts(text, voice, "./repository/$fname.wav");
-			_unlink("./repository/alaw/$fname.alaw");
-			_system("ffmpeg -loglevel error -i \"./repository/$fname.wav\" -ac 1 -ar 8000 -f s8 -acodec pcm_alaw \"./repository/alaw/$fname.alaw\"; rm \"./repository/$fname.wav\"");
+			var alaw_data = VoiceWorker::alaw(ReadFile("./repository/$fname.wav"));
+			if (alaw_data)
+				WriteFile(alaw_data, "./repository/alaw/$fname.alaw");
+
+			// _unlink("./repository/alaw/$fname.alaw");
+			// _system("ffmpeg -loglevel error -i \"./repository/$fname.wav\" -ac 1 -ar 8000 -f s8 -acodec pcm_alaw \"./repository/alaw/$fname.alaw\"; rm \"./repository/$fname.wav\"");
 		}
 		return fname;
 	}
@@ -901,7 +955,7 @@ class OpenAIWorker {
 
 	prefix(text) {
 		var date = (new Date()).toUTCString();
-		return "Current date and time: $date." + text;
+		return "Data de astazi este: $date." + text;
 	}
 
 	iterate() {
@@ -2566,8 +2620,12 @@ class ConversationalIVR {
 		if (length arr > 1)
 			destination = arr[rand() % (length arr)];
 
-		if ((Pos(destination, "@") <= 0) && (session.sip.msg) && (session.sip.msg.RemoteAddress)) {
-			this.ivr.stack.ParseFullDestination(session.sip.msg.RemoteAddress, null, var use_server, var use_port);
+		if ((Pos(destination, "@") <= 0) && (session.sip.msg) && ((session.sip.ip) || (session.sip.msg.RemoteAddress))) {
+			var use_server = session.sip.ip;
+			var use_port = session.sip.port;
+			if ((!use_server) && (session.sip.msg.RemoteAddress))
+				this.ivr.stack.ParseFullDestination(session.sip.msg.RemoteAddress, null, use_server, use_port);
+
 			if ((!use_port) || (use_port == 5060))
 				use_port = "";
 			else
