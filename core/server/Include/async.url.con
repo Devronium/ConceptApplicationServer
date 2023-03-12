@@ -63,9 +63,9 @@ class asyncRequest {
 			if (Pos(k, "=") <= 0)
 				k = "name=\"" + StrReplace(StrReplace(k, "\\", "\\\\"), "\"", "\\\"") + "\"";
 
-			multipart_data += boundary + "\r\nContent-Disposition: form-data; $k\r\n\r\n" + data[i] + "\r\n";
+			multipart_data += "--" + boundary + "\r\nContent-Disposition: form-data; $k\r\n\r\n" + data[i] + "\r\n";
 		}
-		multipart_data += "--" + boundary + "\r\n";
+		multipart_data += "--" + boundary + "--\r\n";
 		return multipart_data;
 	}
 
