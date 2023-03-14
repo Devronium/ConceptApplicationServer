@@ -730,6 +730,8 @@ class VoiceWorker {
 		try {
 			if (Pos(voice, "/ro/") > 0)
 				text = ro_numbers::text(text);
+			if (!text)
+				return 0;
 
 			var data = ["text" => text, "model" => voice, "output" => output];
 			var socket = new UDPSocket();
@@ -739,9 +741,12 @@ class VoiceWorker {
 			// 10ms per character
 			var max_timeout = 2000 + (length text) * 10;
 			if (!socket.GetHasData(max_timeout)) {
+				if (FileExists(output))
+					return 0;
 				console.warn(LOG_THIS, "tts service timed out in ${max_timeout}ms");
 				return TTSHelper::tts(text, voice, output);
 			}
+
 			var buffer = socket.Read(var ip);
 			if ((!buffer) || (ip != "127.0.0.1"))
 				return TTSHelper::tts(text, voice, output);
@@ -920,10 +925,16 @@ class JSWorker {
 class OpenAIWorker {
 	var default_data;
 	var key;
+	var instructions = "";
 
-	OpenAIWorker(key) {
+	OpenAIWorker(data) {
+		var arr = UnBinarizeObject(data);
+		key = arr[0];
+		instructions = arr[1];
+		if (instructions)
+			instructions += "\n";
+
 		console.info(LOG_THIS, "created openAI worker");
-		this.key = key;
 		/* this.default_data = [
 			"model": "text-davinci-003",
 			"prompt": "",
@@ -958,8 +969,8 @@ class OpenAIWorker {
 	}
 
 	prefix(text) {
-		var date = (new Date()).toUTCString();
-		return "You are Maria, a robot. Answer concisely. Knowledge cutoff: 2021-09-01 Current date: $date.\n" + text;
+		var date = StrSplit((new Date()).toISOString(), "T")[0];
+		return "Answer as concisely as possible. Knowledge cutoff: 2021-09-01 Current date: $date.\n" + instructions + text;
 	}
 
 	iterate() {
@@ -1071,6 +1082,7 @@ class ConversationalIVR {
 	var whisper_model = "";
 
 	var openAIKey = "";
+	var openAIInstructions = "";
 	var openAIWorker;
 
 	var recordingWorker;
@@ -1595,14 +1607,17 @@ class ConversationalIVR {
 				if (typeof default_api != "string")
 					default_api = "";
 				if (default_api) {
-					if (session.UserData.ClientData.ivr_path)
-						session.UserData.ClientData.ivr_path += "/";
-					session.UserData.ClientData.ivr_path += "*[default]";
 					if (Pos(default_api, "\$api") == 1) {
+						if (session.UserData.ClientData.ivr_path)
+							session.UserData.ClientData.ivr_path += "/";
+						session.UserData.ClientData.ivr_path += "*[default]";
 						ivr.OnAPI(session, session.UserData.ClientData.ivr_path, trim(SubStr(default_api, 4)), "tree");
 						session.UserData.ClientData.ivr_branch = "";
 					} else
 					if (Pos(default_api, "\$js") == 1) {
+						if (session.UserData.ClientData.ivr_path)
+							session.UserData.ClientData.ivr_path += "/";
+						session.UserData.ClientData.ivr_path += "*[default]";
 						this.js(session.UserData, trim(SubStr(default_api, 3)));
 						if (this.OnEvent)
 							this.OnEvent(session.UserData, session.UserData.ClientData.ivr_path, "js");
@@ -2818,7 +2833,7 @@ class ConversationalIVR {
 
 	Start(loop_callback = null) {
 		if (this.openAIKey)
-			this.openAIWorker = new Worker("OpenAIWorker", this.openAIKey);
+			this.openAIWorker = new Worker("OpenAIWorker", BinarizeObject([this.openAIKey, this.openAIInstructions]));
 
 		try {
 			this.LoopCallback = loop_callback;
