@@ -958,7 +958,9 @@ class OpenAIWorker {
 		var text = OpenAI::simple(url);
 		if ((text[0] == '?') || (text[0] == '!'))
 			text = trim(SubStr(text, 1));
-		console.log(LOG_THIS, "got ChatGPT message [$text]");
+
+		obj["step2"] = Date.now() - obj["start"];
+		console.log(LOG_THIS, "got ChatGPT message [$text] in ${obj["step2"]}ms");
 		obj["text"] = text;
 		Worker::Result(BinarizeObject(obj));
 	}
@@ -988,15 +990,19 @@ class OpenAIWorker {
 								continue;
 							}
 							// default_data["prompt"] = this.prefix(text);
-							// var p = ai.run(default_data);
+							// var p = ai.run(default_data, false);
+							var user_instructions = obj["instructions"] ?? "";
+							if (user_instructions)
+								user_instructions += "\n";
 
-							default_data["messages"][0]["content"] = this.prefix("");
+							default_data["messages"][0]["content"] = this.prefix("") + user_instructions;
 							default_data["messages"][1]["content"] = text;
 							var p = ai.runChat(default_data);
 
 							p.parameters = obj;
 							p.onFulfilled = sendResponse;
 							p.onRejected = sendError;
+							obj["step1"] = Date.now() - obj["start"];
 						} catch (var exc) {
 							console.warn(LOG_THIS, exc);
 						}
@@ -1780,11 +1786,12 @@ class ConversationalIVR {
 					session.ClientData.ivr_branch = session.ClientData.prev_branch;
 					session.ClientData.api = 2;
 				}
+				var instructions = trim(SubStr(text, 8));
 				console.log(LOG_THIS, "chatgpt text [${session.ClientData.last_text}]");
 				if (stt_worker)
 					stt_worker.AddData(BinarizeObject(new STTWorkerData(id, STT_RESET, [ ])));
 				if (session.ClientData.last_text)
-					openAIWorker.AddData(BinarizeObject(["id" => id, "text" => session.ClientData.last_text]));
+					openAIWorker.AddData(BinarizeObject(["id" => id, "text" => session.ClientData.last_text, "instructions" => instructions, "start" => Date.now()]));
 				return;
 			}
 		}
@@ -2585,7 +2592,8 @@ class ConversationalIVR {
 					console.log(LOG_THIS, "session does not exists anymore");
 					continue;
 				}
-
+				var total_time = Date.now() - obj["start"];
+				console.log(LOG_THIS, "OpenAI total time $total_time (connect ${obj["step1"]}ms, ${obj["step2"]})");
 				this.Raspuns(session.sip.CallID, obj["text"]);
 			}
 		}

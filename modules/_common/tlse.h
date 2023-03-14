@@ -35,7 +35,7 @@
 #define TLS_ECDSA_SUPPORTED
 #endif
 // suport ecdsa client-side
-// #define TLS_CLIENT_ECDSA
+#define TLS_CLIENT_ECDSA
 // TLS renegotiation is disabled by default (secured or not)
 // do not uncomment next line!
 // #define TLS_ACCEPT_SECURE_RENEGOTIATION
@@ -45,7 +45,9 @@
 #endif
 
 // disable TLS_RSA_WITH_* ciphers
-// #define TLS_ROBOT_MITIGATION
+#ifndef NO_TLS_ROBOT_MITIGATION
+#define TLS_ROBOT_MITIGATION
+#endif
 
 #define SSL_V30                 0x0300
 #define TLS_V10                 0x0301
@@ -123,6 +125,7 @@
 #define TLS_RSA_SIGN_SHA256         0x0B
 #define TLS_RSA_SIGN_SHA384         0x0C
 #define TLS_RSA_SIGN_SHA512         0x0D
+#define TLS_ECDSA_SIGN_SHA256       0x0E
 
 #define TLS_EC_PUBLIC_KEY           0x11
 #define TLS_EC_prime192v1           0x12
@@ -210,7 +213,7 @@ void tls_certificate_set_sign_key(struct TLSCertificate *cert, const unsigned ch
 char *tls_certificate_to_string(struct TLSCertificate *cert, char *buffer, int len);
 void tls_certificate_set_exponent(struct TLSCertificate *cert, const unsigned char *val, int len);
 void tls_certificate_set_serial(struct TLSCertificate *cert, const unsigned char *val, int len);
-void tls_certificate_set_algorithm(unsigned int *algorithm, const unsigned char *val, int len);
+void tls_certificate_set_algorithm(struct TLSContext *context, unsigned int *algorithm, const unsigned char *val, int len);
 void tls_destroy_certificate(struct TLSCertificate *cert);
 struct TLSPacket *tls_create_packet(struct TLSContext *context, unsigned char type, unsigned short version, int payload_size_hint);
 void tls_destroy_packet(struct TLSPacket *packet);

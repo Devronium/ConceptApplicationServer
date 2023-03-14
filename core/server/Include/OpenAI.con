@@ -21,11 +21,12 @@ class OpenAI {
 		], json);
 	}
 
-	run(json) {
+	run(json, add_to_loop = true) {
 		data = null;
 		var url = this.v1(json);
 		if (url) {
-			Loop::add(url);
+			if (add_to_loop)
+				Loop::add(url);
 			return url._promise;
 		}
 		return url;
@@ -42,11 +43,12 @@ class OpenAI {
 		], json);
 	}
 
-	runChat(json) {
+	runChat(json, add_to_loop = true) {
 		data = null;
 		var url = this.chat(json);
 		if (url) {
-			Loop::add(url);
+			if (add_to_loop)
+				Loop::add(url);
 			return url._promise;
 		}
 		return url;

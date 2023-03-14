@@ -120,7 +120,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSEServer, 0, 1)
-    int version = TLS_V12;
+    int version = TLS_V13;
     if (PARAMETERS_COUNT > 0) {
         T_NUMBER(TLSEServer, 0);
         version = PARAM_INT(0);
@@ -130,7 +130,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSEServer, 0, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSEClient, 0, 1)
-    int version = TLS_V12;
+    int version = TLS_V13;
     if (PARAMETERS_COUNT > 0) {
         T_NUMBER(TLSEClient, 0);
         version = PARAM_INT(0);
