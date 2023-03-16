@@ -159,8 +159,8 @@ class DATASession {
 		return false;
 	}
 
-	Refer(address, contact = "") {
-		return this.sip.Refer(address, contact);
+	Refer(address, contact = "", identity = "") {
+		return this.sip.Refer(address, contact, identity);
 	}
 
 	Close() {
@@ -377,6 +377,9 @@ class IVR {
 	}
 
 	OnAnswered(session, msg) {
+		if ((session.Referred) || (session.Parent))
+			return;
+
 		var from = "" + StrSplit("" + msg.Headers["from"], " ")[0];
 		if ((from) && ((from[0] == '"') && (from[length from - 1] == '"')))
 			from = SubStr(from, 1, length from - 2);
@@ -395,7 +398,8 @@ class IVR {
 				if (delta > 0)
 					session.UserData.Expires = delta;
 			}
-			session.LoadVoice(Get("empty"));
+			if (!session.Referred)
+				session.LoadVoice(Get("empty"));
 			this.ParseArray(session, res);
 			if (Begin)
 				Begin(session.UserData);

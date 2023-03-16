@@ -40,7 +40,7 @@ class OpenAI {
 		return asyncRequest::fetch("https://api.openai.com/v1/chat/completions", "POST", [
 			"Content-Type" => "application/json",
 			"Authorization" => "Bearer ${OPENAI_API_KEY}"
-		], json);
+		], json, 2000, 48000);
 	}
 
 	runChat(json, add_to_loop = true) {

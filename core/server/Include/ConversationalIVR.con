@@ -650,7 +650,7 @@ class ro_numbers {
 		var number = "";
 		for (var i = 0; i < length text; i ++) {
 			var char = text[i];
-			if (((char >= '0') && (char <= '9')) || (char == ',') || (char == '.')) {
+			if (((char >= '0') && (char <= '9')) || ((number) && ((char == ',') || (char == '.')))) {
 				if (char == ",")
 					char = ".";
 				if (char == ".")
@@ -673,8 +673,8 @@ class ro_numbers {
 		}
 		new_text = StrReplace(new_text, "+", " adunat cu ");
 		new_text = StrReplace(new_text, "=", " este egal cu ");
-		new_text = StrReplace(new_text, "*", " înmul?it cu ");
-		new_text = StrReplace(new_text, "/", " împar?it la ");
+		new_text = StrReplace(new_text, "*", " Ã®nmulÈ›it cu ");
+		new_text = StrReplace(new_text, "/", " Ã®mpÄƒrÈ›it la ");
 		return new_text;
 	}
 }
@@ -926,6 +926,7 @@ class OpenAIWorker {
 	var default_data;
 	var key;
 	var instructions = "";
+	var use_davinci = true;
 
 	OpenAIWorker(data) {
 		var arr = UnBinarizeObject(data);
@@ -935,20 +936,23 @@ class OpenAIWorker {
 			instructions += "\n";
 
 		console.info(LOG_THIS, "created openAI worker");
-		/* this.default_data = [
-			"model": "text-davinci-003",
-			"prompt": "",
-			"temperature": 0.4,
-			"max_tokens": 160,
-			"top_p": 1,
-			// "stop": ".",
-			"frequency_penalty": 0.5,
-			"presence_penalty": 0.0
-		]; */
-		this.default_data = [
-			"model": "gpt-3.5-turbo",
-			"messages": [["role": "system", "content": ""], ["role": "user", "content": ""]]
-		];
+		if (use_davinci) {
+			this.default_data = [
+				"model": "text-davinci-003",
+				"prompt": "",
+				"temperature": 0.4,
+				"max_tokens": 160,
+				"top_p": 1,
+				// "stop": ".",
+				"frequency_penalty": 0.5,
+				"presence_penalty": 0.0
+			];
+		} else {
+			this.default_data = [
+			 	"model": "gpt-3.5-turbo",
+				"messages": [["role": "system", "content": ""], ["role": "user", "content": ""]]
+			];
+		}
 
 		Loop::add(this);
 		Loop::main();
@@ -989,15 +993,18 @@ class OpenAIWorker {
 								Worker::Result(BinarizeObject(obj));
 								continue;
 							}
-							// default_data["prompt"] = this.prefix(text);
-							// var p = ai.run(default_data, false);
 							var user_instructions = obj["instructions"] ?? "";
 							if (user_instructions)
 								user_instructions += "\n";
 
-							default_data["messages"][0]["content"] = this.prefix("") + user_instructions;
-							default_data["messages"][1]["content"] = text;
-							var p = ai.runChat(default_data);
+							if (use_davinci) {
+								default_data["prompt"] = user_instructions + text;//this.prefix(text) + text;
+								var p = ai.run(default_data);
+							} else {
+								default_data["messages"][0]["content"] = this.prefix("") + user_instructions;
+								default_data["messages"][1]["content"] = text;
+								p = ai.runChat(default_data);
+							}
 
 							p.parameters = obj;
 							p.onFulfilled = sendResponse;
@@ -1126,6 +1133,12 @@ class ConversationalIVR {
 		if (session.sip.is_invite)
 			return session.From;
 		return session.To;
+	}
+
+	static sessionRemoteParty(session) {
+		if (session.sip.is_invite)
+			return session.To;
+		return session.From;
 	}
 
 	sessionTree(session) {
@@ -1557,7 +1570,7 @@ class ConversationalIVR {
 			return;
 		var keys = GetKeys(session.sip.RecordBuffers);
 		if (keys) {
-			var folder = session.To;
+			var folder = sessionTo(session);
 			if (session.sip.is_invite)
 				folder = session.From;
 			_mkdir("rec/$folder");
@@ -1786,6 +1799,7 @@ class ConversationalIVR {
 					session.ClientData.ivr_branch = session.ClientData.prev_branch;
 					session.ClientData.api = 2;
 				}
+				session.ClientData.count = 0;
 				var instructions = trim(SubStr(text, 8));
 				console.log(LOG_THIS, "chatgpt text [${session.ClientData.last_text}]");
 				if (stt_worker)
@@ -2052,7 +2066,7 @@ class ConversationalIVR {
 
 				var text = obj.buffer;
 
-				if (this.TextEvent(session, text, obj.id)) {
+				if ((text) && (this.TextEvent(session, text, obj.id))) {
 					session.ClientData.timeouts = 0;
 					continue;
 				}
@@ -2065,8 +2079,9 @@ class ConversationalIVR {
 						session.ClientData.prev_branch = session.ClientData.ivr_branch;
 						this.TextEvent(session, "\$timeout", obj.id);
 					} else {
-						if (IsSet(ivr_timeout, session.To))
-							Raspuns(obj.id, ivr_timeout[session.To]);
+						var session_to = sessionTo(session);
+						if (IsSet(ivr_timeout, session_to))
+							Raspuns(obj.id, ivr_timeout[session_to]);
 					}
 					if (session.ClientData.timeouts >= SETTINTS_MAX_TIMEOUTS) {
 						session.EndOnIVRFinished = true;
@@ -2594,7 +2609,27 @@ class ConversationalIVR {
 				}
 				var total_time = Date.now() - obj["start"];
 				console.log(LOG_THIS, "OpenAI total time $total_time (connect ${obj["step1"]}ms, ${obj["step2"]})");
-				this.Raspuns(session.sip.CallID, obj["text"]);
+				var text = obj["text"];
+				if ((!text) || (text == ".") || (text == "error")) {
+					session.ClientData.worker = null;
+					session.ClientData.timeouts ++;
+					console.log(LOG_THIS, "session ${session.sip.CallID} stt timed out (openai)");
+					if ((typeof session.ClientData.ivr_branch == "array") && (IsSet(session.ClientData.ivr_branch, "\$timeout"))) {
+						session.ClientData.prev_branch = session.ClientData.ivr_branch;
+						this.TextEvent(session, "\$timeout",session.sip.CallID);
+					} else {
+						var session_to = sessionTo(session);
+						if (IsSet(ivr_timeout, session_to))
+							Raspuns(obj.id, ivr_timeout[session_to]);
+					}
+					if (session.ClientData.timeouts >= SETTINTS_MAX_TIMEOUTS) {
+						session.EndOnIVRFinished = true;
+						session.ClientData.count = 0;
+						session.ClientData.redirect = "";
+					}
+				}
+
+				this.Raspuns(session.sip.CallID, text);
 			}
 		}
 	}
@@ -2676,7 +2711,7 @@ class ConversationalIVR {
 		session.sip.ResetBuffers();
 		session.sip.Record = true;
 		session.StartRecording(session.Expires);
-		var refer_session = session.Refer(destination, ref_contact);
+		var refer_session = session.Refer(destination, ref_contact, sessionRemoteParty(session));
 		if (refer_session)
 			session.sip.setMaxJitter(2);
 		else

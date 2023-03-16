@@ -678,8 +678,8 @@ class SIPSession {
 		return null;
 	}
 
-	Refer(address, contact = "") {
-		return this.s.Refer(msg, address, 70, contact);
+	Refer(address, contact = "", identity = "") {
+		return this.s.Refer(msg, address, 70, contact, identity);
 	}
 
 	setMaxJitter(max) {
@@ -1890,7 +1890,7 @@ class SIPStack {
 		return others;
 	}
 
-	public ReferProxy(msg, address, max_forwards = 70, contact = "") {
+	public ReferProxy(msg, address, max_forwards = 70, contact = "", identity = "") {
 		if (!msg)
 			return null;
 
@@ -1911,7 +1911,7 @@ class SIPStack {
 
 			var session = this.GetSession(msg);
 			if (session) {
-				var child_session = this.Invite(address, contact, max_forwards);
+				var child_session = this.Invite(address, contact, max_forwards, null, null, identity);
 				if (child_session) {
 					child_session._private_data = session.CallID;
 					session.AddChild(child_session);
@@ -1983,8 +1983,8 @@ class SIPStack {
 		return false;
 	}
 
-	public Refer(msg, address, max_forwards = 70, contact = "") {
-		return this.ReferProxy(msg, address, max_forwards, contact);
+	public Refer(msg, address, max_forwards = 70, contact = "", identity = "") {
+		return this.ReferProxy(msg, address, max_forwards, contact, identity);
 	}
 
 	public ReferDialog(msg, address, target_dialog, ip = "", port = 0, max_forwards = 70) {
@@ -2495,7 +2495,7 @@ class SIPStack {
 
 	}
 
-	Invite(destination, username, max_forwards = 70, parent_session = null, validation_delegate = null) {
+	Invite(destination, username, max_forwards = 70, parent_session = null, validation_delegate = null, identity = "") {
 		var msg = new SIPMessage();
 		msg.Method = "INVITE";
 		var server = "";
@@ -2544,8 +2544,13 @@ class SIPStack {
 		msg.Headers["via"] = "SIP/2.0/${Transport} " + this.full_host + ";rport;branch=" + branch;
 		msg.Headers["max-forwards"] = max_forwards;
 
+		if (identity)
+			identity = "\"identity\" ";
+		else
+			identity = "";
+
 		var tag = this.RandomString(20);
-		msg.Headers["from"] = "<" + sipproto + username + "@" + this.localhost + ">;tag=" + tag;
+		msg.Headers["from"] = identity + "<" + sipproto + username + "@" + this.localhost + ">;tag=" + tag;
 		msg.Headers["to"] = "<" + sipproto + "${target_user}@${full_server}>";//"sip:${target_user}@${localhost}";//destination;
 		msg.Headers["contact"] = "<" + sipproto + username + "@" + this.full_host + ">";
 		msg.Headers["call-id"] = callid;
@@ -2559,6 +2564,8 @@ class SIPStack {
 
 		msg.Headers["supported"] = SIP_SUPPORTED;
 		msg.Headers["session-expires"] = "3600;refresher=uac";
+		if (identity)
+			msg.Headers["P-Asserted-Identity"] = identity + "<" + sipproto + username + "@" + this.localhost + ">";
 
 		var sess = this.CreateSession(msg, server, server_port);
 		if (sess) {

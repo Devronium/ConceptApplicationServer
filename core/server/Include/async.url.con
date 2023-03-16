@@ -136,8 +136,9 @@ class asyncRequest {
 		return _promise;
 	}
 
-	static fetch(url_string, method = "GET", headers = null, var data = "", connect_timeout_ms = 2000) {
+	static fetch(url_string, method = "GET", headers = null, var data = "", connect_timeout_ms = 2000, timeout = 8000) {
 		var url = new asyncRequest(url_string);
+		url.timeout = timeout;
 		if (url.request(method, headers, data, connect_timeout_ms))
 			return url;
 
