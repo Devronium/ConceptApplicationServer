@@ -2544,6 +2544,7 @@ class SIPStack {
 		msg.Headers["via"] = "SIP/2.0/${Transport} " + this.full_host + ";rport;branch=" + branch;
 		msg.Headers["max-forwards"] = max_forwards;
 
+		var identity_orig = identity;
 		if (identity)
 			identity = "\"$identity\" ";
 		else
@@ -2565,7 +2566,7 @@ class SIPStack {
 		msg.Headers["supported"] = SIP_SUPPORTED;
 		msg.Headers["session-expires"] = "3600;refresher=uac";
 		if (identity) {
-			var identity_header = identity + "<" + sipproto + username + "@" + this.localhost + ">";
+			var identity_header = identity + "<" + sipproto + identity_orig + "@" + this.localhost + ">";
 			msg.Headers["p-asserted-identity"] = identity_header;
 			msg.Headers["p-preferred-identity"] = identity_header;
 		}
