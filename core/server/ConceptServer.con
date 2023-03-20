@@ -271,8 +271,8 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 				if (e) {
 					var pos = Pos(e, "=");
 					if (pos > 0) {
-						var k = URIDecode(SubStr(e, 0, pos - 1));
-						var val = URIDecode(SubStr(e, pos));
+						var k = URIDecode(StrReplace(SubStr(e, 0, pos - 1), "+", " "));
+						var val = URIDecode(StrReplace(SubStr(e, pos), "+", " "));
 						if (IsSet(get_query, k)) {
 							var prev = get_query[k];
 							if (typeof prev == "array")
