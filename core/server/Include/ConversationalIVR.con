@@ -798,6 +798,7 @@ class VoiceWorker {
 
 			// _unlink("./repository/alaw/$fname.alaw");
 			// _system("ffmpeg -loglevel error -i \"./repository/$fname.wav\" -ac 1 -ar 8000 -f s8 -acodec pcm_alaw \"./repository/alaw/$fname.alaw\"; rm \"./repository/$fname.wav\"");
+			_unlink("./repository/$fname.wav");
 		}
 		return fname;
 	}
@@ -926,7 +927,7 @@ class OpenAIWorker {
 	var default_data;
 	var key;
 	var instructions = "";
-	var use_davinci = true;
+	var use_davinci = false;
 
 	OpenAIWorker(data) {
 		var arr = UnBinarizeObject(data);
@@ -1024,13 +1025,20 @@ class OpenAIWorker {
 
 class RecordingWorker {
 	mp3(buffers) {
-		var encoder = new MP3Encoder(["channels" => 1, "bitrate" => 8, "samplerate" => 8000]);
+		var encoder = new MP3Encoder(["channels" => 1, "bitrate" => 16, "samplerate" => 8000]);
 		for (var i = 0; i < length buffers; i ++)
 			buffers[i] = alaw2pcm(buffers[i]);
 		encoder.encode(Mix(buffers));
 		encoder.close();
 
 		return encoder.Data;
+	}
+
+	emptyData(len) {
+		var data = "";
+		while (length data < len)
+			data += "\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5\x55\xD5";
+		return data;
 	}
 
 	RecordingWorker(not_used) {
@@ -1041,8 +1049,17 @@ class RecordingWorker {
 				if (!obj)
 					continue;
 
+				var buffers = obj["buffers"];
+				var max_len = obj["max"];
+				if (max_len) {
+					for (var i = 0; i < length buffers; i ++) {
+						var delta_len = max_len - length buffers[i];
+						if (delta_len > 160)
+							buffers[i] = emptyData(delta_len) + buffers[i];
+					}
+				}
 				var start = microseconds();
-				WriteFile(mp3(obj["buffers"]), obj["output"]);
+				WriteFile(mp3(buffers), obj["output"]);
 				var delta = floor((microseconds() - start) / 1000);
 				console.log(LOG_THIS, "written ${obj["output"]} in ${delta}ms");
 			}
@@ -1575,12 +1592,16 @@ class ConversationalIVR {
 				folder = session.From;
 			_mkdir("rec/$folder");
 			var[] buffers;
+			var max_len = 0;
 			for (var i = 0; i < length keys; i++) {
 				var k = keys[i];
 				if (k) {
 					var buf = session.sip.RecordBuffers[k];
-					if (buf)
+					if (buf) {
 						buffers[length buffers] = buf;
+						if (length buf > max_len)
+							max_len = length buf;
+					}
 				}
 			}
 			var output_file = "rec/$folder/" + time() + "-" + session.From + "-" + session.To + ".mp3";
@@ -1588,7 +1609,7 @@ class ConversationalIVR {
 				if (!recordingWorker)
 					recordingWorker = new Worker("RecordingWorker", "");
 				
-				recordingWorker.AddData(BinarizeObject(["buffers" => buffers, "output" => output_file]));
+				recordingWorker.AddData(BinarizeObject(["buffers" => buffers, "max" => max_len, "output" => output_file]));
 			}
 			session.StopRecording();
 			session.sip.RecordBuffers = null;
@@ -1869,6 +1890,104 @@ class ConversationalIVR {
 		}
 	}
 
+	tokens(text) {
+		var[] arr;
+		text = StrReplace(text, ".", " ");
+		text = StrReplace(text, ",", " ");
+		text = StrReplace(text, "!", " ");
+		text = StrReplace(text, "?", " ");
+		text = StrReplace(text, ";", " ");
+		text = StrReplace(text, "\r", " ");
+		text = StrReplace(text, "\n", " ");
+
+		var arr_text = StrSplit(text, " ");
+		for (var i = 0; i < length arr_text; i ++) {
+			var word = arr_text[i];
+			if (word)
+				arr[word] = word;
+		}
+		return arr;
+	}
+
+	compile(key) {
+		if ((Pos(key, "+") > 0) || (Pos(key, "-") > 0)) {
+			var[] keys;
+			var last_key = "";
+			for (var i = 0; i < length key; i ++) {
+				var char = key[i];	
+				switch (char) {
+					case " ":
+						if ((last_key) && (last_key != "+") && (last_key != "-")) {
+							keys[length keys] = last_key;
+							last_key = "";
+						}
+						break;
+					case "+":
+					case "-":
+					default:
+						last_key += char;
+						break;
+				}
+			}
+			if (last_key)
+				keys[length keys] = last_key;
+			return keys;
+		}
+		return [key];
+	}
+
+	match(text, text_arr, k) {
+		var message_understood = false;
+		var key_array = compile(k);
+		for (var kk = 0; kk < length key_array; kk ++) {
+			var k_text = trim(key_array[kk]);
+			if (!k_text)
+				continue;
+
+			var operator_mode = 1;
+			switch (k_text[0]) {
+				case "+":
+					operator_mode = 1;
+					k_text = SubStr(k_text, 1);
+					break;
+				case "-":
+					operator_mode = 2;
+					k_text = SubStr(k_text, 1);
+					break;
+			}
+			if (IsSet(text_arr, k_text)) {
+				if (operator_mode == 1) {
+					message_understood = true;
+				} else {
+					message_understood = false;
+					break;
+				}
+			} else
+			if ((Pos(k_text, " ") > 0) && (Pos(text, k_text) > 0)) {
+				var words = tokens(k_text);
+				message_understood = true;
+				for (var i = 0; i < length words; i ++) {
+					var k_word = trim(words[i]);
+					if (IsSet(text_arr, k_word)) {
+						// to do
+					} else {
+						message_understood = false;
+						break;
+					}
+				}
+				if (!message_understood)
+					break;
+			} else {
+				if (operator_mode == 1) {
+					message_understood = false;
+					break;
+				} else
+					message_understood = true;
+			}
+		}
+		return message_understood;
+	}
+
 	TextEvent(session, text, id) {
 		console.log(LOG_THIS, "text (id: ${id}): " + text);
 		session.ClientData.worker = null;
@@ -1901,7 +2020,7 @@ class ConversationalIVR {
 		var k4 = "";
 		var has_default = false;
 
-		var arr_text = StrSplit(text, " ");
+		var arr_text = tokens(text);
 
 		for (var j = 0; j < length keys; j ++) {
 			var k2 = keys[j];
@@ -1935,19 +2054,11 @@ class ConversationalIVR {
 							has_default = k_orig;
 							continue;
 						}
-						for (var kk = 0; kk < length arr_text; kk ++) {						
-							var k_text = trim(arr_text[kk]);
-							if (k_text == k) {
-								k4 = k;
-								message_understood = true;
-								break;
-							}
-						}
-						// search for phrases
-						if ((!message_understood) && (Pos(k, " ") > 0) && (Pos(text, k) > 0)) {
-							k4 = k;
+						if (match(text, arr_text, k)) {
 							message_understood = true;
+							k4 = k;
 						}
+
 						if (message_understood)
 							break;
 					}
