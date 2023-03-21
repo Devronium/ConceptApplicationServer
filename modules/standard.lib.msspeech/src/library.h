@@ -14,5 +14,7 @@ extern "C" {
 
     CONCEPT_FUNCTION(MsSpeech_Reset)
     CONCEPT_FUNCTION(MsSpeech_Decode)
+
+    CONCEPT_FUNCTION(MsSpeech_TTS)
 }
 #endif // __LIBRARY_H

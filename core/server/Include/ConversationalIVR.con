@@ -723,11 +723,24 @@ class VoiceWorker {
 				channel_data += wav_data[i] + wav_data[i + 1];
 			wav_data = channel_data;
 		}
-		return pcm2alaw(resample(wav_data, samplerate, 8000, 1, SRC_SINC_MEDIUM_QUALITY));
+		return pcm2alaw(resample(wav_data, samplerate, 8000, 1, SRC_SINC_BEST_QUALITY));
 	}
 
 	static tts(text, voice, output) {
 		try {
+			if (Pos(voice, "microsoft/") > 0) {
+				var arr = StrSplit(voice, "/");
+				if (length arr == 4) {
+					var key_arr = StrSplit(arr[3], "@");
+					console.log(LOG_THIS, "using MSTTS for [$text]");
+					var ms_data = MsSpeech_TTS(arr[1], arr[2], key_arr[0], key_arr[1], text);
+					if (ms_data) {
+						WriteFile(ms_data, output);
+						return 0;
+					}
+				}
+			}
+
 			if (Pos(voice, "/ro/") > 0)
 				text = ro_numbers::text(text);
 			if (!text)
@@ -1226,6 +1239,15 @@ class ConversationalIVR {
 		}
 		
 		return "";
+	}
+
+	adjustVoice(use_voice) {
+		if ((use_voice) && (tts_keys) && (Pos(use_voice, "microsoft/") > 0)) {
+			var lang_id = StrSplit(use_voice, "/")[1];
+			if ((lang_id) && (IsSet(tts_keys, lang_id)))
+				return tts_keys[lang_id] ?? use_voice;
+		}
+		return use_voice;
 	}
 
 	voice(to) {
@@ -2256,8 +2278,10 @@ class ConversationalIVR {
 				}
 				this.addWorker(to, config["model"], config["scorer"], workers);
 				voice = config["voice"];
-				if (voice)
+				if (voice) {
+					voice = adjustVoice(voice);
 					ivr_voice[to] = voice;
+				}
 			} else
 				console.error(LOG_THIS, "\"tree\" field missing");
 			var ivr_timeout_message = config["timeout"];
@@ -2430,6 +2454,7 @@ class ConversationalIVR {
 		ivr.stack.OnClientRegister = this.OnClientRegister;
 		ivr.stack.NATFriendly = true;
 		ivr.stack.OnResponse = this.OnResponseMessage;
+		ivr.stack.CacheNames = true;
 
 		ivr.stack.OnDTMFRelay = this.OnDTMFRelay;
 		if (in_band_dtmf)
@@ -2751,7 +2776,7 @@ class ConversationalIVR {
 		this.loadConfig(from);
 
 		if (IsSet(ivr_voice, from))
-			voice = ivr_voice[from];
+			voice = adjustVoice(ivr_voice[from]);
 		if (!voice) {
 			console.warn(LOG_THIS, "using default voice for $from");
 			voice = this.defaultVoice;

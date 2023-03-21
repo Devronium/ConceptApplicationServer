@@ -4,7 +4,6 @@
 #include "library.h"
 #include <stddef.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 
 #include <speechapi_c.h>
@@ -172,6 +171,64 @@ CONCEPT_FUNCTION_IMPL(MsSpeech_FeedAudioContent, 2)
         RETURN_NUMBER(err);
     } else {
         RETURN_NUMBER(-1);
+    }
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL(MsSpeech_TTS, 5)
+    T_STRING(MsSpeech_TTS, 0);
+    T_STRING(MsSpeech_TTS, 1);
+    T_STRING(MsSpeech_TTS, 2);
+    T_STRING(MsSpeech_TTS, 3);
+    T_STRING(MsSpeech_TTS, 4);
+
+    SPXSPEECHCONFIGHANDLE hconfig = NULL;
+    speech_config_from_subscription(&hconfig, PARAM(2), PARAM(3));
+
+    RETURN_STRING("");
+    if (hconfig) {
+        SPXPROPERTYBAGHANDLE hpropbag = NULL;
+        speech_config_get_property_bag(hconfig, &hpropbag);
+        if (hpropbag) {
+            property_bag_set_string(hpropbag, 3001, NULL, PARAM(0));
+            property_bag_set_string(hpropbag, 3101, NULL, PARAM(1));
+        }
+
+        SPXSYNTHHANDLE hsynth = NULL;
+        if (!synthesizer_create_speech_synthesizer_from_config(&hsynth, hconfig, SPXHANDLE_INVALID)) {
+            SPXRESULTHANDLE hresult = NULL;
+            synthesizer_speak_text(hsynth, PARAM(4), PARAM_LEN(4), &hresult);
+            if (synthesizer_result_handle_is_valid(hresult)) {
+                uint8_t *buffer = NULL;
+                uint32_t bufferSize = 0;
+                uint32_t filledSize = 0;
+                uint32_t audioLength = 0;
+                uint64_t audioDuration = 0;
+
+                synth_result_get_audio_length_duration(hresult, &audioLength, &audioDuration);
+                if (audioLength) {
+                    CORE_NEW(audioLength + 1, buffer);
+                    if (buffer) {
+                        bufferSize = audioLength;
+                        synth_result_get_audio_data(hresult, buffer, bufferSize, &filledSize);
+                        if (filledSize > 0)
+                            bufferSize = filledSize;
+
+                        buffer[bufferSize] = 0;
+
+                        SetVariable(RESULT, -1, (char *)buffer, bufferSize);
+                    }
+                }
+
+                synthesizer_result_handle_release(hresult);
+            }
+
+            synthesizer_handle_release(hsynth);
+        }
+        
+        if (speech_config_is_handle_valid(hconfig))
+            speech_config_release(hconfig);
+        if (hpropbag)
+            property_bag_release(hpropbag);
     }
 END_IMPL
 //=====================================================================================//

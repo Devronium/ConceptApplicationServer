@@ -1073,6 +1073,9 @@ class SIPStack {
 	var NATFriendly = false;
 	var SRTP = false;
 
+	var CacheNames = false;
+	var[] dns_cache;
+
 	SIPStack(localhost, bind_port = 5060, type = SIP_TRANSPORT_UDP, public_key = "", private_key = "", force_tls_version = 0) {
 		this.localhost = localhost;
 		this.local_port = bind_port;
@@ -1386,7 +1389,7 @@ class SIPStack {
 
 		register.Headers["Via"] = "SIP/2.0/${Transport} " + full_host + ";rport;branch=" + branch;
 		var from = username + " <" + sipproto + username + "@" + server + ">";
-		register.Headers["From"] = from;
+		register.Headers["From"] = from + ";tag=" + this.RandomString(20);
 		register.Headers["To"] = from;
 		register.Headers["Max-Forwards"] = max_forwards;
 
@@ -1418,8 +1421,29 @@ class SIPStack {
 	DoWrite(socket, var buffer, ip, port) {
 		// UDP
 		var type = classof socket;
-		if (type[0] == "U")
+		if (type[0] == "U") {
+			if ((CacheNames) && (ip)) {
+				var last_ip = ip[length ip - 1];
+				if ((last_ip < '0') || (last_ip > '9')) {
+					var ip_addr = "";
+					if (IsSet(dns_cache, ip)) {
+						ip_addr = dns_cache[ip];
+					} else {
+						var arr = GetHostByName(ip);
+						if (arr) {
+							ip_addr = arr["h_addr_list0"];
+							if (ip != ip_addr)
+								dns_cache[ip] = ip_addr;
+						}
+					}
+				}
+
+				if (ip_addr)
+					ip = ip_addr;
+			}
+
 			return socket.Write(buffer, ip, port);
+		}
 
 		return socket.Write(buffer);
 	}
