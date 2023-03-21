@@ -723,7 +723,7 @@ class VoiceWorker {
 				channel_data += wav_data[i] + wav_data[i + 1];
 			wav_data = channel_data;
 		}
-		return pcm2alaw(resample(wav_data, samplerate, 8000, 1, SRC_SINC_BEST_QUALITY));
+		return pcm2alaw(resample(wav_data, samplerate, 8000, 1, SRC_SINC_MEDIUM_QUALITY));
 	}
 
 	static tts(text, voice, output) {
@@ -2874,8 +2874,8 @@ class ConversationalIVR {
 				}
 			} else
 			if (session) {
-				var from = this.ivr.ParseFrom("" + StrSplit("" + session.msg.Headers["from"], " ")[0]);
-				var to = this.ivr.ParseFrom("" + StrSplit("" + session.msg.Headers["to"], " ")[0]);
+				var from = this.ivr.ParseFrom2(session.msg.Headers["from"]);
+				var to = this.ivr.ParseFrom2(session.msg.Headers["to"]);
 
 				if ((!account) || (((session.is_invite) && (from == account)) || ((!session.is_invite) && (to == account))))
 					sess_ids[session.CallID] = ["account" => account ?? identity, "isInvite" => session.is_invite, "from" => from, "to" => to, "callDuration" => 0, "path" => "(setting up call - not answered yet)", "text" => ""];
@@ -2975,8 +2975,8 @@ class ConversationalIVR {
 		if ((!session) || (!session.is_invite))
 			return null;
 
-		var identity = this.ivr.ParseFrom("" + StrSplit("" + session.msg.Headers["from"], " ")[0]);
-		var to = this.ivr.ParseFrom("" + StrSplit("" + session.msg.Headers["to"], " ")[0]);
+		var identity = this.ivr.ParseFrom(session.msg.Headers["from"]);
+		var to = this.ivr.ParseFrom(session.msg.Headers["to"]);
 		if (!identity)
 			return null;
 

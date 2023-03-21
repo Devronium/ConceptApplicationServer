@@ -1002,20 +1002,33 @@ class RegistrationData {
 	var nonce = "";
 	var timestamp;
 	var ip;
+	var ip_timestamp;
 
 	RegistrationData(username, password, server, server_port) {
 		this.username = username;
 		this.password = password;
 		this.server = server;
 		this.server_port = server_port;
-		this.ip = SIPStack::IPFromName(server) ?? server;
+		this.ip = ""; // SIPStack::IPFromName(server) ?? server;
+		// this.ip_timestamp = time();
 	}
 
-	updateIp() {
+	updateIp(ref_ip = "") {
+		if (ref_ip) {
+			this.ip = ref_ip;
+			this.ip_timestamp = time();
+			return;
+		}
+
 		if (this.ip == this.server)
 			return;
 
+		if (time() - ip_timestamp <= 3600)
+			return;
+
 		this.ip = SIPStack::IPFromName(server) ?? server;
+
+		ip_timestamp = time();
 	}
 }
 
@@ -1354,10 +1367,8 @@ class SIPStack {
 		var res="";
 		var characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 		var rlen = length characters - 1;
-		while (length res<len) {
-			var c = RandomInteger(0, rlen);
-			res += characters[c];
-		}
+		while (length res<len)
+			res += characters[RandomInteger(0, rlen)];
 		return res;
 	}
 
@@ -1418,6 +1429,26 @@ class SIPStack {
 		return this.Parse(t.Read());
 	}
 
+	toIp(ip) {
+		if ((CacheNames) && (ip)) {
+			var last_ip = ip[length ip - 1];
+			if ((last_ip < '0') || (last_ip > '9')) {
+				var ip_addr = "";
+				if (IsSet(dns_cache, ip)) {
+					ip_addr = dns_cache[ip];
+				} else {
+					ip_addr = this.IPFromName(ip);
+					if ((ip_addr) && (ip_addr != ip))
+						dns_cache[ip] = ip_addr;
+				}
+			}
+			if (ip_addr)
+				ip = ip_addr;
+		} else
+			return this.IPFromName(ip) ?? ip;
+		return ip;
+	}
+
 	DoWrite(socket, var buffer, ip, port) {
 		// UDP
 		var type = classof socket;
@@ -1429,12 +1460,9 @@ class SIPStack {
 					if (IsSet(dns_cache, ip)) {
 						ip_addr = dns_cache[ip];
 					} else {
-						var arr = GetHostByName(ip);
-						if (arr) {
-							ip_addr = arr["h_addr_list0"];
-							if (ip != ip_addr)
-								dns_cache[ip] = ip_addr;
-						}
+						ip_addr = this.IPFromName(ip);
+						if ((ip_addr) && (ip_addr != ip))
+							dns_cache[ip] = ip_addr;
 					}
 				}
 
@@ -1455,8 +1483,11 @@ class SIPStack {
 		if (this.DoWrite(local_udpclientsocket, register.ToString(), server, server_port) < 0)
 			return null;
 
+		var registration_data = new RegistrationData(username, password, server, server_port);
+		registration_data.updateIp(toIp(server));
+
 		var key = register.Headers["Call-ID"];
-		this.Registrations[key] = new RegistrationData(username, password, server, server_port);
+		this.Registrations[key] = registration_data;
 	}
 
 	Unregister(username) {

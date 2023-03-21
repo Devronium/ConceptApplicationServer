@@ -345,12 +345,33 @@ class IVR {
 		return trim(from);
 	}
 
+	ParseFrom2(address) {
+		address = trim("" + address);
+		if (address[0] == "\"") {
+			var from = "";
+			for (var i = 1; i < length address; i ++) {
+				var char = address[i];
+				if (char == "\"") {
+					if (!from) {
+						address = trim(SubStr(address, i + 1));
+						break;
+					}
+					return from;
+				}
+				from += char;
+			}
+		}
+
+		return this.ParseFrom("" + StrSplit(address, " ")[0]);
+	}
+
 	OnInvite(session, msg) {
-		var from = "" + StrSplit("" + msg.Headers["from"], " ")[0];
+		var from = ParseFrom2(msg.Headers["from"]);
+		/* var from = "" + StrSplit("" + msg.Headers["from"], " ")[0];
 		if ((from) && ((from[0] == '"') && (from[length from - 1] == '"')))
 			from = SubStr(from, 1, length from - 2);
 		else
-			from = ParseFrom(from);
+			from = ParseFrom(from); */
 		
 		var msg_to = this.ParseFrom(msg.Headers["to"]);
 		var res;
@@ -380,11 +401,12 @@ class IVR {
 		if ((session.Referred) || (session.Parent))
 			return;
 
-		var from = "" + StrSplit("" + msg.Headers["from"], " ")[0];
+		/* var from = "" + StrSplit("" + msg.Headers["from"], " ")[0];
 		if ((from) && ((from[0] == '"') && (from[length from - 1] == '"')))
 			from = SubStr(from, 1, length from - 2);
 		else
-			from = ParseFrom(from);
+			from = ParseFrom(from);*/
+		var from = ParseFrom2(msg.Headers["from"]);
 		
 		var msg_to = this.ParseFrom(msg.Headers["to"]);
 		var res;
