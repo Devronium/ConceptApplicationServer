@@ -134,6 +134,7 @@ class SIPSession {
 	var bye_set = false;
 	var chunk_size;
 	var timestamp;
+	var remote_type = -1;
 
 	var write_timestamp;
 	var write_retry = 24;
@@ -234,8 +235,18 @@ class SIPSession {
 					break;
 				case "m=":
 					arr = StrSplit(SubStr(line, 2, length line), " ");
-					if ((arr) && (ToLower(arr[0]) == "audio"))
+					if ((arr) && (ToLower(arr[0]) == "audio")) {
 						remote_port = value arr[1];
+						for (var j = 3; j < length arr; j ++){
+							var codec = value arr[j];
+							if ((codec == 0) || (codec == 8))
+								remote_type = codec;
+							if (remote_type == 8)
+								break;
+						}
+						if (remote_type == 0)
+							echo "WARNING: using uLaw codec\n";
+					}
 					break;
 				case "a=":
 					if (this.s.SRTP)
@@ -475,7 +486,15 @@ class SIPSession {
 		return files;
 	}
 
-	SimpleRTP(payload, profile = 8) {
+	SimpleRTP(payload, profile = 48) {
+		if (profile == 48) {
+			profile = remote_type;
+			if (profile < 0)
+				profile = 8;
+			if (profile == 0)
+				payload = alaw2ulaw(payload);
+		}
+			
 		var res = chr(0x80) + chr(profile);
 		res += toubin(htons(sequence_number), 16);
 		timestamp += length payload;
@@ -518,14 +537,28 @@ class SIPSession {
 		return "";
 	}
 
-	GetSDP(codec = 8, extra = "") {
+	GetSDP(codec = 48, extra = "") {
 		var res;
 		if (this.s.SRTP) {
 			if (!srtp)
 				srtp = new SRTPContext();
+			if ((codec != 0) && (codec != 8))
+				codec = "8 0";
 			res = "v=0\r\no=somebody ${ClsPtr(this)} ${VarPtr(this)} IN IP4 ${s.localip}\r\ns=Concept\r\nc=IN IP4 ${s.localip}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/SAVP $codec\r\na=crypto:1 AES_CM_128_HMAC_SHA1_32 inline:${srtp.RandomInit(32)}\r\n";
-		} else
-			res = "v=0\r\no=somebody ${ClsPtr(this)} ${VarPtr(this)} IN IP4 ${s.localip}\r\ns=Concept\r\nc=IN IP4 ${s.localip}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/AVP $codec\r\na=rtpmap:$codec PCMA/8000\r\n";
+		} else {
+			var codecs_str = "";
+			if (codec == 8) {
+				codecs_str += "a=rtpmap:8 PCMA/8000\r\n";
+			} else
+			if (codec == 0) {
+				codecs_str += "a=rtpmap:0 PCMU/8000\r\n";
+			} else {
+				codecs_str += "a=rtpmap:8 PCMA/8000\r\n";
+				codecs_str += "a=rtpmap:0 PCMU/8000\r\n";
+				codec = "8 0";
+			}
+			res = "v=0\r\no=somebody ${ClsPtr(this)} ${VarPtr(this)} IN IP4 ${s.localip}\r\ns=Concept\r\nc=IN IP4 ${s.localip}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/AVP $codec\r\n" + codecs_str;
+		}
 		if (extra)
 			res += "a=$extra\r\n";
 		sdp_out = res;
@@ -755,7 +788,7 @@ class SIPSession {
 
 			if (started) {
 				if ((remote_host) && (remote_port > 0) && (rtp)) {
-					var delta = uint32((microseconds() - packet_time) / chunk_size);
+					var delta = floor((microseconds() - packet_time) / chunk_size);
 					if (ivr) {
 						if (delta >= ivr_chunk) {
 							var f_size = chunk_size / 1000 * 8;
@@ -782,6 +815,8 @@ class SIPSession {
 							buf_chunk = delta + 1;
 							f_size = chunk_size / 1000 * 8;
 							var d_buf = SubStr(buf, 0, /*160*/f_size);
+							if (!d_buf)
+								d_buf = SubStr(this.s.emptyData, 0, f_size);
 							if (d_buf) {
 								buf = SubStr(buf, /*160*/f_size);
 								if (this.s.OnAudioOut)
@@ -802,7 +837,7 @@ class SIPSession {
 						var str = "";
 						var blocks = chunk_size / 1000 * 8 / 10;
 						for (i = 0; i < blocks; i++)
-							str += '\0\0\0\0\0\0\0\0\0\0';
+							str += '\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5';
 						buf = str;
 						rtp_payload = this.SimpleRTP(str);
 						rtp.Write(rtp_payload, remote_host, remote_port);
@@ -1089,6 +1124,8 @@ class SIPStack {
 	var CacheNames = false;
 	var[] dns_cache;
 
+	var emptyData = "";
+
 	SIPStack(localhost, bind_port = 5060, type = SIP_TRANSPORT_UDP, public_key = "", private_key = "", force_tls_version = 0) {
 		this.localhost = localhost;
 		this.local_port = bind_port;
@@ -1122,6 +1159,9 @@ class SIPStack {
 		RandomSeed(unpack("u32", CryptoRandom(4))[0]);
 
 		this.rtp_port_index = RandomInteger(RTP_START_PORT, RTP_END_PORT);
+
+		while (length this.emptyData < 4800)
+			this.emptyData += '\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5';
 	}
 
 	static IPFromName(host) {
@@ -2729,7 +2769,7 @@ class SIPStack {
 		var sess = parent_session ?? GetSession(msg);
 		if (sess) {
 			sess.is_invite = true;
-			var payload = sdp_payload ?? sess.GetSDP(8, extra_sdp);
+			var payload = sdp_payload ?? sess.GetSDP(48, extra_sdp);
 			var payload_type = "application/sdp";
 			msg.Headers["content-length"] = length payload;
 			msg.Headers["content-type"] = payload_type;

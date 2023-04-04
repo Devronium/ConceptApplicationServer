@@ -67,6 +67,7 @@ class IVRClientData {
 				this.ivr_branch = null;
 			}
 		}
+		session.sip.setMaxJitter(4);
 		// session.sip.NATMode = true;
 
 		// if (session.sip.is_invite)
@@ -333,6 +334,12 @@ class STTWorker {
 					else
 						worker_obj.silence = 0;
 
+					var force_send = false;
+					if (worker_obj.silence >= 50) {
+						worker_obj.silence = 0;
+						force_send = true;
+					}
+
 					if (worker_obj.silence <= 8) {
 						if (worker_obj.silence_buffer) {
 							worker_obj.stream.feed(worker_obj.silence_buffer);
@@ -343,13 +350,13 @@ class STTWorker {
 						worker_obj.silence_buffer = buf2;
 					}
 
-					if (worker_obj.textAge() >= 250) {
+					if ((worker_obj.textAge() >= 8000) || (force_send)) {
 						var str = worker_obj.stream.decode();
 						if ((str) && (worker_obj.canSend())) {
 							// if (worker_obj.last_str != str) {
 							// 	worker_obj.last_str = str;
 							// } else {
-								Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TEXT, str)));
+								Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TEXT, str, -1)));
 								if (length str > max_response_length) {
 									console.trace(LOG_THIS, "resetting buffer for ${obj.id}");
 									worker_obj.reset();
@@ -915,9 +922,10 @@ class VoiceWorker {
 
 	static adjustVoice(var text, voice, tts_keys) {
 		var text_ref = trim(text);
-		if ((text_ref) && (text_ref[0] == "[") && (text_ref[3] == "]")) {
-			var voice_id = ToLower(text_ref[1] + text_ref[2]);
-			text = trim(SubStr(text_ref, 4));
+		var pos2 = Pos(text_ref, "]");
+		if ((text_ref) && (text_ref[0] == "[") && (pos2 > 1)) {
+			var voice_id = ToLower(SubStr(text_ref, 1, pos2 - 2));
+			text = trim(SubStr(text_ref, pos2));
 			if (IsSet(tts_keys, voice_id))
 				return tts_keys[voice_id] ?? voice;
 		}
@@ -1246,6 +1254,9 @@ class ConversationalIVR {
 	var[] ivr_limits;
 	var[] ivr_queues;
 	var[] ivr_blacklist;
+	var[] ivr_disabled;
+	var[] ivr_quota_limit;
+	var[] ivr_quota;
 	var ivr_api_trees_dirty;
 
 	var OnFinish;
@@ -1550,10 +1561,42 @@ class ConversationalIVR {
 			} else
 				console.error(LOG_THIS, "\"model\" field missing");
 
+			ivr_disabled[to] = value config["disabled"];
+			ivr_quota_limit[to] = ["in" => (value config["incoming"]) * 60, "out" => (value config["outgoing"]) * 60, "sms" => value config["SMS"]];
+
 			var ivr_timeout_message = config["timeout"];
 			if ((ivr_timeout_message) && (typeof ivr_timeout_message == "string"))
 				ivr_timeout[to] = ivr_timeout_message;
 		}
+	}
+
+	updateQuota(to, event_type, quantity) {
+		if ((!event_type) || (!quantity))
+			return;
+		var arr = ivr_quota[to];
+		if (!arr) {
+			arr = new [];
+			ivr_quota[to] = arr;
+		}
+		arr[event_type] = quantity;
+	}
+
+	quotaExeeded(to, event_type, var resources = null) {
+		resources = null;
+		var limits = ivr_quota_limit[to];
+		var arr = ivr_quota[to];
+		if ((!arr) || (!limits))
+			return false;
+
+		var limit = limits[event_type];
+		if (!limit)
+			return false;
+
+		resources = arr;
+		if (arr[event_type] < limit)
+			return false;
+
+		return true;
 	}
 
 	OnGreeting(from, to, callid) {
@@ -1575,10 +1618,23 @@ class ConversationalIVR {
 			}
 		}
 
-		if (IsSet(ivr_api_trees, callid))
+		var event_type;
+		if (IsSet(ivr_api_trees, callid)) {
 			ivr_tree = ivr_api_trees[callid] ?? ivr_tree;
-		else
+			event_type = "out";
+		} else {
 			ivr_tree = this.loadDefaultTree(to);
+			event_type = "in";
+		}
+
+		if (ivr_disabled[to]) {
+			console.warn(LOG_THIS, "account $to is disabled");
+			return null;
+		}
+		if (quotaExeeded(to, event_type)) {
+			console.warn(LOG_THIS, "account $to quota exeeded");
+			return null;
+		}
 
 		if (!ivr_tree) {
 			console.warn(LOG_THIS, "invalid trunk $to");
@@ -2295,13 +2351,21 @@ class ConversationalIVR {
 			}
 			if (message_understood) {
 				this.Raspuns(session.sip.CallID, kb_data[k_orig]);
+				var current_text = "";
+				if (typeof session.ClientData.ivr_branch == "array")
+					current_text = session.ClientData.ivr_branch[0];
+				if ((current_text) && (typeof current_text == "string")) {
+					current_text = trim(current_text);
+					if ((current_text) && (current_text[0] != '$'))
+						this.Raspuns(session.sip.CallID, current_text, true);
+				}
 				return true;
 			}
 		}
 		return false;
 	}
 
-	TextEvent(session, text, id) {
+	TextEvent(session, text, id, ignore_debug_text = false) {
 		console.log(LOG_THIS, "text (id: ${id}): " + text);
 		session.ClientData.worker = null;
 		if (!session.ClientData.count) {
@@ -2318,7 +2382,10 @@ class ConversationalIVR {
 		if ((session.ClientData.last_text != text) && (text)) {
 			if (session.ClientData.debug_text)
 				session.ClientData.debug_text += "; ";
-			session.ClientData.debug_text += text;
+			if (ignore_debug_text)
+				session.ClientData.debug_text += "/$text/";
+			else
+				session.ClientData.debug_text += text;
 		}
 		session.ClientData.last_text = text ?? "";
 
@@ -2335,6 +2402,9 @@ class ConversationalIVR {
 		var check_kb = true;
 
 		var arr_text = tokens(text);
+
+		if (TextEvent_kb(session, arr_text, text))
+			return true;
 
 		for (var j = 0; j < length keys; j ++) {
 			var k2 = keys[j];
@@ -2379,8 +2449,8 @@ class ConversationalIVR {
 				}
 			}
 			if ((has_default) && (!message_understood) && (j == ((length keys) - 1))) {
-				if (TextEvent_kb(session, arr_text, text))
-					return true;
+				// if (TextEvent_kb(session, arr_text, text))
+				// 	return true;
 				check_kb = false;
 				k4 = "*";
 				message_understood = true;
@@ -2496,7 +2566,7 @@ class ConversationalIVR {
 
 				var text = obj.buffer;
 
-				if ((text) && (this.TextEvent(session, text, obj.id))) {
+				if ((text) && (this.TextEvent(session, text, obj.id, (obj.codec == -1)))) {
 					session.ClientData.timeouts = 0;
 					continue;
 				}
@@ -2579,6 +2649,8 @@ class ConversationalIVR {
 					voice = adjustVoice(voice);
 					ivr_voice[to] = voice;
 				}
+				ivr_disabled[to] = value config["disabled"];
+				ivr_quota_limit[to] = ["in" => (value config["incoming"]) * 60, "out" => (value config["outgoing"]) * 60, "sms" => value config["SMS"]];
 			} else
 				console.error(LOG_THIS, "\"tree\" field missing");
 			var ivr_timeout_message = config["timeout"];
@@ -2668,7 +2740,7 @@ class ConversationalIVR {
 								break;
 							case "\$include":
 								if (arr[1]) {
-									var trunk_path = trunk_dir + arr[1] + ".json";
+									var trunk_path = trunk_dir + to + "." + arr[1] + ".json";
 									ivr_tree[keys[i]] = this.loadTree(to, this.fromJSON(ReadFile(trunk_path)), ivr_tree, texts, true, used_words);
 								} else
 									console.warn(LOG_THIS, "include parameter missing");
@@ -2881,8 +2953,8 @@ class ConversationalIVR {
 		return arr;
 	}
 
-	callSync(who, from, tree = null, max_duration = 1800) {
-		var session = this.ivr.stack.Invite(who, from);
+	callSync(who, from, tree = null, max_duration = 1800, force_identity = "") {
+		var session = this.ivr.stack.Invite(who, from, 70, null, null, force_identity);
 		console.log(LOG_THIS, "call $who by $from");
 		if (session) {
 			session.setExpires(max_duration);
@@ -2900,7 +2972,7 @@ class ConversationalIVR {
 		return false;
 	}
 
-	callSyncAll(who, from, tree = null, max_duration = 1800) {
+	callSyncAll(who, from, tree = null, max_duration = 1800, force_identity = "") {
 		var gateway_arr = StrSplit(who, "@");
 		var gateway = "";
 		if (length gateway_arr == 2) {
@@ -2912,7 +2984,7 @@ class ConversationalIVR {
 		for (var i = 0; i < length arr; i ++) {
 			var phone = trim(arr[i]);
 			if (phone) {
-				if (this.callSync(phone + gateway, from, tree, max_duration))
+				if (this.callSync(phone + gateway, from, tree, max_duration, force_identity))
 					idx ++;
 			}
 		}
@@ -2929,7 +3001,7 @@ class ConversationalIVR {
 
 				switch (obj.opaque[0]) {
 					case 1:
-						this.callSyncAll(obj.opaque[1], obj.opaque[2], obj.opaque[3], obj.opaque[4]);
+						this.callSyncAll(obj.opaque[1], obj.opaque[2], obj.opaque[3], obj.opaque[4], obj.opaque[5]);
 						break;
 					case 2:
 						var session = this.ivr.GetSessionById(obj.opaque[1]);
@@ -3067,10 +3139,15 @@ class ConversationalIVR {
 		}
 	}
 
-	call(who, from, tree = null, max_duration = 1800) {
+	call(who, from, tree = null, max_duration = 1800, force_identity = "", var info_resources = null) {
 		var voice = "";
 
 		this.loadConfig(from);
+
+		if (quotaExeeded(from, "out", info_resources)) {
+			console.warn(LOG_THIS, "account $from quota exeeded");
+			return null;
+		}
 
 		if (IsSet(ivr_voice, from))
 			voice = adjustVoice(ivr_voice[from]);
@@ -3089,13 +3166,17 @@ class ConversationalIVR {
 		}
 
 		if ((!texts) || (length texts == 0))
-			return callSyncAll(who, from, tree, max_duration);
+			return callSyncAll(who, from, tree, max_duration, force_identity);
 
 		var worker = voiceWorker(voice);
 		if (!worker)
 			return null;
 
-		return worker.AddData(BinarizeObject(new VoiceWorkerData(texts, [1, who, from, tree, max_duration])));
+		return worker.AddData(BinarizeObject(new VoiceWorkerData(texts, [1, who, from, tree, max_duration, force_identity])));
+	}
+
+	isSuspended(identity) {
+		return ivr_disabled[identity];
 	}
 
 	register(username, password, sip_server, server_port = 5060) {
@@ -3190,7 +3271,7 @@ class ConversationalIVR {
 	protected _dequeue(identity, check_ivr = true, route = "", to = "", session = null, var active_calls = 0) {
 		identity = "" + identity;
 
-		if ((check_ivr) && ((!IsSet(ivr_queues, identity)) || (!ivr_queues[identity])))
+		if ((check_ivr) && ((!IsSet(ivr_queues, identity)) || (!ivr_queues[identity])) || (ivr_disabled[identity]) || (quotaExeeded(to, "out")))
 			return null;
 
 		var data = JSONDeserialize(ReadFile("./queue/$identity.json"));
@@ -3237,7 +3318,7 @@ class ConversationalIVR {
 				if (!route)
 					route = ivr_queues[identity]["route"];
 
-				if (this.call(trim(StrSplit(obj["who"], ",")[0]) + "@" + route, identity, tree)) {
+				if (this.call(trim(StrSplit(obj["who"], ",")[0]) + "@" + route, identity, tree, 1800, obj["as"] ?? "")) {
 					active_calls ++;
 					return true;
 				}
