@@ -4,14 +4,12 @@ include Loop.con
 
 class OpenAI {
 	var OPENAI_API_KEY;
-	var data;
 
 	OpenAI(key) {
 		this.OPENAI_API_KEY = key;
 	}
 
 	v1(json) {
-		data = null;
 		if (typeof json != "string")
 			json = JSONSerialize(json, true, 2);
 
@@ -22,7 +20,6 @@ class OpenAI {
 	}
 
 	run(json, add_to_loop = true) {
-		data = null;
 		var url = this.v1(json);
 		if (url) {
 			if (add_to_loop)
@@ -33,7 +30,6 @@ class OpenAI {
 	}
 
 	chat(json) {
-		data = null;
 		if (typeof json != "string")
 			json = JSONSerialize(json, true, 2);
 
@@ -44,7 +40,6 @@ class OpenAI {
 	}
 
 	runChat(json, add_to_loop = true) {
-		data = null;
 		var url = this.chat(json);
 		if (url) {
 			if (add_to_loop)
@@ -62,7 +57,6 @@ class OpenAI {
 	}
 
 	runWhisper(audio_file, model = "whisper-1") {
-		data = null;
 		var url = this.whisper(audio_file, model);
 		if (url) {
 			Loop::add(url);

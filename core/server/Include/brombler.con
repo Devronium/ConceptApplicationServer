@@ -1,0 +1,85 @@
+import standard.lib.json
+include async.url.con
+include Loop.con
+
+class Brombler {
+	var KEY;
+
+	Brombler(key) {
+		this.KEY = key;
+	}
+
+	static request(key, url, method = "GET", obj = null) {
+		if ((obj) && (typeof obj != "string"))
+			obj = JSONSerialize(obj, true, 2);
+
+		var[] headers;
+		if (key)
+			headers["Authorization"] = key;
+
+		if (obj)
+			headers["Content-Type"] = "application/json";
+
+		return asyncRequest::fetch(url, method, headers, obj);
+	}
+
+	call(who, tree, add_to_loop = true) {
+		var url = this.request(this.KEY, "https://brombler.com/call.cas", "POST", ["who" => who, "tree" => tree]);
+		if (url) {
+			if (add_to_loop == true)
+				Loop::add(url);
+			if (add_to_loop < 2)
+				return url._promise;
+		}
+		return url;
+	}
+
+	list(add_to_loop = true) {
+		var url = this.request(this.KEY, "https://brombler.com/list.cas");
+		if (url) {
+			if (add_to_loop == true)
+				Loop::add(url);
+			if (add_to_loop < 2)
+				return url._promise;
+		}
+		return url;
+	}
+
+	close(who, add_to_loop = true) {
+		var url = this.request(this.KEY, "https://brombler.com/close.cas?who=" + URIEncode(who));
+		if (url) {
+			if (add_to_loop)
+				Loop::add(url);
+			if (add_to_loop < 2)
+				return url._promise;
+		}
+		return url;
+	}
+
+	refer(who, to, add_to_loop = true) {
+		var url = this.request(this.KEY, "https://brombler.com/refer.cas?who=" + URIEncode(who) + "&" + "to=" + URIEncode(to));
+		if (url) {
+			if (add_to_loop == true)
+				Loop::add(url);
+			if (add_to_loop < 2)
+				return url._promise;
+		}
+		return url;
+	}
+
+	static parse(request) {
+		if (!request)
+			return null;
+		return JSONDeserialize(request.data);
+	}
+
+	static apiKey(client_id, client_secret, expires_in = 86400) {
+		var headers = ["Content-Type" => "application/x-www-form-urlencoded"];
+
+		var url = asyncRequest::fetch("https://brombler.com/auth.cas", "POST", headers, "client_id=" + URIEncode(client_id) + "&" + "client_secret=" + URIEncode(client_secret) + "&" + "exp=" + expires_in);
+		if (!url)
+			return null;
+		return Brombler::parse(url.wait());
+	}
+
+}

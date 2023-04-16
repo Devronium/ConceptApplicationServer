@@ -69,7 +69,7 @@ class asyncRequest {
 		return multipart_data;
 	}
 
-	request(method = "GET", headers = null, var data = "", connect_timeout_ms = 2000) {
+	request(method = "GET", headers = null, data = "", connect_timeout_ms = 2000) {
 		if (classof socket == "TCPSocket") {
 			if (socket.Connect(url_data["host"], url_data["port"]) <= 0)
 				return null;
@@ -268,5 +268,16 @@ class asyncRequest {
 			delete this.socket;
 		}
 		return false;
+	}
+
+	wait(max_timeout = 10000) {
+		var start = microseconds();
+		max_timeout /= 1000;
+		while (!this.iterate(100)) {
+			// nothing
+			if ((max_timeout) && (microseconds() - start > max_timeout))
+				break;
+		}
+		return this;
 	}
 }

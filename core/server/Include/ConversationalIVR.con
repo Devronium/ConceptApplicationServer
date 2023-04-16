@@ -2123,11 +2123,19 @@ class ConversationalIVR {
 				}
 				session.ClientData.count = 0;
 				var instructions = trim(SubStr(text, 8));
+				var language_hint = "";
+				if (instructions[0] == "[") {
+					var pos = Pos(instructions, "]");
+					if (pos > 0) {
+						language_hint = SubStr(instructions, 0, pos);
+						instructions = SubStr(instructions, 1);
+					}
+				}
 				console.log(LOG_THIS, "chatgpt text [${session.ClientData.last_text}]");
 				if (stt_worker)
 					stt_worker.AddData(BinarizeObject(new STTWorkerData(id, STT_RESET, [ ])));
 				if (session.ClientData.last_text)
-					openAIWorker.AddData(BinarizeObject(["id" => id, "text" => session.ClientData.last_text, "instructions" => instructions, "start" => Date.now()]));
+					openAIWorker.AddData(BinarizeObject(["id" => id, "text" => session.ClientData.last_text, "instructions" => instructions, "language_hint" => language_hint, "start" => Date.now()]));
 				return;
 			}
 		}
@@ -3133,6 +3141,10 @@ class ConversationalIVR {
 						session.ClientData.redirect = "";
 					}
 				}
+
+				var language_hint = obj["language_hint"];
+				if ((text) && (language_hint))
+					text = "" + obj["language_hint"] + " " + text;
 
 				this.Raspuns(session.sip.CallID, text);
 			}
