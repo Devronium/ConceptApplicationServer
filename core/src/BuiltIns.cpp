@@ -1120,7 +1120,25 @@ int BUILTINOBJECTS(void *pif, const char *classname) {
             "}"
         "}"
     );
-
+    BUILTINCLASS("Loop", ""
+        "import win32.base.messages\n"
+        "class Loop {"
+            "static add(d) {"
+                "if (typeof d == \"class\")"
+                    "d = d.iterate;"
+                "RegisterLooper(d);"
+            "}"
+            "static main(sleep_iterations = 100) {"
+                "return MainLoop(sleep_iterations);"
+            "}"
+            "static iterate() {"
+                "return IterateLoop();"
+            "}"
+            "static quit() {"
+                "return QuitLoop();"
+            "}"
+        "}"
+    );
     return 0;
 }
 

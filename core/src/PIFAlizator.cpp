@@ -2558,6 +2558,7 @@ INTEGER PIFAlizator::BuildClass(AnsiParser *P, INTEGER on_line) {
     char    STATIC           = 0;
     char    ALREADY_REPORTED = 0;
     char    ALREADY_DEFINED  = 0;
+    char    IS_MAIN          = 0;
 
     ClassCode *IMPLICIT_PTR = (ClassCode *)ClassExists(sPARSE.c_str(), true, &cls_index);
     if ((IMPLICIT_PTR) && (IMPLICIT_PTR->NEEDED != -1)) {
@@ -2588,6 +2589,7 @@ INTEGER PIFAlizator::BuildClass(AnsiParser *P, INTEGER on_line) {
             CC->NEEDED = 1;
         }
         ENTRY_CLASS = ClassList->Count();
+        IS_MAIN = 1;
     }
 
     do {
@@ -2733,6 +2735,63 @@ INTEGER PIFAlizator::BuildClass(AnsiParser *P, INTEGER on_line) {
             ACCESS = ACCESS_PUBLIC;
         }
     } while ((BEGIN_END_LEVEL) || (!START_CLASS));
+    if ((IS_MAIN) && (CC) && (!CC->CONSTRUCTOR_MEMBER)){
+        if (CC->HasMember("main")) {
+            int  ref_id = GeneralMembers->ContainsString(CC->NAME.c_str());
+            char *ref_name = 0;
+            if (!ref_id) {
+                AddGeneralMember(CC->NAME.c_str());
+                ref_id = GeneralMembers->Count();
+            }
+            ref_name = this->GeneralMembers->Item(ref_id - 1);
+            int main_id = GeneralMembers->ContainsString("main");
+
+            ClassMember *CM = CC->AddMember(this, ref_name, on_line ? on_line : P->LastLine(), FileName, ACCESS_PUBLIC, false);
+            CM->IS_FUNCTION        = 1;
+            CM->IS_STATIC          = 0;
+            CC->CONSTRUCTOR        = CC->Members->Count();
+            CC->CONSTRUCTOR_MEMBER = CM;
+
+            VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
+            VD->name   = (char *)THIS_CLASS;
+            VD->TYPE   = VARIABLE_NUMBER;
+            VD->USED   = 1;
+            VD->BY_REF = 0;
+            VD->nValue = 0;
+
+            CM->CDATA->VariableDescriptors->Add(VD, DATA_VAR_DESCRIPTOR);
+
+            AnalizerElement *AE;
+            #define ADD_CODE(pMEMBER, __ID, __TYPE, __PARSE_DATA)  AE = new AnalizerElement; AE->ID = __ID; AE->TYPE = __TYPE; AE->_DEBUG_INFO_LINE = P->LastLine(); AE->_INFO_OPTIMIZED  = 0; AE->_PARSE_DATA = __PARSE_DATA; AE->_HASH_DATA = 0; pMEMBER->CDATA->PIF_DATA->Add(AE, DATA_ANALIZER_ELEMENT);
+
+            ADD_CODE(CM, KEY_BEGIN, TYPE_KEYWORD, "{");
+
+            ADD_CODE(CM, 1, TYPE_VARIABLE, "this");
+            ADD_CODE(CM, KEY_SEL, TYPE_OPERATOR, ".");
+            ADD_CODE(CM, main_id, TYPE_METHOD, "main");
+            ADD_CODE(CM, KEY_P_OPEN, TYPE_OPERATOR, "(");
+            ADD_CODE(CM, KEY_P_CLOSE, TYPE_OPERATOR, ")");
+            ADD_CODE(CM, KEY_SEP, TYPE_SEPARATOR, ";");
+
+            _ID = ClassExists("Loop");
+            if (!_ID) {
+                BUILTINOBJECTS(this, "Loop");
+                _ID = ClassExists("Loop");
+            }
+            if (_ID) {
+                ADD_CODE(CM, _ID, TYPE_CLASS, "Loop");
+                ADD_CODE(CM, KEY_DLL_CALL, TYPE_OPERATOR, "::");
+                ADD_CODE(CM, main_id, TYPE_METHOD, "main");
+                ADD_CODE(CM, KEY_P_OPEN, TYPE_OPERATOR, "(");
+                ADD_CODE(CM, KEY_P_CLOSE, TYPE_OPERATOR, ")");
+                ADD_CODE(CM, KEY_SEP, TYPE_SEPARATOR, ";");
+            }
+
+            ADD_CODE(CM, KEY_END, TYPE_KEYWORD, "}");
+
+            #undef ADD_CODE
+        }
+    }
     if ((ALREADY_DEFINED) && (CC))
         delete CC;
     return 0;
