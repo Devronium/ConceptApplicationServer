@@ -1,0 +1,490 @@
+include async.tin.con
+include SpreadsheetML.con
+include CSV.con
+include File.con
+include Charset.con
+include PDFGenerator.con
+
+define REPORT_COLOR	"0.34 0.37 0.53"
+define INVERSE_COLOR	"1.0 1.0 1.0"
+define SSREPORT_COLOR	"#565E87"
+define SSINVERSE_COLOR	"#FFFFFF"
+define TITLE_FONT_SIZE	10
+define REPORT_FONT_SIZE	8
+define NEW_LINE		"\r\n"
+define CSV_BIG_FILE	0x100000
+define WRITE_BUFFER	0xFFFF
+
+class ReportGenerator {
+	static getLine(e, arr, prefix = "") {
+		var keys = GetKeys(e);
+		for (var i = 0; i < length keys; i ++) {
+			var e2 = e[i];
+			var k = keys[i];
+			if ((typeof e2 != "array") && (k != '$') && (k != "id"))
+				arr[prefix + k] = e2;
+		}
+
+		return arr;
+	}
+
+	static cloneArray(arr) {
+		var[] arr2;
+		var keys = GetKeys(arr);
+		for (var i = 0; i < length keys; i ++) {
+			var e = arr[i];
+			arr2[keys[i]] = e;
+		}
+		return arr2;
+	}
+
+	static duplicateLines(arr, e, fields) {
+		if (!arr)	
+			return;
+		for (var i = 0; i < length fields; i ++) {
+			var field = fields[i];
+			if (field) {
+				var e2 = e[field];
+				if ((e2) && (typeof e2 == "array")) {
+					for (var j = 0; j < length e2; j ++) {
+						if (j >= length arr)
+							arr[j] = ReportGenerator::cloneArray(arr[0]);
+
+						ReportGenerator::getLine(e2[j], arr[j], field + "/");
+					}
+				}
+			}
+		}
+	}
+
+	static em(text, add_quote = false) {
+		if (add_quote)
+			return "\"$text\"";
+		return text;
+	}
+
+	static safeCSV(k, separator) {
+		if ((Pos(k, separator) > 0) || (Pos(k, "\n") > 0)) {
+			k = StrReplace(k, '"', '""');
+			k = "\"" + k + "\"";
+		}
+		return k;
+	}
+
+	static array_to_str(v, max_level = 10) {
+		if (max_level <= 0)
+			return "..";
+		if (typeof v == "array") {
+			var str = "";
+			for (var i = 0; i < length v; i++) {
+				var e = v[i];
+				switch (typeof e) {
+					case "string":
+					case "numeric":
+						if (str)
+							str += ", ";
+						str += e;
+						break;
+					case "array":
+						if (str)
+							str += ", ";
+						str += "[" + ReportGenerator::array_to_str(e, max_level - 1) + "]";
+						break;
+				}
+			}
+			return str;
+		}
+		return v;
+	}
+
+	static writeXLS(data, output) {
+		var sml = new SpreadsheetML();
+		if (data) {
+			var[] all_keys;
+			var[] text_keys;
+			sml.style("Header", ["Interior" => ["ss:Color" => SSREPORT_COLOR, "ss:Pattern" => "Solid"], "Font" => ["ss:Color" => SSINVERSE_COLOR, "ss:Bold" => "1"]]);
+
+			var sheet = sml << "Datasheet";
+			for (var i = 0; i < length data; i++) {
+				var obj = data[i];
+				if (obj) {
+					if (typeof obj == "class") {
+						obj = ToArray(obj);
+						data[i] = obj;
+					}
+					var keys = GetKeys(obj);
+					for (var j = 0; j < length keys; j++) {
+						var k = keys[j];
+						if ((typeof k == "string") && (k != "id") && (k[0] != '$') && (Pos(k, "_sha256") <= 0)) {
+							all_keys[k] = k;
+							text_keys[k] = StrReplace(k, "_", " ");
+						}
+					}
+				}
+			}
+			var table = sheet.Table();
+			table.style(0, "Header") << text_keys;
+
+			for (i = 0; i < length data; i++) {
+				obj = data[i];
+				if (obj) {
+					var line = new [];
+					for (j = 0; j < length all_keys; j++) {
+						k = all_keys[j];
+						if (IsSet(obj, k)) {
+							var v = obj[k];
+							switch (typeof v) {
+								case "string":
+								case "numeric":
+									line[length line] = v;
+									break;
+								case "array":
+									line[length line] = "[" + ReportGenerator::array_to_str(v) + "]";
+									break;
+								default:
+									line[length line] = "/" + typeof v + "/";
+							}
+						} else
+							line[length line] = "";
+					}
+					if (line)
+						table << line;
+				}
+			}
+		} else
+			return false;
+		_unlink(output);
+		var f = new File("wb");
+		f.Name = output;
+		if (f.Open()) {
+			sml.Generate(f);
+			f.Close();
+			return true;
+		}
+		return false;
+	}
+
+	static writeCSV(data, output, separator = ",", line_ending = "\n") {
+		if (data) {
+			var[] all_keys;
+			for (var i = 0; i < length data; i++) {
+				var obj = data[i];
+				if (typeof obj == "array") {
+					var keys = GetKeys(obj);
+					for (var j = 0; j < length keys; j++) {
+						var k = keys[j];
+						if (typeof k == "string")
+							all_keys[k] = k;
+					}
+				}
+			}
+			var csv = "";
+			for (i = 0; i < length all_keys; i++) {
+				k = ReportGenerator::safeCSV(all_keys[i], separator);
+				if (csv)
+					csv += separator;
+				csv +=  k;
+			}
+			if (!csv)
+				return false;
+
+			csv += line_ending;
+			_unlink(output);
+			var f = new File("wb");
+			f.Name = output;
+			if (f.Open()) {
+				for (i = 0; i < length data; i++) {
+					obj = data[i];
+					if (typeof obj == "array") {
+						var line = "";
+						for (j = 0; j < length all_keys; j++) {
+							k = all_keys[j];
+							if (line)
+								line += separator;
+							if (IsSet(obj, k)) {
+								var v = obj[k];
+								switch (typeof v) {
+									case "string":
+									case "numeric":
+										line += ReportGenerator::safeCSV("" + v, separator);
+										break;
+									default:
+										line += "/" + typeof v + "/";
+								}
+							}
+						}
+						if (line)
+							csv += line + line_ending;
+					}
+					if (length csv > WRITE_BUFFER) {
+						f.Write(csv);
+						csv=  "";
+					}
+				}
+				if (csv)
+					f.Write(csv);
+				f.Close();
+				return true;
+			}
+		}
+		return false;
+	}
+
+	static report_table(p, ref_text, title, values, header = null) {
+		p.Font = "Helvetica-Bold";
+		p.FontSize = REPORT_FONT_SIZE;
+		if (title) {
+			title = Charset::latin10(title);
+			p = p.Append(title);
+		}
+		if (ref_text) {
+			p.Push();
+			p.FillColor = INVERSE_COLOR;
+			p.Print(p.MarginLeft - 26, p.TextY - 18, ref_text, 36);
+			p.Pop();
+		}
+		p.Font = "Helvetica";
+		p.FontSize = REPORT_FONT_SIZE;
+		var header_visible = true;
+		if ((!header) && (values)) {
+			var first_len = length values[0];
+			header = new [];
+			header[0] = ["Field", 0.3, 0, ["background": REPORT_COLOR, "text-color": INVERSE_COLOR, "color": INVERSE_COLOR]];
+			for (var i = 1; i < first_len; i++)
+				header[i] = "$i";
+
+			header_visible = false;
+		}
+		p.Table(header,
+			values,
+			["header": ["background": REPORT_COLOR, "text-color": INVERSE_COLOR, "visible": header_visible], "border": 0.1, "padding":1]
+		);
+		return p;
+	}
+
+	static filter_keys(arr) {
+		var keys = GetKeys(arr);
+		if ((IsSet(arr, '$')) || (IsSet(arr, 'id'))) {
+			var new_keys = new [];
+			for (var i = 0; i < length keys; i++) {
+				var k = keys[i];
+				if ((k) && (k != '$') && (k != "id"))
+					new_keys[length new_keys] = k;
+			}
+			return new_keys;
+		}
+		return keys;
+	}
+
+	protected static _pdfinit(title, author, landscape, var page) {
+		var p;
+		// landscape
+		if (landscape)
+			p = new PDFGenerator(PDF_A4_H, PDF_A4_W);
+		else
+			p = new PDFGenerator();
+		p.Title = Charset::latin10(title);
+		author = Charset::latin10(author);
+		p.Creator = author;
+		p.Author = author;
+		p.Subject = title;
+		p.Producer = "GyroGears";
+		p.UseCompression = true;
+		p.Encoding = "iso-8859-2";
+		p.MarginLeft = 50;
+
+		page = p.NewPage();
+		page.Color = REPORT_COLOR;
+		page.FillColor = REPORT_COLOR;
+		page.Rectangle(0, 0, p.MarginLeft - 5, page.Height, true);
+		page.FontSize = REPORT_FONT_SIZE;
+		// page.LineWidth = 0.5;
+		p.UseTemplate(page);
+
+		p.Footer.TextY = 10;
+		p.Footer.Color = REPORT_COLOR;
+		p.Footer.FillColor = REPORT_COLOR;
+		p.Footer.FontSize = REPORT_FONT_SIZE;
+		p.Footer.Append("[#]", 1);
+
+		return p;
+	}
+
+	static tostring(array, separator = ", ") {
+		var str =  "";
+		for (var i = 0; i < length array; i++) {
+			var e = array[i];
+			if ((typeof e == "string") || (typeof e == "numeric")) {
+				if (str)
+					str += separator;
+				str += e;
+			}
+		}
+		return str;
+	}
+
+	static pdfdocument(title, author = "", landscape = false) {
+		var p = ReportGenerator::_pdfinit(title, author, landscape, null);
+		// reset pages
+		p.Pages = new [];
+		return p;
+	}
+
+	static pdfreport(o, show_keys = null, title = "", sub_title = "", info_text = "", author = "") {
+		var p;
+		// landscape
+		var header_size = 0;
+		if (show_keys) {
+			header_size = length show_keys;
+		} else
+		if ((o) && (typeof o == "array") && (typeof o[0] == "array")) {
+			header_size = length ReportGenerator::filter_keys(o[0]);
+		}
+
+		if (header_size >= 9)
+			p = ReportGenerator::_pdfinit(title, author, true, var page);
+		else
+			p = ReportGenerator::_pdfinit(title, author, false, page);
+
+		if (title) {
+			title = Charset::latin10(title);
+			page = page.Append("$title\n", 0.5);
+		}
+		page.FontSize = REPORT_FONT_SIZE;
+		if (sub_title) {
+			sub_title = Charset::latin10(sub_title);
+			page = page.Append("$sub_title\n", 0.5);
+		}
+		page.Rule();
+
+		if (info_text)
+			page = page << info_text;
+		if (typeof o == "class")
+			o = ToArray(o);
+		if (typeof o == "array") {
+			var keys = GetKeys(o);
+			if ((keys) && (keys[0])) {
+				// object info
+				if (!show_keys)
+					show_keys = keys;
+			} else {
+				if (!show_keys) {
+					var first_o = o[0];
+					if (typeof first_o == "class")
+						first_o = ToArray(first_o);
+					if (typeof first_o == "array")
+						show_keys = ReportGenerator::filter_keys(first_o);
+					if ((show_keys) && (!show_keys[0]))
+						show_keys = null;
+				}
+				if (show_keys) {
+					var values = new [];
+					var headers = new [];
+					for (var i = 0; i < length o; i++) {
+						var obj = o[i];
+						if (typeof obj == "class")
+							obj = ToArray(obj);
+						if (typeof obj == "array") {
+							var val = new [];
+							for (var j = 0; j < length show_keys; j++) {
+								var k = show_keys[j];
+								if (!j) {
+									var vcol = i + 1;
+									val[0] = vcol;
+									headers[0] = [" ", ceil(length ("" + vcol) * 1.8), 1];
+								}
+								if ((k) && (IsSet(obj, k))) {
+									var v = obj[k];
+									var is_container = false;
+									if (typeof v == "array") {
+										v = ReportGenerator::tostring(v);
+									} else
+									if ((typeof v != "string") && (typeof v != "numeric")) {
+										v = typeof v;
+										is_container = true;
+									}
+
+									val[length val] = Charset::latin10("" + v);
+									var prec_headers = headers[k];
+									var len;
+									if (v)
+										len = length (StrSplit(("" + v), "\n")[0]);
+									else
+										len = 1;
+									if (len < length k)
+										len = length k;
+									if ((typeof v == "string") && (v == ToUpper(v))) {
+										// uppercase letter take more space
+										len = ceil(len * 1.5);
+									}
+									if (len > 20)
+										len = 20;
+									if ((prec_headers) && (len < prec_headers[1]))
+										len = prec_headers[1];
+									if (len < length k)
+										len = length k;
+
+									if (typeof v == "numeric")
+										headers[k] = [StrReplace(k, "_", " "), len, 1];
+									else
+									if (is_container)
+										headers[k] = [StrReplace(k, "_", " "), len, 0.5];
+									else
+										headers[k] = [StrReplace(k, "_", " "), len, 0];
+								} else
+								if (k) {
+									val[length val] = "";
+									if (!headers[k]) {
+										len = length k;
+										if (len > 20)
+											len = 20;
+										headers[k] = [StrReplace(k, "_", " "), len, 0.5];
+									}
+								}
+							}
+							values[length values] = val;
+						}
+					}
+					page = ReportGenerator::report_table(page, "*", "", values, headers);
+				}
+			}
+		}
+		return p.Generate();
+	}
+
+	static writePDF(data, output, title = "") {
+		if (data) {
+			WriteFile(ReportGenerator::report(data, null, title), output);
+			return true;
+		}
+		return false;
+	}
+
+	static report(data, fields, filename) {
+		if (!data)
+			return false;
+
+		var[] report_data;
+		for (var i = 0; i < length data; i ++) {
+			var arr = new [];
+			var e = ReportGenerator::getLine(data[i], arr);
+			if (e) {
+				var arr2 = [arr];
+				ReportGenerator::duplicateLines(arr2, data[i], ["Actualizare_contract", "Servicii_medicale", "Servicii_psihosociale"]);
+				report_data += arr2;
+			}
+		}
+		switch (ToLower(Ext(filename))) {
+			case "xls":
+				return ReportGenerator::writeXLS(report_data, filename);
+				break;
+			case "pdf":
+				return ReportGenerator::writePDF(report_data, filename);
+				break;
+			default:
+				return ReportGenerator::writeCSV(report_data, filename);
+				break;
+		}
+		return false;
+	}
+}
