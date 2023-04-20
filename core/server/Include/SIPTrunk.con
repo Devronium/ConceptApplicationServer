@@ -595,6 +595,8 @@ class SIPSession {
 	}
 
 	AppendVoice(var voice) {
+		if (!ivr)
+			return this.LoadVoice(voice);
 		ivr += voice;
 	}
 

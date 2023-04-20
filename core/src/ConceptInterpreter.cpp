@@ -5634,7 +5634,7 @@ sel_label:
                 if (pMEMBER_i) {
 #ifndef NO_TCO
                     // tail call optimization
-                    if (!CATCH_INSTRUCTION_POINTER) {
+                    if ((!(pMEMBER_i->IS_STATIC & 0x02)) && (!CATCH_INSTRUCTION_POINTER)) {
                         if ((pMEMBER_i == self->OWNER) && ((LOCAL_CONTEXT [OE->Result_ID - 1]->LINKS == 1) || (OE->Operator_FLAGS == MAY_IGNORE_RESULT)) && 
                             ((INSTRUCTION_POINTER == INSTRUCTION_COUNT) ||
                             ((INSTRUCTION_POINTER <= INSTRUCTION_COUNT - 1) && (CODE[INSTRUCTION_POINTER].Operator_ID == KEY_OPTIMIZED_RETURN) && 

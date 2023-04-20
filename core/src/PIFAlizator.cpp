@@ -2747,7 +2747,8 @@ INTEGER PIFAlizator::BuildClass(AnsiParser *P, INTEGER on_line) {
             int main_id = GeneralMembers->ContainsString("main");
 
             ClassMember *CM = CC->AddMember(this, ref_name, on_line ? on_line : P->LastLine(), FileName, ACCESS_PUBLIC, false);
-            CM->IS_FUNCTION        = 1;
+            CM->IS_STATIC |= 0x02;
+            CM->IS_FUNCTION = 1;
             CM->IS_STATIC          = 0;
             CC->CONSTRUCTOR        = CC->Members->Count();
             CC->CONSTRUCTOR_MEMBER = CM;
