@@ -433,7 +433,18 @@ class BinIndex {
 	Put(objid, db = "", cached_val = "dumybear", flush = true) {
 		if (!db)
 			db = this.Database;
+
 		var code;
+
+		if (typeof cached_val == "array") {
+			for (var i = 0; i < length cached_val; i ++) {
+				code = this.Put(objid, db, cached_val[i], flush);
+				if (!code)
+					return code;
+			}
+			return true;
+		}
+
 		var btree = GetIndex(db);
 		if (!btree)
 			throw "Cannot open index (${@class}.${@member})";
@@ -1597,7 +1608,44 @@ class BinFile extends File {
 		return this.CompareObjectsNoCache(a, b, btree, bottom_layer);
 	}
 
+	static arraycmp(a_val, b_val) {
+		var i;
+		if (typeof a_val == typeof b_val) {
+			var min_len = length a_val;
+			if (length b_val < min_len)
+				min_len = length b_val;
+
+			for (i = 0; i < min_len; i ++) {
+				var cmp = BinFile::anycmp(a_val[i], b_val[i]);
+				if (cmp)
+					return cmp;
+			}
+
+			if (length a_val > length b_val)
+				return 1;
+
+			if (length a_val < length b_val)
+				return -1;
+		} else
+		if (typeof a_val == "array") {
+			for (i = 0; i < length a_val; i ++) {
+				if (!BinFile::anycmp(a_val[i], b_val))
+					return cmp;
+			}
+			return BinFile::anycmp(a_val[0], b_val);
+		} else {
+			for (i = 0; i < length b_val; i ++) {
+				if (!BinFile::anycmp(a_val, b_val[i]))
+					return cmp;
+			}
+			return BinFile::anycmp(a_val, b_val[0]);
+		}
+		return 0;
+	}
+
 	static anycmp(a_val, b_val) {
+		if ((typeof a_val == "array") || (typeof b_val == "array"))
+			return BinFile::arraycmp(a_val, b_val);
 		if ((typeof a_val == typeof b_val) || (typeof a_val == "string")) {
 			if (a_val > b_val)
 				return 1;
@@ -1615,6 +1663,9 @@ class BinFile extends File {
 	}
 
 	CompareObjectsReversed(a_val, a, b_val, b, btree, bottom_layer) {
+		if ((typeof a_val == "array") || (typeof b_val == "array"))
+			this.CompareObjectsNoCache(a, b, btree, bottom_layer, b_val);
+
 		var b_val_orig = b_val;
 		var type_b = typeof b_val;
 		if ((type_b == "string") && (length b_val > 8))
@@ -3374,10 +3425,25 @@ class BinFile extends File {
 					//var v = o[key];
 
 					if (typeof_arr == "array") {
-						for (var i = 0; i < length arr; i++) {
-							if (arr[i] == v) {
-								add_item = true;
-								break;
+						var i;
+						if (typeof v != typeof_arr) {
+							for (i = 0; i < length arr; i++) {
+								if (arr[i] == v) {
+									add_item = true;
+									break;
+								}
+							}
+						} else {
+							for (i = 0; i < length arr; i++) {
+								var arr_i = arr[i];
+								for (var k2 = 0; k2 < length v; k2 ++) {
+									if (arr_i == v[k2]) {
+										add_item = true;
+										break;
+									}
+								}
+								if (add_item)
+									break;
 							}
 						}
 						if (!add_item)
@@ -3394,7 +3460,7 @@ class BinFile extends File {
 						if (typeof v != typeof_arr) {
 							if (typeof v == "array") {
 								for (var k = 0; k < length v; k++) {
-									if (v[0] == arr) {
+									if (v[k] == arr) {
 										add_item = true;
 										not_found = false;
 										break;
