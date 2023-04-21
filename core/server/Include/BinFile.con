@@ -430,15 +430,17 @@ class BinIndex {
 		_unlink(this._name + "." + idxname + ".idx");
 	}
 
-	Put(objid, db = "", cached_val = "dumybear", flush = true) {
+	Put(objid, db = "", cached_val = "dumybear", flush = true, recursive_index = 0) {
 		if (!db)
 			db = this.Database;
 
 		var code;
 
 		if (typeof cached_val == "array") {
+			if (!recursive_index >= 4)
+				return false;
 			for (var i = 0; i < length cached_val; i ++) {
-				code = this.Put(objid, db, cached_val[i], flush);
+				code = this.Put(objid, db, cached_val[i], flush, recursive_index + 1);
 				if (!code)
 					return code;
 			}
@@ -1608,44 +1610,7 @@ class BinFile extends File {
 		return this.CompareObjectsNoCache(a, b, btree, bottom_layer);
 	}
 
-	static arraycmp(a_val, b_val) {
-		var i;
-		if (typeof a_val == typeof b_val) {
-			var min_len = length a_val;
-			if (length b_val < min_len)
-				min_len = length b_val;
-
-			for (i = 0; i < min_len; i ++) {
-				var cmp = BinFile::anycmp(a_val[i], b_val[i]);
-				if (cmp)
-					return cmp;
-			}
-
-			if (length a_val > length b_val)
-				return 1;
-
-			if (length a_val < length b_val)
-				return -1;
-		} else
-		if (typeof a_val == "array") {
-			for (i = 0; i < length a_val; i ++) {
-				if (!BinFile::anycmp(a_val[i], b_val))
-					return cmp;
-			}
-			return BinFile::anycmp(a_val[0], b_val);
-		} else {
-			for (i = 0; i < length b_val; i ++) {
-				if (!BinFile::anycmp(a_val, b_val[i]))
-					return cmp;
-			}
-			return BinFile::anycmp(a_val, b_val[0]);
-		}
-		return 0;
-	}
-
 	static anycmp(a_val, b_val) {
-		if ((typeof a_val == "array") || (typeof b_val == "array"))
-			return BinFile::arraycmp(a_val, b_val);
 		if ((typeof a_val == typeof b_val) || (typeof a_val == "string")) {
 			if (a_val > b_val)
 				return 1;
