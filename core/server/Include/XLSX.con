@@ -272,8 +272,11 @@ class XLSX {
 						if (IsSet(styles, name))
 							style = styles[name];
 						else
-						if (IsSet(styles, "" + i))
-							style = styles["" + i];
+						if (IsSet(styles, "" + row_number))
+							style = styles["" + row_number];
+						else
+						if ((i == 0) && (IsSet(styles, "0")))
+							style = styles["0"];
 
 						if (style)
 							style_index = "s=\"${style["index"]}\" ";
