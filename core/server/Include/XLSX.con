@@ -257,8 +257,8 @@ class XLSX {
 							if (index) {
 								val = index - 1;
 							} else {
-								dictionaryIndex[e] = val + 1;
 								val = (length dictionaryIndex) - 1;
+								dictionaryIndex[e] = val + 1;
 							}
 							break;
 					}
