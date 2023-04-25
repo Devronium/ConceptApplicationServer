@@ -140,6 +140,45 @@ CONCEPT_FUNCTION_IMPL(_unzip, 1)
 	}
 	mz_zip_reader_end(&za);
 END_IMPL
+
+CONCEPT_FUNCTION_IMPL(_zip, 1)
+    T_ARRAY(_zip, 0)
+
+    mz_zip_archive za;
+    memset(&za, 0, sizeof(mz_zip_archive));
+    if (!mz_zip_writer_init_heap(&za, 0, 128 * 1024)) {
+        RETURN_STRING("");
+        return 0;
+    }
+
+    INTEGER count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(0));
+    for (INTEGER i = 0; i < count; i++) {
+        void *newpData = NULL;
+        Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(0), i, &newpData);
+        if (newpData) {
+            char    *szData;
+            INTEGER type;
+            NUMBER  nData;
+
+            Invoke(INVOKE_GET_VARIABLE, newpData, &type, &szData, &nData);
+            if (type == VARIABLE_STRING) {
+                    char *key = NULL;
+                    Invoke(INVOKE_GET_ARRAY_KEY, PARAMETER(0), i, &key);
+                    if ((key) && (key[0]))
+                        mz_zip_writer_add_mem(&za, key, szData, (size_t)nData, MZ_DEFAULT_COMPRESSION);
+            }
+        }
+    }
+    void *buffer = NULL;
+    size_t size = 0;
+
+    if ((mz_zip_writer_finalize_heap_archive(&za, &buffer, &size)) && (buffer) && (size > 0)) {
+        RETURN_BUFFER(buffer, size);
+    } else {
+        RETURN_STRING("");
+    }
+    mz_zip_writer_end(&za);
+END_IMPL
 #endif
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(__zip_name_locate, 3)

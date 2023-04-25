@@ -143,4 +143,100 @@ class XLSX {
 			return [ ];
 		return CSV::Do(csv);
 	}
+
+	static safeVal(val) {
+		if (typeof val != "string") 
+			return val;
+
+		val = StrReplace(val, "\"", "&quot;");
+		val = StrReplace(val, "'", "&apos;");
+		val = StrReplace(val, "<", "&lt;");
+		val = StrReplace(val, ">", "&gt;");
+		val = StrReplace(val, "&", "&amp;");
+
+		return val;
+	}
+
+	static _name(index) {
+		var name = "";
+		var first = ord('A');
+		while (index > 26) {
+			name += chr(first + index % 26);
+			index = floor(index / 26);
+		}
+		name += chr(first + index);
+		return name;
+	}
+
+	static build(var data) {
+		if (typeof data != "array")
+			return "";
+
+		var max_line = 0;
+		var[] dictionaryIndex;
+		var xls = "";
+		for (var i = 0; i < length data; i ++) {
+			var line = data[i];
+			var row_number = i + 1;
+			xls += "<row r=\"$row_number\" customFormat=\"false\" ht=\"12.8\" hidden=\"false\" customHeight=\"false\" outlineLevel=\"0\" collapsed=\"false\">";
+			if (line) {
+				if (length line > max_line)
+					max_line = length line;
+				for (var j = 0; j < length line; j ++) {
+					var e = line[j];
+					var val = "";
+					var type = "s";
+
+					if (typeof e == "class")
+						e = classof e;
+					else
+					if ((typeof e != "string") && (typeof e != "numeric"))
+						e = typeof e;
+
+					switch (typeof e) {
+						case "numeric":
+							type = "n";
+							val = e;
+							break;
+						case "string":
+							var index = dictionaryIndex[e];
+							if (index) {
+								val = index - 1;
+							} else {
+								dictionaryIndex[e] = val + 1;
+								val = (length dictionaryIndex) - 1;
+							}
+							break;
+					}
+					xls += "<c r=\"${XLSX::_name(j)}$row_number\" t=\"$type\"><v>$val</v></c>";
+				}
+			}
+			xls += "</row>";
+		}
+		if (xls) {
+			var[] files;
+			var keys = GetKeys(dictionaryIndex);
+			var sharedStrings = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<sst xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" count=\"${length keys}\" uniqueCount=\"${length keys}\">";
+			for (var i2 = 0; i2 < length keys; i2 ++) {
+				var k = keys[i2];
+				sharedStrings += "<si><t xml:space=\"preserve\">${XLSX::safeVal(k)}</t></si>";
+			}
+			sharedStrings += "</sst>";
+			xls = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><dimension ref=\"A1:${XLSX::_name(max_line - 1)}${(length data)}\"/><sheetViews><sheetView showFormulas=\"false\" showGridLines=\"true\" showRowColHeaders=\"true\" showZeros=\"true\" rightToLeft=\"false\" tabSelected=\"true\" showOutlineSymbols=\"true\" defaultGridColor=\"true\" view=\"normal\" topLeftCell=\"A1\" colorId=\"64\" zoomScale=\"100\" zoomScaleNormal=\"100\" zoomScalePageLayoutView=\"100\" workbookViewId=\"0\"></sheetView></sheetViews><sheetFormatPr defaultRowHeight=\"12.8\" zeroHeight=\"false\" outlineLevelRow=\"0\" outlineLevelCol=\"0\"/><cols><col collapsed=\"false\" customWidth=\"false\" hidden=\"false\" outlineLevel=\"0\" max=\"1025\" min=\"1\" style=\"0\" width=\"11.52\"/></cols><sheetData>$xls</sheetData></worksheet>";
+
+			var date = (new Date()).toISOString();
+			files["_rels/.rels"] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties\" Target=\"docProps/core.xml\"/><Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties\" Target=\"docProps/app.xml\"/></Relationships>";
+			files["docProps/app.xml"] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Properties xmlns=\"http://schemas.openxmlformats.org/officeDocument/2006/extended-properties\"><TotalTime>0</TotalTime><Application>cas</Application><Company></Company><Manager></Manager></Properties>";
+			files["docProps/core.xml"] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<cp:coreProperties xmlns:cp=\"http://schemas.openxmlformats.org/package/2006/metadata/core-properties\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\" xmlns:dcmitype=\"http://purl.org/dc/dcmitype/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><dcterms:created xsi:type=\"dcterms:W3CDTF\">$date</dcterms:created><dc:title></dc:title><dc:subject></dc:subject><dc:creator>cas</dc:creator><cp:lastModifiedBy></cp:lastModifiedBy><cp:keywords></cp:keywords><dc:description></dc:description><cp:category></cp:category><dc:language>en-US</dc:language><dcterms:modified xsi:type=\"dcterms:W3CDTF\">$date</dcterms:modified><cp:revision>1</cp:revision></cp:coreProperties>";
+
+			files["xl/_rels/workbook.xml.rels"] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings\" Target=\"sharedStrings.xml\"/></Relationships>";
+
+			files["xl/sharedStrings.xml"] = sharedStrings;
+			files["xl/worksheets/sheet1.xml"] = xls;
+			files["xl/workbook.xml"] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><fileVersion appName=\"concept\"/><workbookPr backupFile=\"false\" showObjects=\"all\" date1904=\"false\"/><workbookProtection/><bookViews><workbookView showHorizontalScroll=\"true\" showVerticalScroll=\"true\" showSheetTabs=\"true\" xWindow=\"0\" yWindow=\"0\" windowWidth=\"16384\" windowHeight=\"8192\" tabRatio=\"500\" firstSheet=\"0\" activeTab=\"0\"/></bookViews><sheets><sheet name=\"Sheet1\" sheetId=\"1\" state=\"visible\" r:id=\"rId2\"/></sheets></workbook>";
+			files["[Content_Types].xml"] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Override PartName=\"/_rels/.rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Override PartName=\"/docProps/app.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.extended-properties+xml\"/><Override PartName=\"/docProps/core.xml\" ContentType=\"application/vnd.openxmlformats-package.core-properties+xml\"/><Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/><Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/sharedStrings.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml\"/><Override PartName=\"/xl/_rels/workbook.xml.rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>\n</Types>";
+			return zip(files);
+		}
+		return "";
+	}
 }
