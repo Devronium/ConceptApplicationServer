@@ -193,12 +193,19 @@ class XLSX {
 					if ((typeof e != "string") && (typeof e != "numeric"))
 						e = typeof e;
 
+					var f = "";
 					switch (typeof e) {
 						case "numeric":
 							type = "n";
 							val = e;
 							break;
 						case "string":
+							if ((e) && (e[0] == "=")) {
+								f = "<f aca=\"false\">${XLSX::safeVal(SubStr(e, 1))}</f>";
+								type = "n";
+								val = "";
+								break;
+							}
 							var index = dictionaryIndex[e];
 							if (index) {
 								val = index - 1;
@@ -208,7 +215,7 @@ class XLSX {
 							}
 							break;
 					}
-					xls += "<c r=\"${XLSX::_name(j)}$row_number\" t=\"$type\"><v>$val</v></c>";
+					xls += "<c r=\"${XLSX::_name(j)}$row_number\" t=\"$type\">$f<v>$val</v></c>";
 				}
 			}
 			xls += "</row>";
