@@ -168,10 +168,57 @@ class XLSX {
 		return name;
 	}
 
-	static build(var data) {
+	static build(var data, styles = null) {
 		if (typeof data != "array")
 			return "";
 
+		var fills = "";
+		var fill_count = 2;
+		var xf = "<xf numFmtId=\"164\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"false\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"><alignment horizontal=\"general\" vertical=\"bottom\" textRotation=\"0\" wrapText=\"false\" indent=\"0\" shrinkToFit=\"false\"/><protection locked=\"true\" hidden=\"false\"/></xf>";
+		var xf_count = 1;
+
+		var fonts = "";
+		var fonts_count = 1;
+
+		if (typeof styles != "array")
+			styles = null;
+		else
+		if ((styles) && (typeof styles == "array")) {
+			for (var is = 0; is < length styles; is ++) {
+				var style_is = styles[is]; 
+				if ((style_is) && (typeof style_is == "array")) {
+					style_is["index"] = xf_count;
+					fills += "<fill><patternFill patternType=\"${style_is["patternType"] ?? "solid"}\">";
+					var fgColor = style_is["fgColor"];
+					var bgColor = style_is["bgColor"];
+					var font = style_is["font"];
+					var font_size = style_is["fontSize"];
+					if (fgColor)
+						fills += "<fgColor rgb=\"$bgColor\"/>";
+					if (bgColor)
+						fills += "<bgColor rgb=\"$bgColor\"/>";
+
+					fills += "</patternFill></fill>";
+
+					var font_id = 0;
+					var apply_font = "false";
+					if ((font) || (fgColor) || (font_size)) {
+						fonts += "<font><sz val=\"${font_size ?? 10}\"/><name val=\"${font ?? "Arial"}\"/><family val=\"2\"/><charset val=\"1\"/>";
+						if (fgColor)
+							fonts += "<color rgb=\"$fgColor\"/>";
+						fonts += "</font>";
+						font_id = fonts_count;
+						fonts_count ++;
+						apply_font = "true";
+					}
+
+					xf += "<xf numFmtId=\"164\" fontId=\"$font_id\" fillId=\"$fill_count\" xfId=\"0\" applyFont=\"$apply_font\" applyBorder=\"false\" applyAlignment=\"false\" applyProtection=\"false\"><alignment horizontal=\"general\" vertical=\"bottom\" textRotation=\"0\" wrapText=\"false\" indent=\"0\" shrinkToFit=\"false\"/><protection locked=\"true\" hidden=\"false\"/></xf>";
+					xf_count ++;
+
+					fill_count ++;
+				}
+			}
+		}
 		var max_line = 0;
 		var[] dictionaryIndex;
 		var xls = "";
@@ -215,7 +262,23 @@ class XLSX {
 							}
 							break;
 					}
-					xls += "<c r=\"${XLSX::_name(j)}$row_number\" t=\"$type\">$f<v>$val</v></c>";
+					var name = XLSX::_name(j);
+					var style_index = "s=\"0\" ";
+					if (styles) {
+						var style = null;
+						if (IsSet(styles, name + row_number))
+							style = styles[name + row_number];
+						else
+						if (IsSet(styles, name))
+							style = styles[name];
+						else
+						if (IsSet(styles, "" + i))
+							style = styles["" + i];
+
+						if (style)
+							style_index = "s=\"${style["index"]}\" ";
+					}
+					xls += "<c r=\"$name$row_number\" ${style_index}t=\"$type\">$f<v>$val</v></c>";
 				}
 			}
 			xls += "</row>";
@@ -235,11 +298,10 @@ class XLSX {
 			files["_rels/.rels"] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties\" Target=\"docProps/core.xml\"/><Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties\" Target=\"docProps/app.xml\"/></Relationships>";
 			files["docProps/app.xml"] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Properties xmlns=\"http://schemas.openxmlformats.org/officeDocument/2006/extended-properties\"><TotalTime>0</TotalTime><Application>cas</Application><Company></Company><Manager></Manager></Properties>";
 			files["docProps/core.xml"] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<cp:coreProperties xmlns:cp=\"http://schemas.openxmlformats.org/package/2006/metadata/core-properties\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\" xmlns:dcmitype=\"http://purl.org/dc/dcmitype/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><dcterms:created xsi:type=\"dcterms:W3CDTF\">$date</dcterms:created><dc:title></dc:title><dc:subject></dc:subject><dc:creator>cas</dc:creator><cp:lastModifiedBy></cp:lastModifiedBy><cp:keywords></cp:keywords><dc:description></dc:description><cp:category></cp:category><dc:language>en-US</dc:language><dcterms:modified xsi:type=\"dcterms:W3CDTF\">$date</dcterms:modified><cp:revision>1</cp:revision></cp:coreProperties>";
-
-			files["xl/_rels/workbook.xml.rels"] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings\" Target=\"sharedStrings.xml\"/></Relationships>";
-
+			files["xl/_rels/workbook.xml.rels"] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings\" Target=\"sharedStrings.xml\"/></Relationships>";
 			files["xl/sharedStrings.xml"] = sharedStrings;
 			files["xl/worksheets/sheet1.xml"] = xls;
+			files["xl/styles.xml"] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><numFmts count=\"1\"><numFmt numFmtId=\"164\" formatCode=\"General\"/></numFmts><fonts count=\"$fonts_count\"><font><sz val=\"10\"/><name val=\"Arial\"/><family val=\"2\"/></font>$fonts</fonts><fills count=\"${fill_count}\"><fill><patternFill patternType=\"none\"/></fill><fill><patternFill patternType=\"gray125\"/></fill>$fills</fills><borders count=\"1\"><border diagonalUp=\"false\" diagonalDown=\"false\"><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count=\"1\"><xf numFmtId=\"164\" fontId=\"0\" fillId=\"0\" borderId=\"0\" applyFont=\"true\" applyBorder=\"true\" applyAlignment=\"true\" applyProtection=\"true\"><alignment horizontal=\"general\" vertical=\"bottom\" textRotation=\"0\" wrapText=\"false\" indent=\"0\" shrinkToFit=\"false\"/><protection locked=\"true\" hidden=\"false\"/></xf></cellStyleXfs><cellXfs count=\"$xf_count\">$xf</cellXfs><cellStyles/><dxfs/><tableStyles/></styleSheet>";
 			files["xl/workbook.xml"] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><fileVersion appName=\"concept\"/><workbookPr backupFile=\"false\" showObjects=\"all\" date1904=\"false\"/><workbookProtection/><bookViews><workbookView showHorizontalScroll=\"true\" showVerticalScroll=\"true\" showSheetTabs=\"true\" xWindow=\"0\" yWindow=\"0\" windowWidth=\"16384\" windowHeight=\"8192\" tabRatio=\"500\" firstSheet=\"0\" activeTab=\"0\"/></bookViews><sheets><sheet name=\"Sheet1\" sheetId=\"1\" state=\"visible\" r:id=\"rId2\"/></sheets></workbook>";
 			files["[Content_Types].xml"] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Override PartName=\"/_rels/.rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Override PartName=\"/docProps/app.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.extended-properties+xml\"/><Override PartName=\"/docProps/core.xml\" ContentType=\"application/vnd.openxmlformats-package.core-properties+xml\"/><Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/><Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/sharedStrings.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml\"/><Override PartName=\"/xl/_rels/workbook.xml.rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>\n</Types>";
 			return zip(files);
