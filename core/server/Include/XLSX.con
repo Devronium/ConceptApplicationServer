@@ -1,6 +1,7 @@
 import standard.lang.serialize
 import standard.arch.zip
 import standard.lib.str
+import standard.C.math
 
 include CSV.con
 
@@ -222,6 +223,7 @@ class XLSX {
 		var max_line = 0;
 		var[] dictionaryIndex;
 		var xls = "";
+		var[] lengths;
 		for (var i = 0; i < length data; i ++) {
 			var line = data[i];
 			var row_number = i + 1;
@@ -244,7 +246,7 @@ class XLSX {
 					switch (typeof e) {
 						case "numeric":
 							type = "n";
-							val = e;
+							val = "" + e;
 							break;
 						case "string":
 							if ((e) && (e[0] == "=")) {
@@ -253,6 +255,10 @@ class XLSX {
 								val = "";
 								break;
 							}
+
+							if (length e > lengths[j])
+								lengths[j] = length e;
+
 							var index = dictionaryIndex[e];
 							if (index) {
 								val = index - 1;
@@ -288,6 +294,7 @@ class XLSX {
 		}
 		if (xls) {
 			var[] files;
+			var columns = "";
 			var keys = GetKeys(dictionaryIndex);
 			var sharedStrings = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<sst xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" count=\"${length keys}\" uniqueCount=\"${length keys}\">";
 			for (var i2 = 0; i2 < length keys; i2 ++) {
@@ -295,7 +302,23 @@ class XLSX {
 				sharedStrings += "<si><t xml:space=\"preserve\">${XLSX::safeVal(k)}</t></si>";
 			}
 			sharedStrings += "</sst>";
-			xls = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><dimension ref=\"A1:${XLSX::_name(max_line - 1)}${(length data)}\"/><sheetViews><sheetView showFormulas=\"false\" showGridLines=\"true\" showRowColHeaders=\"true\" showZeros=\"true\" rightToLeft=\"false\" tabSelected=\"true\" showOutlineSymbols=\"true\" defaultGridColor=\"true\" view=\"normal\" topLeftCell=\"A1\" colorId=\"64\" zoomScale=\"100\" zoomScaleNormal=\"100\" zoomScalePageLayoutView=\"100\" workbookViewId=\"0\"></sheetView></sheetViews><sheetFormatPr defaultRowHeight=\"12.8\" zeroHeight=\"false\" outlineLevelRow=\"0\" outlineLevelCol=\"0\"/><cols><col collapsed=\"false\" customWidth=\"false\" hidden=\"false\" outlineLevel=\"0\" max=\"1025\" min=\"1\" style=\"0\" width=\"11.52\"/></cols><sheetData>$xls</sheetData></worksheet>";
+
+			for (var i4 = 0; i4 < max_line; i4 ++) {
+				var column_width = lengths[i4];
+				var column_index = i4 + 1;
+				var max_index = column_index;
+				if ((i4 == max_line - 1) && (max_index < 1025))
+					max_index = 1025;
+				if (column_width >= 12) {
+					if (column_width > 480)
+						column_width = 480;
+					columns += "<col collapsed=\"false\" customWidth=\"true\" hidden=\"false\" outlineLevel=\"0\" max=\"$max_index\" min=\"$column_index\" style=\"0\" width=\"${number_format(column_width * 0.9, 2, ".", "")}\"/>";
+				} else {
+					columns += "<col collapsed=\"false\" customWidth=\"false\" hidden=\"false\" outlineLevel=\"0\" max=\"$max_index\" min=\"$column_index\" style=\"0\" width=\"11.52\"/>";
+				}
+			}
+
+			xls = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><dimension ref=\"A1:${XLSX::_name(max_line - 1)}${(length data)}\"/><sheetViews><sheetView showFormulas=\"false\" showGridLines=\"true\" showRowColHeaders=\"true\" showZeros=\"true\" rightToLeft=\"false\" tabSelected=\"true\" showOutlineSymbols=\"true\" defaultGridColor=\"true\" view=\"normal\" topLeftCell=\"A1\" colorId=\"64\" zoomScale=\"100\" zoomScaleNormal=\"100\" zoomScalePageLayoutView=\"100\" workbookViewId=\"0\"></sheetView></sheetViews><sheetFormatPr defaultRowHeight=\"12.8\" zeroHeight=\"false\" outlineLevelRow=\"0\" outlineLevelCol=\"0\"/><cols>$columns</cols><sheetData>$xls</sheetData></worksheet>";
 
 			var date = (new Date()).toISOString();
 			files["_rels/.rels"] = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties\" Target=\"docProps/core.xml\"/><Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties\" Target=\"docProps/app.xml\"/></Relationships>";
