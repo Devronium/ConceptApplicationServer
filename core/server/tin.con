@@ -10,6 +10,7 @@ include TinDataBases.con
 include File.con
 include CSV.con
 include SpreadsheetML.con
+include XLSX.con
 include SQLParser.con
 
 include Charset.con
@@ -310,7 +311,7 @@ class IOWorker extends Worker{
 			case "CREATE":
 				return " INDEX";
 			case "OUTPUT":
-				return " [file.csv|file.json|file.xml|file.bin|file.xls|]";
+				return " [file.csv|file.json|file.xml|file.bin|file.xls|file.xlsx]";
 		}
 	}
 
@@ -647,6 +648,61 @@ class Main {
 		}
 	}
 
+	WriteXLSX(data, output) {
+		var xls_data = "";
+		if (data) {
+			var[] all_keys;
+			var[] text_keys;
+
+			for (var i = 0; i < length data; i++) {
+				var obj = data[i];
+				if (obj) {
+					if (typeof obj == "class") {
+						obj = ToArray(obj);
+						data[i] = obj;
+					}
+					var keys = GetKeys(obj);
+					for (var j = 0; j < length keys; j++) {
+						var k = keys[j];
+						if ((typeof k == "string") && (k != "id") && (k[0] != '$') && (Pos(k, "_sha256") <= 0)) {
+							all_keys[k] = k;
+							text_keys[k] = StrReplace(k, "_", " ");
+						}
+					}
+				}
+			}
+			var[] lines;
+			lines[0] = text_keys;
+			for (i = 0; i < length data; i++) {
+				obj = data[i];
+				if (obj) {
+					var line = new [];
+					for (j = 0; j < length all_keys; j++) {
+						k = all_keys[j];
+						if (IsSet(obj, k)) {
+							var v = obj[k];
+							switch (typeof v) {
+								case "string":
+								case "numeric":
+									line[length line] = v;
+									break;
+								default:
+									line[length line] = "/" + typeof v + "/";
+							}
+						} else
+							line[length line] = "";
+					}
+					if (line)
+						lines[length lines] = line;
+				}
+			}
+			xls_data = XLSX::build(lines, ["0" => ["fgColor" => "FF" + SubStr(SSINVERSE_COLOR, 1), "bgColor" => "FF" + SubStr(SSREPORT_COLOR, 1)]]);
+		}
+		_unlink(output);
+		if (xls_data)
+			WriteFile(xls_data, output);
+	}
+
 	WriteCSV(data, output, separator = ",", line_ending = "\n") {
 		if (data) {
 			var[] all_keys;
@@ -774,8 +830,11 @@ class Main {
 					case "xls":
 						WriteXLS(r, output);
 						break;
+					case "xlsx":
+						WriteXLSX(r, output);
+						break;
 					default:
-						WriteFile(JSONSerialize(r, true), output);
+						WriteFile(JSONSerialize(r, true, true), output);
 						break;
 				}
 			} else {

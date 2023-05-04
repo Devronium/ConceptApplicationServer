@@ -1,6 +1,7 @@
 include async.tin.con
 include SpreadsheetML.con
 include CSV.con
+include XLSX.con
 include File.con
 include Charset.con
 include PDFGenerator.con
@@ -97,7 +98,7 @@ class ReportGenerator {
 		return v;
 	}
 
-	static writeXLS(data, output) {
+	static xls(data) {
 		var sml = new SpreadsheetML();
 		if (data) {
 			var[] all_keys;
@@ -152,19 +153,70 @@ class ReportGenerator {
 				}
 			}
 		} else
-			return false;
-		_unlink(output);
-		var f = new File("wb");
-		f.Name = output;
-		if (f.Open()) {
-			sml.Generate(f);
-			f.Close();
-			return true;
-		}
-		return false;
+			return "";
+		return sml.Generate();
 	}
 
-	static writeCSV(data, output, separator = ",", line_ending = "\n") {
+	static xlsx(data) {
+		var xls_data = "";
+		if (data) {
+			var[] all_keys;
+			var[] text_keys;
+
+			for (var i = 0; i < length data; i++) {
+				var obj = data[i];
+				if (obj) {
+					if (typeof obj == "class") {
+						obj = ToArray(obj);
+						data[i] = obj;
+					}
+					var keys = GetKeys(obj);
+					for (var j = 0; j < length keys; j++) {
+						var k = keys[j];
+						if ((typeof k == "string") && (k != "id") && (k[0] != '$') && (Pos(k, "_sha256") <= 0)) {
+							all_keys[k] = k;
+							text_keys[k] = StrReplace(k, "_", " ");
+						}
+					}
+				}
+			}
+			var[] lines;
+			lines[0] = text_keys;
+			for (i = 0; i < length data; i++) {
+				obj = data[i];
+				if (obj) {
+					var line = new [];
+					for (j = 0; j < length all_keys; j++) {
+						k = all_keys[j];
+						if (IsSet(obj, k)) {
+							var v = obj[k];
+							switch (typeof v) {
+								case "string":
+								case "numeric":
+									line[length line] = v;
+									break;
+								case "array":
+									line[length line] = "[" + ReportGenerator::array_to_str(v) + "]";
+									break;
+								default:
+									line[length line] = "/" + typeof v + "/";
+							}
+						} else
+							line[length line] = "";
+					}
+					if (line)
+						lines[length lines] = line;
+				}
+			}
+			xls_data = XLSX::build(lines, ["0" => ["fgColor" => "FF" + SubStr(SSINVERSE_COLOR, 1), "bgColor" => "FF" + SubStr(SSREPORT_COLOR, 1)]]);
+		} else
+			xls_data = XLSX::build([ ], ["0" => ["fgColor" => "FF" + SubStr(SSINVERSE_COLOR, 1), "bgColor" => "FF" + SubStr(SSREPORT_COLOR, 1)]]);
+
+		return xls_data;
+	}
+
+	static csv(data, separator = ",", line_ending = "\n") {
+		var csv = "";
 		if (data) {
 			var[] all_keys;
 			for (var i = 0; i < length data; i++) {
@@ -178,7 +230,6 @@ class ReportGenerator {
 					}
 				}
 			}
-			var csv = "";
 			for (i = 0; i < length all_keys; i++) {
 				k = ReportGenerator::safeCSV(all_keys[i], separator);
 				if (csv)
@@ -189,45 +240,32 @@ class ReportGenerator {
 				return false;
 
 			csv += line_ending;
-			_unlink(output);
-			var f = new File("wb");
-			f.Name = output;
-			if (f.Open()) {
-				for (i = 0; i < length data; i++) {
-					obj = data[i];
-					if (typeof obj == "array") {
-						var line = "";
-						for (j = 0; j < length all_keys; j++) {
-							k = all_keys[j];
-							if (line)
-								line += separator;
-							if (IsSet(obj, k)) {
-								var v = obj[k];
-								switch (typeof v) {
-									case "string":
-									case "numeric":
-										line += ReportGenerator::safeCSV("" + v, separator);
-										break;
-									default:
-										line += "/" + typeof v + "/";
-								}
+			for (i = 0; i < length data; i++) {
+				obj = data[i];
+				if (typeof obj == "array") {
+					var line = "";
+					for (j = 0; j < length all_keys; j++) {
+						k = all_keys[j];
+						if (line)
+							line += separator;
+						if (IsSet(obj, k)) {
+							var v = obj[k];
+							switch (typeof v) {
+								case "string":
+								case "numeric":
+									line += ReportGenerator::safeCSV("" + v, separator);
+									break;
+								default:
+									line += "/" + typeof v + "/";
 							}
 						}
-						if (line)
-							csv += line + line_ending;
 					}
-					if (length csv > WRITE_BUFFER) {
-						f.Write(csv);
-						csv=  "";
-					}
+					if (line)
+						csv += line + line_ending;
 				}
-				if (csv)
-					f.Write(csv);
-				f.Close();
-				return true;
 			}
 		}
-		return false;
+		return csv;
 	}
 
 	static report_table(p, ref_text, title, values, header = null) {
@@ -330,7 +368,7 @@ class ReportGenerator {
 		return p;
 	}
 
-	static pdfreport(o, show_keys = null, title = "", sub_title = "", info_text = "", author = "") {
+	static pdf(o, show_keys = null, title = "", sub_title = "", info_text = "", author = "") {
 		var p;
 		// landscape
 		var header_size = 0;
@@ -452,17 +490,9 @@ class ReportGenerator {
 		return p.Generate();
 	}
 
-	static writePDF(data, output, title = "") {
-		if (data) {
-			WriteFile(ReportGenerator::report(data, null, title), output);
-			return true;
-		}
-		return false;
-	}
-
-	static report(data, fields, filename) {
+	static report(data, fields, format = "xls") {
 		if (!data)
-			return false;
+			return "";
 
 		var[] report_data;
 		for (var i = 0; i < length data; i ++) {
@@ -470,21 +500,30 @@ class ReportGenerator {
 			var e = ReportGenerator::getLine(data[i], arr);
 			if (e) {
 				var arr2 = [arr];
-				ReportGenerator::duplicateLines(arr2, data[i], ["Actualizare_contract", "Servicii_medicale", "Servicii_psihosociale"]);
+				ReportGenerator::duplicateLines(arr2, data[i], fields);
 				report_data += arr2;
 			}
 		}
-		switch (ToLower(Ext(filename))) {
+		switch (ToLower(format)) {
 			case "xls":
-				return ReportGenerator::writeXLS(report_data, filename);
+				return ReportGenerator::xls(report_data);
+				break;
+			case "xlsx":
+				return ReportGenerator::xlsx(report_data);
 				break;
 			case "pdf":
-				return ReportGenerator::writePDF(report_data, filename);
+				return ReportGenerator::pdf(report_data);
+				break;
+			case "json":
+				return JSONSerialize(report_data, true);
+				break;
+			case "xml":
+				return ToXML(report_data);
 				break;
 			default:
-				return ReportGenerator::writeCSV(report_data, filename);
+				return ReportGenerator::csv(report_data);
 				break;
 		}
-		return false;
+		return "";
 	}
 }

@@ -378,7 +378,7 @@ class IVR {
 		if (Greeting)
 			 res = this.Greeting(from);
 		if (GreetingTo)
-			 res = this.GreetingTo(from, msg_to, session.CallID);
+			 res = this.GreetingTo(from, msg_to, session.CallID, msg);
 		if (res) {
 			session.UserData = new DATASession(this.Get, session, from, msg_to);
 			session.OnReferError = this.OnReferError;
