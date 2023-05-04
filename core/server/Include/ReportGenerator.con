@@ -490,7 +490,7 @@ class ReportGenerator {
 		return p.Generate();
 	}
 
-	static report(data, fields, format = "xls") {
+	static report(data, fields, format = "xlsx") {
 		if (!data)
 			return "";
 

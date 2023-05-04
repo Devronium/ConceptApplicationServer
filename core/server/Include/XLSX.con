@@ -161,11 +161,14 @@ class XLSX {
 	static _name(index) {
 		var name = "";
 		var first = ord('A');
-		while (index > 26) {
-			name += chr(first + index % 26);
-			index = floor(index / 26);
+		if (index < 26)
+			return chr(first + index);
+
+		while (index >= 26) {
+			name = chr(first + index % 26) + name;
+			index = floor(index / 26) - 1;
 		}
-		name += chr(first + index);
+		name = chr(first + index) + name;
 		return name;
 	}
 
