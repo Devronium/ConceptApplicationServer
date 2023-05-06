@@ -17,7 +17,18 @@ define CSV_BIG_FILE	0x100000
 define WRITE_BUFFER	0xFFFF
 
 class ReportGenerator {
-	static getLine(e, arr, prefix = "") {
+	static getLine(e, arr, prefix = "", headers = null) {
+		if (headers) {
+			for (var j = 0; j < length headers; j ++) {
+				var header = headers[j];
+				if (header) {
+					var e4 = e[header];
+					if (typeof e4 != "array")
+						arr[prefix + header] = e4;
+				}
+			}
+			return arr;
+		}
 		var keys = GetKeys(e);
 		for (var i = 0; i < length keys; i ++) {
 			var e2 = e[i];
@@ -490,17 +501,55 @@ class ReportGenerator {
 		return p.Generate();
 	}
 
-	static report(data, fields, format = "xlsx") {
+	static _fields(data, prefix, fields, recursive, max_records) {
+		if ((data) && (recursive <= 4)) {
+			var len = length data;
+			if ((max_records > 0) && (len > max_records))
+				len = max_records;
+			for (var i = 0; i < len; i ++) {
+				var e = data[i];
+				if (e) {
+					var keys = GetKeys(e);
+					for (var j = 0; j < length keys; j ++) {
+						var k = keys[j];
+						if ((k) && (k != '$') && (k != "id")) {
+							var key = prefix + k;
+							if (!fields[key])
+								fields[key] = 1;
+							var e2 = e[j];
+							if ((e2) && (typeof e2 == "array")) {
+								if (!GetKeys(e2)[0]) {
+									fields[key] = 2;
+									ReportGenerator::_fields(e2, key + ".", fields, recursive, max_records);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	static fields(data, max_records = 0) {
+		var[] fields;
+		ReportGenerator::_fields(data, "", fields, 0, max_records);
+		return fields;
+	}
+
+	static report(data, fields, format = "xlsx", header = null) {
 		if (!data)
 			return "";
 
 		var[] report_data;
 		for (var i = 0; i < length data; i ++) {
 			var arr = new [];
-			var e = ReportGenerator::getLine(data[i], arr);
+			var data_element = data[i];
+			if (typeof data_element == "class")
+				data_element = ToArray(data_element);
+			var e = ReportGenerator::getLine(data_element, arr, "", header);
 			if (e) {
 				var arr2 = [arr];
-				ReportGenerator::duplicateLines(arr2, data[i], fields);
+				ReportGenerator::duplicateLines(arr2, data_element, fields);
 				report_data += arr2;
 			}
 		}
