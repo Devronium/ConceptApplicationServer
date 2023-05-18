@@ -127,7 +127,7 @@ class ReportGenerator {
 					var keys = GetKeys(obj);
 					for (var j = 0; j < length keys; j++) {
 						var k = keys[j];
-						if ((typeof k == "string") && (k != "id") && (k[0] != '$') && (Pos(k, "_sha256") <= 0)) {
+						if ((typeof k == "string") && (k != "id") && (k != '$') && (k != '$oid') && (k != '$v') && (Pos(k, "_sha256") <= 0)) {
 							all_keys[k] = k;
 							text_keys[k] = StrReplace(k, "_", " ");
 						}
@@ -184,7 +184,7 @@ class ReportGenerator {
 					var keys = GetKeys(obj);
 					for (var j = 0; j < length keys; j++) {
 						var k = keys[j];
-						if ((typeof k == "string") && (k != "id") && (k[0] != '$') && (Pos(k, "_sha256") <= 0)) {
+						if ((typeof k == "string") && (k != "id") && (k != '$') && (k != '$oid') && (k != '$v') && (Pos(k, "_sha256") <= 0)) {
 							all_keys[k] = k;
 							text_keys[k] = StrReplace(k, "_", " ");
 						}

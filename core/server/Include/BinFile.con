@@ -500,6 +500,7 @@ class BinIndex {
 				if (no_index_query) {
 					no_index_keys = GetKeys(no_index_query);
 					if (filter_func) {
+						var base_keys = new [];
 						for (var k = 0; k < length no_index_keys; k++) {
 							var ni_key = no_index_keys[k];
 							var ni_q = no_index_query[ni_key];
@@ -512,9 +513,13 @@ class BinIndex {
 									no_index_query[ni_key] = ni_qp;
 								}
 							}
+							var k_arr = StrSplit(ni_key, ".");
+							for (var k2 = 0; k2 < length k_arr; k2 ++)
+								base_keys[length base_keys] = trim(k_arr[k2]);
 						}
 					}
 					no_index_keys = [no_index_keys, no_index_query];
+					no_index_keys[16] = base_keys;
 				} else
 					filter_func = null;
 
@@ -3371,7 +3376,7 @@ class BinFile extends File {
 		var o = cached_o;
 
 		if (o == null)
-			o = this.ById(obj_val, keys, false, null);
+			o = this.ById(obj_val, keys_data[16] ?? keys, false, null);
 
 		if (o) {
 			var add_item = true;

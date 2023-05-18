@@ -958,7 +958,7 @@ pragma used
 		if (hostname) {
 			var host = GetHostByName(GetHostName())["h_addr_list0"];
 			data = ["name" => hostname, "host" => host];
-			console.info(LOG_THIS, "node info is set to auto (node.json missing) to $hostname, $host");
+			console.info(LOG_THIS, "node info is set to auto (node.json missing), identity set to $hostname, $host");
 		} else {
 			data = new [];
 		}
@@ -3757,7 +3757,7 @@ class QueryAggregator {
 									var arr = sorted_pairs[v];
 									var key = e['$'];
 									if (key)
-										arr[key] = e;
+										arr["" + key] = e;
 									else
 										arr[length arr] = e;
 								}

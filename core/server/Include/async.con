@@ -42,7 +42,7 @@ class __asynctimer {
 	}
 }
 
-class async extends Loop {
+class _async extends Loop {
 	static timeout(delegate, timeout) {
 		return new __asynctimer(delegate, timeout);
 	}
