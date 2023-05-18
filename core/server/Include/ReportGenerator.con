@@ -29,6 +29,8 @@ class ReportGenerator {
 			}
 			return arr;
 		}
+		if ((!e) || (typeof e != "array"))
+			return arr;
 		var keys = GetKeys(e);
 		for (var i = 0; i < length keys; i ++) {
 			var e2 = e[i];

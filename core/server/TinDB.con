@@ -3749,11 +3749,12 @@ class QueryAggregator {
 								v = "" + v;
 								var count = counts[v];
 								if (!count) {
-									sorted_pairs[v] = e;
+									sorted_pairs[v] = [e];
 								} else
-								if (count == 1) {
-									sorted_pairs[v] = [sorted_pairs[v], e];
-								} else {
+								// if (count == 1) {
+								// 	sorted_pairs[v] = [sorted_pairs[v], e];
+								// } else 
+								{
 									var arr = sorted_pairs[v];
 									var key = e['$'];
 									if (key)
