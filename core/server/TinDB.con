@@ -3750,17 +3750,9 @@ class QueryAggregator {
 								var count = counts[v];
 								if (!count) {
 									sorted_pairs[v] = [e];
-								} else
-								// if (count == 1) {
-								// 	sorted_pairs[v] = [sorted_pairs[v], e];
-								// } else 
-								{
+								} else {
 									var arr = sorted_pairs[v];
-									var key = e['$'];
-									if (key)
-										arr["" + key] = e;
-									else
-										arr[length arr] = e;
+									arr[length arr] = e;
 								}
 								count++;
 								counts[v] = count;
