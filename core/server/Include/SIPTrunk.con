@@ -1040,6 +1040,8 @@ class RegistrationData {
 	var timestamp;
 	var ip;
 	var ip_timestamp;
+	var fail_count;
+	var fail_timestamp;
 
 	RegistrationData(username, password, server, server_port) {
 		this.username = username;
@@ -1577,7 +1579,12 @@ class SIPStack {
 		var callid = msg.Headers["call-id"];
 		if (IsSet(this.Registrations, callid)) {
 			var registration = this.Registrations[callid];
+			if ((registration) && (registration->fail_timestamp)) {
+				if ((time() - registration->fail_timestamp) < 48)
+					registration = null;
+			}
 			if (registration) {
+				registration.fail_timestamp = time();
 				var local_udpclientsocket = use_socket ?? udpclientsocket;
 				var register = this.RegisterMessage(registration.username, registration.password, registration.server, registration.server_port, msg, var nonce);
 				if (this.DoWrite(local_udpclientsocket, register.ToString(), registration.server, registration.server_port) < 0)
@@ -1600,6 +1607,7 @@ class SIPStack {
 			var registration = this.Registrations[callid];
 			if (registration) {
 				registration.timestamp = time();
+				registration.fail_timestamp = 0;
 				if (this.OnClientRegister)
 					this.OnClientRegister(registration);
 			}

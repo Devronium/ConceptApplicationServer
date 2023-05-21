@@ -41,12 +41,16 @@ class IVRClientData {
 	var remotehost;
 	var empty_buffer = true;
 	var forward = false;
+	var diverted;
 
 	IVRClientData(ivr, ivr_tree, session) {
 		this.ivr_branch = ivr_tree;
 		this.ivr_tree = ivr_tree;
 		this.hash = Murmur(session.sip.CallID);
 		this.timestamp = microseconds();
+		if (!session.sip.is_invite)
+			this.diverted = ivr.diversion(session.sip.msg);
+
 		if (((ivr.OnAPI) || (ivr.OnEvent)) && (typeof ivr_tree == "array")) {
 			if (ivr.OnAPI) {
 				var k = GetKeys(ivr_tree)[0];
@@ -1467,6 +1471,10 @@ class ConversationalIVR {
 		}
 	}
 
+	treeExists(to) {
+		return FileExists(trunk_dir + to + ".json");
+	}
+
 	loadDefaultTree(to) {
 		var ivr_data;
 		var ivr_tree;
@@ -1599,10 +1607,28 @@ class ConversationalIVR {
 		return true;
 	}
 
-	OnGreeting(from, to, callid) {
+	diversion(msg) {
+		if (msg) {
+			var diversion = msg.Headers["diversion"];
+			if (diversion) {
+				diversion = this.ivr.ParseFrom2(diversion);
+				if (diversion) {
+					console.info(LOG_THIS, "call is diverted from $diversion");
+					return diversion;
+				}
+			}
+		}
+		return null;
+	}
+
+	OnGreeting(from, to, callid, sip_message = null) {
 		console.info(LOG_THIS, "call from $from to $to");
 
 		var ivr_tree;
+
+		// var divert_from = diversion(sip_message);
+		// if ((divert_from) && (treeExists(divert_from)))
+		// 	to = divert_from;
 
 		var limit = ivr_limits[to];
 		if ((limit) && (length this.getSessions(to) > limit)) {
@@ -2104,6 +2130,15 @@ class ConversationalIVR {
 
 				if (this.OnEvent)
 					this.OnEvent(session, session.ClientData.ivr_path, "reset");
+
+				/* if (session.ClientData.ivr_branch) {
+					text = session.ClientData.ivr_branch[0];
+					if (typeof text == "string") {
+						text = trim(text);
+						if (text[0] != '$')
+							Raspuns(id, text, append);
+					}
+				} */
 				return;
 			} else
 			if (Pos(text, "\$blacklist") == 1) {
