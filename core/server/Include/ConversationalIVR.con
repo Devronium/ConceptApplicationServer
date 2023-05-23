@@ -1978,7 +1978,7 @@ class ConversationalIVR {
 						if (session.UserData.ClientData.ivr_path)
 							session.UserData.ClientData.ivr_path += "/";
 						session.UserData.ClientData.ivr_path += "*[default]";
-						ivr.OnAPI(session, session.UserData.ClientData.ivr_path, trim(SubStr(default_api, 4)), "tree");
+						ivr.OnAPI(session.UserData, session.UserData.ClientData.ivr_path, trim(SubStr(default_api, 4)), "tree");
 						session.UserData.ClientData.ivr_branch = "";
 					} else
 					if (Pos(default_api, "\$js") == 1) {
@@ -1993,7 +1993,7 @@ class ConversationalIVR {
 				}
 			}
 			if (session.UserData.ClientData.finish_api) {
-				this.OnAPI(session, session.UserData.ClientData.ivr_path, session.UserData.ClientData.finish_api, "close");
+				this.OnAPI(session.UserData, session.UserData.ClientData.ivr_path, session.UserData.ClientData.finish_api, "close");
 				session.UserData.ClientData.finish_api = "";
 			}
 		}
@@ -2081,7 +2081,8 @@ class ConversationalIVR {
 					session.ClientData.api = false;
 				} else {
 					// async call
-					if ((Pos(ToLower(action), "mailto:") == 1) || (Pos(ToLower(action), "sms:") == 1)) {
+					var action_lo = ToLower(action);
+					if ((Pos(action_lo, "mailto:") == 1) || (Pos(action_lo, "sms:") == 1) || (Pos(action_lo, "http:") == 1) || (Pos(action_lo, "https:") == 1) || (Pos(action_lo, "set:") == 1)) {
 						session.EndOnIVRFinished = true;
 						session.Close();
 					} else {
@@ -2852,6 +2853,10 @@ class ConversationalIVR {
 		this.TextEvent(session.UserData, key, session.CallID);
 	}
 
+	OnRinging(sess, msg) {
+		// to do
+	}
+
 	ConversationalIVR(sip_host, sip_port = 5060, in_band_dtmf = true, mss_keys = null, tts_keys = null, use_whisper = "") {
 		ivr = new IVR(sip_host, sip_port, 40);
 
@@ -2873,6 +2878,8 @@ class ConversationalIVR {
 			ivr.stack.OnDTMF = this.OnDTMFRelay;
 
 		ivr.LoopCallback = this.OnIdle;
+
+		ivr.OnRinging = this.OnRinging;
 
 		this.tts_keys = tts_keys ?? [ ];
 
@@ -3001,9 +3008,14 @@ class ConversationalIVR {
 		console.log(LOG_THIS, "call $who by $from");
 		if (session) {
 			session.setExpires(max_duration);
+			session.setCallSetupExpires(24);
 			if (tree) {
-				if (typeof tree == "string")
-					tree = [tree];
+				if (typeof tree == "string") {
+					if (tree == "\$default")
+						tree = this.loadDefaultTree(from);
+					else
+						tree = [tree];
+				}
 				ivr_api_trees[session.CallID] = tree;
 				// to do
 			}
@@ -3308,8 +3320,12 @@ class ConversationalIVR {
 				var from = this.ivr.ParseFrom2(session.msg.Headers["from"]);
 				var to = this.ivr.ParseFrom2(session.msg.Headers["to"]);
 
-				if ((!account) || (((session.is_invite) && (from == account)) || ((!session.is_invite) && (to == account))))
-					sess_ids[session.CallID] = ["account" => account ?? identity, "isInvite" => session.is_invite, "from" => from, "to" => to, "callDuration" => 0, "path" => "(setting up call - not answered yet)", "text" => ""];
+				if ((!account) || (((session.is_invite) && (from == account)) || ((!session.is_invite) && (to == account)))) {
+					var code = session.callStatus;
+					if (code)
+						code = "$code - ";
+					sess_ids[session.CallID] = ["account" => account ?? identity, "isInvite" => session.is_invite, "from" => from, "to" => to, "callDuration" => 0, "path" => "(${code}setting up call - not answered yet)", "text" => ""];
+				}
 			}
 		}
 		return sess_ids;

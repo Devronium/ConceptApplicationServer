@@ -166,6 +166,8 @@ class SIPSession {
 	var MaxJitter;
 
 	var NATMode = false;
+	var callSetupExpires = 0;
+	var callStatus;
 
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
@@ -430,11 +432,28 @@ class SIPSession {
 	}
 
 	Expired() {
+		if ((callSetupExpires) && (callStatus != 200)) {
+			if (time() > callSetupExpires)
+				return true;
+		}
+
 		return (time() > Expire);
 	}
 
 	setExpires(seconds) {
 		Expire = time() + seconds;
+	}
+
+	setCallSetupExpires(seconds) {
+		callSetupExpires = time() + seconds;
+	}
+
+	UpdateCode(code) {
+		if (callStatus != 200) {
+			callStatus = floor(code / 10) * 10;
+			if (callStatus == 200)
+				callSetupExpires = 0;
+		}
 	}
 
 	RecordID() {
@@ -857,7 +876,10 @@ class SIPSession {
 			if (this.tcp_socket)
 				this.s.RemoveTCPSocket(this.tcp_socket);
 			this.s.RemoveSessionByRef(this);
-			this.Bye();
+			if ((!this.is_invite) || (this.callStatus == 200))
+				this.Bye();
+			else
+				this.Cancel();
 			if (this.s.OnEnd)
 				this.s.OnEnd(this, msg, "");
 			ops++;
@@ -3259,6 +3281,9 @@ class SIPStack {
 							if (sess)
 								sess.UpdateMedia(msg, ip, port);
 						}
+
+						if ((sess) && (msg.ServerCode > 0))
+							sess.UpdateCode(msg.ServerCode);
 
 						if ((msg.ServerCode >= 200) && (msg.ServerCode < 300)) {
 							if ((sess) && (!sess.bye_set)) {
