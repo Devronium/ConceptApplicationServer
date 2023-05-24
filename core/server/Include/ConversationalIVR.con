@@ -43,7 +43,7 @@ class IVRClientData {
 	var forward = false;
 	var diverted;
 
-	IVRClientData(ivr, ivr_tree, session) {
+	IVRClientData(ivr, ivr_tree, session, notify_event = true) {
 		this.ivr_branch = ivr_tree;
 		this.ivr_tree = ivr_tree;
 		this.hash = Murmur(session.sip.CallID);
@@ -57,11 +57,12 @@ class IVRClientData {
 				if (k) {
 					if (Pos(k, "\$api") == 1) {
 						this.finish_api = trim(SubStr(k, 4));
-						ivr.OnAPI(session, session.ClientData.ivr_path, this.finish_api, "open");
+						if (notify_event)
+							ivr.OnAPI(session, session.ClientData.ivr_path, this.finish_api, "open");
 					}
 				}
 			}
-			if (ivr.OnEvent)
+			if ((ivr.OnEvent) && (notify_event))
 				ivr.OnEvent(session, session.ClientData.ivr_path, "open");
 		}
 		if (ivr_tree) {
@@ -1946,6 +1947,9 @@ class ConversationalIVR {
 	}
 
 	OnEnd(session, callid, code) {
+		if ((session) && ((!session.UserData) || (!session.UserData.ClientData)))
+			this.notifyCode(session, code);
+
 		if (IsSet(ivr_api_trees, callid)) {
 			ivr_api_trees[callid] = null;
 			ivr_api_trees_dirty ++;
@@ -2533,6 +2537,9 @@ class ConversationalIVR {
 					} else
 					if (session.ClientData.ivr_branch[0]) {
 						Raspuns(id, session.ClientData.ivr_branch[0], append);
+						var key = GetKeys(session.ClientData.ivr_branch)[0];
+						if (key)
+							key = trim(key);
 						if (length session.ClientData.ivr_branch == 1) {
 							try {
 								if ((this.OnAPI) && (session.ClientData.finish_api)) {
@@ -2545,7 +2552,6 @@ class ConversationalIVR {
 							} catch (exc) {
 								console.error(LOG_THIS, exc);
 							}
-							var key = GetKeys(session.ClientData.ivr_branch)[0];
 							if ((key) && (key[0] == "\$"))
 								session.ClientData.redirect = key;
 							session.ClientData.ivr_branch = null;
@@ -2554,6 +2560,10 @@ class ConversationalIVR {
 							else
 							if (!session.ClientData.redirect)
 								session.EndOnIVRFinished = true;
+						} else
+						if (this.OnAPI) {
+							if ((key) && (Pos(key, "\$api") == 1))
+								this.OnAPI(session, session.ClientData.ivr_path, trim(SubStr(key, 4)), "tree");
 						}
 					} else {
 						try {
@@ -2853,8 +2863,49 @@ class ConversationalIVR {
 		this.TextEvent(session.UserData, key, session.CallID);
 	}
 
-	OnRinging(sess, msg) {
-		// to do
+	OnTimedout(session) {
+		if (!this.OnAPI)
+			return;
+
+		var clean = false;
+		var ref_session = session.UserData;
+		if (!ref_session) {
+			var from = ivr.ParseFrom2(session.msg.Headers["from"]);
+			var to = ivr.ParseFrom2(session.msg.Headers["to"]);
+			ref_session = new DATASession(null, session, from, to);
+			clean = true;
+		}
+		if (!ref_session.ClientData)
+			ref_session.ClientData = new IVRClientData(this, sessionTree(ref_session), ref_session, false);
+
+		if (ref_session.ClientData.finish_api)
+			this.OnAPI(ref_session, ref_session.ClientData.ivr_path, ref_session.ClientData.finish_api, "timeout");
+	
+		if (clean)
+			delete ref_session.ClientData;
+	}
+
+	notifyCode(session, code) {
+		if ((!this.OnAPI) || (code < 400))
+			return;
+
+		var clean = false;
+		var ref_session = session.UserData;
+		if (!ref_session) {
+			var from = ivr.ParseFrom2(session.msg.Headers["from"]);
+			var to = ivr.ParseFrom2(session.msg.Headers["to"]);
+			ref_session = new DATASession(null, session, from, to);
+			clean = true;
+		}
+		if (!ref_session.ClientData)
+			ref_session.ClientData = new IVRClientData(this, sessionTree(ref_session), ref_session, false);
+
+		if ((ref_session.ClientData.finish_api) && ((value session.callStatus) != 200)) {
+			session.callStatus = code;
+			this.OnAPI(ref_session, ref_session.ClientData.ivr_path, ref_session.ClientData.finish_api, "notify");
+		}
+		if (clean)
+			delete ref_session.ClientData;
 	}
 
 	ConversationalIVR(sip_host, sip_port = 5060, in_band_dtmf = true, mss_keys = null, tts_keys = null, use_whisper = "") {
@@ -2879,7 +2930,7 @@ class ConversationalIVR {
 
 		ivr.LoopCallback = this.OnIdle;
 
-		ivr.OnRinging = this.OnRinging;
+		ivr.stack.OnTimedout = OnTimedout;
 
 		this.tts_keys = tts_keys ?? [ ];
 

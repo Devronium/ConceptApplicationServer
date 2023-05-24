@@ -870,8 +870,11 @@ class SIPSession {
 				}
 				started = true;
 			}
-			if (Expired())
+			if (Expired()) {
+				if (this.s.OnTimedout)
+					this.s.OnTimedout(this);
 				throw "Session expired !\n";
+			}
 		} catch (exc) {
 			if (this.tcp_socket)
 				this.s.RemoveTCPSocket(this.tcp_socket);
@@ -1132,6 +1135,7 @@ class SIPStack {
 	var OnPublish;
 	var OnAfterPublish;
 	var OnClientRegister;
+	var OnTimedout;
 
 	var Transport = "UDP";
 	var sipproto = "sip:";
