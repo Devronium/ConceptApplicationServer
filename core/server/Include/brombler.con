@@ -23,8 +23,8 @@ class Brombler {
 		return asyncRequest::fetch(url, method, headers, obj);
 	}
 
-	call(who, tree, add_to_loop = true) {
-		var url = this.request(this.KEY, "https://brombler.com/call.cas", "POST", ["who" => who, "tree" => tree]);
+	call(who, tree, timeout = 0, add_to_loop = true) {
+		var url = this.request(this.KEY, "https://brombler.com/call.cas", "POST", ["who" => who, "tree" => tree, "timeout" => timeout]);
 		if (url) {
 			if (add_to_loop == true)
 				Loop::add(url);

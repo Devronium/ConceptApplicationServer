@@ -987,9 +987,9 @@ CONCEPT_DLL_API CONCEPT_StrSplit CONCEPT_API_PARAMETERS {
     double put_empty = 0;
 
     GET_CHECK_STRING(0, szParam0, "StrSplit : parameter 1 should be a string (STATIC STRING)");
-    long len0 = (INTEGER)nDUMMY_FILL;
+    SYS_INT len0 = (INTEGER)nDUMMY_FILL;
     GET_CHECK_STRING(1, szParam1, "StrSplit : parameter 2 should be a string (STATIC STRING)");
-    long len1 = (INTEGER)nDUMMY_FILL;
+    SYS_INT len1 = (INTEGER)nDUMMY_FILL;
     if (PARAMETERS_COUNT == 3) {
         GET_CHECK_NUMBER(2, put_empty, "StrSplit : parameter 3 should be a number (STATIC NUMBER)");
     }
@@ -998,36 +998,64 @@ CONCEPT_DLL_API CONCEPT_StrSplit CONCEPT_API_PARAMETERS {
         return (void *)"Failed to INVOKE_CREATE_ARRAY";
     if (len0 <= 0)
         return 0;
-    AnsiString target;
-    if (len0)
-        target.LoadBuffer(szParam0, len0);
-    AnsiString sep;
-    if (len1)
-        sep.LoadBuffer(szParam1, len1);
-    int        len_sep = sep.Length();
 
-    int pos   = target.Pos(sep);
+    if (len1 <= 0) {
+        if (!IS_OK(Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)0, (INTEGER)VARIABLE_STRING, szParam0, (double)len0)))
+            return (void *)"Failed to INVOKE_SET_ARRAY_ELEMENT";
+        return 0;
+    }
+
+    SYS_INT len_sep = (int)len1;
+    const char *target = szParam0;
+    SYS_INT target_len = len0;
+    const char *pos;
+    if (len_sep == 1)
+        pos = (const char *)memchr(target, *szParam1, target_len);
+    else
+        pos = strstr(target, szParam1);
     int index = 0;
-    while (pos > 0) {
-        if (pos > 1) {
-            if (!IS_OK(Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index++, (INTEGER)VARIABLE_STRING, target.c_str(), (double)pos - 1)))
+    while (pos) {
+        SYS_INT str_len = pos - target;
+        if (str_len > 0) {
+            if (!IS_OK(Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index++, (INTEGER)VARIABLE_STRING, target, (double)str_len)))
                 return (void *)"Failed to INVOKE_SET_ARRAY_ELEMENT";
         } else if ((int)put_empty) {
             if (!IS_OK(Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index++, (INTEGER)VARIABLE_STRING, "", (double)0)))
                 return (void *)"Failed to INVOKE_SET_ARRAY_ELEMENT";
         }
-        AnsiString temp = target;
-        target = temp.c_str() + pos + len_sep - 1;
-        pos    = target.Pos(sep);
+        target = pos + len_sep;
+        target_len -= str_len + len_sep;
+        if (target_len <= 0)
+            break;
+        // pos = strstr(target, szParam1);
+        if (len_sep == 1)
+            pos = (const char *)memchr(target, *szParam1, target_len);
+        else
+            pos = strstr(target, szParam1);
     }
-    if ((target.Length()) || ((int)put_empty)) {
-        if (!IS_OK(Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index, (INTEGER)VARIABLE_STRING, target.c_str(), (double)0)))
+    if ((target_len > 0) || ((int)put_empty)) {
+        if (target_len <= 0) {
+            target_len = 0;
+            target = "";
+        }
+        if (!IS_OK(Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index, (INTEGER)VARIABLE_STRING, target, (double)target_len)))
             return (void *)"Failed to INVOKE_SET_ARRAY_ELEMENT";
     }
 
     return 0;
 }
 //---------------------------------------------------------------------------
+NUMBER atof2(const char *ptr, int len) {
+    char buf[0x100];
+    if (len <= 0)
+        return 0;
+    if (len >= sizeof(buf))
+        len = sizeof(buf) - 1;
+    memmove(buf, ptr, len);
+    buf[len] = 0;
+    return atof(buf);
+}
+
 CONCEPT_DLL_API CONCEPT_StrNumberSplit CONCEPT_API_PARAMETERS {
     PARAMETERS_CHECK_MIN_MAX(2, 3, "StrNumberSplit takes 2(or 3) parameters: string, separator string[, boolean put_empty_strings=0]");
     LOCAL_INIT;
@@ -1037,38 +1065,59 @@ CONCEPT_DLL_API CONCEPT_StrNumberSplit CONCEPT_API_PARAMETERS {
     double put_empty = 0;
 
     GET_CHECK_STRING(0, szParam0, "StrNumberSplit : parameter 1 should be a string (STATIC STRING)");
+    SYS_INT len0 = (INTEGER)nDUMMY_FILL;
     GET_CHECK_STRING(1, szParam1, "StrNumberSplit : parameter 2 should be a string (STATIC STRING)");
+    SYS_INT len1 = (INTEGER)nDUMMY_FILL;
     if (PARAMETERS_COUNT == 3) {
         GET_CHECK_NUMBER(2, put_empty, "StrNumberSplit : parameter 3 should be a number (STATIC NUMBER)");
     }
 
     if (!IS_OK(Invoke(INVOKE_CREATE_ARRAY, RESULT)))
         return (void *)"Failed to INVOKE_CREATE_ARRAY";
-    AnsiString target  = szParam0;
-    AnsiString sep     = szParam1;
-    int        len_sep = sep.Length();
 
-    int pos   = target.Pos(sep);
+    if (len1 <= 0) {
+        if (!IS_OK(Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)0, (INTEGER)VARIABLE_NUMBER, "", (double)atof2(szParam0, len0))))
+            return (void *)"Failed to INVOKE_SET_ARRAY_ELEMENT";
+        return 0;
+    }
+
+    SYS_INT len_sep = (int)len1;
+    const char *target = szParam0;
+    SYS_INT target_len = len0;
+    const char *pos;
+    if (len_sep == 1)
+        pos = (const char *)memchr(target, *szParam1, target_len);
+    else
+        pos = strstr(target, szParam1);
     int index = 0;
-    while (pos > 0) {
-        if (pos > 1) {
-            AnsiString number;
-            number.LoadBuffer(target.c_str(), pos - 1);
-
-            if (!IS_OK(Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index++, (INTEGER)VARIABLE_NUMBER, "", (double)number.ToFloat())))
+    while (pos) {
+        SYS_INT str_len = pos - target;
+        if (str_len > 0) {
+            if (!IS_OK(Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index++, (INTEGER)VARIABLE_NUMBER, "", (double)atof2(target, str_len))))
                 return (void *)"Failed to INVOKE_SET_ARRAY_ELEMENT";
         } else if ((int)put_empty) {
             if (!IS_OK(Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index++, (INTEGER)VARIABLE_NUMBER, "", (double)0)))
                 return (void *)"Failed to INVOKE_SET_ARRAY_ELEMENT";
         }
-        AnsiString temp = target;
-        target = temp.c_str() + pos + len_sep - 1;
-        pos    = target.Pos(sep);
+        target = pos + len_sep;
+        target_len -= str_len + len_sep;
+        if (target_len <= 0)
+            break;
+        // pos = strstr(target, szParam1);
+        if (len_sep == 1)
+            pos = (const char *)memchr(target, *szParam1, target_len);
+        else
+            pos = strstr(target, szParam1);
     }
-    if ((target.Length()) || ((int)put_empty)) {
-        if (!IS_OK(Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index, (INTEGER)VARIABLE_NUMBER, "", (double)target.ToFloat())))
+    if ((target_len > 0) || ((int)put_empty)) {
+        if (target_len <= 0) {
+            target_len = 0;
+            target = "0";
+        }
+        if (!IS_OK(Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index, (INTEGER)VARIABLE_NUMBER, "", (double)atof2(target, target_len))))
             return (void *)"Failed to INVOKE_SET_ARRAY_ELEMENT";
     }
+
 
     return 0;
 }
