@@ -1624,6 +1624,8 @@ class ConversationalIVR {
 
 	OnGreeting(from, to, callid, sip_message = null) {
 		console.info(LOG_THIS, "call from $from to $to");
+		if (("" + from) == "Anonymous")
+			return null;
 
 		var ivr_tree;
 
@@ -1668,7 +1670,14 @@ class ConversationalIVR {
 			return null;
 		}
 
-		var msg = trim(StrSplit(ivr_tree[0], "|")[0]);
+		var ivr_msg = trim(ivr_tree[0]);
+		if ((ivr_msg) && (ivr_msg[0] == "\$")) {
+			if (Pos(ivr_msg, "\$js") == 1) {
+				// to do
+				return [""];
+			}
+		}
+		var msg = trim(StrSplit(ivr_msg, "|")[0]);
 		var use_voice = this.voice(to);
 		if (!VoiceWorker::exists(msg, use_voice))
 			return null;
@@ -1889,6 +1898,16 @@ class ConversationalIVR {
 
 		var branch = session.ClientData.ivr_branch;
 		if ((!branch) || (typeof branch == "string") || (length branch == 1)) {
+			if ((branch == session.ClientData.ivr_tree) && (!session.ClientData.ivr_path) && (typeof branch == "array")) {
+				var default_api = branch[0];
+				if ((default_api) && (typeof default_api == "string")) {
+					default_api = trim(default_api);
+					if (Pos(default_api, "\$js") == 1) {
+						this.Raspuns(session.sip.CallID, default_api);
+						return;
+					}
+				}
+			}
 			session.Close();
 			return;
 		}
@@ -3162,8 +3181,11 @@ class ConversationalIVR {
 					if (this.OnAPI) {
 						var k = GetKeys(ivr_branch)[0];
 						if (k[0] == "\$") {
-							if (Pos(k, "\$api") == 1)
+							if (Pos(k, "\$api") == 1) {
 								this.OnAPI(session, session.ClientData.ivr_path, trim(SubStr(k, 4)), "tree");
+								if ((!session.ClientData.finish_api) && (!session.ClientData.ivr_path))
+									session.ClientData.finish_api = trim(SubStr(k, 4));
+							}
 						}
 					}
 

@@ -1045,12 +1045,12 @@ CONCEPT_DLL_API CONCEPT_StrSplit CONCEPT_API_PARAMETERS {
     return 0;
 }
 //---------------------------------------------------------------------------
-NUMBER atof2(const char *ptr, int len) {
+NUMBER atof2(const char *ptr, SYS_INT len) {
     char buf[0x100];
     if (len <= 0)
         return 0;
-    if (len >= sizeof(buf))
-        len = sizeof(buf) - 1;
+    if (len >= (SYS_INT)sizeof(buf))
+        len = (SYS_INT)sizeof(buf) - 1;
     memmove(buf, ptr, len);
     buf[len] = 0;
     return atof(buf);
