@@ -60,6 +60,9 @@ class ReportGenerator {
 			if (field) {
 				var e2 = e[field];
 				if ((e2) && (typeof e2 == "array")) {
+					var keys = GetKeys(e2);
+					if ((keys) && (keys[0]))
+						e2 = [e2];
 					for (var j = 0; j < length e2; j ++) {
 						if (j >= length arr)
 							arr[j] = ReportGenerator::cloneArray(arr[0]);
