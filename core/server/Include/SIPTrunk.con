@@ -159,6 +159,7 @@ class SIPSession {
 	var Record = false;
 	var RecordBuffers;
 	var last_sequence_number = -1;
+	var last_timestamp;
 
 	var Branch;
 	var NoForward;
@@ -432,6 +433,14 @@ class SIPSession {
 	}
 
 	Expired() {
+		if (callStatus == 200) {
+			// 8 seconds of silence, drop connection
+			var no_audio_limit = 8000000;
+			if ((Parent) || (Children))
+				no_audio_limit = 16000000;
+			if ((last_timestamp) && (microseconds() > (last_timestamp + no_audio_limit)))
+				return true;
+		} else
 		if ((callSetupExpires) && (callStatus != 200)) {
 			if (time() > callSetupExpires)
 				return true;
@@ -545,6 +554,7 @@ class SIPSession {
 					return "";
 			}
 			last_sequence_number = sequence_number;
+			last_timestamp = microseconds();
 			var ssrc_id = (tounumber(data[8] + data[9] + data[10] + data[11], 32));
 			var payload = SubStr(data, 12, length data);
 			if (Record)
