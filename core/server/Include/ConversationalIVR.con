@@ -1277,6 +1277,8 @@ class ConversationalIVR {
 	var OnWriteRecording;
 	var OnRegistered;
 
+	var OnAlert;
+
 	var defaultVoice = "tts_models/en/vctk/vits";
 	var[] sipUsers;
 
@@ -2904,6 +2906,18 @@ class ConversationalIVR {
 			delete ref_session.ClientData;
 	}
 
+	OnAudioTimeout(session) {
+		console.warn(LOG_THIS, "audio timeout event");
+		var ref_session = session.UserData;
+		if (!ref_session)	
+			return true;
+
+		if (this.OnAlert)
+			this.OnAlert(ref_session, "qos");
+
+		return true;
+	}
+
 	notifyCode(session, code) {
 		if ((!this.OnAPI) || (code < 400))
 			return;
@@ -2949,7 +2963,8 @@ class ConversationalIVR {
 
 		ivr.LoopCallback = this.OnIdle;
 
-		ivr.stack.OnTimedout = OnTimedout;
+		ivr.stack.OnTimedout = this.OnTimedout;
+		ivr.stack.OnAudioTimeout = this.OnAudioTimeout;
 
 		this.tts_keys = tts_keys ?? [ ];
 

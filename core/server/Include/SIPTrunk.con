@@ -433,13 +433,16 @@ class SIPSession {
 	}
 
 	Expired() {
-		if (callStatus == 200) {
+		if (((is_invite) && (callStatus == 200)) || ((!is_invite) && (callStatus == 0))) {
 			// 8 seconds of silence, drop connection
-			var no_audio_limit = 8000000;
+			var no_audio_limit = 4000000;
 			if ((Parent) || (Children))
 				no_audio_limit = 16000000;
-			if ((last_timestamp) && (microseconds() > (last_timestamp + no_audio_limit)))
+			if ((last_timestamp) && (microseconds() > (last_timestamp + no_audio_limit))) {
+				if (this.s.OnAudioTimeout)
+					return this.s.OnAudioTimeout(this);
 				return true;
+			}
 		} else
 		if ((callSetupExpires) && (callStatus != 200)) {
 			if (time() > callSetupExpires)
@@ -1146,6 +1149,7 @@ class SIPStack {
 	var OnAfterPublish;
 	var OnClientRegister;
 	var OnTimedout;
+	var OnAudioTimeout;
 
 	var Transport = "UDP";
 	var sipproto = "sip:";
