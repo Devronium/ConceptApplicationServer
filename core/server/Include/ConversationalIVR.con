@@ -2911,6 +2911,8 @@ class ConversationalIVR {
 		var ref_session = session.UserData;
 		if (!ref_session)	
 			return true;
+		// if ((ref_session.ClientData) && (!ref_session.ClientData.callDuration()))
+		// 	return false;
 
 		if (this.OnAlert)
 			this.OnAlert(ref_session, "qos");

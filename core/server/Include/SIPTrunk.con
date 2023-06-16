@@ -338,6 +338,7 @@ class SIPSession {
 				this.write_timestamp = microseconds();
 				this.write_server = [ip, port];	
 			}
+			this.last_timestamp = microseconds();
 
 			UpdateTags();
 			return true;
@@ -435,15 +436,17 @@ class SIPSession {
 	Expired() {
 		if (((is_invite) && (callStatus == 200)) || ((!is_invite) && (callStatus == 0))) {
 			// 8 seconds of silence, drop connection
-			var no_audio_limit = 4000000;
+			var no_audio_limit = 8000000;
 			if ((Parent) || (Children))
 				no_audio_limit = 16000000;
 			if ((last_timestamp) && (microseconds() > (last_timestamp + no_audio_limit))) {
-				if (this.s.OnAudioTimeout)
-					return this.s.OnAudioTimeout(this);
-				return true;
+				if (this.s.OnAudioTimeout) {
+					if (this.s.OnAudioTimeout(this))
+						return true;
+				} else
+					return true;
 			}
-		} else
+		}
 		if ((callSetupExpires) && (callStatus != 200)) {
 			if (time() > callSetupExpires)
 				return true;
@@ -465,7 +468,8 @@ class SIPSession {
 			callStatus = floor(code / 10) * 10;
 			if (callStatus == 200)
 				callSetupExpires = 0;
-		}
+		} else
+			last_timestamp = microseconds();
 	}
 
 	RecordID() {
@@ -544,12 +548,13 @@ class SIPSession {
 
 	ParseRTP(data, var type = null) {
 		type = -1;
+		last_timestamp = microseconds();
 		if (length data > 12) {
 			type = tounumber(data[1], 8) & 0x7F;
 			if ((type >= 72) && (type <= 76))
 				return "";
 			var sequence_number = ntohs(tounumber(data[2] + data[3], 16));
-			if ((last_sequence_number) && (sequence_number <= last_sequence_number)) {
+			if ((last_sequence_number != -1) && (sequence_number <= last_sequence_number)) {
 				var delta = sequence_number - last_sequence_number;
 				if (delta < 0)
 					delta *= -1;
@@ -557,7 +562,6 @@ class SIPSession {
 					return "";
 			}
 			last_sequence_number = sequence_number;
-			last_timestamp = microseconds();
 			var ssrc_id = (tounumber(data[8] + data[9] + data[10] + data[11], 32));
 			var payload = SubStr(data, 12, length data);
 			if (Record)
