@@ -2198,6 +2198,18 @@ class ConversationalIVR {
 				if (session.ClientData.last_text)
 					openAIWorker.AddData(BinarizeObject(["id" => id, "text" => session.ClientData.last_text, "instructions" => instructions, "language_hint" => language_hint, "start" => Date.now()]));
 				return;
+			} else
+			if (Pos(text, "\$close") == 1) {
+				session.ClientData.count = 0;
+				session.EndOnIVRFinished = true;
+				session.ClientData.ivr_branch = null;
+				text = trim(SubStr(text, 8));
+				if (stt_worker)
+					stt_worker.AddData(BinarizeObject(new STTWorkerData(id, STT_RESET, [ ])));
+				if (!text) {
+					session.Close();
+					return;
+				}
 			}
 		}
 
@@ -2468,7 +2480,7 @@ class ConversationalIVR {
 		var append = false;
 		var k4 = "";
 		var has_default = false;
-		var check_kb = true;
+		// var check_kb = true;
 
 		var arr_text = tokens(text);
 
@@ -2518,9 +2530,7 @@ class ConversationalIVR {
 				}
 			}
 			if ((has_default) && (!message_understood) && (j == ((length keys) - 1))) {
-				// if (TextEvent_kb(session, arr_text, text))
-				// 	return true;
-				check_kb = false;
+				// check_kb = false;
 				k4 = "*";
 				message_understood = true;
 				k_orig = has_default;
@@ -2617,8 +2627,8 @@ class ConversationalIVR {
 				return true;
 			}
 		}
-		if (check_kb)
-			return TextEvent_kb(session, arr_text, text);
+		// if (check_kb)
+		// 	return TextEvent_kb(session, arr_text, text);
 		return false;
 	}
 

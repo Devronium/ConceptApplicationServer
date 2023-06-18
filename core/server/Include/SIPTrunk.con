@@ -3078,7 +3078,11 @@ class SIPStack {
 				msg = this.PeekMessage(ip, port);
 		} else
 			msg = this.PeekMessage(ip, port);
+		if (msg)
+			this._msgIterate(msg, ip, port, ops);
+	}
 
+	protected _msgIterate(msg, ip, port, var ops) {	
 		if (msg) {
 			if (this.OnFilter) {
 				if (this.OnFilter(msg, ip, port)) {
