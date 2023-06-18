@@ -564,10 +564,10 @@ class SIPSession {
 			last_sequence_number = sequence_number;
 			var ssrc_id = (tounumber(data[8] + data[9] + data[10] + data[11], 32));
 			var payload = SubStr(data, 12, length data);
+			if (srtp)
+				payload = srtp.Decrypt(SubStr(data, 0, 12), payload);
 			if (Record)
 				RecordStream(ssrc_id, payload, "in-", type);
-			if (srtp)
-				return srtp.Decrypt(SubStr(data, 0, 12), payload);
 			return payload;
 		}
 		return "";
@@ -3080,6 +3080,8 @@ class SIPStack {
 			msg = this.PeekMessage(ip, port);
 		if (msg)
 			this._msgIterate(msg, ip, port, ops);
+
+		return ops;
 	}
 
 	protected _msgIterate(msg, ip, port, var ops) {	
