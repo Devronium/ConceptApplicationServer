@@ -2932,8 +2932,14 @@ pragma used
 									js.timeout(0);
 									js.script(jstrycatch("var _r = function(self) { " + reduce + "; return self; }"));
 								}
-								if ((TIN_CLUSTER) && (!obj.version))
-									obj.version = this.oid();
+								if (TIN_CLUSTER) {
+									if (!obj.version)
+										obj.version = this.oid();
+
+									// automatically create index
+									if (IsSet(obj.p, '$oid'))
+										t.EnsureIndex("\$oid");
+								}
 
 								var update_data = [GetKeys(obj.f), obj, t, unique_fields, deleg, trigger, db, ((IsSet(obj.p, '$')) && (obj.p['$'])), js, obj.version];
 								t.Query(obj.p, null, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, data) {

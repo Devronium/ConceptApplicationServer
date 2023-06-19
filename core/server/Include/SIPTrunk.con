@@ -529,6 +529,27 @@ class SIPSession {
 			if (profile == 0)
 				payload = alaw2ulaw(payload);
 		}
+		
+		timestamp += length payload;
+		var res = pack("U8U8U16U32U32", 0x80, profile, sequence_number, timestamp, ClsPtr(this));
+		if (srtp)
+			res += srtp.Encrypt(res, payload);
+		else
+			res += payload;
+		sequence_number++;
+		if (Record)
+			RecordStream(ssrc_id, payload, "out-", profile);
+		return res;
+	}
+
+	/* SimpleRTP(payload, profile = 48) {
+		if (profile == 48) {
+			profile = remote_type;
+			if (profile < 0)
+				profile = 8;
+			if (profile == 0)
+				payload = alaw2ulaw(payload);
+		}
 			
 		var res = chr(0x80) + chr(profile);
 		res += toubin(htons(sequence_number), 16);
@@ -544,9 +565,38 @@ class SIPSession {
 		if (Record)
 			RecordStream(ssrc_id, payload, "out-", profile);
 		return res;
-	}
+	} */
 
 	ParseRTP(data, var type = null) {
+		type = -1;
+		last_timestamp = microseconds();
+		if (length data > 12) {
+			var data_arr = unpack("U8U8U16U32U32", data);
+			type = data_arr[1] & 0x7F;
+			if ((type >= 72) && (type <= 76))
+				return "";
+			var sequence_number = data_arr[2];
+			if ((last_sequence_number != -1) && (sequence_number <= last_sequence_number)) {
+				var delta = sequence_number - last_sequence_number;
+				if (delta < 0)
+					delta *= -1;
+				if (delta < 20)
+					return "";
+			}
+			last_sequence_number = sequence_number;
+			var payload = SubStr(data, 12, length data);
+			if (srtp)
+				payload = srtp.Decrypt(SubStr(data, 0, 12), payload);
+			if (Record) {
+				var ssrc_id = data_arr[4];
+				RecordStream(ssrc_id, payload, "in-", type);
+			}
+			return payload;
+		}
+		return "";
+	}
+
+	/* ParseRTP(data, var type = null) {
 		type = -1;
 		last_timestamp = microseconds();
 		if (length data > 12) {
@@ -571,7 +621,7 @@ class SIPSession {
 			return payload;
 		}
 		return "";
-	}
+	} */
 
 	GetSDP(codec = 48, extra = "") {
 		var res;
