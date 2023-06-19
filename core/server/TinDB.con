@@ -3122,8 +3122,10 @@ pragma used
 
 								if (TIN_CLUSTER) {
 									// automatically create index
-									if ((obj.p) && (length obj.p == 1) && (IsSet(obj.p, "\$oid")))
-										t.EnsureIndex("\$oid");
+									if ((obj.p) && (length obj.p == 1) && (IsSet(obj.p, "\$oid"))) {
+										if (!t.EnsureIndex("\$oid"))
+											console.info(LOG_THIS, "Created index for ${obj.c}(\$oid)");
+									}
 								}
 								t.Unlock(true);
 								if (js)
