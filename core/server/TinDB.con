@@ -2935,10 +2935,6 @@ pragma used
 								if (TIN_CLUSTER) {
 									if (!obj.version)
 										obj.version = this.oid();
-
-									// automatically create index
-									if (IsSet(obj.p, '$oid'))
-										t.EnsureIndex("\$oid");
 								}
 
 								var update_data = [GetKeys(obj.f), obj, t, unique_fields, deleg, trigger, db, ((IsSet(obj.p, '$')) && (obj.p['$'])), js, obj.version];
@@ -3123,6 +3119,12 @@ pragma used
 									r.p = ["\$updated" => update_data[11], "\$notunique" => update_data[12]];
 								else
 									r.p = ["\$updated" => update_data[11]];
+
+								if (TIN_CLUSTER) {
+									// automatically create index
+									if ((obj.p) && (length obj.p == 1) && (IsSet(obj.p, "\$oid")))
+										t.EnsureIndex("\$oid");
+								}
 								t.Unlock(true);
 								if (js)
 									js.gc();
