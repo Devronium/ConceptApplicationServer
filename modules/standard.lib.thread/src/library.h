@@ -41,6 +41,8 @@ extern "C" {
     CONCEPT_FUNCTION(GetWorkerResultDataAll)
     CONCEPT_FUNCTION(RemoveWorkerData)
     CONCEPT_FUNCTION(SetWorkerName)
+    CONCEPT_FUNCTION(GetWorkerInputSemaphore)
+    CONCEPT_FUNCTION(GetWorkerOutputSemaphore)
 
     CONCEPT_FUNCTION(WorkerSharedGet)
     CONCEPT_FUNCTION(WorkerSharedSet)
@@ -57,9 +59,9 @@ extern "C" {
 
     CONCEPT_FUNCTION(WorkerSandbox)
 
-    CONCEPT_FUNCTION(SemaphoreSocket);
-    CONCEPT_FUNCTION(SemaphoreSocketRead);
-    CONCEPT_FUNCTION(SemaphoreSocketWrite);
-    CONCEPT_FUNCTION(SemaphoreSocketClose);
+    CONCEPT_FUNCTION(SemaphoreSocket)
+    CONCEPT_FUNCTION(SemaphoreSocketRead)
+    CONCEPT_FUNCTION(SemaphoreSocketWrite)
+    CONCEPT_FUNCTION(SemaphoreSocketClose)
 }
 #endif // __LIBRARY_H

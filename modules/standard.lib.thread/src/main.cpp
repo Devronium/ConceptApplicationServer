@@ -188,6 +188,9 @@ private:
     pthread_mutex_t mutex;
     pthread_cond_t cond;
 #endif
+#ifdef EVENT_FD
+    int socket_semaphore;
+#endif
 public:
     CondWait() {
 #ifdef _WIN32
@@ -195,6 +198,9 @@ public:
 #else
         pthread_mutex_init(&mutex, NULL);
         pthread_cond_init(&cond, NULL);
+#endif
+#ifdef EVENT_FD
+        socket_semaphore = 0;
 #endif
     }
 
@@ -223,8 +229,24 @@ public:
             res = pthread_cond_wait(&cond, &mutex);
             pthread_mutex_unlock(&mutex);
         }
+// #ifdef EVENT_FD
+//         if (socket_semaphore > 0) {
+//             // reset the socket semaphore flag
+//             eventfd_t val = 0;
+//             eventfd_read(socket_semaphore, &val)
+//         }
+// #endif
         return res;
 #endif
+    }
+
+    int semaphore() {
+#ifdef EVENT_FD
+        if (socket_semaphore <= 0)
+            socket_semaphore = eventfd(0, EFD_NONBLOCK | EFD_SEMAPHORE);
+        return socket_semaphore;
+#endif
+        return -1;
     }
 
     void notify() {
@@ -235,6 +257,10 @@ public:
         pthread_cond_signal(&cond);
         pthread_mutex_unlock(&mutex);
 #endif
+#ifdef EVENT_FD
+        if (socket_semaphore > 0)
+            eventfd_write(socket_semaphore, 1);
+#endif
     }
 
     ~CondWait() {
@@ -243,6 +269,10 @@ public:
 #else
         pthread_cond_destroy(&cond);
         pthread_mutex_destroy(&mutex);
+#endif
+#ifdef EVENT_FD
+        if (socket_semaphore > 0)
+            close(socket_semaphore);
 #endif
     }
 };
@@ -730,6 +760,14 @@ public:
         sharecontext = (ShareContext *)context;
         if (sharecontext)
             sharecontext->Retain();
+    }
+
+    int GetInputSemaphore() {
+        return input_cond.semaphore();
+    }
+
+    int GetOutputSemaphore() {
+        return output_cond.semaphore();
     }
 
     ~ThreadMetaContainer() {
@@ -1756,6 +1794,32 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSandbox, 0, 1)
     RETURN_NUMBER(err);
 END_IMPL
 //------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(GetWorkerInputSemaphore, 1)
+    T_HANDLE(GetWorkerInputSemaphore, 0)
+
+    void *worker = (void *)(uintptr_t)PARAM(0);
+    ThreadMetaContainer *tmc = NULL;
+    Invoke(INVOKE_GETPROTODATA, worker, (int)2, &tmc);
+    if (!tmc)
+        return (void *)"Using a worker function on a non-worker";
+
+    int event_fd = tmc->GetInputSemaphore();
+    RETURN_NUMBER(event_fd);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(GetWorkerOutputSemaphore, 1)
+    T_HANDLE(GetWorkerOutputSemaphore, 0)
+
+    void *worker = (void *)(uintptr_t)PARAM(0);
+    ThreadMetaContainer *tmc = NULL;
+    Invoke(INVOKE_GETPROTODATA, worker, (int)2, &tmc);
+    if (!tmc)
+        return (void *)"Using a worker function on a non-worker";
+
+    int event_fd = tmc->GetOutputSemaphore();
+    RETURN_NUMBER(event_fd);
+END_IMPL
+//---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SemaphoreSocket, 0);
     int event_fd = 0;
 #ifdef EVENT_FD
