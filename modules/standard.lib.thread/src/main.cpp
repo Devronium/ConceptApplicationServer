@@ -15,6 +15,7 @@
  #define DWORD     uintptr_t
  #define LPVOID    void *
  #define POSIX_SEMAPHORES
+ #define EVENT_FD
 #endif
 
 #include "AnsiString.h"
@@ -27,6 +28,9 @@
 
 #ifdef POSIX_SEMAPHORES
  #include <semaphore.h>
+#endif
+#ifdef EVENT_FD
+ #include <sys/eventfd.h>
 #endif
 
 struct Container {
@@ -1750,5 +1754,47 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSandbox, 0, 1)
         worker = PARAMETERS->HANDLER;
     int err = Invoke(INVOKE_SET_SANDBOX, worker);
     RETURN_NUMBER(err);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(SemaphoreSocket, 0);
+    int event_fd = 0;
+#ifdef EVENT_FD
+    event_fd = eventfd(0, EFD_NONBLOCK | EFD_SEMAPHORE);
+#endif
+    RETURN_NUMBER(event_fd);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(SemaphoreSocketRead, 1);
+    T_NUMBER(SemaphoreSocketWrite, 0);
+    int event_fd = PARAM_INT(0);
+    uint64_t val = 0;
+#ifdef EVENT_FD
+    if (event_fd > 0) {
+        if (eventfd_read(event_fd, &val))
+            val = 0;
+    }
+#endif
+    RETURN_NUMBER((SYS_INT)val);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(SemaphoreSocketWrite, 1);
+    T_NUMBER(SemaphoreSocketWrite, 0);
+    int event_fd = PARAM_INT(0);
+    int err = -1;
+#ifdef EVENT_FD
+    if (event_fd > 0)
+        err = eventfd_write(event_fd, 1);
+#endif
+    RETURN_NUMBER(err);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(SemaphoreSocketClose, 1);
+    T_NUMBER(SemaphoreSocketClose, 0);
+    int event_fd = PARAM_INT(0);
+#ifdef EVENT_FD
+    if (event_fd > 0)
+        close(event_fd);
+#endif
+    RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------

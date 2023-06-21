@@ -56,5 +56,10 @@ extern "C" {
     CONCEPT_FUNCTION(WorkerErrors)
 
     CONCEPT_FUNCTION(WorkerSandbox)
+
+    CONCEPT_FUNCTION(SemaphoreSocket);
+    CONCEPT_FUNCTION(SemaphoreSocketRead);
+    CONCEPT_FUNCTION(SemaphoreSocketWrite);
+    CONCEPT_FUNCTION(SemaphoreSocketClose);
 }
 #endif // __LIBRARY_H
