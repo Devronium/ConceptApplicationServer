@@ -1794,12 +1794,17 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSandbox, 0, 1)
     RETURN_NUMBER(err);
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(GetWorkerInputSemaphore, 1)
-    T_HANDLE(GetWorkerInputSemaphore, 0)
-
-    void *worker = (void *)(uintptr_t)PARAM(0);
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetWorkerInputSemaphore, 0, 1)
+    void *worker = NULL;
     ThreadMetaContainer *tmc = NULL;
-    Invoke(INVOKE_GETPROTODATA, worker, (int)2, &tmc);
+
+    if (PARAMETERS_COUNT > 0) {
+        T_HANDLE(GetWorkerInputSemaphore, 0)
+        worker = (void *)(uintptr_t)PARAM(0);
+        Invoke(INVOKE_GETPROTODATA, worker, (int)2, &tmc);
+    } else {
+        Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
+    }
     if (!tmc)
         return (void *)"Using a worker function on a non-worker";
 
@@ -1807,12 +1812,17 @@ CONCEPT_FUNCTION_IMPL(GetWorkerInputSemaphore, 1)
     RETURN_NUMBER(event_fd);
 END_IMPL
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(GetWorkerOutputSemaphore, 1)
-    T_HANDLE(GetWorkerOutputSemaphore, 0)
-
-    void *worker = (void *)(uintptr_t)PARAM(0);
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetWorkerOutputSemaphore, 0, 1)
+    void *worker = NULL;
     ThreadMetaContainer *tmc = NULL;
-    Invoke(INVOKE_GETPROTODATA, worker, (int)2, &tmc);
+
+    if (PARAMETERS_COUNT > 0) {
+        T_HANDLE(GetWorkerOutputSemaphore, 0)
+        worker = (void *)(uintptr_t)PARAM(0);
+        Invoke(INVOKE_GETPROTODATA, worker, (int)2, &tmc);
+    } else {
+        Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
+    }
     if (!tmc)
         return (void *)"Using a worker function on a non-worker";
 
