@@ -1489,6 +1489,7 @@ pragma used
 	var[] sockets;
 	var poll;
 	var lastping;
+	var semaphore_socket;
 
 	RemoveSocket(sock) {
 		var res = new [];
@@ -1684,6 +1685,9 @@ pragma used
 				job = null;
 			}
 		} else
+		if (this.semaphore_socket)
+			timeout = 1000;
+		else
 			timeout = 20;
 
 		if (!sockets) {
@@ -1696,6 +1700,10 @@ pragma used
 		if (outsockets) {
 			for (var i = 0; i < length outsockets; i++) {
 				var sock = outsockets[i];
+				if (sock == this.semaphore_socket) {
+					SemaphoreSocketRead(this.semaphore_socket);
+					continue;
+				}
 				var buffer = "";
 				var buf2 = "";
 				var obj = null;
@@ -1743,6 +1751,9 @@ pragma used
 				KeepAlivePing();
 				lastping = time();
 			}
+			if (this.semaphore_socket)
+				sleep_value = 0;
+			else
 			if (outsockets)
 				sleep_value = 2; // Sleep(2);
 			else
@@ -1774,6 +1785,11 @@ pragma used
 		var next_idle_worker = 0;
 
 		this.poll = new Poll();
+		this.semaphore_socket = GetWorkerInputSemaphore();
+		if (this.semaphore_socket > 0)
+			this.poll.add(this.semaphore_socket);
+		else
+			this.semaphore_socket = 0;
 
 		var AccessDB = new TinBase("sys");
 		AccessDB.Mode = "rb";
