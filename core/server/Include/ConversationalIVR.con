@@ -3385,9 +3385,11 @@ class ConversationalIVR {
 		session.sip.Record = true;
 		session.StartRecording(session.Expires);
 		var refer_session = session.Refer(destination, ref_contact, sessionRemoteParty(session));
-		if (refer_session)
+		if (refer_session) {
 			session.sip.setMaxJitter(2);
-		else
+			if (session.ClientData)
+				session.ClientData.count = 0;
+		} else
 			console.warn(LOG_THIS, "error refering");
 		return refer_session;
 	}

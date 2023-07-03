@@ -350,8 +350,20 @@ class MDParser {
 									case "_":
 										if (class_data)
 											html += "<p ${MDParser::getClass("p", class_data)}>";
+										var text_type = "text";
+										if ((length StrSplit(type, ".") == 3) || (length StrSplit(type, "/") == 3) || (length StrSplit(type, "-") == 3)) {
+											text_type = "date";
+											if (Pos(type, ":") > 0)
+												text_type = "datetime-local";
+										} else
+										if (StrSplit(type, "@") == 2) {
+											text_type = "email";
+										} else
+										if (Pos(type, ":") > 0) {
+											text_type = "time";
+										}
 										html += "<label ${MDParser::getClass("label", class_data)}for=\"$name\">$key</label>\n";
-										html += "<input ${MDParser::getClass("text", class_data)}type=\"text\" id=\"$form_prefix$name\" name=\"$form_prefix$name\" size=\"${length type}\"$required/>\n";
+										html += "<input ${MDParser::getClass("text", class_data)}type=\"$text_type\" id=\"$form_prefix$name\" name=\"$form_prefix$name\" size=\"${length type}\"$required/>\n";
 										if (class_data)
 											html += "</p>\n";
 										break;

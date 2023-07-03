@@ -1,3 +1,5 @@
+// XLSX/PDF/CSV report generator
+
 include async.tin.con
 include SpreadsheetML.con
 include CSV.con
@@ -23,7 +25,7 @@ class ReportGenerator {
 				var header = headers[j];
 				if (header) {
 					var e4 = e[header];
-					if (typeof e4 != "array")
+					if ((typeof e4 != "array") || ((e4) && (!(GetKeys(e4)[0]))))
 						arr[prefix + header] = e4;
 				}
 			}
