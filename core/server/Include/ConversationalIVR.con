@@ -32,6 +32,7 @@ class IVRClientData {
 	var api;
 	var UserData;
 	var redirect = "";
+	var redirect_timestamp;
 	var finish_api = "";
 	var answered = false;
 	var timestamp;
@@ -1617,7 +1618,7 @@ class ConversationalIVR {
 				diversion = this.ivr.ParseFrom2(diversion);
 				if (diversion) {
 					console.info(LOG_THIS, "call is diverted from $diversion");
-					return diversion;
+					return "*" + diversion;
 				}
 			}
 		}
@@ -1631,9 +1632,9 @@ class ConversationalIVR {
 
 		var ivr_tree;
 
-		// var divert_from = diversion(sip_message);
-		// if ((divert_from) && (treeExists(divert_from)))
-		// 	to = divert_from;
+		var divert_from = diversion(sip_message);
+		if ((divert_from) && (((IsSet(ivr_trees, divert_from)) && (ivr_trees[divert_from])) || (treeExists(divert_from))))
+			to = divert_from;
 
 		var limit = ivr_limits[to];
 		if ((limit) && (length this.getSessions(to) > limit)) {
@@ -1689,6 +1690,16 @@ class ConversationalIVR {
 
 	OnAnswerGreeting(from, to, callid) {
 		return this.OnGreeting(to, from, callid);
+	}
+
+	OnRedirectAnswered(session, msg) {
+		var sess = session.Parent;
+		if ((!sess) || (!sess.UserData) || (!sess.UserData.ClientData))
+			return;
+
+		console.log(LOG_THIS, "redirect answered");
+		if (!sess.UserData.ClientData.redirect_timestamp)
+			sess.UserData.ClientData.redirect_timestamp = time();
 	}
 
 	OnBegin(session) {
@@ -3566,6 +3577,7 @@ class ConversationalIVR {
 		try {
 			this.LoopCallback = loop_callback;
 			this.ivr.stack.OnAnswered = this.ivr.OnAnswered;
+			this.ivr.stack.OnRedirectAnswered = this.OnRedirectAnswered;
 			ivr.Start();
 		} catch (var exc) {
 			console.error(LOG_THIS, exc);
