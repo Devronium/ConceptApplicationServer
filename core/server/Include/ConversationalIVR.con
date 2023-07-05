@@ -13,6 +13,7 @@ include MP3.con
 
 define SETTINTS_MAX_TIMEOUTS	4
 define SETTINGS_ENSURE_WORDS	false
+define SETTINGS_MAX_DEQUEUE	4096
 
 define STT_RESET	0
 define STT_ADDBUFFER	1
@@ -38,6 +39,8 @@ class IVRClientData {
 	var timestamp;
 	var expectedWords;
 	var worker;
+	var worker_key;
+	var default_language;
 	var timeouts;
 	var remotehost;
 	var empty_buffer = true;
@@ -1263,6 +1266,7 @@ class ConversationalIVR {
 	var[] ivr_disabled;
 	var[] ivr_quota_limit;
 	var[] ivr_quota;
+
 	var ivr_api_trees_dirty;
 
 	var OnFinish;
@@ -1341,13 +1345,37 @@ class ConversationalIVR {
 		return session.From;
 	}
 
+	dequeueCallbackTree(from, to, reset = true) {
+		var ivr_tree;
+
+		if (!IsSet(ivr_queues, to))
+			return ivr_tree;
+
+		var queue = ivr_queues[to];
+		if (queue) {
+			var na = queue["not_answered"];
+			if ((na) && (IsSet(na, from))) {
+				ivr_tree = na[from];
+				if (reset) {
+					queue["placeholders"] ++;
+					na[from] = null;
+				}
+			}
+		}
+
+		return ivr_tree;
+	}
+
 	sessionTree(session) {
 		var callid = session.sip.CallID;
 		var ivr_tree;
 		if (IsSet(ivr_api_trees, callid))
 			ivr_tree = ivr_api_trees[callid];
-		if (!ivr_tree)
-			ivr_tree = ivr_trees[sessionTo(session)];
+		if (!ivr_tree) {
+			var to = sessionTo(session);
+			var from = sessionRemoteParty(session);
+			ivr_tree = dequeueCallbackTree(from, to) ?? ivr_trees[to];
+		}
 		return ivr_tree;
 	}
 
@@ -1651,11 +1679,12 @@ class ConversationalIVR {
 		}
 
 		var event_type;
+
 		if (IsSet(ivr_api_trees, callid)) {
 			ivr_tree = ivr_api_trees[callid] ?? ivr_tree;
 			event_type = "out";
 		} else {
-			ivr_tree = this.loadDefaultTree(to);
+			ivr_tree = this.dequeueCallbackTree(from, to, false) ?? this.loadDefaultTree(to);
 			event_type = "in";
 		}
 
@@ -1708,6 +1737,13 @@ class ConversationalIVR {
 		session.ClientData.answered = true;
 	}
 
+	protected _languageFromKey(key) {
+		var offset = Pos(key, ".tflite");
+		if (offset > 2)
+			return ToLower(key[offset - 3] + key[offset - 2]);
+		return "";
+	}
+
 	protected chooseWorker(session, hash) {
 		if (!session)
 			return null;
@@ -1719,18 +1755,35 @@ class ConversationalIVR {
 		if (session.sip.is_invite)
 			to = session.From;
 
-		if (!IsSet(this.ivr_model_keys, to))
-			return null;
+		var key;
+		if (session.ClientData.worker_key) {
+			key = "models/${session.ClientData.worker_key}.tflite:default/${session.ClientData.worker_key}.scorer";
+			if (!IsSet(stt_workers, key))
+				this.addWorker(to, "models/${session.ClientData.worker_key}.tflite", "default/${session.ClientData.worker_key}.scorer", 2, 4, false);
+			if (!IsSet(stt_workers, key)) {
+				console.warn(LOG_THIS, "invalid language key [$key]");
+				key = null;
+			} else
+				console.log(LOG_THIS, "switching to [$key]");
+		}
+		if (!key) {
+			if (!IsSet(this.ivr_model_keys, to))
+				return null;
 
-		var key = this.ivr_model_keys[to];
+			key = this.ivr_model_keys[to];
+		}
 		if (!key)
 			return null;
+
+		if (!session.ClientData.default_language)
+			session.ClientData.default_language = this._languageFromKey(key);
 
 		var len;
 		var workers;
 
 		if ((cheap_workers) && (session.ClientData.ivr_branch) && (typeof session.ClientData.ivr_branch == "array")) {
-			workers = cheap_workers[key];
+			if (IsSet(cheap_workers, key))
+				workers = cheap_workers[key];
 			if (workers) {
 				len = length workers;
 				if (len) {
@@ -2103,6 +2156,21 @@ class ConversationalIVR {
 		if (!session) {
 			console.warn(LOG_THIS, "session $id does not exists");
 			return;
+		}
+
+		if (text[0] == "[") {
+			var pos2 = Pos(text, "]");
+			if (pos2 > 1) {
+				var lang_id = StrSplit(ToLower(SubStr(text, 1, pos2 - 2)), "-")[0];
+				if (lang_id) {
+					var current_language = session.ClientData.worker_key ?? session.ClientData.default_language;
+					if ((!current_language) || (current_language != lang_id)) {
+						session.ClientData.worker = null;
+						session.ClientData.worker_key = lang_id;
+						console.log(LOG_THIS, "session $id switching language to [$lang_id]");
+					}
+				}
+			}		
 		}
 
 		var stt_worker = this.chooseWorker(session, session.ClientData.hash);
@@ -2999,7 +3067,7 @@ class ConversationalIVR {
 		}
 	}
 
-	addWorker(to, model, scorer = "", count = 2, max_workers = 4) {
+	addWorker(to, model, scorer = "", count = 2, max_workers = 4, set_default = true) {
 		if (!model) {
 			console.error("invalid model");
 			return;
@@ -3077,7 +3145,8 @@ class ConversationalIVR {
 			}
 		}
 
-		this.ivr_model_keys[to] = key;
+		if (set_default)
+			this.ivr_model_keys[to] = key;
 	}
 
 	addRoute(route, host, port = 5060) {
@@ -3444,6 +3513,44 @@ class ConversationalIVR {
 		return sess_ids;
 	}
 
+	protected _updateNa(identity, to, tree) {
+		var ivr_queues_not_answered = ivr_queues[identity]["not_answered"];
+		if (!ivr_queues_not_answered) {
+			ivr_queues_not_answered = new [];
+			ivr_queues[identity]["not_answered"] = ivr_queues_not_answered;
+		}
+		if (length ivr_queues_not_answered < SETTINGS_MAX_DEQUEUE)
+			ivr_queues_not_answered[to] = tree;
+	}
+
+	protected _clearNa(identity, to) {
+		var ivr_queues_not_answered = ivr_queues[identity]["not_answered"];
+		if (!ivr_queues_not_answered)
+			return;
+		var arr = ivr_queues_not_answered[identity];
+		if ((!arr) || (!IsSet(arr, to)))
+			return;
+
+		arr[to] = null;
+		ivr_queues[identity]["placeholders"] ++;
+
+		if (ivr_queues[identity]["placeholders"] < SETTINGS_MAX_DEQUEUE / 10)
+			return;
+
+		var arr2 = new [];
+		var keys = GetKeys(arr);
+		for (var i = 0; i < length arr; i ++) {
+			var e = arr[i];
+			if (e) {
+				var k = keys[i];
+				if (k)
+					arr2[k] = e;
+			}
+		}
+		ivr_queues_not_answered[identity] = arr2;
+		ivr_queues[identity]["placeholders"] = 0;
+	}
+
 	protected _dequeue(identity, check_ivr = true, route = "", to = "", session = null, var active_calls = 0) {
 		identity = "" + identity;
 
@@ -3460,20 +3567,39 @@ class ConversationalIVR {
 		var retry_mode = 0;
 		if (check_ivr) {
 			retry_mode = ivr_queues[identity]["retry"];
+			if ((!retry_mode) && (ivr_queues[identity]["calls"] == 0)) {
+				var min_retry = 0;
+				for (var i = 0; i < length data; i ++) {
+					var obj = data[i];
+					if (obj) {
+						var call_status = obj["status"];
+						if ((call_status) && (Pos(call_status, "try ") > 0)) {
+							var val = value SubStr(call_status, 4);
+							if ((val < min_retry) || (!min_retry))
+								min_retry = val;
+						}
+					}
+				}
+				retry_mode = min_retry;
+				ivr_queues[identity]["retry"] = retry_mode;
+			}
 			ivr_queues[identity]["calls"] ++;
 		}
 
 		if ((to) && (session) && (session.ClientData)) {
-			for (var i = 0; i < length data; i ++) {
-				var obj = data[i];
+			for (i = 0; i < length data; i ++) {
+				obj = data[i];
 				if ((obj) && (obj["status"]) && ("" + obj["who"] == to) && (obj["text"])) {
-					if (session.ClientData.answered)
+					if (session.ClientData.answered) {
 						obj["status"] = "answered";
-					else
+						this._clearNa(identity, to);
+					} else {
 						obj["status"] = "not answered";
+					}
 					obj["duration"] = _floor(session.ClientData.callDuration() / 1000);
 					obj["path"] = session.ClientData.ivr_path;
 					obj["timestamp"] = (new Date()).toISOString();
+					obj["conversation"] = session.ClientData.debug_text ?? session.ClientData.last_text;
 
 					WriteFile(JSONSerialize(data, true, true), "./queue/$identity.json");
 					break;
@@ -3496,6 +3622,7 @@ class ConversationalIVR {
 
 				if (this.call(trim(StrSplit(obj["who"], ",")[0]) + "@" + route, identity, tree, 1800, obj["as"] ?? "")) {
 					active_calls ++;
+					this._updateNa(identity, obj["who"], tree);
 					return true;
 				}
 				return false;
@@ -3544,8 +3671,10 @@ class ConversationalIVR {
 	}
 
 	queue(identity, route, max_calls, stop = false) {
-		if ((!route) || (max_calls <= 0))
+		if ((!route) || (max_calls <= 0)) {
+			console.warn(LOG_THIS, "no route");
 			return false;
+		}
 
 		// leave one line free
 		if (max_calls > 1)

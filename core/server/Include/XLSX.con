@@ -149,11 +149,11 @@ class XLSX {
 		if (typeof val != "string") 
 			return val;
 
+		val = StrReplace(val, "&", "&amp;");
 		val = StrReplace(val, "\"", "&quot;");
 		val = StrReplace(val, "'", "&apos;");
 		val = StrReplace(val, "<", "&lt;");
 		val = StrReplace(val, ">", "&gt;");
-		val = StrReplace(val, "&", "&amp;");
 
 		return val;
 	}
