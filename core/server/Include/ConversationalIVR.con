@@ -3525,29 +3525,26 @@ class ConversationalIVR {
 
 	protected _clearNa(identity, to) {
 		var ivr_queues_not_answered = ivr_queues[identity]["not_answered"];
-		if (!ivr_queues_not_answered)
-			return;
-		var arr = ivr_queues_not_answered[identity];
-		if ((!arr) || (!IsSet(arr, to)))
+		if ((!ivr_queues_not_answered) || (!IsSet(ivr_queues_not_answered, to)))
 			return;
 
-		arr[to] = null;
+		ivr_queues_not_answered[to] = null;
 		ivr_queues[identity]["placeholders"] ++;
 
 		if (ivr_queues[identity]["placeholders"] < SETTINGS_MAX_DEQUEUE / 10)
 			return;
 
 		var arr2 = new [];
-		var keys = GetKeys(arr);
-		for (var i = 0; i < length arr; i ++) {
-			var e = arr[i];
+		var keys = GetKeys(ivr_queues_not_answered);
+		for (var i = 0; i < length ivr_queues_not_answered; i ++) {
+			var e = ivr_queues_not_answered[i];
 			if (e) {
 				var k = keys[i];
 				if (k)
 					arr2[k] = e;
 			}
 		}
-		ivr_queues_not_answered[identity] = arr2;
+		ivr_queues[identity]["not_answered"] = arr2;
 		ivr_queues[identity]["placeholders"] = 0;
 	}
 

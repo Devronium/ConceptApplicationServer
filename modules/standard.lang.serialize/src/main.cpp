@@ -3506,6 +3506,26 @@ CONCEPT_FUNCTION_IMPL(__object, 1)
     }
 END_IMPL
 //---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(deleteArrayElement, 2)
+    T_ARRAY(deleteArrayElement, 0)
+    CHECK_STATIC_PARAM(1, "deleteArrayElement: key/index should be a string or a number");
+    INTEGER index = -1;
+    const char *key = "";
+    if (TYPE == VARIABLE_NUMBER) {
+        T_NUMBER(deleteArrayElement, 1)
+        index = PARAM_INT(1);
+    } else {
+        T_STRING(deleteArrayElement, 1)
+        key = PARAM(1);
+    }
+    if (IS_OK(LocalInvoker(INVOKE_ARRAY_DELETE, PARAMETER(0), index, key))) {
+        RETURN_NUMBER(1);
+    } else {
+        RETURN_NUMBER(0);
+    }
+    
+END_IMPL
+//---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(hpack, 1)
     T_STRING(hpack, 0)
     int len = PARAM_LEN(0);

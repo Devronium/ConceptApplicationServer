@@ -1086,6 +1086,121 @@ struct Array *Array_SortArrayElementsByKey(struct Array *self) {
     return newARRAY;
 }
 
+ARRAY_COUNT_TYPE Array_Delete(struct Array *self, ARRAY_COUNT_TYPE i, const char *key) {
+
+    if ((i < 0) && (key))
+        i = Array_FindKey(self, key);
+
+    if (i < 0)
+        return 0;
+
+    void *PIF = GET_ARRAY_PIF(self);
+    if (i < self->COUNT) {
+        if ((self->Keys) && (i < self->KeysCount)) {
+            
+            ARRAY_COUNT_TYPE key_offset = -1;
+            for (ARRAY_COUNT_TYPE key_index = 0; key_index < self->KeysCount; key_index ++) {
+                if (self->Keys [key_index].index == i) {
+                    if (self->Keys [key_index].KEY) {
+                        FAST_FREE(PIF, self->Keys [key_index].KEY);
+                    }
+                    key_offset = key_index;
+                } else
+                if (self->Keys [key_index].index > i) {
+                    self->Keys [key_index].index --;
+                }
+            }
+
+            self->KeysCount --;
+
+            for (ARRAY_COUNT_TYPE key_index = key_offset; key_index < self->KeysCount; key_index ++) {
+                self->Keys[key_index] = self->Keys[key_index + 1];
+            }
+
+            if (self->KeysCount) {
+                if (self->KeysCount % KEY_INCREMENT == 0)
+                    self->Keys = (ArrayKey *)FAST_REALLOC(PIF, self->Keys, sizeof(ArrayKey) * (self->KeysCount / KEY_INCREMENT + 1) * KEY_INCREMENT);
+            } else {
+                FAST_FREE(PIF, self->Keys);
+                self->Keys = NULL;
+            }
+        }
+
+        ARRAY_COUNT_TYPE target_node = DYNAMIC_TARGET(i);
+        ARRAY_COUNT_TYPE d_count     = DYNAMIC_DISTRIBUTION(i);
+
+        NODE *CURRENT;
+#ifdef OPTIMIZE_FAST_ARRAYS
+        if (self->LastNodeIndex == target_node) {
+            CURRENT = self->LastNode;
+        } else
+        if ((self->LastNodeIndex != -1) && (self->LastNodeIndex < target_node)) {
+            CURRENT = self->LastNode;
+            for (ARRAY_COUNT_TYPE k = self->LastNodeIndex; k < target_node; k++)
+                CURRENT = CURRENT->NEXT;
+        } else {
+#endif
+#ifdef OPTIMIZE_FAST_ARRAYS
+        self->LastNodeIndex = -1;
+        self->LastNode      = 0;
+#endif
+        CURRENT = self->FIRST;
+        for (ARRAY_COUNT_TYPE k = 0; k < target_node; k++)
+            CURRENT = CURRENT->NEXT;
+#ifdef OPTIMIZE_FAST_ARRAYS
+        }
+#endif
+        if ((d_count < CURRENT->COUNT) && (CURRENT->ELEMENTS)) {
+            VariableDATA *Var = CURRENT->ELEMENTS[d_count];
+            FREE_VARIABLE(Var, NULL);
+            CURRENT->COUNT --;
+            for (unsigned short index = d_count; index < CURRENT->COUNT; index ++)
+                CURRENT->ELEMENTS[index] = CURRENT->ELEMENTS[index + 1];
+           
+            CURRENT->ELEMENTS[CURRENT->COUNT] = NULL;
+            
+            while ((CURRENT->NEXT) && (CURRENT->NEXT->ELEMENTS) && (CURRENT->NEXT->COUNT)) {
+                CURRENT->ELEMENTS[CURRENT->COUNT] = CURRENT->NEXT->ELEMENTS[0];
+                CURRENT->COUNT ++;
+
+                NODE *NEXT = CURRENT->NEXT;
+
+                NEXT->COUNT --;
+                for (unsigned short index = 0; index < NEXT->COUNT; index ++)
+                    NEXT->ELEMENTS[index] = NEXT->ELEMENTS[index + 1];
+
+                CURRENT->ELEMENTS[CURRENT->COUNT] = NULL;
+
+                if (!NEXT->COUNT) {
+                    if (NEXT->ELEMENTS)
+                        FAST_FREE(PIF, NEXT->ELEMENTS);
+                    FAST_FREE(PIF, NEXT);
+                    
+                    CURRENT->NEXT = NULL;
+
+                    if (self->LAST == NEXT)
+                        self->LAST = CURRENT;
+
+                    self->NODE_COUNT --;
+                    break;
+                }
+                CURRENT = NEXT;
+            }
+            
+        }
+#ifdef OPTIMIZE_FAST_ARRAYS
+        if (self->cached_data) {
+            FAST_FREE(PIF, self->cached_data);
+            self->cached_data = 0;
+        }
+#endif
+        self->COUNT --;
+
+        return 1;
+    }
+    return 0;
+}
+
 void Array_GetKeys(struct Array *self, char **container, int size) {
     memset(container, 0, size * sizeof(char *));
     Array_CleanIndex(self, true);

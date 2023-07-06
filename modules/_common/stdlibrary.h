@@ -107,6 +107,7 @@ static const char *empty_string = "";
 #define INVOKE_FILENAME                       0x65
 #define INVOKE_IS_SANDBOX                     0x66
 #define INVOKE_SET_SANDBOX                    0x67
+#define INVOKE_ARRAY_DELETE                   0x80
 
 #define     VARIABLE_CONSTANT                 0x00
 #define     VARIABLE_UNDEFINED                0x01

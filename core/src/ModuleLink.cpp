@@ -969,6 +969,24 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
             }
             break;
 
+        case INVOKE_ARRAY_DELETE:
+            {
+                VariableDATA *target   = va_arg(ap, VariableDATA *);
+                INTEGER      index = va_arg(ap, INTEGER);
+                char         *key    = va_arg(ap, char *);
+                if (!target) {
+                    result = INVALID_INVOKE_PARAMETER;
+                    break;
+                }
+                if ((target->TYPE == VARIABLE_ARRAY) && (target->CLASS_DATA)) {
+                    if (!Array_Delete((struct Array *)target->CLASS_DATA, index, key))
+                        result = CANNOT_INVOKE_IN_THIS_CASE;
+                } else {
+                    result = INVALID_INVOKE_PARAMETER;
+                }
+            }
+            break;
+
         case INVOKE_CREATE_DELEGATE:
             {
                 VariableDATA *target            = va_arg(ap, VariableDATA *);

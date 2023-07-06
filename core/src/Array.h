@@ -91,6 +91,7 @@ VariableDATA *Array_AddCopy(struct Array *self, VariableDATA *VAR_TO_ADD);
 VariableDATA *Array_ModuleGet(struct Array *self, const char *key);
 VariableDATA *Array_ModuleGet(struct Array *self, ARRAY_COUNT_TYPE);
 struct Array *Array_SortArrayElementsByKey(struct Array *self);
+ARRAY_COUNT_TYPE Array_Delete(struct Array *self, ARRAY_COUNT_TYPE i, const char *key);
 void Array_GetKeys(struct Array *self, char **container, int size);
 struct plainstring *Array_ToString(struct Array *self, int level = 0, Array *parent = 0, int parents = 0);
 struct Array *Array_Concat(struct Array *self, struct Array *array);

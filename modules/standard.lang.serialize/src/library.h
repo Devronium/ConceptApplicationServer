@@ -61,5 +61,7 @@ CONCEPT_FUNCTION(gzip)
 CONCEPT_FUNCTION(gzip_create)
 CONCEPT_FUNCTION(gzip_compress)
 CONCEPT_FUNCTION(gzip_done)
+
+CONCEPT_FUNCTION(deleteArrayElement)
 }
 #endif // __LIBRARY_H
