@@ -557,7 +557,7 @@ class HTTP2Stream {
 	SafeWrite(socket, var buf, close = false) {
 		var max_len = this.WindowAdjusted(socket.WindowAdjusted(length buf));
 		if (max_len <= 0) {
-			if ((this.Status != 2) || (!socket.StreamCount))
+			if ((this.Status != 2) || (!(length socket.Streams)))
 				throw "HTTP2Stream/SafeWrite: Cannot write on a closed stream";
 			return 0;
 		}
@@ -638,7 +638,6 @@ class HTTP2Socket {
 	protected var InBuffer = "";
 	protected var Status = 0;
 	public var[] Streams;
-	public var StreamCount = 0;
 	protected var LastPing;
 	protected var LastFrameType;
 	protected var HeaderBuf = "";
@@ -687,8 +686,7 @@ class HTTP2Socket {
 		var stream = Streams[key];
 		if (stream) {
 			stream.Status = 3;
-			Streams[key] = null;
-			this.StreamCount--;
+			deleteArrayElement(Streams, key);			
 		}
 	}
 
@@ -756,7 +754,6 @@ class HTTP2Socket {
 
 	Reset(status = -1) {
 		Streams = [ ];
-		StreamCount = 0;
 		Status = status;
 		InBuffer = "";
 		OutBuffer = "";
@@ -843,7 +840,6 @@ class HTTP2Socket {
 								headers = [ ];
 							stream = new HTTP2Stream(streamid, headers);
 							stream.WindowSize = this.InitialWindowSize;
-							this.StreamCount++;
 							Streams["" + streamid] = stream;
 							if (RemoteMaxStreamID < streamid)
 								RemoteMaxStreamID = streamid;
@@ -1051,24 +1047,6 @@ class HTTP2Socket {
 		return length OutBuffer;
 	}
 
-	CleanStreams() {
-		var new_children = new [];
-		var children = this.Streams;
-		if (!StreamCount) {
-			this.Streams = new_children;
-			return;
-		}
-		var keys = GetKeys(children);
-		for (var i = 0; i < length keys; i++) {
-			var key = keys[i];
-			if (key) {
-				var child = children[key];
-				if (child)
-					new_children[key] = child;
-			}
-		}
-	}
-
 	Iterate(OnRequest = null) {
 		var data_read = false;
 		if (this.Socket.HasData) {
@@ -1089,8 +1067,6 @@ class HTTP2Socket {
 		if ((data_read) || ((OutBuffer) && (Status)))
 			return true;
 
-		if (length Streams - StreamCount > 64)
-			CleanStreams();
 		return false;
 	}
 
@@ -1112,8 +1088,6 @@ class HTTP2Socket {
 		if ((data_read) || ((OutBuffer) && (Status)))
 			return true;
 
-		if (length Streams - StreamCount > 64)
-			CleanStreams();
 		return false;
 	}
 
@@ -1126,7 +1100,6 @@ class HTTP2Socket {
 			}
 		}
 		Streams = [ ];
-		StreamCount = 0;
 		Status = -1;
 		InBuffer = "";
 		OutBuffer = "";

@@ -1763,9 +1763,10 @@ pragma used
 			if (child) {
 				if (child.Iterate(res)) {
 					child.Close();
-					children[i] = null;
+					// children[i] = null;
+					deleteArrayElement(children, i);
 					this.ClearCache(child);
-					Placeholders ++;
+					// Placeholders ++;
 				}
 			}
 		}
@@ -1935,8 +1936,9 @@ class ConceptChild {
 			if (client==this) {
 				return true;
 			} else {
-				this.Owner.Connections[""+app_id] = null;
-				this.Owner.PlaceHolders++;
+				deleteArrayElement(this.Owner.Connections, "" + app_id);
+				// this.Owner.Connections[""+app_id] = null;
+				// this.Owner.PlaceHolders++;
 				client.PID = -3;
 				// return true;
 			}
@@ -2331,8 +2333,9 @@ class ConceptChild {
 
 		if (apid > 0) {
 			RemoveChild(apid, ip);
-			Owner.Connections["" + apid] = null;
-			Owner.PlaceHolders ++;
+			// Owner.Connections["" + apid] = null;
+			deleteArrayElement(Owner.Connections, "" + apid);
+			// Owner.PlaceHolders ++;
 		}
 
 		if (this.PID > 0) {
@@ -2509,7 +2512,8 @@ class ConceptAppWorker extends IniCache {
 				} catch (var exc) {
 					console.warn(LOG_THIS, exc);
 					child.Done();
-					this.Connections[i] = null;
+					// this.Connections[i] = null;
+					deleteArrayElement(this.Connections, i);
 				}
 			}
 		}
