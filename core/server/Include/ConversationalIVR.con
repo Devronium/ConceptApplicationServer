@@ -46,12 +46,14 @@ class IVRClientData {
 	var empty_buffer = true;
 	var forward = false;
 	var diverted;
+	var is_queue;
 
-	IVRClientData(ivr, ivr_tree, session, notify_event = true) {
+	IVRClientData(ivr, ivr_tree, session, notify_event = true, is_queue = false) {
 		this.ivr_branch = ivr_tree;
 		this.ivr_tree = ivr_tree;
 		this.hash = Murmur(session.sip.CallID);
 		this.timestamp = microseconds();
+		this.is_queue = is_queue;
 		if (!session.sip.is_invite)
 			this.diverted = ivr.diversion(session.sip.msg);
 
@@ -1075,6 +1077,11 @@ class BromblerJS {
 			return exc;
 		}
 	}
+
+	done() {
+		// avoid circular reference 
+		delete duk;
+	}
 }
 
 class JSWorker {
@@ -1092,6 +1099,8 @@ class JSWorker {
 					var js = new BromblerJS();
 					js.load(code);
 					obj["data"] = js.load(obj["apiCall"]);
+					// avoid circular reference
+					js.done();
 				}
 				Worker::Result(BinarizeObject(obj));
 			}
@@ -1357,8 +1366,9 @@ class ConversationalIVR {
 			if ((na) && (IsSet(na, from))) {
 				ivr_tree = na[from];
 				if (reset) {
-					queue["placeholders"] ++;
-					na[from] = null;
+					deleteArrayElement(na, from);
+					// queue["placeholders"] ++;
+					// na[from] = null;
 				}
 			}
 		}
@@ -1366,7 +1376,8 @@ class ConversationalIVR {
 		return ivr_tree;
 	}
 
-	sessionTree(session) {
+	sessionTree(session, var is_queue = null) {
+		is_queue = false;
 		var callid = session.sip.CallID;
 		var ivr_tree;
 		if (IsSet(ivr_api_trees, callid))
@@ -1374,7 +1385,12 @@ class ConversationalIVR {
 		if (!ivr_tree) {
 			var to = sessionTo(session);
 			var from = sessionRemoteParty(session);
-			ivr_tree = dequeueCallbackTree(from, to) ?? ivr_trees[to];
+			var queue_tree = dequeueCallbackTree(from, to);
+			if (queue_tree) {
+				ivr_tree = queue_tree;
+				is_queue = true;
+			} else
+				ivr_tree = ivr_trees[to];
 		}
 		return ivr_tree;
 	}
@@ -1390,7 +1406,7 @@ class ConversationalIVR {
 		var fname = VoiceWorker::key(text, voice);
 		if (session) {
 			if (!session.ClientData)
-				session.ClientData = new IVRClientData(this, sessionTree(session), session);
+				session.ClientData = new IVRClientData(this, sessionTree(session, var is_queue), session, true, is_queue);
 			else
 				session.ClientData.count = 0;
 
@@ -1660,9 +1676,9 @@ class ConversationalIVR {
 
 		var ivr_tree;
 
-		var divert_from = diversion(sip_message);
-		if ((divert_from) && (((IsSet(ivr_trees, divert_from)) && (ivr_trees[divert_from])) || (treeExists(divert_from))))
-			to = divert_from;
+		// var divert_from = diversion(sip_message);
+		// if ((divert_from) && (((IsSet(ivr_trees, divert_from)) && (ivr_trees[divert_from])) || (treeExists(divert_from))))
+		// 	to = divert_from;
 
 		var limit = ivr_limits[to];
 		if ((limit) && (length this.getSessions(to) > limit)) {
@@ -1733,7 +1749,7 @@ class ConversationalIVR {
 
 	OnBegin(session) {
 		if (!session.ClientData)
-			session.ClientData = new IVRClientData(this, sessionTree(session), session);
+			session.ClientData = new IVRClientData(this, sessionTree(session, var is_queue), session, true, is_queue);
 		session.ClientData.answered = true;
 	}
 
@@ -1882,7 +1898,7 @@ class ConversationalIVR {
 
 	OnAudioFrame(session, var buffer, type) {
 		if (!session.ClientData)
-			session.ClientData = new IVRClientData(this, sessionTree(session), session);
+			session.ClientData = new IVRClientData(this, sessionTree(session, var is_queue), session, true, is_queue);
 
 		// count == 2 means DTMF only
 		if (session.ClientData.count == 1) {
@@ -1955,7 +1971,7 @@ class ConversationalIVR {
 			return;
 
 		if (!session.ClientData)
-			session.ClientData = new IVRClientData(this, sessionTree(session), session);
+			session.ClientData = new IVRClientData(this, sessionTree(session), session, true);
 
 		if (session.ClientData.redirect) {
 			this.Raspuns(session.sip.CallID, session.ClientData.redirect);
@@ -2035,8 +2051,9 @@ class ConversationalIVR {
 		if ((session) && ((!session.UserData) || (!session.UserData.ClientData)))
 			this.notifyCode(session, code);
 
-		if (IsSet(ivr_api_trees, callid)) {
-			ivr_api_trees[callid] = null;
+		if ((callid) && (IsSet(ivr_api_trees, callid))) {
+			deleteArrayElement(ivr_api_trees, callid);
+			/* ivr_api_trees[callid] = null;
 			ivr_api_trees_dirty ++;
 			if (ivr_api_trees_dirty >= 8) {
 				var keys = GetKeys(ivr_api_trees);
@@ -2052,7 +2069,7 @@ class ConversationalIVR {
 				ivr_api_trees = arr;
 				console.log("cleared ${ivr_api_trees_dirty} placeholders");
 				ivr_api_trees_dirty = 0;
-			}
+			} */
 		}
 		console.log(LOG_THIS, "call id ${callid} ended with code $code");
 		if ((session) && (session.UserData) && (session.UserData.ClientData) && (this.OnAPI)) {
@@ -3528,6 +3545,9 @@ class ConversationalIVR {
 		if ((!ivr_queues_not_answered) || (!IsSet(ivr_queues_not_answered, to)))
 			return;
 
+		deleteArrayElement(ivr_queues_not_answered, to);
+
+		/*
 		ivr_queues_not_answered[to] = null;
 		ivr_queues[identity]["placeholders"] ++;
 
@@ -3546,6 +3566,31 @@ class ConversationalIVR {
 		}
 		ivr_queues[identity]["not_answered"] = arr2;
 		ivr_queues[identity]["placeholders"] = 0;
+		*/
+	}
+
+	protected _dequeueAnswer(session) {
+		if ((session) && (session.ClientData)) {
+			var to = sessionRemoteParty(session);
+			var identity = sessionTo(session);
+			if ((!to) || (!identity))
+				return;
+			var data = JSONDeserialize(ReadFile("./queue/$identity.json"));
+			for (var i = 0; i < length data; i ++) {
+				var obj = data[i];
+				if ((obj) && (obj["status"]) && ("" + obj["who"] == to) && (obj["text"])) {
+					obj["status"] = "answered";
+					obj["duration"] = _floor(session.ClientData.callDuration() / 1000);
+					obj["path"] = session.ClientData.ivr_path;
+					obj["timestamp"] = (new Date()).toISOString();
+					obj["conversation"] = session.ClientData.debug_text ?? session.ClientData.last_text;
+
+					WriteFile(JSONSerialize(data, true, true), "./queue/$identity.json");
+					break;
+				}
+			}
+		}
+
 	}
 
 	protected _dequeue(identity, check_ivr = true, route = "", to = "", session = null, var active_calls = 0) {
@@ -3656,8 +3701,14 @@ class ConversationalIVR {
 	}
 
 	protected _dequeueSession(session) {
-		if ((!session) || (!session.is_invite))
+		if (!session)
 			return null;
+
+		if (!session.is_invite) {
+			if ((session.UserData) && (session.UserData.ClientData) && (session.UserData.ClientData.is_queue))
+				this._dequeueAnswer(session.UserData);
+			return null;
+		}
 
 		var identity = this.ivr.ParseFrom(session.msg.Headers["from"]);
 		var to = this.ivr.ParseFrom(session.msg.Headers["to"]);
