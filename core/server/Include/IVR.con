@@ -1,5 +1,6 @@
 include SIPTrunk.con
 include DirectoryList.con
+include Cache.con
 import standard.C.math
 
 define READ_KEYS_LEN	1
@@ -170,7 +171,7 @@ class DATASession {
 
 class IVR {
 	var stack;
-	var[] cache;
+	var cache;
 	var Connection;
 	var LastTime;
 	var Greeting;
@@ -193,10 +194,11 @@ class IVR {
 
 	Get(key, format = "alaw", dir = "repository") {
 		var key2 = "$key.$format";
-		if (cache[key2])
-			return cache[key2];
-		var data = ReadFile("$dir/$format/$key2");
-		cache[key2] = data;
+		var data = cache.getValue(key2);
+		if (!data) {
+			data = ReadFile("$dir/$format/$key2");
+			cache.add(key2, data);
+		}
 		return data;
 	}
 
@@ -506,6 +508,9 @@ class IVR {
 			if (Debug)
 				console.info(LOG_THIS, "Ringing!");
 		};
+
+		this.cache = new Cache(86400);
+		this.cache.maxItems = 4800;
 	}
 
 	Start(on_idle = null) {

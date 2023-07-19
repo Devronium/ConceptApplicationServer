@@ -3212,6 +3212,7 @@ class ConversationalIVR {
 				}
 				ivr_api_trees[session.CallID] = tree;
 				// to do
+				console.log(LOG_THIS, "${length ivr_api_trees} active calls, ${length this.ivr.cache} cached audio");
 			}
 			IVRClientData::checkEvent(session, who, from, this, tree, "try");
 			return session.CallID;

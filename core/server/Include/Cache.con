@@ -1,0 +1,94 @@
+import standard.lang.serialize
+import standard.C.time
+
+class _CacheContainer {
+	var val;
+	var expires;
+
+	_CacheContainer(var val, seconds = 0) {
+		this.val = val;
+		if (seconds > 0)
+			this.expires = time() + seconds;
+	}
+
+	expired() {
+		if ((this.expires) && (time() >= this.expires))
+			return true;
+		return false;
+	}
+}
+
+class Cache {
+	var[] cache;
+	var default_expires;
+	var min_expires;
+	var maxItems = 0;
+
+	Cache(default_expires = 0) {
+		this.default_expires = default_expires;
+	}
+
+	clearExpired(check_all = false) {
+		if ((!check_all) && ((!min_expires) || (min_expires >= time())))
+			return;
+
+		min_expires = 0;
+		var keys = GetKeys(cache);
+		for (var i = 0; i < length cache; i ++) {
+			var k = keys[i];
+			var valObj = cache[i];
+			if (valObj.expired()) {
+				deleteArrayElement(cache, k);
+				keys = GetKeys(cache);
+			} else
+			if ((!min_expires) || (valObj.expires < min_expires))
+				min_expires = valObj.expires;
+		}
+	}
+
+	add(key, var val, expires = 0) {
+		if ((!key) || (!val))
+			return false;
+
+		this.clearExpired();
+
+		if ((maxItems > 0) && (length cache >= maxItems))
+			deleteArrayElement(cache, 0);
+			
+		var valObj = new _CacheContainer(val, expires ?? this.default_expires);
+		if ((valObj.expires) && ((valObj.expires < min_expires) || (!min_expires)))
+			min_expires = valObj.expires;
+		cache[key] = valObj;
+
+		return true;
+	}
+
+	remove(key) {
+		if (deleteArrayElement(cache, key)) {
+			this.clearExpired(true);
+			return true;
+		}
+		return false;
+	}
+
+	clear() {
+		cache = new [];
+		min_expires = 0;
+	}
+
+	getValue(key) {
+		this.clearExpired();
+
+		if (IsSet(cache, key)) {
+			var valObj = cache[key];
+			if (valObj)
+				return valObj.val;
+		}
+
+		return null;
+	}
+
+	operator[](key) {
+		return this.getValue(key);
+	}
+}

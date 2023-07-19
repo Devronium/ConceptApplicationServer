@@ -1225,6 +1225,8 @@ class SIPStack {
 
 	var emptyData = "";
 
+	var lastMessageTimestamp;
+
 	SIPStack(localhost, bind_port = 5060, type = SIP_TRANSPORT_UDP, public_key = "", private_key = "", force_tls_version = 0) {
 		this.localhost = localhost;
 		this.local_port = bind_port;
@@ -1426,6 +1428,7 @@ class SIPStack {
 				message.Headers = headers;
 				message.Payload = payload;
 				message.Local = false;
+				this.lastMessageTimestamp = time();
 			}
 		}
 		return message;
@@ -2428,13 +2431,14 @@ class SIPStack {
 			if (IsSet(Sessions, id)) {
 				var sessions = Sessions;
 				var res = sessions[id];
-				var new_sessions = new [];
+				/* var new_sessions = new [];
 				for (var i = 0; i < length sessions; i++) {
 					var sess = sessions[i];	
 					if ((sess) && (sess.CallID != id))
 						new_sessions[sess.CallID] = sess;
 				}
-				Sessions = new_sessions;
+				Sessions = new_sessions; */
+				deleteArrayElement(sessions, id);
 				this.CleanSession(res, msg.ServerCode);
 				return res;
 			}
@@ -2486,7 +2490,7 @@ class SIPStack {
 
 	RemoveSessionByRef(session, code = 0) {
 		if ((session) && (IsSet(Sessions, session.CallID))) {
-			var sessions = Sessions;
+			/* var sessions = Sessions;
 
 			var new_sessions = new [];
 			var id = session.CallID;
@@ -2495,7 +2499,10 @@ class SIPStack {
 				if ((sess) && (sess.CallID != id))
 					new_sessions[sess.CallID] = sess;
 			}
-			Sessions = new_sessions;
+			Sessions = new_sessions; */
+
+			deleteArrayElement(Sessions, session.CallID);
+
 			CleanSession(session, code);
 			return true;
 		}

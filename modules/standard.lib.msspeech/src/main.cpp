@@ -174,7 +174,7 @@ CONCEPT_FUNCTION_IMPL(MsSpeech_FeedAudioContent, 2)
     }
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL(MsSpeech_TTS, 5)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MsSpeech_TTS, 5, 6)
     T_STRING(MsSpeech_TTS, 0);
     T_STRING(MsSpeech_TTS, 1);
     T_STRING(MsSpeech_TTS, 2);
@@ -183,6 +183,12 @@ CONCEPT_FUNCTION_IMPL(MsSpeech_TTS, 5)
 
     SPXSPEECHCONFIGHANDLE hconfig = NULL;
     speech_config_from_subscription(&hconfig, PARAM(2), PARAM(3));
+
+    int ssml = 0;
+    if (PARAMETERS_COUNT > 5) {
+        T_NUMBER(MsSpeech_TTS, 5);
+        ssml = PARAM_INT(5);
+    }
 
     RETURN_STRING("");
     if (hconfig) {
@@ -196,7 +202,10 @@ CONCEPT_FUNCTION_IMPL(MsSpeech_TTS, 5)
         SPXSYNTHHANDLE hsynth = NULL;
         if (!synthesizer_create_speech_synthesizer_from_config(&hsynth, hconfig, SPXHANDLE_INVALID)) {
             SPXRESULTHANDLE hresult = NULL;
-            synthesizer_speak_text(hsynth, PARAM(4), PARAM_LEN(4), &hresult);
+            if (ssml)
+                synthesizer_speak_ssml(hsynth, PARAM(4), PARAM_LEN(4), &hresult);
+            else
+                synthesizer_speak_text(hsynth, PARAM(4), PARAM_LEN(4), &hresult);
             if (synthesizer_result_handle_is_valid(hresult)) {
                 uint8_t *buffer = NULL;
                 uint32_t bufferSize = 0;
