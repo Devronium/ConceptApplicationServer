@@ -24,7 +24,7 @@ class Cache {
 	var min_expires;
 	var maxItems = 0;
 
-	Cache(default_expires = 0) {
+	Cache(default_expires = 4800) {
 		this.default_expires = default_expires;
 	}
 
@@ -81,8 +81,14 @@ class Cache {
 
 		if (IsSet(cache, key)) {
 			var valObj = cache[key];
-			if (valObj)
+			if (valObj) {
+				if (this.default_expires > 0) {
+					valObj.expires = time() + this.default_expires;
+					if ((!this.min_expires) || (min_expires > valObj.expires))
+						this.min_expires = valObj.expires;
+				}
 				return valObj.val;
+			}
 		}
 
 		return null;

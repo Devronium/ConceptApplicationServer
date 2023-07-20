@@ -509,7 +509,7 @@ class IVR {
 				console.info(LOG_THIS, "Ringing!");
 		};
 
-		this.cache = new Cache(86400);
+		this.cache = new Cache();
 		this.cache.maxItems = 4800;
 	}
 
