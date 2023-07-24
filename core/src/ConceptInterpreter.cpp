@@ -664,7 +664,9 @@ static sljit_sw SLJIT_CALL ArraySETREGION(VariableDATA **data, RuntimeOptimizedE
 
     Array *arr_object = (struct Array *)arr_var->CLASS_DATA;
 
+  #ifdef OPTIMIZE_FAST_ARRAYS
     VariableDATA **cached_data = arr_object->cached_data;
+  #endif
     if (iterator < 0)
         return 0;
 

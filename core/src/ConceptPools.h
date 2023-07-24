@@ -68,6 +68,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT);
      void  dlfree(void *);
      void *dlrealloc(void *, size_t);
      size_t dlmalloc_footprint(void);
+     int dlmalloc_trim(size_t pad);
 
      struct dl_mallinfo {
         size_t arena;
@@ -93,6 +94,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT);
      size_t mspace_footprint(void *msp);
      struct dl_mallinfo mspace_mallinfo(void *msp);
      int dlmallopt(int param_number, int value);
+     int mspace_trim(void *msp, size_t pad);
 #endif
  }
 
@@ -103,6 +105,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT);
  #define FAST_REALLOC(pif, ptr, size)    (pif ? mspace_realloc(((PIFAlizator *)(pif))->memory, ptr, size) : dlrealloc(ptr, size))
  #define FAST_MALLINFO(pif)              mspace_mallinfo(((PIFAlizator *)(pif))->memory)
  #define FAST_FOOTPRINT(pif)             mspace_footprint(((PIFAlizator *)(pif))->memory)
+ #define FAST_TRIM(pif)                  (pif ? mspace_trim(((PIFAlizator *)(pif))->memory, 0) : dlmalloc_trim(0))
 
 #ifdef _WIN32
  #define FAST_MSPACE_CREATE(memory)      memory = create_mspace(0, 0)
@@ -119,6 +122,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT);
  #define FAST_REALLOC(pif, ptr, size)    dlrealloc(ptr, size)
  #define FAST_MALLINFO(pif)              dlmallinfo()
  #define FAST_FOOTPRINT(pif)             dlmalloc_footprint()
+ #define FAST_TRIM(pif)                  dlmalloc_trim(0)
 #endif
 #else
  #define FAST_MALLOC(pif, size)          malloc(size)
@@ -127,6 +131,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT);
  #define FAST_REALLOC(pif, ptr, size)    realloc(ptr, size)
  #define FAST_MALLINFO(pif)              mallinfo()
  #define FAST_FOOTPRINT(pif)             -1
+ #define FAST_TRIM(pif)
 #endif
 
 #ifdef SIMPLE_MULTI_THREADING

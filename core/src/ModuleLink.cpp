@@ -669,6 +669,20 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
             }
             break;
 
+        case INVOKE_CREATE_ARRAY_2:
+            {
+                PIFAlizator  *pif        = va_arg(ap, PIFAlizator *);
+                VariableDATA *target = va_arg(ap, VariableDATA *);
+                if ((target) && (pif)) {
+                    CLASS_CHECK(target, NULL);
+                    target->TYPE = VARIABLE_NUMBER;
+                    target->CLASS_DATA = new_Array(pif);
+                    target->TYPE = VARIABLE_ARRAY;
+                } else
+                    result = INVALID_INVOKE_PARAMETER;
+            }
+            break;
+
         case INVOKE_CREATE_OBJECT:
             {
                 PIFAlizator  *pif        = va_arg(ap, PIFAlizator *);

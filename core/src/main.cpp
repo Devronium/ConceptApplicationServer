@@ -165,7 +165,6 @@ void FreeVAR(void *refVAR) {
     VARPool *NEXT = (VARPool *)CURRENT->NEXT;
     PIFAlizator *PIF = (PIFAlizator *)CURRENT->PIF;
     if (CURRENT->POOL_VARS == POOL_BLOCK_SIZE) /*&& (PREV))*/ {
-        ((PIFAlizator *)CURRENT->PIF)->free_vars -= POOL_BLOCK_SIZE;
         RemoveBlock(CURRENT);
     } else
     if ((PREV) && (NEXT)) {

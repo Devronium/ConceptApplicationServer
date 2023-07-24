@@ -575,6 +575,7 @@ promise_resolve:
             if ((STACK_ROOT) && (STACK_ROOT->STACK_CONTEXT)) {
                 STACK_ROOT->stack_pos        -= data_count;
             }
+            FAST_TRIM(PIF);
         } else
 #endif
         ConceptInterpreter_DestroyEnviroment((struct ConceptInterpreter *)INTERPRETER, (PIFAlizator *)PIF, CONTEXT, &STACK_TRACE, is_main);
