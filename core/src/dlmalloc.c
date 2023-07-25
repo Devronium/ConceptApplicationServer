@@ -4,6 +4,8 @@
 #define INSECURE           1
 #define NO_MALLINFO        0
 #define MSPACES            1
+#define MAX_RELEASE_CHECK_RATE  48
+#define DEFAULT_TRIM_THRESHOLD  0
 #ifdef _WIN32
     #define MALLOC_ALIGNMENT  ((size_t)(4 * sizeof(void *)))
 #endif
