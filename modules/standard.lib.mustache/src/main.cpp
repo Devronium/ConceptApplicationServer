@@ -220,6 +220,27 @@ int mustache_enter(void *closure, const char *name) {
                 mustacheclosure->pos = 0;
                 mustacheclosure->count = 1;
                 return 1;
+            case VARIABLE_ARRAY:
+                count = mustacheclosure->Invoke(INVOKE_GET_ARRAY_COUNT, var);
+                if (count > 0) {
+                    char **keys = NULL;
+                    keys = (char **)malloc(count * sizeof(char *));
+                    mustacheclosure->Invoke(INVOKE_ARRAY_KEYS, var, keys, (INTEGER)count);
+                    if ((keys[0]) && (keys[0][0])) {
+                        mustacheclosure->stack[mustacheclosure->stack_level].DATA = mustacheclosure->DATA;
+                        mustacheclosure->stack[mustacheclosure->stack_level].pos = mustacheclosure->pos;
+                        mustacheclosure->stack[mustacheclosure->stack_level].count = mustacheclosure->count;
+                        mustacheclosure->stack[mustacheclosure->stack_level].arrdata = mustacheclosure->arrdata;
+                        mustacheclosure->stack_level++;
+                        mustacheclosure->DATA = var;
+                        mustacheclosure->arrdata = NULL;
+                        mustacheclosure->pos = 0;
+                        mustacheclosure->count = 1;
+                        free(keys);
+                        return 1;
+                    }
+                    free(keys);
+                }
         }
 
         count = mustacheclosure->Invoke(INVOKE_GET_ARRAY_COUNT, var);
