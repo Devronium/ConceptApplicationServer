@@ -277,17 +277,152 @@ class MDParser {
             return ToLower(result);
 	}
 
-	static getClass(type, class_data) {
+	static getClass(type, class_data, html_elements = 0) {
 		if (!class_data)
 			return "";
 
-		var cls = class_data[type];
+		while (html_elements > 0) {
+			var html = MDParser::getClass(type + html_elements, class_data);
+			if (html)
+				return html;
+			html_elements --;
+		}
+
+		var cls;
+		if (typeof type == "array") {
+			for (var i = 0; i < length type; i ++) {
+				cls = class_data[type[i]];
+				if (cls)
+					break;
+			}
+		} else
+			cls = class_data[type];
+
 		if (!cls)
 			cls = class_data["*"];
 
 		if (cls)
 			return "class=\"" + cls + "\" ";
 		return "";
+	}
+
+	static __data(key, name, type, class_data, form_prefix, html_elements) {
+		var html = "";
+		var required = "";
+		if ((key) && (key[(length key) - 1] == "*"))
+			required = " required";
+		switch (type[0]) {
+			case "_":
+				if (class_data)
+					html += "<p ${MDParser::getClass("p", class_data, html_elements)}>";
+				var text_type = "text";
+				if ((length StrSplit(type, ".") == 3) || (length StrSplit(type, "/") == 3) || (length StrSplit(type, "-") == 3)) {
+					text_type = "date";
+					if (Pos(type, ":") > 0)
+						text_type = "datetime-local";
+				} else
+				if (StrSplit(type, "@") == 2) {
+					text_type = "email";
+				} else
+				if (Pos(type, ":") > 0) {
+					text_type = "time";
+				}
+				html += "<label ${MDParser::getClass("label", class_data)}for=\"$name\">$key</label>\n";
+				html += "<input ${MDParser::getClass("text", class_data)}type=\"$text_type\" id=\"$form_prefix$name\" name=\"$form_prefix$name\" size=\"${length type}\"$required/>\n";
+				if (class_data)
+					html += "</p>\n";
+				break;
+			case "\$":
+			case "#":
+				if (class_data)
+					html += "<p ${MDParser::getClass("p", class_data, html_elements)}>";
+				html += "<label ${MDParser::getClass("label", class_data)}for=\"$form_prefix$name\">$key</label>\n";
+				html += "<input ${MDParser::getClass("number", class_data)}type=\"number\" id=\"$form_prefix$name\" name=\"$form_prefix$name\"$required/>\n";
+				if (class_data)
+					html += "</p>\n";
+				break;
+			case "{":
+				if (class_data)
+					html += "<p ${MDParser::getClass("p", class_data, html_elements)}>";
+				html += "<label ${MDParser::getClass("label", class_data)}for=\"$form_prefix$name\">$key</label>\n";
+				html += "<select ${MDParser::getClass("select", class_data)}id=\"$form_prefix$name\" name=\"$form_prefix$name\"$required/>\n";
+				if (type[length type - 1] == "}")
+					type = SubStr(type, 0, length type - 1);
+				type = SubStr(type, 1);
+				var arr = StrSplit(type, ",");
+				for (var j = 0; j < length arr; j ++) {
+					var line = trim(arr[j]);
+					if ((line[0] == '(') && (line[length line - 1] == ')')) {
+						line = SubStr(line, 1, length line - 2);
+						html += "  <option value=\"$line\" selected=\"selected\">$line</option>\n";
+					} else
+						html += "  <option value=\"$line\">$line</option>\n";
+				}
+				html += "</select>";
+				if (class_data)
+					html += "</p>\n";
+				break;
+			case "(":
+				if (class_data)
+					html += "<p ${MDParser::getClass("p", class_data, html_elements)}>";
+				html += "<label ${MDParser::getClass("label", class_data)}for=\"$form_prefix$name\">$key</label>\n";
+				if (type[length type - 1] == ")")
+					type = SubStr(type, 0, length type - 1);
+				type = SubStr(type, 1);
+				arr = StrSplit(type, ",");
+				for (j = 0; j < length arr; j ++) {
+					line = trim(arr[j]);
+					if ((line[0] == '(') && (line[length line - 1] == ')')) {
+						line = SubStr(line, 1, length line - 2);
+						var line_id = MDParser::name(line);
+						html += "<input ${MDParser::getClass("radio", class_data)}type=\"radio\" name=\"$form_prefix$name\" id=\"$form_prefix$line_id\" value=\"$line\" checked=\"checked\"/>";
+					} else {
+						line_id = MDParser::name(line);
+						html += "<input ${MDParser::getClass("radio", class_data)}type=\"radio\" name=\"$form_prefix$name\" id=\"$form_prefix$line_id\" value=\"$line\"/>";
+					}
+					html += "<label ${MDParser::getClass("label", class_data)}for=\"$form_prefix$line_id\">$line</label>\n";
+				}
+				html += "<br/>\n";
+				if (class_data)
+					html += "</p>\n";
+				break;
+			case "[":
+				if (class_data)
+					html += "<p ${MDParser::getClass("p", class_data, html_elements)}>";
+				if (type[length type - 1] == "]")
+					type = SubStr(type, 0, length type - 1);
+				type = SubStr(type, 1);
+				arr = StrSplit(type, ",");
+				for (j = 0; j < length arr; j ++) {
+					line = trim(arr[j]);
+					if ((line[0] == '(') && (line[length line - 1] == ')')) {
+						line = SubStr(line, 1, length line - 2);
+						line_id = MDParser::name(line) ?? name;
+						html += "<input ${MDParser::getClass("checkbox", class_data)}type=\"checkbox\" name=\"$form_prefix$name\" id=\"$form_prefix$line_id\" value=\"$line\" checked=\"checked\"/>";
+					} else {
+						line_id = MDParser::name(line) ?? name;
+						html += "<input ${MDParser::getClass("checkbox", class_data)}type=\"checkbox\" name=\"$form_prefix$name\" id=\"$form_prefix$line_id\" value=\"$line\"/>";
+					}
+					if ((line_id) && (line))
+						html += "<label ${MDParser::getClass("label", class_data)}for=\"$line_id\">$line</label>\n";
+					else
+						html += "\n";
+				}
+				html += "<label ${MDParser::getClass("label", class_data)}for=\"$form_prefix$name\">$key</label>\n";
+				html += "<br/>\n";
+				if (class_data)
+					html += "</p>\n";
+				break;
+			case "*":
+				if (class_data)
+					html += "<p ${MDParser::getClass("p", class_data, html_elements)}>";
+				html += "<label ${MDParser::getClass("label", class_data)}for=\"$form_prefix$name\">$key</label>\n";
+				html += "<textarea ${MDParser::getClass("textarea", class_data)}id=\"$form_prefix$name\" name=\"$form_prefix$name\"$required></textarea>\n";
+				if (class_data)
+					html += "</p>\n";
+				break;
+		}
+		return html;
 	}
 
 	static form(data, form_prefix = "", class_data = null, var obj = null) {
@@ -300,8 +435,10 @@ class MDParser {
 		var new_line = false;
 		if (!obj)
 			obj = new [];
-		if (class_data)
-			html += "<div ${MDParser::getClass("line", class_data)}>\n";
+
+		var[] lines;
+		var line = new [];
+		lines[length lines] = line;
 		for (var i = 0; i < length data; i ++) {
 			var ch = data[i];
 			switch (ch) {
@@ -343,124 +480,12 @@ class MDParser {
 							if (key) {
 								var name = MDParser::name(key);
 								obj[name] = key;
-								var required = "";
-								if ((key) && (key[(length key) - 1] == "*"))
-									required = " required";
-								switch (type[0]) {
-									case "_":
-										if (class_data)
-											html += "<p ${MDParser::getClass("p", class_data)}>";
-										var text_type = "text";
-										if ((length StrSplit(type, ".") == 3) || (length StrSplit(type, "/") == 3) || (length StrSplit(type, "-") == 3)) {
-											text_type = "date";
-											if (Pos(type, ":") > 0)
-												text_type = "datetime-local";
-										} else
-										if (StrSplit(type, "@") == 2) {
-											text_type = "email";
-										} else
-										if (Pos(type, ":") > 0) {
-											text_type = "time";
-										}
-										html += "<label ${MDParser::getClass("label", class_data)}for=\"$name\">$key</label>\n";
-										html += "<input ${MDParser::getClass("text", class_data)}type=\"$text_type\" id=\"$form_prefix$name\" name=\"$form_prefix$name\" size=\"${length type}\"$required/>\n";
-										if (class_data)
-											html += "</p>\n";
-										break;
-									case "\$":
-									case "#":
-										if (class_data)
-											html += "<p ${MDParser::getClass("p", class_data)}>";
-										html += "<label ${MDParser::getClass("label", class_data)}for=\"$form_prefix$name\">$key</label>\n";
-										html += "<input ${MDParser::getClass("number", class_data)}type=\"number\" id=\"$form_prefix$name\" name=\"$form_prefix$name\"$required/>\n";
-										if (class_data)
-											html += "</p>\n";
-										break;
-									case "{":
-										if (class_data)
-											html += "<p ${MDParser::getClass("p", class_data)}>";
-										html += "<label ${MDParser::getClass("label", class_data)}for=\"$form_prefix$name\">$key</label>\n";
-										html += "<select ${MDParser::getClass("select", class_data)}id=\"$form_prefix$name\" name=\"$form_prefix$name\"$required/>\n";
-										if (type[length type - 1] == "}")
-											type = SubStr(type, 0, length type - 1);
-										type = SubStr(type, 1);
-										var arr = StrSplit(type, ",");
-										for (var j = 0; j < length arr; j ++) {
-											var line = trim(arr[j]);
-											if ((line[0] == '(') && (line[length line - 1] == ')')) {
-												line = SubStr(line, 1, length line - 2);
-												html += "  <option value=\"$line\" selected=\"selected\">$line</option>\n";
-											} else
-												html += "  <option value=\"$line\">$line</option>\n";
-										}
-										html += "</select>";
-										if (class_data)
-											html += "</p>\n";
-										break;
-									case "(":
-										if (class_data)
-											html += "<p ${MDParser::getClass("p", class_data)}>";
-										html += "<label ${MDParser::getClass("label", class_data)}for=\"$form_prefix$name\">$key</label>\n";
-										if (type[length type - 1] == ")")
-											type = SubStr(type, 0, length type - 1);
-										type = SubStr(type, 1);
-										arr = StrSplit(type, ",");
-										for (j = 0; j < length arr; j ++) {
-											line = trim(arr[j]);
-											if ((line[0] == '(') && (line[length line - 1] == ')')) {
-												line = SubStr(line, 1, length line - 2);
-												var line_id = MDParser::name(line);
-												html += "<input ${MDParser::getClass("radio", class_data)}type=\"radio\" name=\"$form_prefix$name\" id=\"$form_prefix$line_id\" value=\"$line\" checked=\"checked\"/>";
-											} else {
-												line_id = MDParser::name(line);
-												html += "<input ${MDParser::getClass("radio", class_data)}type=\"radio\" name=\"$form_prefix$name\" id=\"$form_prefix$line_id\" value=\"$line\"/>";
-											}
-											html += "<label ${MDParser::getClass("label", class_data)}for=\"$form_prefix$line_id\">$line</label>\n";
-										}
-										html += "<br/>\n";
-										if (class_data)
-											html += "</p>\n";
-										break;
-									case "[":
-										if (class_data)
-											html += "<p ${MDParser::getClass("p", class_data)}>";
-										if (type[length type - 1] == "]")
-											type = SubStr(type, 0, length type - 1);
-										type = SubStr(type, 1);
-										arr = StrSplit(type, ",");
-										for (j = 0; j < length arr; j ++) {
-											line = trim(arr[j]);
-											if ((line[0] == '(') && (line[length line - 1] == ')')) {
-												line = SubStr(line, 1, length line - 2);
-												line_id = MDParser::name(line) ?? name;
-												html += "<input ${MDParser::getClass("checkbox", class_data)}type=\"checkbox\" name=\"$form_prefix$name\" id=\"$form_prefix$line_id\" value=\"$line\" checked=\"checked\"/>";
-											} else {
-												line_id = MDParser::name(line) ?? name;
-												html += "<input ${MDParser::getClass("checkbox", class_data)}type=\"checkbox\" name=\"$form_prefix$name\" id=\"$form_prefix$line_id\" value=\"$line\"/>";
-											}
-											if ((line_id) && (line))
-												html += "<label ${MDParser::getClass("label", class_data)}for=\"$line_id\">$line</label>\n";
-											else
-												html += "\n";
-										}
-										html += "<label ${MDParser::getClass("label", class_data)}for=\"$form_prefix$name\">$key</label>\n";
-										html += "<br/>\n";
-										if (class_data)
-											html += "</p>\n";
-										break;
-									case "*":
-										if (class_data)
-											html += "<p ${MDParser::getClass("p", class_data)}>";
-										html += "<label ${MDParser::getClass("label", class_data)}for=\"$form_prefix$name\">$key</label>\n";
-										html += "<textarea ${MDParser::getClass("textarea", class_data)}id=\"$form_prefix$name\" name=\"$form_prefix$name\"$required></textarea>\n";
-										if (class_data)
-											html += "</p>\n";
-										break;
-								}
+								line[length line] = ["key" => key, "name" => name, "type" => type];
 							}
 							if (new_line) {
-								html += "<br/>";
 								new_line = false;
+								line = new [];
+								lines[length lines] = line;
 							}
 							in_key = true;
 							key = "";
@@ -475,13 +500,22 @@ class MDParser {
 						type += ch;
 					break;
 			}
-			if ((new_line) && (class_data)) {
-				html += "<p ${MDParser::getClass("br", class_data)}>&nbsp;</p>\n</div>\n";
-				html += "<div ${MDParser::getClass("line", class_data)}>\n";
-			}
 		}
-		if (class_data)
-			html += "</div>\n";
+		for (i = 0; i < length lines; i ++) {
+			line = lines[i];
+
+			if ((line) && (class_data))
+				html += "<div ${MDParser::getClass("line", class_data)}>\n";
+
+			for (var j = 0; j < length line; j ++) {
+				var e = line[j];
+				if (e)
+					html += MDParser::__data(e["key"], e["name"], e["type"], class_data, form_prefix, length line);
+			}
+
+			if ((line) && (class_data))
+				html += "<p ${MDParser::getClass("br", class_data)}>&nbsp;</p>\n</div>\n";
+		}
 		return html;
 	}
 }

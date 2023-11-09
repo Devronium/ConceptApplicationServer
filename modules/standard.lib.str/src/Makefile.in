@@ -100,7 +100,8 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(libexecdir)"
 PROGRAMS = $(libexec_PROGRAMS)
 am_standard_lib_str_so_OBJECTS = stdlibrary.$(OBJEXT) main.$(OBJEXT) \
-	AnsiString.$(OBJEXT) UriCodec.$(OBJEXT) utf8.$(OBJEXT)
+	AnsiString.$(OBJEXT) UriCodec.$(OBJEXT) utf8.$(OBJEXT) \
+	utf8proc.$(OBJEXT)
 standard_lib_str_so_OBJECTS = $(am_standard_lib_str_so_OBJECTS)
 standard_lib_str_so_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -120,7 +121,8 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/AnsiString.Po \
 	./$(DEPDIR)/UriCodec.Po ./$(DEPDIR)/main.Po \
-	./$(DEPDIR)/stdlibrary.Po ./$(DEPDIR)/utf8.Po
+	./$(DEPDIR)/stdlibrary.Po ./$(DEPDIR)/utf8.Po \
+	./$(DEPDIR)/utf8proc.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -272,10 +274,10 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # what flags you want to pass to the C compiler & linker
-AM_CFLAGS = --pedantic -Wall -std=c99 -O2 -fPIC
-AM_CXXFLAGS = --pedantic -Wall -O2 -fPIC
+AM_CFLAGS = --pedantic -Wall -std=c99 -O2 -fPIC -DUTF8PROC_STATIC
+AM_CXXFLAGS = --pedantic -Wall -O2 -fPIC -DUTF8PROC_STATIC
 AM_LDFLAGS = -shared
-standard_lib_str_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h AnsiString.cpp AnsiString.h UriCodec.cpp utf8.c utf8.h
+standard_lib_str_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h AnsiString.cpp AnsiString.h UriCodec.cpp utf8.c utf8.h utf8proc.c utf8proc.h
 all: all-am
 
 .SUFFIXES:
@@ -367,6 +369,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stdlibrary.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utf8.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utf8proc.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -534,6 +537,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/main.Po
 	-rm -f ./$(DEPDIR)/stdlibrary.Po
 	-rm -f ./$(DEPDIR)/utf8.Po
+	-rm -f ./$(DEPDIR)/utf8proc.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -584,6 +588,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/main.Po
 	-rm -f ./$(DEPDIR)/stdlibrary.Po
 	-rm -f ./$(DEPDIR)/utf8.Po
+	-rm -f ./$(DEPDIR)/utf8proc.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

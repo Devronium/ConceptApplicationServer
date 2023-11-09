@@ -25,8 +25,11 @@ class ReportGenerator {
 				var header = headers[j];
 				if (header) {
 					var e4 = e[header];
-					if ((typeof e4 != "array") || ((e4) && (!(GetKeys(e4)[0]))))
+					if ((typeof e4 != "array") || ((e4) && (!(GetKeys(e4)[0])))) {
 						arr[prefix + header] = e4;
+					} else
+					if ((e4) && (typeof e4 == "array"))
+						arr[prefix + header] = ReportGenerator::array_to_str(e4);
 				}
 			}
 			return arr;
@@ -39,6 +42,11 @@ class ReportGenerator {
 			var k = keys[i];
 			if ((typeof e2 != "array") && (k != '$') && (k != "id"))
 				arr[prefix + k] = e2;
+			else
+			if ((typeof e2 == "array") && (!(GetKeys(e2)[0]))) {
+				if ((typeof e2[0] != "array") && (typeof e2[0] != "class"))
+					arr[prefix + k] = ReportGenerator::array_to_str(e2);
+			}
 		}
 
 		return arr;

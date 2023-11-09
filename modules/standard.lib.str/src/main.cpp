@@ -18,7 +18,8 @@
 #define META_FREE(x)    free((x))
 
 extern "C" {
-#include "utf8.h"
+    #include "utf8.h"
+    #include "utf8proc.h"
 }
 
 typedef struct {
@@ -254,6 +255,23 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     DEFINE_ECONSTANT(EEE_PARENTHESIS)
     DEFINE_ECONSTANT(EEE_WRONG_CHAR)
     DEFINE_ECONSTANT(EEE_DIVIDE_BY_ZERO)
+
+    DEFINE_ECONSTANT(UTF8PROC_NULLTERM)
+    DEFINE_ECONSTANT(UTF8PROC_STABLE)
+    DEFINE_ECONSTANT(UTF8PROC_COMPAT)
+    DEFINE_ECONSTANT(UTF8PROC_COMPOSE)
+    DEFINE_ECONSTANT(UTF8PROC_DECOMPOSE)
+    DEFINE_ECONSTANT(UTF8PROC_IGNORE)
+    DEFINE_ECONSTANT(UTF8PROC_REJECTNA)
+    DEFINE_ECONSTANT(UTF8PROC_NLF2LS)
+    DEFINE_ECONSTANT(UTF8PROC_NLF2PS)
+    DEFINE_ECONSTANT(UTF8PROC_NLF2LF)
+    DEFINE_ECONSTANT(UTF8PROC_STRIPCC)
+    DEFINE_ECONSTANT(UTF8PROC_CASEFOLD)
+    DEFINE_ECONSTANT(UTF8PROC_CHARBOUND)
+    DEFINE_ICONSTANT("UTF8PROC_GROUP", UTF8PROC_LUMP)
+    DEFINE_ECONSTANT(UTF8PROC_STRIPMARK)
+    DEFINE_ECONSTANT(UTF8PROC_STRIPNA)
     return 0;
 }
 //---------------------------------------------------------------------------
@@ -16689,6 +16707,25 @@ CONCEPT_FUNCTION_IMPL(U_, 1)
     int len = ucs2_to_utf8(PARAM_INT(0), &utf, utf8buffer);
     if (len > 0) {
         RETURN_BUFFER(utf, len);
+    } else {
+        RETURN_STRING("");
+    }
+END_IMPL
+//---------------------------------------------------------------------------
+
+CONCEPT_FUNCTION_IMPL(UTF8Map, 2)
+    T_STRING(UTF8Map, 0)
+    T_NUMBER(UTF8Map, 1)
+
+    utf8proc_uint8_t *dstptr = 0;
+    utf8proc_ssize_t len = utf8proc_map((utf8proc_uint8_t *)PARAM(0), (utf8proc_ssize_t)PARAM_LEN(0), &dstptr, (utf8proc_option_t)PARAM_INT(1));
+    if (dstptr) {
+        if (len > 0) {
+            RETURN_BUFFER((const char *)dstptr, len);
+        } else {
+            RETURN_STRING("");
+        }
+        free(dstptr);
     } else {
         RETURN_STRING("");
     }

@@ -192,6 +192,9 @@ class IVR {
 	var LoopCallback;
 	var callbackOps;
 
+	var OnFormatFrom;
+	var OnFormatTo;
+
 	Get(key, format = "alaw", dir = "repository") {
 		var key2 = "$key.$format";
 		var data = cache.getValue(key2);
@@ -339,10 +342,10 @@ class IVR {
 	}
 
 	ParseFrom(from) {
-		var pos = Pos(from, "<sip:");
+		var pos = Pos(from, "sip:");
 		if (pos > 0)
 			from = SubStr(from, pos -1);
-		from = StrReplace(from, "<sip:", "");
+		from = StrReplace(from, "sip:", "");
 		from = "" + StrSplit(from, "@")[0];
 		return trim(from);
 	}
@@ -376,6 +379,12 @@ class IVR {
 			from = ParseFrom(from); */
 		
 		var msg_to = this.ParseFrom(msg.Headers["to"]);
+
+		if (this.OnFormatFrom)
+			from = this.OnFormatFrom(from);
+		if (this.OnFormatTo)
+			msg_to = this.OnFormatTo(msg_to);
+
 		var res;
 		if (Greeting)
 			 res = this.Greeting(from);
@@ -411,6 +420,12 @@ class IVR {
 		var from = ParseFrom2(msg.Headers["from"]);
 		
 		var msg_to = this.ParseFrom(msg.Headers["to"]);
+
+		if (this.OnFormatFrom)
+			from = this.OnFormatFrom(from);
+		if (this.OnFormatTo)
+			msg_to = this.OnFormatTo(msg_to);
+
 		var res;
 		if (AnswerGreeting)
 			 res = this.AnswerGreeting(from, msg_to, session.CallID);

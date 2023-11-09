@@ -15,7 +15,7 @@ include TLSESocket.con
 include Speex.con
 
 define SIP_CODES	["100" => "Trying", "180" => "Ringing", "181" => "Call Is Being Forwarded", "182" => "Queued", "200" => "OK", "300" => "Multiple Choices", "301" => "Moved Permanently", "302" => "Moved Temporarily", "303" => "See Other", "305" => "Use Proxy", "380" => "Alternative Service", "400" => "Bad Request", "401" => "Unauthorized", "402" => "Payment Required", "403" => "Forbidden", "404" => "Not Found", "405" => "Method Not Allowed", "406" => "Not Acceptable", "407" => "Proxy Authentication Required", "408" => "Request Timeout", "409" => "Conflict", "410" => "Gone", "411" => "Length Required", "413" => "Request Entity Too Large", "414" => "Request-URI Too Large", "415" => "Unsupported Media Type", "420" => "Bad Extension", "480" => "Temporarily not available", "481" => "Call Leg/Transaction Does Not Exist", "482" => "Loop Detected", "483" => "Too Many Hops", "484" => "Address Incomplete", "485" => "Ambiguous", "486" => "Busy Here", "500" => "Internal Server Error", "501" => "Not Implemented", "502" => "Bad Gateway", "503" => "Service Unavailable", "504" => "Gateway Time-out", "505" => "SIP Version not supported", "600" => "Busy Everywhere", "603" => "Decline", "604" => "Does not exist anywhere", "606" => "Not Acceptable"]
-define SIP_ALLOW	"REGISTER,INVITE,ACK,CANCEL,BYE,REFER,NOTIFY,MESSAGE,INFO"
+define SIP_ALLOW	"REGISTER,INVITE,ACK,CANCEL,BYE,REFER,NOTIFY,MESSAGE,INFO,UPDATE"
 define SIP_SUPPORTED	"replaces, 100rel, timer, tdialog"
 define RTP_START_PORT	16000
 define RTP_END_PORT	48000
@@ -170,6 +170,9 @@ class SIPSession {
 	var callSetupExpires = 0;
 	var callStatus;
 
+	var rtp_dtmf_type = 0;
+	var rtp_dtmf = false;
+
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
 		timestamp = RandomInteger(140, 140000) * 100;
@@ -227,6 +230,7 @@ class SIPSession {
 
 	UpdateMedia(msg, ip = "", port = 0) {
 		var payload = msg.Payload;
+		var rtp_dtmf_type;
 		sdp_in = msg.PayloadBlob;
 		for (var i = 0; i < length payload; i++) {
 			var line = payload[i];
@@ -252,8 +256,25 @@ class SIPSession {
 					}
 					break;
 				case "a=":
+					var line_a = trim(SubStr(line, 2));
 					if (this.s.SRTP)
-						this.ParseA(SubStr(line, 2));
+						this.ParseA(line_a);
+					if ((SubStr(line_a, 0, 6) == "rtpmap") && (Pos(line_a, "telephone-event/8000") > 0)) {
+						rtp_dtmf_type = value StrSplit(line_a, ":")[1];
+						if (rtp_dtmf_type > 0) {
+							this.rtp_dtmf_type = rtp_dtmf_type;
+							if (this.s.OnDTMFRelay)
+								this.rtp_dtmf = true;
+						}
+					} else
+					if (SubStr(line_a, 0, 4) == "fmtp") {
+						rtp_dtmf_type = value StrSplit(line_a, ":")[1];
+						if (rtp_dtmf_type > 0) {
+							this.rtp_dtmf_type = rtp_dtmf_type;
+							if (this.s.OnDTMFRelay)
+								this.rtp_dtmf = true;
+						}
+					}
 					break;
 			}
 		}
@@ -567,6 +588,77 @@ class SIPSession {
 		return res;
 	} */
 
+	ParseRTPDTMF(type, payload) {
+		if ((rtp_dtmf_type) && (type == rtp_dtmf_type)) {
+			if ((payload) && (this.s.OnDTMFRelay)) {
+				var key = "";
+				var data = unpack("U8U8", payload);
+				var key_event = data[0];
+				var flags = data[1];
+				// end flag not set
+				if ((flags & 0x80) == 0)
+					return "";
+				switch (key_event) {
+					case 0:
+						key = "0";
+						break;
+					case 1:
+						key = "1";
+						break;
+					case 2:
+						key = "2";
+						break;
+					case 3:
+						key = "3";
+						break;
+					case 4:
+						key = "4";
+						break;
+					case 5:
+						key = "5";
+						break;
+					case 6:
+						key = "6";
+						break;
+					case 7:
+						key = "7";
+						break;
+					case 8:
+						key = "8";
+						break;
+					case 9:
+						key = "9";
+						break;
+					case 10:
+						key = "*";
+						break;
+					case 11:
+						key = "#";
+						break;
+					case 12:
+						key = "A";
+						break;
+					case 13:
+						key = "B";
+						break;
+					case 14:
+						key = "C";
+						break;
+					case 15:
+						key = "D";
+						break;
+					case 16:
+						key = "Flash";
+						break;
+				}
+				if (key) {
+					this.DTMFHistory += key;
+					this.s.OnDTMFRelay(this, key);
+				}
+			}
+		}
+	}
+
 	ParseRTP(data, var type = null) {
 		type = -1;
 		last_timestamp = microseconds();
@@ -587,6 +679,12 @@ class SIPSession {
 			var payload = SubStr(data, 12, length data);
 			if (srtp)
 				payload = srtp.Decrypt(SubStr(data, 0, 12), payload);
+
+			if ((rtp_dtmf_type) && (type == rtp_dtmf_type)) {
+				this.ParseRTPDTMF(type, payload);
+				return "";
+			}
+
 			if (Record) {
 				var ssrc_id = data_arr[4];
 				RecordStream(ssrc_id, payload, "in-", type);
@@ -642,6 +740,14 @@ class SIPSession {
 				codecs_str += "a=rtpmap:8 PCMA/8000\r\n";
 				codecs_str += "a=rtpmap:0 PCMU/8000\r\n";
 				codec = "8 0";
+			}
+			if (this.s.OnDTMFRelay) {
+				if (!rtp_dtmf_type)
+					rtp_dtmf_type = 101;
+
+				codecs_str += "a=rtpmap:${rtp_dtmf_type} telephone-event/8000\r\n";
+				codecs_str += "a=fmtp:${rtp_dtmf_type} 0-15\r\n";
+				codec += " ${rtp_dtmf_type}";
 			}
 			res = "v=0\r\no=somebody ${ClsPtr(this)} ${VarPtr(this)} IN IP4 ${s.localip}\r\ns=Concept\r\nc=IN IP4 ${s.localip}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/AVP $codec\r\n" + codecs_str;
 		}
@@ -852,7 +958,7 @@ class SIPSession {
 				if (Parent) {
 					Parent.Write(data, this.MaxJitter);
 				} else
-				if (((s.OnDTMF) || (this.OnDTMF)) && (!this.IgnoreDTMF)) {
+				if (((s.OnDTMF) || (this.OnDTMF)) && (!this.IgnoreDTMF) && (!this.rtp_dtmf)) {
 					if (!d) {
 						d = new DTMFDetector();
 						d.Threshold = 1000;
@@ -2394,13 +2500,20 @@ class SIPStack {
 		return null;
 	}
 
-	CreateSession(msg, ip, port, check_branch = false, var ref_session = null) {
+	CreateSession(msg, ip, port, check_branch = false, var ref_session = null, var is_reinvite = false) {
 		var id = msg.Headers["call-id"];
+		is_reinvite = false;
 		if (id) {
 			var parent_session = Sessions[id];
 			var branch = this.ParseBranch(msg);
 			if (parent_session) {
 				if ((check_branch) && (branch)) {
+					if ((parent_session.callStatus >= 200) && (parent_session.callStatus < 300)) {
+						is_reinvite = true;
+						parent_session.Branch = branch;
+						parent_session.UpdateMedia(msg, ip, port);
+						return parent_session;
+					}
 					if (branch != parent_session.Branch) {
 						parent_session.msg = msg;
 						parent_session.Branch = branch;
@@ -2424,6 +2537,21 @@ class SIPStack {
 		return null;
 	}
 
+	UpdateSession(msg, ip, port) {
+		var id = msg.Headers["call-id"];
+		if (id) {
+			var parent_session = Sessions[id];
+			if (parent_session) {
+				var branch = this.ParseBranch(msg);
+				if (branch)
+					parent_session.Branch = branch;
+				parent_session.UpdateMedia(msg, ip, port);
+			}
+
+			return parent_session;
+		}
+		return null;
+	}
 
 	RemoveSession(msg) {
 		var id = msg.Headers["call-id"];
@@ -3174,23 +3302,26 @@ class SIPStack {
 				case "INVITE":
 					SIPSession::EnsureTag(msg.Headers["from"]);
 					SIPSession::EnsureTag(msg.Headers["to"]);
-					var sess = this.CreateSession(msg, ip, port, true, var ref_session);
+					var sess = this.CreateSession(msg, ip, port, true, var ref_session, var is_reinvite);
+					var invite_code = 180;
+					if (is_reinvite)
+						invite_code = 200;
 					if (sess) {
 						if (non_routable)
-							this.ResponseUDP(180, msg, msg.Headers["from"], "", "", 70, null, "", sess.ip, sess.port);
+							this.ResponseUDP(invite_code, msg, msg.Headers["from"], "", "", 70, null, "", sess.ip, sess.port);
 						else
-							this.ResponseUDP(180, msg, msg.Headers["from"]);
+							this.ResponseUDP(invite_code, msg, msg.Headers["from"]);
 
-						if (this.OnInvite)
+						if ((this.OnInvite) && (!is_reinvite))
 							this.OnInvite(sess, msg);
 					} else {
 						echo "Cannot create session (session/branch already exists?)\n";
 						if ((ref_session) && (ref_session.ip == ip) && (ref_session.port == port)) {
-							echo "Repeating 180 response\n";
+							echo "Repeating $invite_code response\n";
 							if (non_routable)
-								this.ResponseUDP(180, msg, msg.Headers["from"], "", "", 70, null, "", ref_session.ip, ref_session.port);
+								this.ResponseUDP(invite_code, msg, msg.Headers["from"], "", "", 70, null, "", ref_session.ip, ref_session.port);
 							else
-								this.ResponseUDP(180, msg, msg.Headers["from"]);
+								this.ResponseUDP(invite_code, msg, msg.Headers["from"]);
 						}
 					}
 					break;
@@ -3348,6 +3479,20 @@ class SIPStack {
 						this.ResponseUDP(200, msg, msg.Headers["from"], "", "", 70, extra_headers, "", ip, port);
 					else
 						this.ResponseUDP(200, msg, msg.Headers["from"], "", "", 70, extra_headers);
+					break;
+				case "UPDATE":
+					if (this.UpdateSession(msg, ip, port)) {
+						if (non_routable)
+							this.ResponseUDP(200, msg, msg.Headers["from"], "", "", 70, null, "", sess.ip, sess.port);
+						else
+							this.ResponseUDP(200, msg, msg.Headers["from"]);
+					} else {
+						echo "UPDATE on invalid session\n";
+						if (non_routable)
+							this.ResponseUDP(481, msg, msg.Headers["from"], "", "", 70, null, "", sess.ip, sess.port);
+						else
+							this.ResponseUDP(481, msg, msg.Headers["from"]);
+					}
 					break;
 				default:
 					var parent = null;
