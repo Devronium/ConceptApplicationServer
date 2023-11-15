@@ -30,12 +30,12 @@ typedef struct {
 INVOKE_CALL InvokePtr = 0;
 //=====================================================================================//
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
-    // DEFINE_ECONSTANT(HTTPPOST_FILENAME)
-    // DEFINE_ECONSTANT(HTTPPOST_READFILE)
-    // DEFINE_ECONSTANT(HTTPPOST_PTRNAME)
-    // DEFINE_ECONSTANT(HTTPPOST_PTRCONTENTS)
-    // DEFINE_ECONSTANT(HTTPPOST_BUFFER)
-    // DEFINE_ECONSTANT(HTTPPOST_PTRBUFFER)
+    DEFINE_ECONSTANT(HTTPPOST_FILENAME)
+    DEFINE_ECONSTANT(HTTPPOST_READFILE)
+    DEFINE_ECONSTANT(HTTPPOST_PTRNAME)
+    DEFINE_ECONSTANT(HTTPPOST_PTRCONTENTS)
+    DEFINE_ECONSTANT(HTTPPOST_BUFFER)
+    DEFINE_ECONSTANT(HTTPPOST_PTRBUFFER)
 
     DEFINE_ECONSTANT(CURL_READFUNC_ABORT)
 
@@ -507,27 +507,29 @@ struct curl_httppost *GetForm(ConceptCURLHandle *handle, void *arr, INVOKE_CALL 
     for (int i = 0; i < count; i++) {
         _Invoke(INVOKE_ARRAY_VARIABLE, arr, i, &newpData);
         if (newpData) {
-            const char *szData;
+            char    *szData;
             INTEGER type;
             NUMBER  nData;
 
             _Invoke(INVOKE_GET_VARIABLE, newpData, &type, &szData, &nData);
 
-            const char *key = NULL;
+            char *key = 0;
             _Invoke(INVOKE_GET_ARRAY_KEY, arr, (INTEGER)i, &key);
 
             AnsiString temp((long)i);
             AnsiString temp2(nData);
 
             if (!key)
-                key = temp.c_str();
+                key = (char *)temp.c_str();
 
             if (!szData)
-                szData = temp2.c_str();
+                szData = (char *)temp2.c_str();
 
             curl_formadd(&handle->post, &last,
                          CURLFORM_COPYNAME, key,
                          CURLFORM_COPYCONTENTS, szData, CURLFORM_CONTENTSLENGTH, (long)nData, CURLFORM_END);
+
+            //curl_formadd (&post, &last, CURLFORM_COPYNAME, key, CURLFORM_COPYCONTENTS, szData, CURLFORM_END);
         }
     }
     return handle->post;
@@ -1208,6 +1210,7 @@ CONCEPT_DLL_API CONCEPT__curl_easy_setopt CONCEPT_API_PARAMETERS {
                     while (elems[i]) {
                         header = curl_slist_append(header, elems[i++]);
                     }
+                    delete[] elems;
                 }
 
                 res = (int)curl_easy_setopt(handle, option, header);
@@ -1538,7 +1541,7 @@ CONCEPT_FUNCTION_IMPL(_curl_formnew, 1)
     void *pData = PARAMETER(0);
     int  count  = Invoke(INVOKE_GET_ARRAY_COUNT, pData);
     for (int i = 0; i < count; i++) {
-        const char  *key      = 0;
+        char    *key      = 0;
         void    *newpData = 0;
         char    *szData;
         INTEGER type;
@@ -1548,7 +1551,7 @@ CONCEPT_FUNCTION_IMPL(_curl_formnew, 1)
         Invoke(INVOKE_ARRAY_VARIABLE, pData, i, &newpData);
         if (!key) {
             temp2 = (long)i;
-            key   = temp2.c_str();
+            key   = (char *)temp2.c_str();
         }
 
         Invoke(INVOKE_GET_VARIABLE, newpData, &type, &szData, &nData);

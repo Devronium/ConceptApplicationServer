@@ -956,7 +956,8 @@ class SIPSession {
 					}
 				} else
 				if (Parent) {
-					Parent.Write(data, this.MaxJitter);
+					if ((length Parent.Children <= 1) || (Parent.Referred))
+						Parent.Write(data, this.MaxJitter);
 				} else
 				if (((s.OnDTMF) || (this.OnDTMF)) && (!this.IgnoreDTMF) && (!this.rtp_dtmf)) {
 					if (!d) {
@@ -1311,6 +1312,7 @@ class SIPStack {
 	var OnTimedout;
 	var OnAudioTimeout;
 	var OnRedirectAnswered;
+	var OnReferNoAnswer;
 
 	var Transport = "UDP";
 	var sipproto = "sip:";
@@ -2279,9 +2281,12 @@ class SIPStack {
 										return;
 								}
 								if (!canceled) {
-									if (child_len <= 1)
-										session.Bye(true);
-									else
+									if (child_len <= 1) {
+										if ((this.OnReferNoAnswer) && (!this.OnReferNoAnswer(session)))
+											session.RemoveChild(child_session);
+										else
+											session.Bye(true);
+									} else
 										session.RemoveChild(child_session);
 								}
 							} else {

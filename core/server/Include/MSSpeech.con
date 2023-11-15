@@ -78,7 +78,7 @@ class MSSpeech {
 		this.region = region;
 	}
 
-	TTS(voice, text) {
-		return MsSpeech_TTS(language, voice, key, region, text);
+	TTS(voice, text, ssml = false) {
+		return MsSpeech_TTS(language, voice, key, region, text, ssml);
 	}
 }

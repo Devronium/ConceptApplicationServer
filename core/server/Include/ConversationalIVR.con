@@ -47,6 +47,8 @@ class IVRClientData {
 	var forward = false;
 	var diverted;
 	var is_queue;
+	var referTryCount;
+	var referAddress;
 
 	IVRClientData(ivr, ivr_tree, session, notify_event = true, is_queue = false) {
 		this.ivr_branch = ivr_tree;
@@ -119,6 +121,25 @@ class IVRClientData {
 
 			empty_buffer = false;
 		}
+	}
+
+	loadMusic(ivr, session, type = 8) {
+		var codec = "";
+		if (type == 8)
+			codec = "alaw";
+		else
+			codec = "ulaw";
+
+		var music = ivr.music[codec];
+		if (!music) {
+			music = ReadFile("repository/music.$codec");
+			if (music)
+				ivr.music[codec] = music;
+		}
+		if (music)
+			session.sip.AppendVoice(music);
+
+		empty_buffer = false;
 	}
 
 	forwardUDP(ivr, session, var buf, type, var forward_socket) {
@@ -890,7 +911,7 @@ class VoiceWorker {
 				if (length arr == 4) {
 					var key_arr = StrSplit(arr[3], "@");
 					console.log(LOG_THIS, "using MSTTS for [$text]");
-					var ms_data = MsSpeech_TTS(arr[1], arr[2], key_arr[0], key_arr[1], text);
+					var ms_data = MsSpeech_TTS(arr[1], arr[2], key_arr[0], key_arr[1], text, (text[0] == "<"));
 					if (ms_data) {
 						WriteFile(ms_data, output);
 						return 0;
@@ -1018,6 +1039,9 @@ class WorkerWithData extends Worker {
 class BromblerJS {
 	var duk;
 
+	var print_buffer = "";
+	var error_buffer = "";
+
 	BromblerJS(js_timeout_ms = 2480) {
 		duk = new JS(this.error_handler);
 		duk.wrap(this.getURL, "GET");
@@ -1054,11 +1078,33 @@ class BromblerJS {
 		return url.Data;
 	}
 
+	string_buf(var data) {
+		var buffer = "";
+		if (data) {
+			switch (typeof data) {
+				case "string":
+					buffer += SubStr(data, 0, 1024);
+					break;
+				case "numeric":
+					buffer += data;
+					break;
+				default:
+					buffer += typeof data;
+			}
+			buffer += "\n";
+		}
+		return buffer;
+	}
+
 	print(data) {
+		if (length print_buffer < 0x10000)
+			print_buffer += this.string_buf(data);
 		console.log(LOG_THIS, data);
 	}
 
 	error(data) {
+		if (length error_buffer < 0x10000)
+			error_buffer += this.string_buf(data);
 		console.error(LOG_THIS, data);
 	}
 
@@ -1099,6 +1145,8 @@ class JSWorker {
 					var js = new BromblerJS();
 					js.load(code);
 					obj["data"] = js.load(obj["apiCall"]);
+					obj["print"] = js.print_buffer;
+					obj["error"] = js.error_buffer;
 					// avoid circular reference
 					js.done();
 				}
@@ -1292,6 +1340,8 @@ class ConversationalIVR {
 	var OnRegistered;
 
 	var OnAlert;
+
+	var OnCheckDestination;
 
 	var defaultVoice = "tts_models/en/vctk/vits";
 	var[] sipUsers;
@@ -2368,7 +2418,7 @@ class ConversationalIVR {
 		}
 	}
 
-	tokens(text) {
+	tokens(text, ignore_diacritics = false) {
 		var[] arr;
 		text = StrReplace(text, ".", " ");
 		text = StrReplace(text, ",", " ");
@@ -2381,13 +2431,17 @@ class ConversationalIVR {
 		var arr_text = StrSplit(text, " ");
 		for (var i = 0; i < length arr_text; i ++) {
 			var word = arr_text[i];
+			if ((ignore_diacritics) && (word))
+				word = UTF8Map(word, UTF8PROC_DECOMPOSE | UTF8PROC_STRIPMARK);
 			if (word)
 				arr[word] = word;
 		}
 		return arr;
 	}
 
-	compile(key) {
+	compile(key, ignore_diacritics = false) {
+		if (ignore_diacritics)
+			key = UTF8Map(key, UTF8PROC_DECOMPOSE | UTF8PROC_STRIPMARK);
 		if ((Pos(key, "+") > 0) || (Pos(key, "-") > 0)) {
 			var[] keys;
 			var last_key = "";
@@ -2414,9 +2468,9 @@ class ConversationalIVR {
 		return [key];
 	}
 
-	match(text, text_arr, k) {
+	match(text, text_arr, k, ignore_diacritics = false) {
 		var message_understood = false;
-		var key_array = compile(k);
+		var key_array = compile(k, ignore_diacritics);
 		for (var kk = 0; kk < length key_array; kk ++) {
 			var k_text = UTF8ToLower(trim(key_array[kk]));
 			if (!k_text)
@@ -2466,7 +2520,7 @@ class ConversationalIVR {
 		return message_understood;
 	}
 
-	TextEvent_kb(session, arr_text, text) {
+	TextEvent_kb(session, arr_text, text, ignore_diacritics = false) {
 		var kb_data = ivr_kb[sessionTo(session)];
 		if (!kb_data)
 			return false;
@@ -2502,16 +2556,21 @@ class ConversationalIVR {
 				k2 = StrReplace(k2, ".", "|");
 				k2 = StrReplace(k2, ";", "|");
 				k2 = StrReplace(k2, ":", "|");
+
+				if (ignore_diacritics)
+					k2 = UTF8Map(k2, UTF8PROC_DECOMPOSE | UTF8PROC_STRIPMARK);
+
 				var arr = StrSplit(k2, "|");
 
 				for (var jj = 0; jj < length arr; jj ++) {
 					var k = trim(arr[jj]);
 					if (k) {
 						if (k == "*") {
-							has_default = k_orig;
+							if (ignore_diacritics)
+								has_default = k_orig;
 							continue;
 						}
-						if (match(text, arr_text, k)) {
+						if (match(text, arr_text, k, ignore_diacritics)) {
 							message_understood = true;
 							k4 = k;
 						}
@@ -2542,7 +2601,7 @@ class ConversationalIVR {
 		return false;
 	}
 
-	TextEvent(session, text, id, ignore_debug_text = false) {
+	TextEvent(session, text, id, ignore_debug_text = false, ignore_diacritics = false) {
 		console.log(LOG_THIS, "text (id: ${id}): " + text);
 		session.ClientData.worker = null;
 		if (!session.ClientData.count) {
@@ -2578,9 +2637,9 @@ class ConversationalIVR {
 		var has_default = false;
 		// var check_kb = true;
 
-		var arr_text = tokens(text);
+		var arr_text = tokens(text, ignore_diacritics);
 
-		if (TextEvent_kb(session, arr_text, text))
+		if (TextEvent_kb(session, arr_text, text, ignore_diacritics))
 			return true;
 
 		for (var j = 0; j < length keys; j ++) {
@@ -2612,10 +2671,11 @@ class ConversationalIVR {
 					var k = trim(arr[jj]);
 					if (k) {
 						if (k == "*") {
-							has_default = k_orig;
+							if (ignore_diacritics)
+								has_default = k_orig;
 							continue;
 						}
-						if (match(text, arr_text, k)) {
+						if (match(text, arr_text, k, ignore_diacritics)) {
 							message_understood = true;
 							k4 = k;
 						}
@@ -2725,6 +2785,8 @@ class ConversationalIVR {
 		}
 		// if (check_kb)
 		// 	return TextEvent_kb(session, arr_text, text);
+		if (!ignore_diacritics)
+			return TextEvent(session, text, id, ignore_debug_text, true);
 		return false;
 	}
 
@@ -3073,6 +3135,7 @@ class ConversationalIVR {
 
 		ivr.stack.OnTimedout = this.OnTimedout;
 		ivr.stack.OnAudioTimeout = this.OnAudioTimeout;
+		ivr.stack.OnReferNoAnswer = this.OnReferNoAnswer;
 
 		this.tts_keys = tts_keys ?? [ ];
 
@@ -3198,6 +3261,8 @@ class ConversationalIVR {
 	}
 
 	callSync(who, from, tree = null, max_duration = 1800, force_identity = "") {
+		if (this.OnCheckDestination)
+			who = this.OnCheckDestination(who);
 		var session = this.ivr.stack.Invite(who, from, 70, null, null, force_identity);
 		console.log(LOG_THIS, "call $who by $from");
 		if (session) {
@@ -3212,7 +3277,6 @@ class ConversationalIVR {
 				}
 				ivr_api_trees[session.CallID] = tree;
 				// to do
-				console.log(LOG_THIS, "${length ivr_api_trees} active calls, ${length this.ivr.cache} cached audio");
 			}
 			IVRClientData::checkEvent(session, who, from, this, tree, "try");
 			return session.CallID;
@@ -3454,9 +3518,23 @@ class ConversationalIVR {
 			console.warn(LOG_THIS, "cannot refer: invalid session");
 			return null;
 		}
+
+		if (session.ClientData)
+			session.ClientData.referAddress = destination;
+
 		var arr = StrSplit(destination, "|");
 		if (length arr > 1)
 			destination = arr[rand() % (length arr)];
+
+		arr = StrSplit(destination, "&");
+		if (length arr > 1) {
+			for (var i = 0; i < length arr; i ++) {
+				var destination_address = trim(arr[i]);
+				if (destination_address)
+					this.refer(session, destination_address);
+			}
+			return;
+		}
 
 		if ((Pos(destination, "@") <= 0) && (session.sip.msg) && ((session.sip.ip) || (session.sip.msg.RemoteAddress))) {
 			var use_server = session.sip.ip;
@@ -3482,14 +3560,36 @@ class ConversationalIVR {
 		session.sip.ResetBuffers();
 		session.sip.Record = true;
 		session.StartRecording(session.Expires);
+
+		if (this.OnCheckDestination)
+			destination = this.OnCheckDestination(destination);
+
 		var refer_session = session.Refer(destination, ref_contact, sessionRemoteParty(session));
 		if (refer_session) {
 			session.sip.setMaxJitter(2);
-			if (session.ClientData)
+			if (session.ClientData) {
 				session.ClientData.count = 0;
+				if (!session.ClientData.referTryCount)
+					session.ClientData.loadMusic(this, session);
+			}
 		} else
 			console.warn(LOG_THIS, "error refering");
+
 		return refer_session;
+	}
+
+	OnReferNoAnswer(session) {
+		var ivr_session = session.UserData;
+		if ((ivr_session) && (ivr_session.ClientData)) {
+			if (ivr_session.ClientData.referTryCount <= 8) {
+				ivr_session.ClientData.referTryCount ++;
+				if (session.ClientData.referAddress) {
+					this.refer(session.UserData, session.ClientData.referAddress);
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	getSessions(account, identity = "", notify_forward = false, notify_remote_host = null) {

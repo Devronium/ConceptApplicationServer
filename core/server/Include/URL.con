@@ -84,7 +84,9 @@ class URL {
 						if (no_post)
 							curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
 					}
-				} else {
+				} else
+				if (typeof post_array == "string") {
+					curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, length post_array);
 					curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_array);
 				}
 			}
