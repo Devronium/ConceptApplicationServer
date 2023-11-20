@@ -1,0 +1,66 @@
+import standard.lib.json
+include async.url.con
+include URL.con
+include Loop.con
+
+class ElevenLabs {
+	var API_KEY;
+
+	ElevenLabs(key) {
+		this.API_KEY = key;
+	}
+
+	tts(text, voice_id, output_format = "pcm_16000") {
+		var obj = text;
+		if (typeof obj == "string")
+			obj = ["text" => text, "model_id" => "eleven_multilingual_v2"];
+
+		return asyncRequest::fetch("https://api.elevenlabs.io/v1/text-to-speech/$voice_id?output_format=$output_format", "POST", [
+			"accept" => "audio/mpeg",
+			"xi-api-key" => this.API_KEY,
+			"Content-Type" => "application/json"
+		], JSONSerialize(obj, true));
+	}
+
+	run(text, voice_id, output_format = "pcm_16000", add_to_loop = true) {
+		var url = this.tts(text, voice_id, output_format);
+		if (url) {
+			if (add_to_loop)
+				Loop::add(url);
+			return url._promise;
+		}
+		return url;
+	}
+
+	sync(text, voice_id, output_format = "pcm_16000") {
+		var obj = text;
+		if (typeof obj == "string")
+			obj = ["text" => text, "model_id" => "eleven_multilingual_v2"];
+
+		var url = new URL();
+		url.Get("https://api.elevenlabs.io/v1/text-to-speech/$voice_id?output_format=$output_format", JSONSerialize(obj, true), true, CURL_ROBOTID, false, ["accept: audio/mpeg", "xi-api-key: ${this.API_KEY}", "Content-Type: application/json"]);
+		return url.Data;
+	}
+
+	syncAPI(api) {
+		var url = new URL();
+		url.Get("https://api.elevenlabs.io/v1/$api", null, true, CURL_ROBOTID, true, ["accept: application/json", "xi-api-key: ${this.API_KEY}", "Content-Type: application/json"]);
+		if (url.Data)
+			return JSONDeserialize(url.Data);
+		return [ ];
+	}
+
+	voices() {
+		return syncAPI("voices");
+	}
+
+	models() {
+		return syncAPI("models");
+	}
+
+	static parse(request) {
+		if (!request)
+			return null;
+		return JSONDeserialize(request.data);
+	}
+}

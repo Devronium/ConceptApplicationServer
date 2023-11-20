@@ -10,6 +10,7 @@ include URL.con
 include DUKJS.con
 include OpenAI.con
 include MP3.con
+include ElevenLabs.con
 
 define SETTINTS_MAX_TIMEOUTS	4
 define SETTINGS_ENSURE_WORDS	false
@@ -917,7 +918,23 @@ class VoiceWorker {
 						return 0;
 					}
 				}
+			} else
+			if (Pos(voice, "elevenlabs/") > 0) {
+				arr = StrSplit(voice, "/");
+				if (length arr == 4) {
+					console.log(LOG_THIS, "using ElevenLabs for [$text]");
+					var tts = new ElevenLabs(arr[3]);
+					var eleven_data = tts.sync(text, arr[2], "pcm_16000");
+					if ((eleven_data) && (length eleven_data >= 1024)) {
+						var wav_data = pack("s4u32s4s4u32u16u16u32u32u16u16s4u32", "RIFF", length eleven_data + 28, "WAVE", "fmt ", 16, 1, 1, 16000, 32000, 2, 16, "data", length eleven_data);
+						if (wav_data) {
+							WriteFile(wav_data + eleven_data, output);
+							return 0;
+						}
+					}
+				}
 			}
+
 
 			if (Pos(voice, "/ro/") > 0)
 				text = ro_numbers::text(text);
@@ -1506,7 +1523,7 @@ class ConversationalIVR {
 	}
 
 	adjustVoice(use_voice) {
-		if ((use_voice) && (tts_keys) && (Pos(use_voice, "microsoft/") > 0)) {
+		if ((use_voice) && (tts_keys) && ((Pos(use_voice, "microsoft/") > 0) || (Pos(use_voice, "elevenlabs/") > 0))) {
 			var lang_id = StrSplit(use_voice, "/")[1];
 			if ((lang_id) && (IsSet(tts_keys, lang_id)))
 				return tts_keys[lang_id] ?? use_voice;
@@ -1965,6 +1982,7 @@ class ConversationalIVR {
 	setWords(session, var is_dtmf = null) {
 		var[] arr;
 		var[] set_words;
+
 		if ((!session.ClientData.ivr_branch) || ((typeof session.ClientData.ivr_branch) != "array"))
 			return null;
 		var keys = GetKeys(session.ClientData.ivr_branch);
@@ -2601,10 +2619,10 @@ class ConversationalIVR {
 		return false;
 	}
 
-	TextEvent(session, text, id, ignore_debug_text = false, ignore_diacritics = false) {
+	TextEvent(session, text, id, ignore_debug_text = false, ignore_diacritics = false, force_dtmf = false) {
 		console.log(LOG_THIS, "text (id: ${id}): " + text);
 		session.ClientData.worker = null;
-		if (!session.ClientData.count) {
+		if ((!session.ClientData.count) && (!force_dtmf)) {
 			console.warn(LOG_THIS, "dropping text [$text]");
 			return;
 		}
@@ -2790,6 +2808,21 @@ class ConversationalIVR {
 		return false;
 	}
 
+	timeoutMessage(session, timeout_msg, var max_timeouts) {
+		if (typeof timeout_msg != "string")
+			return "";
+		var timeout_arr = StrSplit(timeout_msg, "|");
+		if (length timeout_arr > 1) {
+			max_timeouts = length timeout_arr;
+			var index = session.ClientData.timeouts - 1;
+			if ((index < 0) || (index >= length timeout_arr))
+				index = 0;
+			timeout_msg = timeout_arr[index];
+			
+		}
+		return timeout_msg;
+	}
+
 	OnIdle_worker(stt_worker) {
 		stt_worker.GetAll(var data, 0, 100);
 		if (data) {
@@ -2818,15 +2851,16 @@ class ConversationalIVR {
 					session.ClientData.worker = null;
 					session.ClientData.timeouts ++;
 					console.log(LOG_THIS, "session ${obj.id} stt timed out");
+					var max_timeouts = SETTINTS_MAX_TIMEOUTS;
 					if ((typeof session.ClientData.ivr_branch == "array") && (IsSet(session.ClientData.ivr_branch, "\$timeout"))) {
 						session.ClientData.prev_branch = session.ClientData.ivr_branch;
-						this.TextEvent(session, "\$timeout", obj.id);
+						this.TextEvent(session, this.timeoutMessage(session, session.ClientData.ivr_branch["\$timeout"], max_timeouts), obj.id);
 					} else {
 						var session_to = sessionTo(session);
 						if (IsSet(ivr_timeout, session_to))
-							Raspuns(obj.id, ivr_timeout[session_to]);
+							Raspuns(obj.id, this.timeoutMessage(session, ivr_timeout[session_to], max_timeouts));
 					}
-					if (session.ClientData.timeouts >= SETTINTS_MAX_TIMEOUTS) {
+					if (session.ClientData.timeouts >= max_timeouts) {
 						session.EndOnIVRFinished = true;
 						session.ClientData.count = 0;
 						session.ClientData.redirect = "";
@@ -3045,11 +3079,14 @@ class ConversationalIVR {
 		if ((!session) || (!session.UserData) || (!session.UserData.ClientData))
 			return;
 
+		var force_dtmf = false;
 		// text event not started yet
-		if (!session.UserData.ClientData.count)
-			return;
-
-		this.TextEvent(session.UserData, key, session.CallID);
+		if (!session.UserData.ClientData.count) {
+			if ((typeof session.UserData.ClientData.ivr_branch != "array") || ((!IsSet(session.UserData.ClientData.ivr_branch, key)) && (!IsSet(session.UserData.ClientData.ivr_branch, " " + key))))
+				return;
+			force_dtmf = true;
+		}
+		this.TextEvent(session.UserData, key, session.CallID, false, false, force_dtmf);
 	}
 
 	OnTimedout(session) {
@@ -3436,13 +3473,14 @@ class ConversationalIVR {
 					session.ClientData.worker = null;
 					session.ClientData.timeouts ++;
 					console.log(LOG_THIS, "session ${session.sip.CallID} stt timed out (openai)");
+					var max_timeouts = SETTINTS_MAX_TIMEOUTS;
 					if ((typeof session.ClientData.ivr_branch == "array") && (IsSet(session.ClientData.ivr_branch, "\$timeout"))) {
 						session.ClientData.prev_branch = session.ClientData.ivr_branch;
-						this.TextEvent(session, "\$timeout",session.sip.CallID);
+						this.TextEvent(session, this.timeoutMessage(session, session.ClientData.ivr_branch["\$timeout"], max_timeouts), session.sip.CallID);
 					} else {
 						var session_to = sessionTo(session);
 						if (IsSet(ivr_timeout, session_to))
-							Raspuns(obj.id, ivr_timeout[session_to]);
+							Raspuns(obj.id, this.timeoutMessage(session, ivr_timeout[session_to], max_timeouts));
 					}
 					if (session.ClientData.timeouts >= SETTINTS_MAX_TIMEOUTS) {
 						session.EndOnIVRFinished = true;
@@ -3526,6 +3564,7 @@ class ConversationalIVR {
 		if (length arr > 1)
 			destination = arr[rand() % (length arr)];
 
+		destination = StrReplace(destination, ",", "&");
 		arr = StrSplit(destination, "&");
 		if (length arr > 1) {
 			for (var i = 0; i < length arr; i ++) {
