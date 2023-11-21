@@ -232,13 +232,20 @@ class SIPSession {
 		var payload = msg.Payload;
 		var rtp_dtmf_type;
 		sdp_in = msg.PayloadBlob;
+		var has_connection = false;
 		for (var i = 0; i < length payload; i++) {
 			var line = payload[i];
 			switch (line[0] + line[1]) {
 				case "o=":
 					var arr = StrSplit(SubStr(line, 2, length line), " ");
-					remote_host = arr[5];
+					if (!has_connection)
+						remote_host = arr[5];
 					remote_id = value arr[1];
+					break;
+				case "c=":
+					arr = StrSplit(SubStr(line, 2, length line), " ");
+					remote_host = arr[2];
+					has_connection = true;
 					break;
 				case "m=":
 					arr = StrSplit(SubStr(line, 2, length line), " ");

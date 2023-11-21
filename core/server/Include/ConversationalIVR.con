@@ -50,6 +50,7 @@ class IVRClientData {
 	var is_queue;
 	var referTryCount;
 	var referAddress;
+	var dtmf_timestamp;
 
 	IVRClientData(ivr, ivr_tree, session, notify_event = true, is_queue = false) {
 		this.ivr_branch = ivr_tree;
@@ -3082,9 +3083,12 @@ class ConversationalIVR {
 		var force_dtmf = false;
 		// text event not started yet
 		if (!session.UserData.ClientData.count) {
+			if (microseconds() - session.UserData.ClientData.dtmf_timestamp < 1000000)
+				return;
 			if ((typeof session.UserData.ClientData.ivr_branch != "array") || ((!IsSet(session.UserData.ClientData.ivr_branch, key)) && (!IsSet(session.UserData.ClientData.ivr_branch, " " + key))))
 				return;
 			force_dtmf = true;
+			session.UserData.ClientData.dtmf_timestamp = microseconds();
 		}
 		this.TextEvent(session.UserData, key, session.CallID, false, false, force_dtmf);
 	}
@@ -3149,7 +3153,7 @@ class ConversationalIVR {
 	}
 
 	ConversationalIVR(sip_host, sip_port = 5060, in_band_dtmf = true, mss_keys = null, tts_keys = null, use_whisper = "") {
-		ivr = new IVR(sip_host, sip_port, 40);
+		ivr = new IVR(sip_host, sip_port, 20);
 
 		ivr.GreetingTo = this.OnGreeting;
 		ivr.AnswerGreeting = this.OnAnswerGreeting;
@@ -3901,3 +3905,4 @@ class ConversationalIVR {
 		}
 	}
 }
+

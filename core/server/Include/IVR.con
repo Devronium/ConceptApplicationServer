@@ -385,6 +385,12 @@ class IVR {
 		if (this.OnFormatTo)
 			msg_to = this.OnFormatTo(msg_to);
 
+		if ((IsSet(msg.Headers, "privacy")) && (("" + msg.Headers["privacy"]) == "id"))
+			from = "anonymous";
+		else
+		if ((IsSet(msg.Headers, "remote-party-id")) && (Pos(msg.Headers["remote-party-id"], "privacy=full") > 0))
+			from = "anonymous";
+
 		var res;
 		if (Greeting)
 			 res = this.Greeting(from);
