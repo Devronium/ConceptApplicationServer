@@ -1318,6 +1318,126 @@ class RecordingWorker {
 	}
 }
 
+class TimeParser {
+	static checkTime(now, str) {
+		var arr = StrSplit(str, "-");
+		if (length arr != 2)
+			return false;
+
+		var start = StrNumberSplit(arr[0], ":");
+
+		var now_h = now["tm_hour"];
+		var now_min = now["tm_min"];
+
+		var start_h = start[0];
+		var start_min = start[1];
+
+		if (now_h < start_h)
+			return false;
+
+		if ((now_h == start_h) && (now_min < start_min))
+			return false;
+
+		var end = StrNumberSplit(arr[1], ":");
+
+		var end_h = end[0];
+		var end_min = end[1];
+
+		if (now_h > end_h)
+			return false;
+
+		if ((now_h == end_h) && (now_min >= end_min))
+			return false;
+
+		return true;
+	}
+
+	static checkDay(now, str) {
+		var day = now["tm_wday"];
+		if (day == 0)
+			day = 7;
+		var arr = StrSplit(str, ",");
+		for (var i = 0; i < length arr; i ++) {
+			var e = trim(arr[i]);
+			if (e) {
+				var arr2 = StrNumberSplit(e, "-");
+				switch (length arr2) {
+					case 1:
+						e = e;
+						if (day == e)
+							return true;
+						break;
+					case 2:
+						var start = arr2[0];
+						var end = arr2[1];
+						if ((day >= start) && (day <= end))
+							return true;
+						break;
+				}
+			}
+		}
+		return false;
+	}
+
+	static checkPrefix(str, now) {
+		var arr = StrSplit(str, ",");
+		for (var i = 0; i < length arr; i ++) {
+			var e = arr[i];
+			var arr2 = StrSplit(e, "@");
+			switch (length arr2) {
+				case 1:
+					if (TimeParser.checkTime(now, e))
+						return true;
+					break;
+				case 2:
+					if ((TimeParser.checkDay(now, arr2[0])) && (TimeParser.checkTime(now, arr2[1])))
+						return true;
+					break;
+			}
+		}
+		return false;
+	}
+
+	static checkText(str, now = null) {
+		str = trim(str);
+		while ((str) && ((str[0] == "!") || (str[0] == "~")))
+			str = SubStr(str, 1);
+
+		if (str[0] != "[")
+			return str;
+
+		var end = Pos(str, "]");
+		if (end <= 0)
+			return str;
+
+		var prefix = SubStr(str, 1, end - 2);
+		if (prefix) {
+			if (!now)
+				now = localtime(time());
+
+			if (!TimeParser.checkPrefix(prefix, now))
+				return "";
+		}
+
+		return trim(SubStr(str, end));
+	}
+
+	static stripText(str) {
+		str = trim(str);
+		while ((str) && ((str[0] == "!") || (str[0] == "~")))
+			str = SubStr(str, 1);
+
+		if (str[0] != "[")
+			return str;
+
+		var end = Pos(str, "]");
+		if (end <= 0)
+			return str;
+
+		return trim(SubStr(str, end));
+	}
+}
+
 class ConversationalIVR {
 	var ivr;
 	var[] stt_workers;
@@ -2559,9 +2679,11 @@ class ConversationalIVR {
 
 			var k_orig = k2;
 
-			k2 = trim(k2);
-			while ((k2) && ((k2[0] == "!") || (k2[0] == "~")))
-				k2 = SubStr(k2, 1);
+			k2 = TimeParser::checkText(k2);
+			if (!k2)
+				continue;
+			// while ((k2) && ((k2[0] == "!") || (k2[0] == "~")))
+			// 	k2 = SubStr(k2, 1);
 
 			if ((k2[0] == "/") && (k2[length k2 - 1] == "/")) {
 				var regexp_str = SubStr(k2, 1, length k2 - 2);
@@ -2668,9 +2790,12 @@ class ConversationalIVR {
 
 			var k_orig = k2;
 
-			k2 = trim(k2);
-			while ((k2) && ((k2[0] == "!") || (k2[0] == "~")))
-				k2 = SubStr(k2, 1);
+			k2 = TimeParser::checkText(k2);
+			// while ((k2) && ((k2[0] == "!") || (k2[0] == "~")))
+			// 	k2 = SubStr(k2, 1);
+
+			if (!k2)
+				continue;
 
 			if ((k2[0] == "/") && (k2[length k2 - 1] == "/")) {
 				var regexp_str = SubStr(k2, 1, length k2 - 2);
@@ -2959,6 +3084,8 @@ class ConversationalIVR {
 		for (var i = 0; i < length ivr_tree; i ++) {
 			var branch = ivr_tree[i];
 			var key = keys[i];
+			if (key)
+				key = TimeParser::stripText(key);
 			if ((key) && (key[0] != "\$") && (key != "_")) {
 				var k2 = StrReplace(key, ",", "|");
 				k2 = StrReplace(k2, ".", "|");
@@ -3153,7 +3280,7 @@ class ConversationalIVR {
 	}
 
 	ConversationalIVR(sip_host, sip_port = 5060, in_band_dtmf = true, mss_keys = null, tts_keys = null, use_whisper = "") {
-		ivr = new IVR(sip_host, sip_port, 20);
+		ivr = new IVR(sip_host, sip_port, 40);
 
 		ivr.GreetingTo = this.OnGreeting;
 		ivr.AnswerGreeting = this.OnAnswerGreeting;
@@ -3905,4 +4032,3 @@ class ConversationalIVR {
 		}
 	}
 }
-
