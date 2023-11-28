@@ -1,0 +1,70 @@
+import standard.lib.rwkv
+
+class RWKV {
+	protected var ctx;
+	protected var state;
+	protected var duplicated = false;
+
+	public var stopAt = "";
+	public var maxTokens = 250;
+	public var temperature = 0.1;
+	public var topP = 0.9;
+	public var presencePenalty = 0;
+	public var frequencyPenalty = 1;
+
+	RWKV(model_file, threads = 4) {
+		if (typeof model_file == "string")
+			ctx = rwkv_init_from_file(model_file, threads);
+		else
+		if (classof model_file == classof this) {
+			ctx = model_file.ctx;
+			if (model_file.state)
+				state = rwkv_duplicate_state(ctx, model_file.state);
+			duplicated = true;
+		}
+	}
+
+	duplicate() {
+		return new RWKV(this);
+	}
+
+	initialContext(str) {
+		if (!ctx)
+			throw "RWKV model not loaded";
+
+		if (str) {
+			var state = rwkv_tokenizer_initial_context(null, ctx, str, this.state);
+			if (state)
+				this.state = state;
+		}
+	}
+
+	run(str, deleg = null) {
+		if (!ctx)
+			throw "RWKV model not loaded";
+
+		if (deleg)
+			return rwkv_run(null, ctx, str, state, stopAt, maxTokens, temperature, topP, presencePenalty, frequencyPenalty, deleg);
+
+		return rwkv_run(null, ctx, str, state, stopAt, maxTokens, temperature, topP, presencePenalty, frequencyPenalty);
+	}
+
+	done() {
+		if (state)
+			rwkv_free_state(state);
+
+		if ((ctx) && (!duplicated))
+			rwkv_free(ctx);
+
+		this.state = null;
+		this.ctx = null;
+	}
+
+	finalize() {
+		if (state)
+			rwkv_free_state(state);
+
+		if ((ctx) && (!duplicated))
+			rwkv_free(ctx);
+	}
+}

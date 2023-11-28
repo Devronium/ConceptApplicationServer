@@ -151,7 +151,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(rwkv_tokenizer_load, 0, 2)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(rwkv_tokenizer_initial_context, 3, 4)
-	T_HANDLE(rwkv_tokenizer_initial_context, 0)
+	T_NUMBER(rwkv_tokenizer_initial_context, 0)
 	T_HANDLE(rwkv_tokenizer_initial_context, 1)
 	T_STRING(rwkv_tokenizer_initial_context, 2)
 
@@ -170,7 +170,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(rwkv_tokenizer_initial_context, 3, 4)
 		rwkv_init_state(ctx, state);
 	}
 
-	if (tokenizer->use_simple_tokenizer) {
+	if ((!tokenizer) || (tokenizer->use_simple_tokenizer)) {
 		int size = 0;
 		uint32_t *sequence = encode_sequence(PARAM(2), &size);
 		rwkv_eval_sequence(ctx, sequence, size, state, state, NULL);
@@ -220,8 +220,8 @@ CONCEPT_FUNCTION_IMPL(rwkv_free_state, 1)
 	RETURN_NUMBER(0);
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(rwkv_tokenizer_run, 3, 10)
-	T_HANDLE(rwkv_tokenizer_run, 0)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(rwkv_run, 3, 11)
+	T_NUMBER(rwkv_tokenizer_run, 0)
 	T_HANDLE(rwkv_tokenizer_run, 1)
 	T_STRING(rwkv_tokenizer_run, 2)
 
@@ -231,6 +231,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(rwkv_tokenizer_run, 3, 10)
 	float PRESENCE_PENALTY = 0.2;
 	float FREQUENCY_PENALTY = 0.2;
 	const char *stop_at = NULL;
+	void *delegate = NULL;
 
 	float *state = NULL;
 	if (PARAMETERS_COUNT > 3) {
@@ -273,6 +274,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(rwkv_tokenizer_run, 3, 10)
 		FREQUENCY_PENALTY = PARAM(9);
 	}
 
+	if (PARAMETERS_COUNT > 10) {
+		T_DELEGATE(rwkv_tokenizer_run, 10)
+		delegate = PARAMETER(10);
+	}
+
 	int END_OF_LINE_TOKEN = 187;
 	int DOUBLE_END_OF_LINE_TOKEN = 535;
 	int END_OF_TEXT_TOKEN = 0;
@@ -294,7 +300,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(rwkv_tokenizer_run, 3, 10)
 	int lasttoken = 0;
 	int error = 0;
 
-	if (tokenizer->use_simple_tokenizer) {
+	if ((!tokenizer) || (tokenizer->use_simple_tokenizer)) {
 		int size = 0;
 		uint32_t *sequence = encode_sequence(PARAM(2), &size);
 		error = (int) rwkv_eval_sequence(ctx, sequence, size, state, state, logits);
@@ -334,7 +340,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(rwkv_tokenizer_run, 3, 10)
 
 		rwkv_eval(ctx, (uint32_t)lasttoken, state, state, logits);
 
-		if (tokenizer->use_simple_tokenizer)
+		if ((!tokenizer) || (tokenizer->use_simple_tokenizer))
 			val = decode_sequence(&accumulated_tokens[0], accumulated_tokens.size());
 		else
 			val = tokenizer->tokenizer.value().decode(accumulated_tokens);
@@ -349,6 +355,31 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(rwkv_tokenizer_run, 3, 10)
 
 		if ((stop_at) && (val.find(stop_at) != std::string::npos))
 			break;
+
+		if (delegate) {
+			void *RES       = 0;
+			void *EXCEPTION = 0;
+
+			Invoke(INVOKE_CALL_DELEGATE, delegate, &RES, &EXCEPTION, (INTEGER)2, (INTEGER)VARIABLE_STRING, (char *)str.c_str(), (double)str.size(), (INTEGER)VARIABLE_STRING, (char *)val.c_str(), (double)val.size());
+			if (EXCEPTION) {
+				FREE_VARIABLE(EXCEPTION);
+				if (RES)
+					FREE_VARIABLE(RES);
+				break;
+			}
+			if (RES) {
+				INTEGER    type     = 0;
+				char       *szValue = 0;
+				NUMBER     nValue   = 0;
+
+				Invoke(INVOKE_GET_VARIABLE, RES, &type, &szValue, &nValue);
+
+				FREE_VARIABLE(RES);
+
+				if ((type != VARIABLE_NUMBER) || ((int)nValue != 0))
+					break;
+			}
+		}
 	}
 
 	free(logits);

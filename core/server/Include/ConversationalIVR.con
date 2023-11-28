@@ -11,6 +11,7 @@ include DUKJS.con
 include OpenAI.con
 include MP3.con
 include ElevenLabs.con
+include RWKV.con
 
 define SETTINTS_MAX_TIMEOUTS	4
 define SETTINGS_ENSURE_WORDS	false
@@ -51,6 +52,7 @@ class IVRClientData {
 	var referTryCount;
 	var referAddress;
 	var dtmf_timestamp;
+	var ai_wait;
 
 	IVRClientData(ivr, ivr_tree, session, notify_event = true, is_queue = false) {
 		this.ivr_branch = ivr_tree;
@@ -1174,6 +1176,40 @@ class JSWorker {
 	}
 }
 
+class AIWorker {
+	var rwkv;
+
+	AIWorker(data) {
+		console.info(LOG_THIS, "created AI worker");
+		rwkv = new RWKV("ai_models/RWKV4.bin", 8);
+		rwkv.maxTokens = 80;
+		rwkv.stopAt = ".";
+		while (true) {
+			if (Worker::Pending(var buffer, 1000)) {
+				var obj = UnBinarizeObject(buffer);
+				if (!obj)
+					continue;
+
+				var text = trim(obj["text"] ?? "");
+				
+				obj["step1"] = Date.now() - obj["start"];
+				if (text) {
+					var user_instructions = obj["instructions"] ?? "";
+					if (user_instructions)
+						user_instructions = "Input: $user_instructions\n\n";
+
+					var prompt = "${user_instructions}Instruction: $text\n\nResponse:";
+					obj["text"] = trim(rwkv.run(prompt));
+					obj["step2"] = Date.now() - obj["start"];
+				} else
+					obj["text"] = "error";
+
+				Worker::Result(BinarizeObject(obj));
+			}
+		}
+	}
+}
+
 class OpenAIWorker {
 	var default_data;
 	var key;
@@ -1444,6 +1480,7 @@ class ConversationalIVR {
 	var[] cheap_workers;
 	var[] voice_workers;
 	var[] js_workers;
+	var[] ai_workers;
 
 	var trunk_dir = "./trunks/";
 	var[] ivr_voice;
@@ -2038,6 +2075,17 @@ class ConversationalIVR {
 		return js_workers[hash % len];
 	}
 
+	protected chooseAIWorker(hash, default_workers = 1) {
+		var len = length ai_workers;
+		if (!len) {
+			len = default_workers;
+			for (var i = 0; i < len; i ++)
+				ai_workers[i] = new Worker("AIWorker", "");
+		}
+
+		return ai_workers[hash % len];
+	}
+
 	loopForward() {
 		if (!forwardUDP)
 			return;
@@ -2161,6 +2209,11 @@ class ConversationalIVR {
 
 		if (!session.ClientData)
 			session.ClientData = new IVRClientData(this, sessionTree(session), session, true);
+
+		if (session.ClientData.ai_wait) {
+			// please wait message, ignore event
+			return;
+		}
 
 		if (session.ClientData.redirect) {
 			this.Raspuns(session.sip.CallID, session.ClientData.redirect);
@@ -2474,14 +2527,63 @@ class ConversationalIVR {
 					var pos = Pos(instructions, "]");
 					if (pos > 0) {
 						language_hint = SubStr(instructions, 0, pos);
-						instructions = SubStr(instructions, 1);
+						instructions = SubStr(instructions, pos);
+						pos = Pos(language_hint, ",");
+						if (pos > 0) {
+							var please_wait_text = trim(SubStr(language_hint, pos));
+							if (please_wait_text)
+								please_wait_text = trim(SubStr(please_wait_text, 0, length please_wait_text - 1));
+							language_hint = SubStr(language_hint, 0, pos - 1) + "]";
+							if (please_wait_text)
+								this.Raspuns(session.sip.CallID, language_hint + please_wait_text);
+						}
 					}
 				}
 				console.log(LOG_THIS, "chatgpt text [${session.ClientData.last_text}]");
 				if (stt_worker)
 					stt_worker.AddData(BinarizeObject(new STTWorkerData(id, STT_RESET, [ ])));
-				if (session.ClientData.last_text)
+				if (session.ClientData.last_text) {
 					openAIWorker.AddData(BinarizeObject(["id" => id, "text" => session.ClientData.last_text, "instructions" => instructions, "language_hint" => language_hint, "start" => Date.now()]));
+					session.ClientData.ai_wait = true;
+				} else
+					session.ClientData.ai_wait = false;
+				return;
+			} else
+			if (Pos(text, "\$ai") == 1) {
+				var aiWorker = this.chooseAIWorker(session.ClientData.hash);
+
+				if (session.ClientData.prev_branch) {
+					session.ClientData.ivr_branch = session.ClientData.prev_branch;
+					session.ClientData.api = 2;
+				}
+				session.ClientData.count = 0;
+				instructions = trim(SubStr(text, 3));
+				language_hint = "";
+				if (instructions[0] == "[") {
+					pos = Pos(instructions, "]");
+					if (pos > 0) {
+						language_hint = SubStr(instructions, 0, pos);
+						instructions = SubStr(instructions, pos);
+
+						pos = Pos(language_hint, ",");
+						if (pos > 0) {
+							please_wait_text = trim(SubStr(language_hint, pos));
+							if (please_wait_text)
+								please_wait_text = trim(SubStr(please_wait_text, 0, length please_wait_text - 1));
+							language_hint = SubStr(language_hint, 0, pos - 1) + "]";
+							if (please_wait_text)
+								this.Raspuns(session.sip.CallID, language_hint + please_wait_text);
+						}
+					}
+				}
+				console.log(LOG_THIS, "ai text [${session.ClientData.last_text}]");
+				if (stt_worker)
+					stt_worker.AddData(BinarizeObject(new STTWorkerData(id, STT_RESET, [ ])));
+				if (session.ClientData.last_text) {
+					aiWorker.AddData(BinarizeObject(["id" => id, "text" => session.ClientData.last_text, "instructions" => instructions, "language_hint" => language_hint, "start" => Date.now()]));
+					session.ClientData.ai_wait = true;
+				} else
+					session.ClientData.ai_wait = false;
 				return;
 			} else
 			if (Pos(text, "\$close") == 1) {
@@ -2528,6 +2630,9 @@ class ConversationalIVR {
 
 			if (this.openAIWorker)
 				this.OnIdle_openAIWorker(this.openAIWorker);
+
+			for (i = 0; i < length ai_workers; i ++)
+				this.OnIdle_openAIWorker(ai_workers[i]);
 
 			if (microseconds() - every_second >= 1000000) {
 				this.ivr.stack.Reregister();
@@ -3597,8 +3702,9 @@ class ConversationalIVR {
 					console.log(LOG_THIS, "session does not exists anymore");
 					continue;
 				}
+				session.ClientData.ai_wait = false;
 				var total_time = Date.now() - obj["start"];
-				console.log(LOG_THIS, "OpenAI total time $total_time (connect ${obj["step1"]}ms, ${obj["step2"]})");
+				console.log(LOG_THIS, "OpenAI/AI total time $total_time (connect ${obj["step1"]}ms, ${obj["step2"]})");
 				var text = obj["text"];
 				if ((!text) || (text == ".") || (text == "error")) {
 					session.ClientData.worker = null;
@@ -3624,7 +3730,7 @@ class ConversationalIVR {
 				if ((text) && (language_hint))
 					text = "" + obj["language_hint"] + " " + text;
 
-				this.Raspuns(session.sip.CallID, text);
+				this.Raspuns(session.sip.CallID, text, true);
 			}
 		}
 	}
