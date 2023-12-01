@@ -1,9 +1,19 @@
 #ifndef WHISPER_H
 #define WHISPER_H
 
+#include "ggml.h"
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+
+#ifdef __GNUC__
+#    define WHISPER_DEPRECATED(func, hint) func __attribute__((deprecated(hint)))
+#elif defined(_MSC_VER)
+#    define WHISPER_DEPRECATED(func, hint) __declspec(deprecated(hint)) func
+#else
+#    define WHISPER_DEPRECATED(func, hint) func
+#endif
 
 #ifdef WHISPER_SHARED
 #    ifdef _WIN32
@@ -21,7 +31,6 @@
 
 #define WHISPER_SAMPLE_RATE 16000
 #define WHISPER_N_FFT       400
-#define WHISPER_N_MEL       80
 #define WHISPER_HOP_LENGTH  160
 #define WHISPER_CHUNK_SIZE  30
 
@@ -41,7 +50,9 @@ extern "C" {
     //
     //     ...
     //
-    //     struct whisper_context * ctx = whisper_init_from_file("/path/to/ggml-base.en.bin");
+    //     whisper_context_params cparams = whisper_context_default_params();
+    // 
+    //     struct whisper_context * ctx = whisper_init_from_file_with_params("/path/to/ggml-base.en.bin", cparams);
     //
     //     if (whisper_full(ctx, wparams, pcmf32.data(), pcmf32.size()) != 0) {
     //         fprintf(stderr, "failed to process audio\n");
@@ -67,8 +78,15 @@ extern "C" {
 
     struct whisper_context;
     struct whisper_state;
+    struct whisper_full_params;
 
-    typedef int whisper_token;
+    typedef int32_t whisper_pos;
+    typedef int32_t whisper_token;
+    typedef int32_t whisper_seq_id;
+
+    struct whisper_context_params {
+        bool  use_gpu;
+    };
 
     typedef struct whisper_token_data {
         whisper_token id;  // token id
@@ -95,24 +113,99 @@ extern "C" {
         void  (*close)(void * ctx);
     } whisper_model_loader;
 
+    // grammar element type
+    enum whisper_gretype {
+        // end of rule definition
+        WHISPER_GRETYPE_END            = 0,
+
+        // start of alternate definition for rule
+        WHISPER_GRETYPE_ALT            = 1,
+
+        // non-terminal element: reference to rule
+        WHISPER_GRETYPE_RULE_REF       = 2,
+
+        // terminal element: character (code point)
+        WHISPER_GRETYPE_CHAR           = 3,
+
+        // inverse char(s) ([^a], [^a-b] [^abc])
+        WHISPER_GRETYPE_CHAR_NOT       = 4,
+
+        // modifies a preceding WHISPER_GRETYPE_CHAR or LLAMA_GRETYPE_CHAR_ALT to
+        // be an inclusive range ([a-z])
+        WHISPER_GRETYPE_CHAR_RNG_UPPER = 5,
+
+        // modifies a preceding WHISPER_GRETYPE_CHAR or
+        // WHISPER_GRETYPE_CHAR_RNG_UPPER to add an alternate char to match ([ab], [a-zA])
+        WHISPER_GRETYPE_CHAR_ALT       = 6,
+    };
+
+    typedef struct whisper_grammar_element {
+        enum whisper_gretype type;
+        uint32_t             value; // Unicode code point or rule ID
+    } whisper_grammar_element;
+
     // Various functions for loading a ggml whisper model.
     // Allocate (almost) all memory needed for the model.
     // Return NULL on failure
-    WHISPER_API struct whisper_context * whisper_init_from_file(const char * path_model);
-    WHISPER_API struct whisper_context * whisper_init_from_buffer(void * buffer, size_t buffer_size);
-    WHISPER_API struct whisper_context * whisper_init(struct whisper_model_loader * loader);
+    WHISPER_API struct whisper_context * whisper_init_from_file_with_params  (const char * path_model,              struct whisper_context_params params);
+    WHISPER_API struct whisper_context * whisper_init_from_buffer_with_params(void * buffer, size_t buffer_size,    struct whisper_context_params params);
+    WHISPER_API struct whisper_context * whisper_init_with_params            (struct whisper_model_loader * loader, struct whisper_context_params params);
 
     // These are the same as the above, but the internal state of the context is not allocated automatically
     // It is the responsibility of the caller to allocate the state using whisper_init_state() (#523)
-    WHISPER_API struct whisper_context * whisper_init_from_file_no_state(const char * path_model);
-    WHISPER_API struct whisper_context * whisper_init_from_buffer_no_state(void * buffer, size_t buffer_size);
-    WHISPER_API struct whisper_context * whisper_init_no_state(struct whisper_model_loader * loader);
+    WHISPER_API struct whisper_context * whisper_init_from_file_with_params_no_state  (const char * path_model,              struct whisper_context_params params);
+    WHISPER_API struct whisper_context * whisper_init_from_buffer_with_params_no_state(void * buffer, size_t buffer_size,    struct whisper_context_params params);
+    WHISPER_API struct whisper_context * whisper_init_with_params_no_state            (struct whisper_model_loader * loader, struct whisper_context_params params);
+
+    WHISPER_DEPRECATED(
+        WHISPER_API struct whisper_context * whisper_init_from_file(const char * path_model),
+        "use whisper_init_from_file_with_params instead"
+    );
+    WHISPER_DEPRECATED(
+        WHISPER_API struct whisper_context * whisper_init_from_buffer(void * buffer, size_t buffer_size),
+        "use whisper_init_from_buffer_with_params instead"
+    );
+    WHISPER_DEPRECATED(
+        WHISPER_API struct whisper_context * whisper_init(struct whisper_model_loader * loader),
+        "use whisper_init_with_params instead"
+    );
+    WHISPER_DEPRECATED(
+        WHISPER_API struct whisper_context * whisper_init_from_file_no_state(const char * path_model),
+        "use whisper_init_from_file_with_params_no_state instead"
+    );
+    WHISPER_DEPRECATED(
+        WHISPER_API struct whisper_context * whisper_init_from_buffer_no_state(void * buffer, size_t buffer_size),
+        "use whisper_init_from_buffer_with_params_no_state instead"
+    );
+    WHISPER_DEPRECATED(
+        WHISPER_API struct whisper_context * whisper_init_no_state(struct whisper_model_loader * loader),
+        "use whisper_init_with_params_no_state instead"
+    );
 
     WHISPER_API struct whisper_state * whisper_init_state(struct whisper_context * ctx);
+
+    // Given a context, enable use of OpenVINO for encode inference.
+    // model_path: Optional path to OpenVINO encoder IR model. If set to nullptr,
+    //                      the path will be generated from the ggml model path that was passed
+    //                      in to whisper_init_from_file. For example, if 'path_model' was
+    //                      "/path/to/ggml-base.en.bin", then OpenVINO IR model path will be
+    //                      assumed to be "/path/to/ggml-base.en-encoder-openvino.xml".
+    // device: OpenVINO device to run inference on ("CPU", "GPU", etc.)
+    // cache_dir: Optional cache directory that can speed up init time, especially for
+    //                     GPU, by caching compiled 'blobs' there.
+    //                     Set to nullptr if not used.
+    // Returns 0 on success. If OpenVINO is not enabled in build, this simply returns 1.
+    WHISPER_API int whisper_ctx_init_openvino_encoder(
+        struct whisper_context * ctx,
+                    const char * model_path,
+                    const char * device,
+                    const char * cache_dir);
 
     // Frees all allocated memory
     WHISPER_API void whisper_free      (struct whisper_context * ctx);
     WHISPER_API void whisper_free_state(struct whisper_state * state);
+    WHISPER_API void whisper_free_params(struct whisper_full_params * params);
+    WHISPER_API void whisper_free_context_params(struct whisper_context_params * params);
 
     // Convert RAW PCM audio to log mel spectrogram.
     // The resulting spectrogram is stored inside the default state of the provided whisper context.
@@ -222,11 +315,14 @@ extern "C" {
     // Return the short string of the specified language id (e.g. 2 -> "de"), returns nullptr if not found
     WHISPER_API const char * whisper_lang_str(int id);
 
+    // Return the short string of the specified language name (e.g. 2 -> "german"), returns nullptr if not found
+    WHISPER_API const char * whisper_lang_str_full(int id); 
+
     // Use mel data at offset_ms to try and auto-detect the spoken language
     // Make sure to call whisper_pcm_to_mel() or whisper_set_mel() first
     // Returns the top language id or negative on failure
     // If not null, fills the lang_probs array with the probabilities of all languages
-    // The array must be whispe_lang_max_id() + 1 in size
+    // The array must be whisper_lang_max_id() + 1 in size
     // ref: https://github.com/openai/whisper/blob/main/whisper/decoding.py#L18-L69
     WHISPER_API int whisper_lang_auto_detect(
             struct whisper_context * ctx,
@@ -248,6 +344,19 @@ extern "C" {
     WHISPER_API int whisper_n_audio_ctx     (struct whisper_context * ctx);
     WHISPER_API int whisper_is_multilingual (struct whisper_context * ctx);
 
+    WHISPER_API int whisper_model_n_vocab      (struct whisper_context * ctx);
+    WHISPER_API int whisper_model_n_audio_ctx  (struct whisper_context * ctx);
+    WHISPER_API int whisper_model_n_audio_state(struct whisper_context * ctx);
+    WHISPER_API int whisper_model_n_audio_head (struct whisper_context * ctx);
+    WHISPER_API int whisper_model_n_audio_layer(struct whisper_context * ctx);
+    WHISPER_API int whisper_model_n_text_ctx   (struct whisper_context * ctx);
+    WHISPER_API int whisper_model_n_text_state (struct whisper_context * ctx);
+    WHISPER_API int whisper_model_n_text_head  (struct whisper_context * ctx);
+    WHISPER_API int whisper_model_n_text_layer (struct whisper_context * ctx);
+    WHISPER_API int whisper_model_n_mels       (struct whisper_context * ctx);
+    WHISPER_API int whisper_model_ftype        (struct whisper_context * ctx);
+    WHISPER_API int whisper_model_type         (struct whisper_context * ctx);
+
     // Token logits obtained from the last call to whisper_decode()
     // The logits for the last token are stored in the last row
     // Rows: n_tokens
@@ -257,19 +366,22 @@ extern "C" {
 
     // Token Id -> String. Uses the vocabulary in the provided context
     WHISPER_API const char * whisper_token_to_str(struct whisper_context * ctx, whisper_token token);
+    WHISPER_API const char * whisper_model_type_readable(struct whisper_context * ctx);
+
 
     // Special tokens
     WHISPER_API whisper_token whisper_token_eot (struct whisper_context * ctx);
     WHISPER_API whisper_token whisper_token_sot (struct whisper_context * ctx);
-    WHISPER_API whisper_token whisper_token_prev(struct whisper_context * ctx);
     WHISPER_API whisper_token whisper_token_solm(struct whisper_context * ctx);
+    WHISPER_API whisper_token whisper_token_prev(struct whisper_context * ctx);
+    WHISPER_API whisper_token whisper_token_nosp(struct whisper_context * ctx);
     WHISPER_API whisper_token whisper_token_not (struct whisper_context * ctx);
     WHISPER_API whisper_token whisper_token_beg (struct whisper_context * ctx);
     WHISPER_API whisper_token whisper_token_lang(struct whisper_context * ctx, int lang_id);
 
     // Task tokens
-    WHISPER_API whisper_token whisper_token_translate (void);
-    WHISPER_API whisper_token whisper_token_transcribe(void);
+    WHISPER_API whisper_token whisper_token_translate (struct whisper_context * ctx);
+    WHISPER_API whisper_token whisper_token_transcribe(struct whisper_context * ctx);
 
     // Performance information from the default state.
     WHISPER_API void whisper_print_timings(struct whisper_context * ctx);
@@ -282,7 +394,7 @@ extern "C" {
 
     // Available sampling strategies
     enum whisper_sampling_strategy {
-        WHISPER_SAMPLING_GREEDY,      // similar to OpenAI's GreefyDecoder
+        WHISPER_SAMPLING_GREEDY,      // similar to OpenAI's GreedyDecoder
         WHISPER_SAMPLING_BEAM_SEARCH, // similar to OpenAI's BeamSearchDecoder
     };
 
@@ -291,10 +403,18 @@ extern "C" {
     // Use the whisper_full_...() functions to obtain the text segments
     typedef void (*whisper_new_segment_callback)(struct whisper_context * ctx, struct whisper_state * state, int n_new, void * user_data);
 
+    // Progress callback
+    typedef void (*whisper_progress_callback)(struct whisper_context * ctx, struct whisper_state * state, int progress, void * user_data);
+
     // Encoder begin callback
     // If not NULL, called before the encoder starts
     // If it returns false, the computation is aborted
     typedef bool (*whisper_encoder_begin_callback)(struct whisper_context * ctx, struct whisper_state * state, void * user_data);
+
+    // Abort callback
+    // If not NULL, called before ggml computation
+    // If it returns true, the computation is aborted
+    typedef bool (*whisper_abort_callback)(void * user_data);
 
     // Logits filter callback
     // Can be used to modify the logits before sampling
@@ -308,7 +428,7 @@ extern "C" {
                               void * user_data);
 
     // Parameters for the whisper_full() function
-    // If you chnage the order or add new parameters, make sure to update the default values in whisper.cpp:
+    // If you change the order or add new parameters, make sure to update the default values in whisper.cpp:
     // whisper_full_default_params()
     struct whisper_full_params {
         enum whisper_sampling_strategy strategy;
@@ -320,6 +440,7 @@ extern "C" {
 
         bool translate;
         bool no_context;        // do not use past transcription (if any) as initial prompt for the decoder
+        bool no_timestamps;     // do not generate timestamps
         bool single_segment;    // force single segment output (useful for streaming)
         bool print_special;     // print special tokens (e.g. <SOT>, <EOT>, <BEG>, etc.)
         bool print_progress;    // print progress information
@@ -337,15 +458,21 @@ extern "C" {
         // [EXPERIMENTAL] speed-up techniques
         // note: these can significantly reduce the quality of the output
         bool speed_up;          // speed-up the audio by 2x using Phase Vocoder
+        bool debug_mode;        // enable debug_mode provides extra info (eg. Dump log_mel)
         int  audio_ctx;         // overwrite the audio context size (0 = use default)
+
+        // [EXPERIMENTAL] [TDRZ] tinydiarize
+        bool tdrz_enable;       // enable tinydiarize speaker turn detection
 
         // tokens to provide to the whisper decoder as initial prompt
         // these are prepended to any existing text context from a previous call
+        const char * initial_prompt;
         const whisper_token * prompt_tokens;
         int prompt_n_tokens;
 
         // for auto-detection, set to nullptr, "" or "auto"
         const char * language;
+        bool detect_language;
 
         // common decoding parameters:
         bool suppress_blank;    // ref: https://github.com/openai/whisper/blob/f82bc59f5ea234d4b97fb2860842ed38519f7e65/whisper/decoding.py#L89
@@ -376,15 +503,32 @@ extern "C" {
         whisper_new_segment_callback new_segment_callback;
         void * new_segment_callback_user_data;
 
+        // called on each progress update
+        whisper_progress_callback progress_callback;
+        void * progress_callback_user_data;
+
         // called each time before the encoder starts
         whisper_encoder_begin_callback encoder_begin_callback;
         void * encoder_begin_callback_user_data;
 
+        // called each time before ggml computation starts
+        whisper_abort_callback abort_callback;
+        void * abort_callback_user_data;
+
         // called by each decoder to filter obtained logits
         whisper_logits_filter_callback logits_filter_callback;
         void * logits_filter_callback_user_data;
+
+        const whisper_grammar_element ** grammar_rules;
+        size_t                           n_grammar_rules;
+        size_t                           i_start_rule;
+        float                            grammar_penalty;
     };
 
+    // NOTE: this function allocates memory, and it is the responsibility of the caller to free the pointer - see whisper_free_context_params & whisper_free_params()
+    WHISPER_API struct whisper_context_params * whisper_context_default_params_by_ref();
+    WHISPER_API struct whisper_context_params whisper_context_default_params(void);
+    WHISPER_API struct whisper_full_params * whisper_full_default_params_by_ref(enum whisper_sampling_strategy strategy);
     WHISPER_API struct whisper_full_params whisper_full_default_params(enum whisper_sampling_strategy strategy);
 
     // Run the entire model: PCM -> log mel spectrogram -> encoder -> decoder -> text
@@ -433,6 +577,10 @@ extern "C" {
     WHISPER_API int64_t whisper_full_get_segment_t1           (struct whisper_context * ctx, int i_segment);
     WHISPER_API int64_t whisper_full_get_segment_t1_from_state(struct whisper_state * state, int i_segment);
 
+    // Get whether the next segment is predicted as a speaker turn
+    WHISPER_API bool whisper_full_get_segment_speaker_turn_next(struct whisper_context * ctx, int i_segment);
+    WHISPER_API bool whisper_full_get_segment_speaker_turn_next_from_state(struct whisper_state * state, int i_segment);
+
     // Get the text of the specified segment
     WHISPER_API const char * whisper_full_get_segment_text           (struct whisper_context * ctx, int i_segment);
     WHISPER_API const char * whisper_full_get_segment_text_from_state(struct whisper_state * state, int i_segment);
@@ -461,10 +609,14 @@ extern "C" {
 
     // Temporary helpers needed for exposing ggml interface
 
-    WHISPER_API int whisper_bench_memcpy(int n_threads);
-    WHISPER_API const char * whisper_bench_memcpy_str(int n_threads);
-    WHISPER_API int whisper_bench_ggml_mul_mat(int n_threads);
+    WHISPER_API int          whisper_bench_memcpy          (int n_threads);
+    WHISPER_API const char * whisper_bench_memcpy_str      (int n_threads);
+    WHISPER_API int          whisper_bench_ggml_mul_mat    (int n_threads);
     WHISPER_API const char * whisper_bench_ggml_mul_mat_str(int n_threads);
+
+    // Control logging output; default behavior is to print to stderr
+
+    WHISPER_API void whisper_log_set(ggml_log_callback log_callback, void * user_data);
 
 #ifdef __cplusplus
 }

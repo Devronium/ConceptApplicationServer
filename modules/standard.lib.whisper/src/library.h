@@ -10,6 +10,10 @@ extern "C" {
     CONCEPT_FUNCTION(WhisperCreate)
     CONCEPT_FUNCTION(WhisperSampleRate)
     CONCEPT_FUNCTION(WhisperDecode)
+    CONCEPT_FUNCTION(WhisperStateCreate)
+    CONCEPT_FUNCTION(WhisperStateFeed)
+    CONCEPT_FUNCTION(WhisperStateGetText)
+    CONCEPT_FUNCTION(WhisperStateFree)
     CONCEPT_FUNCTION(WhisperFree)
 }
 #endif // __LIBRARY_H
