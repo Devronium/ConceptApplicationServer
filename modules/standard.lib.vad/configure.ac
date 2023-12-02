@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT(standard.lib.whisper, 1.0, eduard@...)
-AM_INIT_AUTOMAKE(standard.lib.whisper, 1.0)
+AC_INIT(standard.lib.vad, 1.0, eduard@...)
+AM_INIT_AUTOMAKE(standard.lib.vad, 1.0)
 AC_CONFIG_SRCDIR([src/stdlibrary.cpp])
 AC_CONFIG_HEADER([config.h])
 

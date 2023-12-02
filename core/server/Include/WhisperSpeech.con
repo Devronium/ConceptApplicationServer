@@ -4,6 +4,7 @@ import standard.lib.whisper
 import standard.C.time
 import standard.lang.serialize
 import standard.lib.samplerate
+import standard.lib.vad
 import standard.math.rand
 
 include Worker.con
@@ -78,35 +79,52 @@ class WhisperSpeechStream {
 
 	public var BufferTimeout = 1000;
 	public var MinBufferSize = 24000;
+	public property Pending { get _pending };
 
 	var stream_id;
 	var _handle;
+	var _vad;
+	var _frame_size;
+
+	var _end_voice_count = 0;
 
 	WhisperSpeechStream(object owner) {
 		this._owner = owner;
 		this._handle = true;
+		this._vad = fvad_new();
+		fvad_set_sample_rate(this._vad, owner.modelSampleRate);
+		this._frame_size = owner.modelSampleRate * 20 / 1000;
 		this.stream_id = RandomInteger(0, 0x10000000);
 	}
 
-	feed(var buffer) {
+	protected filterVoice(var buffer) {
+		var buf2 = "";
+		for (var i = 0; i < length buffer; i += this._frame_size) {
+			var frame = SubStr(buffer, i, this._frame_size);
+			if (fvad_process(_vad, frame) == true) {
+				_start_voice = true;
+				_end_voice_count = 0;
+				buf2 += frame;
+			} else {
+				if (_end_voice_count < 10)
+					buf2 += frame;
+				_end_voice_count ++;
+			}
+		}
+		// one second with no voice
+		if (_end_voice_count >= 100)
+			_end_voice = microseconds(); 
+		return buf2;
+	}
+
+	feed(var full_buffer) {
 		if (!_started)
 			_started = microseconds();
-		audio_buffer += buffer;
-		_audio_len += length buffer;
 
-		var level_val = level(buffer);
-		if (_start_voice) {
-			if (level_val < 0.01) {
-				if (!_end_voice)
-					_end_voice = microseconds();
-			} else
-			if (level_val > 0.0031)
-				_end_voice = 0;
-		} else
-		if (level_val >= 0.1) {
-			_start_voice = microseconds();
-			_end_voice = 0;
-		}
+		var buffer = filterVoice(full_buffer);
+
+		audio_buffer += buffer;
+		_audio_len += length buffer;		
 	}
 
 	decode() {
@@ -129,6 +147,8 @@ class WhisperSpeechStream {
 
 			_start_voice = 0;
 			_end_voice = 0;
+
+			_end_voice_count = 0;
 		}
 
 		_worker.GetResult(var data);
@@ -149,7 +169,16 @@ class WhisperSpeechStream {
 		_buffer_offset = 0;
 		_start_voice = 0;
 		_end_voice = 0;
+		_end_voice_count = 0;
+		_last_text = "";
 		return "";
+	}
+
+	reset() {
+		fvad_reset(_vad);
+		this.finish();
+		_pending = false;
+		this.stream_id = RandomInteger(0, 0x10000000);
 	}
 
 	close() {
@@ -159,11 +188,16 @@ class WhisperSpeechStream {
 		_buffer_offset = 0;
 		_start_voice = 0;
 		_end_voice = 0;
+		_end_voice_count = 0;
 		this._handle = false;
 		this._owner.freeWorker(_worker_id);
 	}
 
 	finalize() {
+		if (this._vad) {
+			fvad_free(this._vad);
+			this._vad = null;
+		}
 		if (this._owner)
 			this._owner.freeWorker(_worker_id);
 		this._handle = false;
