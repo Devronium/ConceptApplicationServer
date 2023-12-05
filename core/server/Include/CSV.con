@@ -63,7 +63,7 @@ class CSV {
 		this.Done();
 	}
 
-	static function Do(var string data, var mode=null, var error=null, var error_text="", delimiter = "") {
+	static function Do(var string data, var mode=null, var error=null, var error_text="", delimiter = null) {
 		var c=new CSV(mode);
 		if (delimiter)
 			c.Delim = delimiter;

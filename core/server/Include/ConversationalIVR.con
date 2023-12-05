@@ -621,7 +621,12 @@ class WhisperSpeechWorker {
 						else
 							pcm_buf = alaw2pcm(obj.buffer);
 
-						worker_obj.stream.feed(resample(pcm_buf, 8000, modelSampleRate, SRC_SINC_MEDIUM_QUALITY));
+						// accelerate audio (faster processing)
+						worker_obj.silence_buffer += resample(pcm_buf, 8000, modelSampleRate * 0.8, SRC_SINC_MEDIUM_QUALITY);
+						while (length worker_obj.silence_buffer >= 640) {
+							worker_obj.stream.feed(SubStr(worker_obj.silence_buffer, 0, 640));
+							worker_obj.silence_buffer = SubStr(worker_obj.silence_buffer, 640);
+						}
 					}
 
 					var str = worker_obj.stream.decode();
@@ -632,7 +637,7 @@ class WhisperSpeechWorker {
 					}
 
 					var age = worker_obj.age();
-					if ((age >= 24000) || ((!str) && (!worker_obj.stream.Pending) && (age >= 14000))) {
+					if ((age >= 48000) || ((!str) && (!worker_obj.stream.Pending) && (age >= 14000))) {
 						worker_obj.reset(false);
 						Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TIMEDOUT, "")));
 						worker_obj.stream.reset();

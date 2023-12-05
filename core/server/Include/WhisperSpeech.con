@@ -1,7 +1,6 @@
 import standard.C.io
 import standard.lib.str
 import standard.lib.whisper
-import standard.C.time
 import standard.lang.serialize
 import standard.lib.samplerate
 import standard.lib.vad
@@ -69,11 +68,9 @@ class WhisperSpeechStream {
 	protected var _started;
 	protected var _start_voice;
 	protected var _end_voice;
-	protected var _audio_len;
 	protected var _owner;
 	protected var _worker_id;
 	protected var _worker;
-	protected var _buffer_offset;
 	protected var _last_text = "";
 	protected var _pending = false;
 
@@ -87,13 +84,14 @@ class WhisperSpeechStream {
 	var _frame_size;
 
 	var _end_voice_count = 0;
+	var _dummy_buffer = "";
 
 	WhisperSpeechStream(object owner) {
 		this._owner = owner;
 		this._handle = true;
 		this._vad = fvad_new();
 		fvad_set_sample_rate(this._vad, owner.modelSampleRate);
-		this._frame_size = owner.modelSampleRate * 20 / 1000;
+		this._frame_size = owner.modelSampleRate * 40 / 1000;
 		this.stream_id = RandomInteger(0, 0x10000000);
 	}
 
@@ -108,23 +106,55 @@ class WhisperSpeechStream {
 			} else {
 				if (_end_voice_count < 10)
 					buf2 += frame;
+				else
+				if (length _dummy_buffer < (this._frame_size * 40))
+					buf2 += frame;
+
 				_end_voice_count ++;
 			}
 		}
 		// one second with no voice
-		if (_end_voice_count >= 100)
-			_end_voice = microseconds(); 
+		if (_end_voice_count >= 48)
+			_end_voice = true;
+		else
+			_end_voice = 0;
 		return buf2;
 	}
 
 	feed(var full_buffer) {
+		if (_pending)
+			return;
+
 		if (!_started)
-			_started = microseconds();
+			_started = true;
 
 		var buffer = filterVoice(full_buffer);
 
 		audio_buffer += buffer;
-		_audio_len += length buffer;		
+
+		var buf_size_ms = length audio_buffer / (_owner.modelSampleRate * 2) * 1000;
+
+		if ((!_pending) && (audio_buffer) && (((_end_voice) && (buf_size_ms >= 1480)) || ((_start_voice) && (buf_size_ms >= BufferTimeout)))) {
+			if (!_worker)
+				_worker = _owner.findWorker(_worker_id);
+			if (!_worker)
+				throw "WhisperSpeechStream: No available workers";
+
+			if (buf_size_ms < 1000)
+				audio_buffer += _dummy_buffer;
+
+			_worker.AddData(BinarizeObject(new WhisperMessage(_worker_id, audio_buffer, stream_id)));
+			_pending = true;
+			_started = true;
+
+			audio_buffer = "";
+			_dummy_buffer = "";
+
+			_start_voice = 0;
+			_end_voice = 0;
+
+			_end_voice_count = 0;
+		}
 	}
 
 	decode() {
@@ -132,24 +162,7 @@ class WhisperSpeechStream {
 			return "";
 
 		if (!_worker)
-			_worker = _owner.findWorker(_worker_id);
-		if (!_worker)
-			throw "WhisperSpeechStream: No available workers";
-
-		if ((!_pending) && (audio_buffer) && (_buffer_offset < length audio_buffer) && (((_end_voice) && ((microseconds() - _end_voice) >= 1000000)) || ((_audio_len > MinBufferSize) || (((microseconds() - _started) / 1000) >= BufferTimeout)))) {
-			_worker.AddData(BinarizeObject(new WhisperMessage(_worker_id, audio_buffer, stream_id)));
-			_pending = true;
-			_started = microseconds();
-
-			audio_buffer = "";
-			_buffer_offset = 0;
-			_audio_len = 0;
-
-			_start_voice = 0;
-			_end_voice = 0;
-
-			_end_voice_count = 0;
-		}
+			return "";
 
 		_worker.GetResult(var data);
 		if (data) {
@@ -164,13 +177,12 @@ class WhisperSpeechStream {
 
 	finish() {
 		audio_buffer = "";
-		_audio_len = 0;
 		_started = 0;
-		_buffer_offset = 0;
 		_start_voice = 0;
 		_end_voice = 0;
 		_end_voice_count = 0;
 		_last_text = "";
+		_dummy_buffer = "";
 		return "";
 	}
 
@@ -183,9 +195,8 @@ class WhisperSpeechStream {
 
 	close() {
 		audio_buffer = "";
-		_audio_len = 0;
+		_dummy_buffer = "";
 		_started = 0;
-		_buffer_offset = 0;
 		_start_voice = 0;
 		_end_voice = 0;
 		_end_voice_count = 0;

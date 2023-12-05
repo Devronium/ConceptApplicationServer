@@ -1875,10 +1875,15 @@ class SIPStack {
 	}
 
 	Invite401(session, msg) {
-		if ((msg.ServerCode != 401) || (!session.is_invite) || (!session.msg) || (session.msg.Headers["Authorization"]) || (session.auth))
+		if (((msg.ServerCode != 401) && (msg.ServerCode != 407)) || (!session.is_invite) || (!session.msg) || (session.msg.Headers["Authorization"]) || (session.auth))
 			return false;
 
-		var auth = msg.Headers["www-authenticate"];
+		var auth;
+		if (msg.ServerCode == 401)
+			auth = msg.Headers["www-authenticate"];
+		else
+			auth = msg.Headers["proxy-authenticate"];
+
 		if (!auth)
 			return false;
 
@@ -1897,7 +1902,10 @@ class SIPStack {
 			return false;
 
 		var authorization = this.WWWAuth(auth, registration.username, registration.password, "INVITE", registration.server, var nonce);
-		session.msg.Headers["Authorization"] = authorization;
+		if (msg.ServerCode == 401)
+			session.msg.Headers["Authorization"] = authorization;
+		else
+			session.msg.Headers["Proxy-Authorization"] = authorization;
 
 		session.auth = 2;
 		session.write_timestamp = microseconds();
@@ -1907,6 +1915,7 @@ class SIPStack {
 
 		return true;
 	}
+
 
 	PerformUDP(method, from, destination, payload = "", payload_type = "application/sdp", max_forwards = 70, parent_msg = null, extra_headers = null, ip = "", port = 0, cache_session = null, validation_delegate = null) {
 		var msg = new SIPMessage();
@@ -2262,8 +2271,15 @@ class SIPStack {
 							} else
 							if (msg.ServerCode >= 300) {
 								// is authorization
-								if ((msg.ServerCode == 401) && (this.Registrations) && (child_session.is_invite == true) && (child_session.auth == 2) && (msg.Headers["www-authenticate"]))
-									return true;
+								if ((this.Registrations) && (child_session.is_invite == true) && (child_session.auth == 2)) {
+
+									if ((msg.ServerCode == 401) && (msg.Headers["www-authenticate"]))
+										return true;
+
+									if ((msg.ServerCode == 407) && (msg.Headers["proxy-authenticate"]))
+										return true;
+
+								}
 
 								// busy/redirect/etc
 								var child_len = length session.Children;
@@ -3567,7 +3583,7 @@ class SIPStack {
 								sess = GetSession(msg);
 
 							if (sess) {
-								if ((!this.Registrations) || (msg.ServerCode != 401) || (!this.Invite401(sess, msg))) {
+								if ((!this.Registrations) || ((msg.ServerCode != 401) && (msg.ServerCode != 407)) || (!this.Invite401(sess, msg))) {
 									parent = sess.Parent;
 									// sess.Bye();
 									this.RemoveSessionByRef(sess, msg.ServerCode);
