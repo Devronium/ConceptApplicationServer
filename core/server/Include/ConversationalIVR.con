@@ -22,6 +22,7 @@ define STT_ADDBUFFER	1
 define STT_TEXT		2
 define STT_SCORER	3
 define STT_TIMEDOUT	4
+define STT_WAIT		5
 
 class IVRClientData {
 	var count;
@@ -147,6 +148,23 @@ class IVRClientData {
 		empty_buffer = false;
 	}
 
+	wait(ivr, session, type = 8) {
+		var codec = "";
+		if (type == 8)
+			codec = "alaw";
+		else
+			codec = "ulaw";
+
+		var wait = ivr.wait[codec];
+		if (!wait) {
+			wait = ReadFile("repository/wait.$codec");
+			if (wait)
+				ivr.wait[codec] = wait;
+		}
+		if (wait)
+			session.sip.AppendVoice(wait);
+	}
+
 	forwardUDP(ivr, session, var buf, type, var forward_socket) {
 		if ((!remotehost) || (!buf) || (!session) || (!forward))
 			return;
@@ -233,6 +251,7 @@ class STTWorkerObject {
 	var words;
 	var silence;
 	var silence_buffer = "";
+	var data;
 
 	STTWorkerObject(id) {
 		this.id = id;
@@ -614,7 +633,7 @@ class WhisperSpeechWorker {
 						worker_obj.stream.MinBufferSize = 32000 * 2;
 					}
 
-					if (worker_obj.age() < 12000) {
+					if ((worker_obj.age() < 12000) && (!worker_obj.stream.Pending)) {
 						var pcm_buf;
 						if (obj.codec == 0)
 							pcm_buf = ulaw2pcm(obj.buffer);
@@ -627,6 +646,10 @@ class WhisperSpeechWorker {
 							worker_obj.stream.feed(SubStr(worker_obj.silence_buffer, 0, 640));
 							worker_obj.silence_buffer = SubStr(worker_obj.silence_buffer, 640);
 						}
+						if ((worker_obj.stream.Pending) && (!worker_obj.data)) {
+							Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_WAIT, "")));
+							worker_obj.data = true;
+						}
 					}
 
 					var str = worker_obj.stream.decode();
@@ -634,6 +657,7 @@ class WhisperSpeechWorker {
 						Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TEXT, this.parse(str))));
 						worker_obj.resetText();
 						worker_obj.stream.finish();
+						worker_obj.data = false;
 					}
 
 					var age = worker_obj.age();
@@ -641,6 +665,7 @@ class WhisperSpeechWorker {
 						worker_obj.reset(false);
 						Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TIMEDOUT, "")));
 						worker_obj.stream.reset();
+						worker_obj.data = false;
 					}
 					worker_obj.ping();
 				} catch (var exc) {
@@ -931,10 +956,20 @@ class VoiceWorker {
 			} else
 			if (Pos(voice, "elevenlabs/") > 0) {
 				arr = StrSplit(voice, "/");
-				if (length arr == 4) {
+				if (length arr >= 4) {
 					console.log(LOG_THIS, "using ElevenLabs for [$text]");
 					var tts = new ElevenLabs(arr[3]);
-					var eleven_data = tts.sync(text, arr[2], "pcm_16000");
+					var eleven_data;
+					var obj;
+					if (length arr > 4) {
+						obj = JSONDeserialize(arr[4]);
+						if (obj) {
+							obj["text"] = text;
+							eleven_data = tts.sync(obj, arr[2], "pcm_16000");
+						}
+					}
+					if (!obj)
+						eleven_data = tts.sync(text, arr[2], "pcm_16000");
 					if ((eleven_data) && (length eleven_data >= 1024)) {
 						var wav_data = pack("s4u32s4s4u32u16u16u32u32u16u16s4u32", "RIFF", length eleven_data + 28, "WAVE", "fmt ", 16, 1, 1, 16000, 32000, 2, 16, "data", length eleven_data);
 						if (wav_data) {
@@ -1544,6 +1579,7 @@ class ConversationalIVR {
 
 	var forwardUDP;
 	var[] music;
+	var[] wait;
 	
 	protected var dummySession;
 
@@ -1822,6 +1858,9 @@ class ConversationalIVR {
 	}
 
 	loadConfig(to) {
+		if (ivr.OnFormatTo)
+			to = ivr.OnFormatTo(to);
+
 		var trunk_path = trunk_dir + to + ".json";
 		if (!FileExists(trunk_path)) {
 			console.warn(LOG_THIS, "invalid trunk $to ($trunk_path)");
@@ -3087,6 +3126,9 @@ class ConversationalIVR {
 					continue;
 				}
 
+				if (obj.type == STT_WAIT) {
+					session.ClientData.wait(this, session);
+				} else
 				if (obj.type == STT_TIMEDOUT) {
 					session.ClientData.worker = null;
 					session.ClientData.timeouts ++;
@@ -3546,25 +3588,31 @@ class ConversationalIVR {
 		if (this.OnCheckDestination)
 			who = this.OnCheckDestination(who);
 		var session = this.ivr.stack.Invite(who, from, 70, null, null, force_identity);
-		console.log(LOG_THIS, "call $who by $from");
+		var from_parsed = from;
+		var who_parsed = who;
+		if (ivr.OnFormatFrom)
+			from_parsed = ivr.OnFormatFrom(from_parsed);
+		if (ivr.OnFormatTo)
+			who_parsed = ivr.OnFormatTo(who_parsed);
+		console.log(LOG_THIS, "call $who_parsed by $from_parsed");
 		if (session) {
 			session.setExpires(max_duration);
 			session.setCallSetupExpires(24);
 			if (tree) {
 				if (typeof tree == "string") {
 					if (tree == "\$default")
-						tree = this.loadDefaultTree(from);
+						tree = this.loadDefaultTree(from_parsed);
 					else
 						tree = [tree];
 				}
 				ivr_api_trees[session.CallID] = tree;
 				// to do
 			}
-			IVRClientData::checkEvent(session, who, from, this, tree, "try");
+			IVRClientData::checkEvent(session, who_parsed, from_parsed, this, tree, "try");
 			return session.CallID;
 		}
-		IVRClientData::checkEvent(session, who, from, this, tree, "fail");
-		console.warn(LOG_THIS, "cannot call $who");
+		IVRClientData::checkEvent(session, who_parsed, from_parsed, this, tree, "fail");
+		console.warn(LOG_THIS, "cannot call $who_parsed");
 		return false;
 	}
 
@@ -3772,10 +3820,15 @@ class ConversationalIVR {
 			return null;
 		}
 
-		if (IsSet(ivr_voice, from))
-			voice = adjustVoice(ivr_voice[from]);
+		var from_parsed = from;
+		
+		if (ivr.OnFormatFrom)
+			from_parsed = ivr.OnFormatFrom(from_parsed);
+
+		if (IsSet(ivr_voice, from_parsed))
+			voice = adjustVoice(ivr_voice[from_parsed]);
 		if (!voice) {
-			console.warn(LOG_THIS, "using default voice for $from");
+			console.warn(LOG_THIS, "using default voice for $from_parsed");
 			voice = this.defaultVoice;
 		}
 
@@ -3784,8 +3837,8 @@ class ConversationalIVR {
 
 		if (typeof tree == "array") {
 			var used_words;
-			tree = this.loadTree(from, this.fromTree(tree), null, null, false, used_words);
-			this.ensureWords(from, voice, used_words);
+			tree = this.loadTree(from_parsed, this.fromTree(tree), null, null, false, used_words);
+			this.ensureWords(from_parsed, voice, used_words);
 		}
 
 		if ((!texts) || (length texts == 0))

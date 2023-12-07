@@ -102,6 +102,7 @@ class WhisperSpeechStream {
 			if (fvad_process(_vad, frame) == true) {
 				_start_voice = true;
 				_end_voice_count = 0;
+				_end_voice = false;
 				buf2 += frame;
 			} else {
 				if (_end_voice_count < 10)
@@ -116,8 +117,7 @@ class WhisperSpeechStream {
 		// one second with no voice
 		if (_end_voice_count >= 48)
 			_end_voice = true;
-		else
-			_end_voice = 0;
+
 		return buf2;
 	}
 
