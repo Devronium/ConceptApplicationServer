@@ -12,5 +12,7 @@ extern "C" {
     CONCEPT_FUNCTION(MP3EncoderEncode);
     CONCEPT_FUNCTION(MP3EncoderFlush);
     CONCEPT_FUNCTION(MP3EncoderDone);
+
+    CONCEPT_FUNCTION(MP3Decode);
 }
 #endif // __LIBRARY_H

@@ -5,8 +5,10 @@
 #include <string.h>
 extern "C" {
     #include "shine/layer3.h"
-}
 
+    #define MINIMP3_IMPLEMENTATION
+    #include "minimp3_ex.h"
+}
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     return 0;
@@ -127,5 +129,32 @@ CONCEPT_FUNCTION_IMPL(MP3EncoderDone, 1)
     shine_close(s);
     SET_NUMBER(0, 0);
     RETURN_NUMBER(0);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MP3Decode, 1, 2)
+    T_STRING(MP3Decode, 0)
+
+    mp3dec_file_info_t info;
+    mp3dec_t mp3d;
+
+    memset(&info, 0, sizeof(info));
+
+    int err = mp3dec_load_buf(&mp3d, (const uint8_t *)PARAM(0), (size_t)PARAM_LEN(0), &info, NULL, NULL);
+
+    if (PARAMETERS_COUNT > 1) {
+        CREATE_ARRAY(PARAMETER(1));
+
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(1), "samples", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)(size_t)info.samples);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(1), "channels", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)(int)info.channels);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(1), "hz", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)(int)info.hz);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(1), "avg_bitrate_kbps", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)(int)info.layer);
+    }
+
+    if ((err) || (info.samples <= 0)) {
+        RETURN_STRING("");
+    } else {
+        RETURN_BUFFER((const char *)info.buffer, info.samples * sizeof(mp3d_sample_t));
+    }
+    free(info.buffer);
 END_IMPL
 //---------------------------------------------------------------------------
