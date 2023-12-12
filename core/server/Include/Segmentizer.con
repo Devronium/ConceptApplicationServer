@@ -1,0 +1,82 @@
+import standard.lib.samplerate
+import standard.lib.vad
+
+include MP3.con
+
+class VADSegment {
+	var start = 0;
+	var len = 0;
+}
+
+class Segmentizer {
+	static segmentize(var mp3_data, segment_max_size = 30000, samplerate = 16000) {
+		var[] segments;
+
+		var data = MP3Decode(mp3_data, var info);
+		if (!data)
+			return segments;
+
+		var hz = info["hz"];
+		if (hz != samplerate)
+			data = resample(data, hz, samplerate, SRC_SINC_FASTEST); // SRC_SINC_BEST_QUALITY
+
+		var vad = fvad_new();
+		fvad_set_sample_rate(vad, samplerate);
+
+		var framesize_ms = 20;
+		var framesize = framesize_ms * samplerate / 1000 * 2;
+		var timestamp = 0;
+		var no_voice = 0;
+
+		var segment = new VADSegment();
+
+		for (var i = 0; i < length data; i += framesize) {
+			var prev_voice = no_voice;
+			if (fvad_process(vad, SubStr(data, i, framesize)))
+				no_voice = 0;
+			else
+				no_voice ++;
+
+			timestamp += framesize_ms;
+			if ((prev_voice >= 16) && (!no_voice)) {
+				segment.len = timestamp - segment.start;
+				segments[length segments] = segment;
+
+				segment = new VADSegment();
+				segment.start = timestamp;
+			}
+		}
+		segment.len = timestamp - segment.start;
+		segments[length segments] = segment;
+
+		fvad_free(vad);	
+
+		var[] segment_data;
+		if (segments) {
+			var[] segments_merged;
+			var segment_merged = segments[0];
+			segments_merged[length segments_merged] = segment_merged;
+
+			var offset = segment_max_size;
+			for (i = 1; i < length segments; i ++) {
+				segment = segments[i];
+				if (segment_merged.len + segment.len < offset) {
+					segment_merged.len += segment.len;
+				} else {
+					offset = segment_max_size;//segment_merged.start + segment_merged.len;
+					segment_merged = segment;
+					segments_merged[length segments_merged] = segment_merged;
+				}
+			}
+
+			var coef = samplerate / 1000 * 2;
+
+			for (i = 0; i < length segments_merged; i ++) {
+				segment_merged = segments_merged[i];
+				segment_data["${segment_merged.start}:${segment_merged.len}"] = SubStr(data, segment_merged.start * coef, segment_merged.len * coef);
+			}
+		}
+
+		return segment_data;
+	}
+}

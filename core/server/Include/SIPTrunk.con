@@ -1411,6 +1411,22 @@ class SIPStack {
 		Routes = new_routes;
 	}
 
+	public FindRoute(phone) {
+		for (var i = 0; i < length Routes; i++) {
+			var route = Routes[i];
+			if (route) {
+				var r = new RegExp(route.rule);
+				if (r.test(phone)) {
+					var addr = route.ip;
+					if (route.port != 5060)
+						addr += ":" + route.port;
+					return addr;
+				}
+			}
+		}
+		return "";
+	}
+
 	public ClearRoutes() {
 		Routes = new [];
 	}
