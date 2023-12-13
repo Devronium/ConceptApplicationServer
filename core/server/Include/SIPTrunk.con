@@ -144,6 +144,7 @@ class SIPSession {
 
 	var[] Children;
 	var Parent;
+	var ProxyCall;
 
 	var sdp_in = "";
 	var sdp_out = "";
@@ -912,8 +913,8 @@ class SIPSession {
 		return null;
 	}
 
-	Refer(address, contact = "", identity = "") {
-		return this.s.Refer(msg, address, 70, contact, identity);
+	Refer(address, contact = "", identity = "", skip_user_addr = false) {
+		return this.s.Refer(msg, address, 70, contact, identity, skip_user_addr);
 	}
 
 	setMaxJitter(max) {
@@ -2237,7 +2238,7 @@ class SIPStack {
 		return others;
 	}
 
-	public ReferProxy(msg, address, max_forwards = 70, contact = "", identity = "") {
+	public ReferProxy(msg, address, max_forwards = 70, contact = "", identity = "", skip_user_addr = false) {
 		if (!msg)
 			return null;
 
@@ -2258,7 +2259,7 @@ class SIPStack {
 
 			var session = this.GetSession(msg);
 			if (session) {
-				var child_session = this.Invite(address, contact, max_forwards, null, null, identity);
+				var child_session = this.Invite(address, contact, max_forwards, null, null, identity, skip_user_addr);
 				if (child_session) {
 					child_session._private_data = session.CallID;
 					session.AddChild(child_session);
@@ -2340,8 +2341,8 @@ class SIPStack {
 		return false;
 	}
 
-	public Refer(msg, address, max_forwards = 70, contact = "", identity = "") {
-		return this.ReferProxy(msg, address, max_forwards, contact, identity);
+	public Refer(msg, address, max_forwards = 70, contact = "", identity = "", skip_user_addr = false) {
+		return this.ReferProxy(msg, address, max_forwards, contact, identity, skip_user_addr);
 	}
 
 	public ReferDialog(msg, address, target_dialog, ip = "", port = 0, max_forwards = 70) {
@@ -2878,7 +2879,7 @@ class SIPStack {
 
 	}
 
-	Invite(destination, username, max_forwards = 70, parent_session = null, validation_delegate = null, identity = "") {
+	Invite(destination, username, max_forwards = 70, parent_session = null, validation_delegate = null, identity = "", skip_user_addr = false) {
 		var msg = new SIPMessage();
 		msg.Method = "INVITE";
 		var server = "";
@@ -2972,7 +2973,7 @@ class SIPStack {
 				return sess;
 			}
 			try {
-				if (local_server) {
+				if ((!skip_user_addr) && (local_server)) {
 					server = local_server;
 					server_port = local_port ?? 5060;
 				}
@@ -3548,6 +3549,18 @@ class SIPStack {
 							if (sess) {
 								sess.write_timestamp = 0;
 								delete sess.write_server;
+
+								if ((sess.ProxyCall) && (sess.Parent)) {
+									if ((sess.ProxyCall == 1) && (msg.ServerCode >= 200) && (msg.ServerCode < 300)) {
+										sess.Parent.Accept();
+										sess.ProxyCall = msg.ServerCode;
+									} else {
+										if (non_routable)
+											this.ResponseUDP(msg.ServerCode, sess.Parent.msg, sess.Parent.msg.Headers["from"], "", "", 70, null, "", sess.Parent.ip, sess.Parent.port);
+										else
+											this.ResponseUDP(msg.ServerCode, sess.Parent.msg, sess.Parent.msg.Headers["from"]);
+									}
+								}
 							}
 						}
 

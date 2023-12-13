@@ -13,7 +13,8 @@ include MP3.con
 include ElevenLabs.con
 include RWKV.con
 
-define SETTINTS_MAX_TIMEOUTS	4
+// 4
+define SETTINTS_MAX_TIMEOUTS	8
 define SETTINGS_ENSURE_WORDS	false
 define SETTINGS_MAX_DEQUEUE	4096
 
@@ -2584,6 +2585,7 @@ class ConversationalIVR {
 							language_hint = SubStr(language_hint, 0, pos - 1) + "]";
 							if (please_wait_text)
 								this.Raspuns(session.sip.CallID, language_hint + please_wait_text);
+							session.ClientData.wait(this, session);
 						}
 					}
 				}
@@ -2621,6 +2623,7 @@ class ConversationalIVR {
 							language_hint = SubStr(language_hint, 0, pos - 1) + "]";
 							if (please_wait_text)
 								this.Raspuns(session.sip.CallID, language_hint + please_wait_text);
+							session.ClientData.wait(this, session);
 						}
 					}
 				}

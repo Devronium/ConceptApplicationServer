@@ -177,6 +177,7 @@ class IVR {
 	var Greeting;
 	var GreetingTo;
 	var AnswerGreeting;
+	var InviteProxy;
 	var Begin;
 	var End;
 	var EndRecording;
@@ -410,7 +411,8 @@ class IVR {
 			if (Begin)
 				Begin(session.UserData);
 		} else {
-			session.Reject();
+			if ((!this.InviteProxy) || (!this.InviteProxy(session, msg, from, msg_to)))
+				session.Reject();
 		}
 	}
 
