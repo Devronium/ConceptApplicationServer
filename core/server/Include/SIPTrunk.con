@@ -1412,20 +1412,32 @@ class SIPStack {
 		Routes = new_routes;
 	}
 
-	public FindRoute(phone) {
+	public FindRoute(phone, var local_user = false) {
+		var addr = "";
+		local_user = false;
+		if ((Users) && (IsSet(Users, phone))) {
+			var user = Users[phone];
+			if ((user) && (!user.Expired())) {
+				addr = user.ip;
+				if (user.port != 5060)
+					addr += ":" + user.port;
+				local_user = true;
+			}
+			return addr;
+		}
 		for (var i = 0; i < length Routes; i++) {
 			var route = Routes[i];
 			if (route) {
 				var r = new RegExp(route.rule);
 				if (r.test(phone)) {
-					var addr = route.ip;
+					addr = route.ip;
 					if (route.port != 5060)
 						addr += ":" + route.port;
 					return addr;
 				}
 			}
 		}
-		return "";
+		return addr;
 	}
 
 	public ClearRoutes() {
@@ -1582,7 +1594,7 @@ class SIPStack {
 			if (c == '"')
 				in_quotes = !in_quotes;
 			else
-			if (c == '=') {
+			if ((c == '=') && (!in_quotes)) {
 				name = ToLower(trim(temp));
 				temp = "";
 			} else
@@ -3352,13 +3364,18 @@ class SIPStack {
 					if (is_reinvite)
 						invite_code = 200;
 					if (sess) {
+						if ((this.OnInvite) && (!is_reinvite)) {
+							// ignore invite if OnInvite returns < 0
+							if (this.OnInvite(sess, msg) < 0) {
+								this.RemoveSessionByRef(sess);
+								break;
+							}
+						}
+
 						if (non_routable)
 							this.ResponseUDP(invite_code, msg, msg.Headers["from"], "", "", 70, null, "", sess.ip, sess.port);
 						else
 							this.ResponseUDP(invite_code, msg, msg.Headers["from"]);
-
-						if ((this.OnInvite) && (!is_reinvite))
-							this.OnInvite(sess, msg);
 					} else {
 						echo "Cannot create session (session/branch already exists?)\n";
 						if ((ref_session) && (ref_session.ip == ip) && (ref_session.port == port)) {

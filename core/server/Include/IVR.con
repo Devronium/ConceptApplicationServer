@@ -398,6 +398,9 @@ class IVR {
 		if (GreetingTo)
 			 res = this.GreetingTo(from, msg_to, session.CallID, msg);
 		if (res) {
+			// ignore invite if res is -1
+			if (res == -1)
+				return -1;
 			session.UserData = new DATASession(this.Get, session, from, msg_to);
 			session.OnReferError = this.OnReferError;
 			if (session.Parent) {
