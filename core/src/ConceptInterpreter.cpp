@@ -5364,6 +5364,7 @@ int ConceptInterpreter_JIT(INTEGER &INSTRUCTION_POINTER, INTEGER INSTRUCTION_COU
 VariableDATA *ConceptInterpreter_Interpret(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, struct PromiseData **pdata) {
 #ifndef NO_TC
     INTEGER allocated_data_count = ((struct Optimizer *)self->OWNER->OPTIMIZER)->dataCount;
+    INTEGER skip_return = 0;
 tc_start:
 #endif
     Optimizer        *OPT = (struct Optimizer *)self->OWNER->OPTIMIZER;
@@ -5647,6 +5648,8 @@ sel_label:
                                 FAST_FREE(PIF, PROPERTIES);
                                 PROPERTIES = 0;
                                 WRITE_UNLOCK
+                                if (CODE[INSTRUCTION_POINTER].Operator_ID != KEY_OPTIMIZED_RETURN)
+                                    skip_return = 1;
                                 goto tail_call;
                             } else {
                                 continue;
@@ -5667,6 +5670,8 @@ sel_label:
                                     FAST_FREE(PIF, PROPERTIES);
                                     PROPERTIES = 0;
                                     WRITE_UNLOCK
+                                    if (CODE[INSTRUCTION_POINTER].Operator_ID != KEY_OPTIMIZED_RETURN)
+                                        skip_return = 1;
                                     goto tc_start;
                                 } else {
                                     continue;
@@ -6185,6 +6190,10 @@ numbereval:
             switch (OE_Operator_ID) {
                 case KEY_OPTIMIZED_RETURN:
 return_label:
+#ifndef NO_TC
+                    if (skip_return)
+                        goto null_return;
+#endif
                     DECLARE_PATH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE);
                     if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->LINKS == 1) {
                         LOCAL_CONTEXT [OE->OperandRight_ID - 1]->LINKS = 2;
@@ -6334,6 +6343,7 @@ trap_label:
             }
         }
     }
+null_return:
     WRITE_UNLOCK
     THROW_DATA = 0;
     RETURN_DATA = 0;

@@ -380,11 +380,11 @@ class SIPSession {
 		var exc;
 		try {
 			this.s.use_socket = tcp_socket;
-			this.s.ResponseUDP(code, msg, msg.Headers["from"], "", "", 70, null, "", ip, port);
+			var msg2 = this.s.ResponseUDP(code, msg, msg.Headers["from"], "", "", 70, null, "", ip, port);
 			if (this.s.OnEnd)
 				this.s.OnEnd(this, msg, "");
 			this.s.RemoveSessionByRef(this);
-			return true;
+			return msg2;
 		} catch (exc) {
 			return false;
 		}
@@ -550,7 +550,7 @@ class SIPSession {
 		return files;
 	}
 
-	SimpleRTP(payload, profile = 48) {
+	SimpleRTP(var payload, profile = 48) {
 		if (profile == 48) {
 			profile = remote_type;
 			if (profile < 0)
@@ -570,31 +570,6 @@ class SIPSession {
 			RecordStream(ssrc_id, payload, "out-", profile);
 		return res;
 	}
-
-	/* SimpleRTP(payload, profile = 48) {
-		if (profile == 48) {
-			profile = remote_type;
-			if (profile < 0)
-				profile = 8;
-			if (profile == 0)
-				payload = alaw2ulaw(payload);
-		}
-			
-		var res = chr(0x80) + chr(profile);
-		res += toubin(htons(sequence_number), 16);
-		timestamp += length payload;
-		res += toubin(htonl(timestamp), 32);
-		var ssrc_id = ClsPtr(this);
-		res += toubin(htonl(ssrc_id), 32);
-		if (srtp)
-			res += srtp.Encrypt(res, payload);
-		else
-			res += payload;
-		sequence_number++;
-		if (Record)
-			RecordStream(ssrc_id, payload, "out-", profile);
-		return res;
-	} */
 
 	ParseRTPDTMF(type, payload) {
 		if ((rtp_dtmf_type) && (type == rtp_dtmf_type)) {
@@ -1047,7 +1022,7 @@ class SIPSession {
 						if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
 							rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
 					}
-					packet_time = microseconds() + 19000;
+					packet_time = microseconds() + chunk_size;
 					ops++;
 				}
 				started = true;
@@ -1058,6 +1033,9 @@ class SIPSession {
 				throw "Session expired !\n";
 			}
 		} catch (exc) {
+			if ((this.Parent) && (this.ProxyCall == 1))
+				this.s.ResponseUDP(408, this.Parent.msg, this.Parent.msg.Headers["from"], "", "", 70, null, "", this.Parent.ip, this.Parent.port);
+
 			if (this.tcp_socket)
 				this.s.RemoveTCPSocket(this.tcp_socket);
 			this.s.RemoveSessionByRef(this);
@@ -1438,6 +1416,17 @@ class SIPStack {
 			}
 		}
 		return addr;
+	}
+
+	public CachedRegistered(username, ip, port) {
+		var uinfo = Users[username];
+		if (!uinfo) {
+			uinfo = new SIPUserInfo(username);
+			Users[username] = uinfo;
+		}
+		uinfo.ip = ip;
+		uinfo.port = port;
+		uinfo.non_routable = this.NonRoutable(ip);
 	}
 
 	public ClearRoutes() {
@@ -3360,7 +3349,7 @@ class SIPStack {
 					SIPSession::EnsureTag(msg.Headers["from"]);
 					SIPSession::EnsureTag(msg.Headers["to"]);
 					var sess = this.CreateSession(msg, ip, port, true, var ref_session, var is_reinvite);
-					var invite_code = 180;
+					var invite_code = 100;
 					if (is_reinvite)
 						invite_code = 200;
 					if (sess) {
