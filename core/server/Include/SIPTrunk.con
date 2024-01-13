@@ -1161,6 +1161,7 @@ class SIPUserInfo {
 	var port;
 	var contact;
 	var non_routable;
+	var socket;
 
 	SIPUserInfo(username) {
 		this.username = username;
@@ -1269,6 +1270,7 @@ class SIPStack {
 	var[] Sessions;
 	var[] Routes;
 	var[] Users;
+	var[] HostToUser;
 	var[] Registrations;
 	var MaxTime = 3600;
 	var OnDTMF;
@@ -1299,6 +1301,7 @@ class SIPStack {
 	var OnAudioTimeout;
 	var OnRedirectAnswered;
 	var OnReferNoAnswer;
+	var OnProxyAnswered;
 
 	var Transport = "UDP";
 	var sipproto = "sip:";
@@ -1726,7 +1729,21 @@ class SIPStack {
 
 	DoWrite(socket, var buffer, ip, port) {
 		// UDP
+
 		var type = classof socket;
+
+		if ((HostToUser) && (type[0] == "U")) {
+			var host_key = "$ip:$port";
+			if (IsSet(HostToUser, host_key)) {
+				var username = HostToUser[host_key];
+				if (username) {
+					var uinfo = Users[username];
+					if (uinfo.socket)
+						socket = uinfo.socket;
+				}
+			}
+			type = classof socket;
+		}
 		if (type[0] == "U") {
 			if ((CacheNames) && (ip)) {
 				var last_ip = ip[length ip - 1];
@@ -1747,7 +1764,6 @@ class SIPStack {
 
 			return socket.Write(buffer, ip, port);
 		}
-
 		return socket.Write(buffer);
 	}
 
@@ -2605,13 +2621,7 @@ class SIPStack {
 			if (IsSet(Sessions, id)) {
 				var sessions = Sessions;
 				var res = sessions[id];
-				/* var new_sessions = new [];
-				for (var i = 0; i < length sessions; i++) {
-					var sess = sessions[i];	
-					if ((sess) && (sess.CallID != id))
-						new_sessions[sess.CallID] = sess;
-				}
-				Sessions = new_sessions; */
+
 				deleteArrayElement(sessions, id);
 				this.CleanSession(res, msg.ServerCode);
 				return res;
@@ -2664,17 +2674,6 @@ class SIPStack {
 
 	RemoveSessionByRef(session, code = 0) {
 		if ((session) && (IsSet(Sessions, session.CallID))) {
-			/* var sessions = Sessions;
-
-			var new_sessions = new [];
-			var id = session.CallID;
-			for (var i = 0; i < length sessions; i++) {
-				var sess = sessions[i];	
-				if ((sess) && (sess.CallID != id))
-					new_sessions[sess.CallID] = sess;
-			}
-			Sessions = new_sessions; */
-
 			deleteArrayElement(Sessions, session.CallID);
 
 			CleanSession(session, code);
@@ -3316,7 +3315,37 @@ class SIPStack {
 		return ops;
 	}
 
-	protected _msgIterate(msg, ip, port, var ops) {	
+	io(socket_emulation, msg_buffer, ip, port, max_forwards = 70) {
+		use_socket = null;
+
+		if (!msg_buffer)
+			return;
+
+		var transport = Transport;
+		try {
+			var msg = this.Parse(msg_buffer);
+			if (!msg)
+				return;
+
+			Transport = socket_emulation.Transport;
+			use_socket = socket_emulation;
+			if (this.OnRecv)
+				this.OnRecv(msg, ip, port);
+
+			if (((msg.ServerCode >= 200) || (!msg.ServerCode)) && (msg.Method == "") && (!Pos(""+msg.Headers["cseq"], " ACK"))) {
+				if (this.ValidOrigin(ip))
+					this.Ack(msg, ip, port, max_forwards);
+			}
+
+			this._msgIterate(msg, ip, port, null);
+		} catch (var exc) {
+			// nothing
+		}
+		Transport = transport;
+		use_socket = null;
+	}
+
+	protected _msgIterate(msg, ip, port, var ops) {
 		if (msg) {
 			if (this.OnFilter) {
 				if (this.OnFilter(msg, ip, port)) {
@@ -3346,6 +3375,7 @@ class SIPStack {
 			var extra_headers;
 			switch (msg.Method) {
 				case "INVITE":
+					use_socket = null;
 					SIPSession::EnsureTag(msg.Headers["from"]);
 					SIPSession::EnsureTag(msg.Headers["to"]);
 					var sess = this.CreateSession(msg, ip, port, true, var ref_session, var is_reinvite);
@@ -3404,15 +3434,40 @@ class SIPStack {
 								var timeout = RegisterTimeout;
 								if (non_routable)
 									timeout = NonRoutableRegisterTimeout;
+
+								if (IsSet(msg.Headers, "expires")) {
+									var register_expires = value msg.Headers["expires"];
+									if ((register_expires) && (register_expires > 0) && (register_expires < timeout))
+										timeout = register_expires;
+								}
+
 								if (timeout > 0) {
 									if (username)
 										contact = BuildContact(username) + ";" + "expires=" + timeout;
 								}
 								uinfo.Update(timeout);
 							}
+							var type = classof use_socket;
+							if ((use_socket) && (type[0] != "U")) {
+								var host_key = "$ip:$port";
+								if (uinfo.ip) {
+									var old_key = "${uinfo.ip}:${uinfo.port}";
+									if (old_key != host_key) {
+										deleteArrayElement(HostToUser, old_key);
+										HostToUser[host_key] = username;
+									}
+								} else
+									HostToUser[host_key] = username;
+							} else
+							if (HostToUser)
+								deleteArrayElement(HostToUser, old_key);
+
 							uinfo.ip = ip;
 							uinfo.port = port;
 							uinfo.contact = msg.Headers["contact"];
+							uinfo.socket = use_socket;
+
+							contact = uinfo.contact;
 						}
 					}
 					if (non_routable) {
@@ -3560,6 +3615,8 @@ class SIPStack {
 									if ((sess.ProxyCall == 1) && (msg.ServerCode >= 200) && (msg.ServerCode < 300)) {
 										sess.Parent.Accept();
 										sess.ProxyCall = msg.ServerCode;
+										if (this.OnProxyAnswered)
+											this.OnProxyAnswered(sess);
 									} else {
 										if (non_routable)
 											this.ResponseUDP(msg.ServerCode, sess.Parent.msg, sess.Parent.msg.Headers["from"], "", "", 70, null, "", sess.Parent.ip, sess.Parent.port);

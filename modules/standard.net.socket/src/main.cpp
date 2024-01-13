@@ -459,13 +459,15 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     Invoke(INVOKE_DEFINE_CONSTANT, HANDLER, "PROTOCOL_SCTP", "4");
     Invoke(INVOKE_DEFINE_CONSTANT, HANDLER, "PROTOCOL_SCTP_SEQPACKET", "5");
 
+    DEFINE_ECONSTANT(WS_EMPTY_FRAME)
     DEFINE_ECONSTANT(WS_ERROR_FRAME)
     DEFINE_ECONSTANT(WS_INCOMPLETE_FRAME)
     DEFINE_ECONSTANT(WS_TEXT_FRAME)
     DEFINE_ECONSTANT(WS_BINARY_FRAME)
+    DEFINE_ECONSTANT(WS_PING_FRAME)
+    DEFINE_ECONSTANT(WS_PONG_FRAME)
     DEFINE_ECONSTANT(WS_OPENING_FRAME)
     DEFINE_ECONSTANT(WS_CLOSING_FRAME)
-    DEFINE_ECONSTANT(WS_UNSUPPORTED_VERSION)
 
     DEFINE_ECONSTANT(SOL_SOCKET)
     DEFINE_ECONSTANT(IPPROTO_IP)
@@ -1537,26 +1539,22 @@ CONCEPT_DLL_API CONCEPT_SocketHasData CONCEPT_API_PARAMETERS {
 CONCEPT_FUNCTION_IMPL(WSParseHandshake, 1)
     T_STRING(WSParseHandshake, 0)
     struct handshake hs;
-    ws_frame_type    frame_type = ws_parse_handshake((uint8_t *)PARAM(0), PARAM_LEN(0), &hs);
+    wsFrameType frame_type = wsParseHandshake((uint8_t *)PARAM(0), PARAM_LEN(0), &hs);
     CREATE_ARRAY(RESULT);
     Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "frame_type", (INTEGER)VARIABLE_NUMBER, 0, (NUMBER)frame_type);
     if (frame_type != WS_INCOMPLETE_FRAME) {
         Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "resource", (INTEGER)VARIABLE_STRING, hs.resource ? hs.resource : "", (NUMBER)0);
         Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "host", (INTEGER)VARIABLE_STRING, hs.host ? hs.host : "", (NUMBER)0);
         Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "origin", (INTEGER)VARIABLE_STRING, hs.origin ? hs.origin : "", (NUMBER)0);
-        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "protocol", (INTEGER)VARIABLE_STRING, hs.protocol ? hs.protocol : "", (NUMBER)0);
-        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "version", (INTEGER)VARIABLE_NUMBER, "", (NUMBER)hs.version);
-        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "key", (INTEGER)VARIABLE_STRING, hs.key ? hs.key : "", (NUMBER)0);
-        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "key1", (INTEGER)VARIABLE_STRING, hs.key1 ? hs.key1 : "", (NUMBER)0);
-        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "key2", (INTEGER)VARIABLE_STRING, hs.key2 ? hs.key2 : "", (NUMBER)0);
-        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "key3", (INTEGER)VARIABLE_STRING, hs.key3, (NUMBER)8);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "resource", (INTEGER)VARIABLE_STRING, hs.resource ? hs.resource: "", (NUMBER)0);
     }
+    freeHandshake(&hs);
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(WSHandshakeAnswer, 1)
     T_ARRAY(WSHandshakeAnswer, 0)
     struct handshake hs;
-    nullhandshake(&hs);
+    nullHandshake(&hs);
     INTEGER type  = 0;
     NUMBER  dummy = 0;
     char    *str  = 0;
@@ -1572,54 +1570,36 @@ CONCEPT_FUNCTION_IMPL(WSHandshakeAnswer, 1)
     Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(0), "origin", &type, &str, &dummy);
     if (type == VARIABLE_STRING)
         hs.origin = str;
-    Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(0), "protocol", &type, &str, &dummy);
+    Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(0), "resource", &type, &str, &dummy);
     if (type == VARIABLE_STRING)
-        hs.protocol = str;
-    Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(0), "version", &type, &str, &dummy);
-    if (type == VARIABLE_NUMBER)
-        hs.version = (char)dummy;
-    Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(0), "key", &type, &str, &dummy);
-    if (type == VARIABLE_STRING)
-        hs.key = str;
-    Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(0), "key1", &type, &str, &dummy);
-    if (type == VARIABLE_STRING)
-        hs.key1 = str;
-    Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(0), "key2", &type, &str, &dummy);
-    if (type == VARIABLE_STRING)
-        hs.key2 = str;
-    Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(0), "key3", &type, &str, &dummy);
-    if ((type == VARIABLE_STRING) && (str)) {
-        int len = (int)dummy;
-        if (len > 8)
-            len = 8;
-        memcpy(hs.key3, str, len);
-    }
+        hs.resource = str;
     if ((!hs.origin) || (!hs.host) || (!hs.resource)) {
         RETURN_STRING("");
         return 0;
     }
-    ws_get_handshake_answer(&hs, buffer, &out_len);
+    wsGetHandshakeAnswer(&hs, buffer, &out_len);
     if (out_len > 0) {
         RETURN_BUFFER((char *)buffer, out_len);
     } else {
         RETURN_STRING("");
     }
+    freeHandshake(&hs);
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WSMakeFrame, 1, 2)
     T_STRING(WSMakeFrame, 0)
 
-    ws_frame_type ft_orig = WS_TEXT_FRAME;
+    wsFrameType ft_orig = WS_TEXT_FRAME;
     if (PARAMETERS_COUNT > 1) {
         T_NUMBER(WSMakeFrame, 1)
-        ft_orig = (ws_frame_type)PARAM_INT(1);
+        ft_orig = (wsFrameType)PARAM_INT(1);
     }
     char   *buffer = 0;
     size_t out_len = PARAM_LEN(0) + 0xFF;
     CORE_NEW(out_len + 1, buffer);
 
-    ws_frame_type frame_type = ws_make_frame((uint8_t *)PARAM(0), PARAM_LEN(0), (uint8_t *)buffer, &out_len, ft_orig);
-    if ((frame_type != ft_orig) || (!out_len)) {
+    wsMakeFrame((uint8_t *)PARAM(0), PARAM_LEN(0), (uint8_t *)buffer, &out_len, ft_orig);
+    if (!out_len) {
         CORE_DELETE(buffer);
         RETURN_STRING("");
     } else
@@ -1632,7 +1612,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WSParseFrame, 1, 2)
     char   *buffer = 0;
     size_t out_len = 0;
 
-    ws_frame_type frame_type = ws_parse_input_frame((uint8_t *)PARAM(0), PARAM_LEN(0), (uint8_t **)&buffer, &out_len);
+    wsFrameType frame_type = wsParseInputFrame((uint8_t *)PARAM(0), PARAM_LEN(0), (uint8_t **)&buffer, &out_len);
     if ((out_len) && (buffer)) {
         RETURN_BUFFER(buffer, out_len);
     } else {

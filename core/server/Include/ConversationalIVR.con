@@ -13,10 +13,10 @@ include MP3.con
 include ElevenLabs.con
 include RWKV.con
 
-// 4
 define SETTINTS_MAX_TIMEOUTS	8
 define SETTINGS_ENSURE_WORDS	false
 define SETTINGS_MAX_DEQUEUE	4096
+define SETTINGS_MAX_DURATION	1800
 
 define STT_RESET	0
 define STT_ADDBUFFER	1
@@ -109,8 +109,8 @@ class IVRClientData {
 			session.ClientData.count = 0;
 			session.EndOnIVRFinished = false;
 			session.ClientData.redirect = "";
-			session.Expires = 1800;
-			session.sip.setExpires(1800);
+			session.Expires = SETTINGS_MAX_DURATION;
+			session.sip.setExpires(SETTINGS_MAX_DURATION);
 			session.sip.ResetBuffers();
 			session.sip.Record = true;
 			session.StartRecording(session.Expires);
@@ -1541,6 +1541,7 @@ class ConversationalIVR {
 	var[] ivr_disabled;
 	var[] ivr_quota_limit;
 	var[] ivr_quota;
+	var[] ivr_alerts;
 
 	var ivr_api_trees_dirty;
 
@@ -1560,6 +1561,7 @@ class ConversationalIVR {
 	var OnAlert;
 
 	var OnCheckDestination;
+	var OnRouteRequest;
 
 	var defaultVoice = "tts_models/en/vctk/vits";
 	var[] sipUsers;
@@ -1880,6 +1882,8 @@ class ConversationalIVR {
 				if (workers_limit > workers)
 					workers = workers_limit;
 			}
+			if (config["alert"])
+				ivr_alerts[to] = config["alert"];
 
 			if (config["model"]) {
 				this.addWorker(to, config["model"], config["scorer"], workers);
@@ -2338,29 +2342,15 @@ class ConversationalIVR {
 	}
 
 	OnEnd(session, callid, code) {
-		if ((session) && ((!session.UserData) || (!session.UserData.ClientData)))
+		if (typeof code == "array")
+			code = code[0];
+
+		if ((session) && ((!session.UserData) || (!session.UserData.ClientData) || (!session.UserData.ClientData.finish_api)))
 			this.notifyCode(session, code);
 
-		if ((callid) && (IsSet(ivr_api_trees, callid))) {
+		if ((callid) && (IsSet(ivr_api_trees, callid)))
 			deleteArrayElement(ivr_api_trees, callid);
-			/* ivr_api_trees[callid] = null;
-			ivr_api_trees_dirty ++;
-			if (ivr_api_trees_dirty >= 8) {
-				var keys = GetKeys(ivr_api_trees);
-				var arr = new [];
-				for (var i = 0; i < length keys; i ++) {
-					var k = keys[i];
-					if (k) {
-						var tree = ivr_api_trees[k];
-						if (tree)
-							arr[k] = tree;
-					}
-				}
-				ivr_api_trees = arr;
-				console.log("cleared ${ivr_api_trees_dirty} placeholders");
-				ivr_api_trees_dirty = 0;
-			} */
-		}
+
 		console.log(LOG_THIS, "call id ${callid} ended with code $code");
 		if ((session) && (session.UserData) && (session.UserData.ClientData) && (this.OnAPI)) {
 			if ((session.UserData.ClientData.ivr_branch) && ((typeof session.UserData.ClientData.ivr_branch) == "array") && (IsSet(session.UserData.ClientData.ivr_branch, "*"))) {
@@ -3009,7 +2999,8 @@ class ConversationalIVR {
 							if ((this.OnAPI) && (session.ClientData.finish_api)) {
 								this.OnAPI(session, session.ClientData.ivr_path, session.ClientData.finish_api, "close");
 								session.ClientData.finish_api = "";
-							}
+							}							
+
 							if (this.OnFinish)
 								this.checkMessage(id, this.OnFinish(session, session.ClientData.ivr_path), append);
 						} catch (exc) {
@@ -3205,6 +3196,8 @@ class ConversationalIVR {
 					if (workers_limit > workers)
 						workers = workers_limit;
 				}
+				if (config["alert"])
+					ivr_alerts[to] = config["alert"];
 				this.addWorker(to, config["model"], config["scorer"], workers);
 				voice = config["voice"];
 				if (voice) {
@@ -3416,7 +3409,7 @@ class ConversationalIVR {
 	}
 
 	notifyCode(session, code) {
-		if ((!this.OnAPI) || (code < 400))
+		if ((!this.OnAPI) || ((typeof code != "string") && (code > 0) && (code < 400)))
 			return;
 
 		var clean = false;
@@ -3587,7 +3580,7 @@ class ConversationalIVR {
 		return arr;
 	}
 
-	callSync(who, from, tree = null, max_duration = 1800, force_identity = "") {
+	callSync(who, from, tree = null, max_duration = SETTINGS_MAX_DURATION, force_identity = "") {
 		if (this.OnCheckDestination)
 			who = this.OnCheckDestination(who);
 		var session = this.ivr.stack.Invite(who, from, 70, null, null, force_identity);
@@ -3619,7 +3612,7 @@ class ConversationalIVR {
 		return false;
 	}
 
-	callSyncAll(who, from, tree = null, max_duration = 1800, force_identity = "") {
+	callSyncAll(who, from, tree = null, max_duration = SETTINGS_MAX_DURATION, force_identity = "") {
 		var gateway_arr = StrSplit(who, "@");
 		var gateway = "";
 		if (length gateway_arr == 2) {
@@ -3813,7 +3806,7 @@ class ConversationalIVR {
 		}
 	}
 
-	call(who, from, tree = null, max_duration = 1800, force_identity = "", var info_resources = null) {
+	call(who, from, tree = null, max_duration = SETTINGS_MAX_DURATION, force_identity = "", var info_resources = null) {
 		var voice = "";
 
 		this.loadConfig(from);
@@ -3895,6 +3888,9 @@ class ConversationalIVR {
 			return;
 		}
 
+		if (this.OnRouteRequest)
+			destination = this.OnRouteRequest(destination);
+
 		if ((Pos(destination, "@") <= 0) && (session.sip.msg) && ((session.sip.ip) || (session.sip.msg.RemoteAddress))) {
 			var use_server = session.sip.ip;
 			var use_port = session.sip.port;
@@ -3914,8 +3910,8 @@ class ConversationalIVR {
 		var ref_contact = "";
 		this.ivr.stack.ParseFullDestination(session.sip.msg.LocalAddress, ref_contact, null, null);
 
-		session.Expires = 1800;
-		session.sip.setExpires(1800);
+		session.Expires = SETTINGS_MAX_DURATION;
+		session.sip.setExpires(SETTINGS_MAX_DURATION);
 		session.sip.ResetBuffers();
 		session.sip.Record = true;
 		session.StartRecording(session.Expires);
@@ -3988,6 +3984,14 @@ class ConversationalIVR {
 			}
 		}
 		return sess_ids;
+	}
+
+	alertData(to) {
+		if ((!to) || (typeof to != "string"))
+			return "";
+		if (IsSet(ivr_alerts, to))
+			return ivr_alerts[to];
+		return "";
 	}
 
 	protected _updateNa(identity, to, tree) {
@@ -4122,7 +4126,7 @@ class ConversationalIVR {
 				if (!route)
 					route = ivr_queues[identity]["route"];
 
-				if (this.call(trim(StrSplit(obj["who"], ",")[0]) + "@" + route, identity, tree, 1800, obj["as"] ?? "")) {
+				if (this.call(trim(StrSplit(obj["who"], ",")[0]) + "@" + route, identity, tree, SETTINGS_MAX_DURATION, obj["as"] ?? "")) {
 					active_calls ++;
 					this._updateNa(identity, obj["who"], tree);
 					return true;

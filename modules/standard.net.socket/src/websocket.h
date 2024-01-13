@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2010 Putilov Andrey
+ * Copyright (c) 2014 Putilov Andrey
  *
- * Permission is hereby granted, free of uint8_tge, to any person obtaining a copy
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
@@ -22,117 +22,134 @@
  */
 
 #ifndef WEBSOCKET_H
-#define WEBSOCKET_H
+#define	WEBSOCKET_H
 
-#ifdef  __cplusplus
+#ifdef	__cplusplus
 extern "C" {
 #endif
 
 #include <assert.h>
 #include <stdint.h> /* uint8_t */
 #include <stdlib.h> /* strtoul */
+#ifdef _WIN32
+    #include <winsock2.h>
+#else
+    #include <netinet/in.h> /*htons*/
+#endif
 #include <string.h>
-#include <stdio.h>  /* sscanf */
-#include <ctype.h>  /* isdigit */
-#include <stddef.h> /* size_t */
-#include "md5.h"
+#include <stdio.h> /* sscanf */
+#include <ctype.h> /* isdigit */
+//#include <stddef.h> /* size_t */
 #include "sha1.h"
 #ifdef __AVR__
- #include <avr/pgmspace.h>
+    #include <avr/pgmspace.h>
 #else
- #define PROGMEM
- #define PSTR
- #define strstr_P     strstr
- #define sscanf_P     sscanf
- #define sprintf_P    sprintf
- #define strlen_P     strlen
- #define memcmp_P     memcmp
+    #define PROGMEM
+    #define PSTR
+    #define strstr_P strstr
+    #define sscanf_P sscanf
+    #define sprintf_P sprintf
+    #define strlen_P strlen
+    #define memcmp_P memcmp
+    #define memcpy_P memcpy
 #endif
 
-static const char connection[] PROGMEM = "Connection: Upgrade";
-static const char upgrade[] PROGMEM = "Upgrade: WebSocket";
-static const char upgrade2[] PROGMEM = "Upgrade: websocket";
-static const char host[] PROGMEM = "Host: ";
-static const char origin[] PROGMEM = "Origin: ";
-static const char protocol[] PROGMEM = "Sec-WebSocket-Protocol: ";
-static const char key[] PROGMEM = "Sec-WebSocket-Key: ";
-static const char key1[] PROGMEM = "Sec-WebSocket-Key1: ";
-static const char key2[] PROGMEM = "Sec-WebSocket-Key2: ";
-static const char version[] PROGMEM = "Sec-WebSocket-Version: ";
-static const char magic[] PROGMEM = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+#ifndef TRUE
+    #define TRUE 1
+#endif
+#ifndef FALSE
+    #define FALSE 0
+#endif
 
-enum ws_frame_type {
-    WS_ERROR_FRAME,
-    WS_INCOMPLETE_FRAME,
-    WS_TEXT_FRAME,
-    WS_BINARY_FRAME,
-    WS_OPENING_FRAME,
-    WS_CLOSING_FRAME,
-    WS_UNSUPPORTED_VERSION
+static const char connectionField[] PROGMEM = "Connection: ";
+static const char upgrade[] PROGMEM = "upgrade";
+static const char upgrade2[] PROGMEM = "Upgrade";
+static const char upgradeField[] PROGMEM = "Upgrade: ";
+static const char websocket[] PROGMEM = "websocket";
+static const char hostField[] PROGMEM = "Host: ";
+static const char originField[] PROGMEM = "Origin: ";
+static const char keyField[] PROGMEM = "Sec-WebSocket-Key: ";
+static const char protocolField[] PROGMEM = "Sec-WebSocket-Protocol: ";
+static const char versionField[] PROGMEM = "Sec-WebSocket-Version: ";
+static const char version[] PROGMEM = "13";
+static const char secret[] PROGMEM = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+enum wsFrameType { // errors starting from 0xF0
+    WS_EMPTY_FRAME = 0xF0,
+    WS_ERROR_FRAME = 0xF1,
+    WS_INCOMPLETE_FRAME = 0xF2,
+    WS_TEXT_FRAME = 0x01,
+    WS_BINARY_FRAME = 0x02,
+    WS_PING_FRAME = 0x09,
+    WS_PONG_FRAME = 0x0A,
+    WS_OPENING_FRAME = 0xF3,
+    WS_CLOSING_FRAME = 0x08
+};
+    
+enum wsState {
+    WS_STATE_OPENING,
+    WS_STATE_NORMAL,
+    WS_STATE_CLOSING
 };
 
 struct handshake {
-    char *resource;
     char *host;
     char *origin;
-    char *protocol;
     char *key;
-    char *key1;
-    char *key2;
-    char version;
-    char key3[8];
+    char *resource;
+    enum wsFrameType frameType;
 };
 
-/**
- *
- * @param input_frame .in. pointer to input frame
- * @param input_len .in. length of input frame
- * @param hs .out. clear with nullhandshake() handshake struct
- * @return [WS_INCOMPLETE_FRAME, WS_ERROR_FRAME, WS_OPENING_FRAME]
- */
-enum ws_frame_type ws_parse_handshake(const uint8_t *input_frame, size_t input_len,
+    /**
+     * @param inputFrame Pointer to input frame
+     * @param inputLength Length of input frame
+     * @param hs Cleared with nullHandshake() handshake structure
+     * @return Type of parsed frame
+     */
+    enum wsFrameType wsParseHandshake(const uint8_t *inputFrame, size_t inputLength,
                                       struct handshake *hs);
+	
+    /**
+     * @param hs Filled handshake structure
+     * @param outFrame Pointer to frame buffer
+     * @param outLength Length of frame buffer. Return length of out frame
+     */
+    void wsGetHandshakeAnswer(const struct handshake *hs, uint8_t *outFrame,
+                              size_t *outLength);
 
-/**
- *
- * @param hs .in. filled handshake struct
- * @param out_frame .out. pointer to out frame buffer
- * @param out_len .in.out. length of out frame buffer. Return length of out frame
- * @return WS_OPENING_FRAME
- */
-enum ws_frame_type ws_get_handshake_answer(const struct handshake *hs,
-                                           uint8_t *out_frame, size_t *out_len);
+    /**
+     * @param data Pointer to input data array
+     * @param dataLength Length of data array
+     * @param outFrame Pointer to frame buffer
+     * @param outLength Length of out frame buffer. Return length of out frame
+     * @param frameType [WS_TEXT_FRAME] frame type to build
+     */
+    void wsMakeFrame(const uint8_t *data, size_t dataLength,
+                     uint8_t *outFrame, size_t *outLength, enum wsFrameType frameType);
 
-/**
- *
- * @param data .in. pointer to input data array
- * @param data_len .in. length of data array
- * @param out_frame .out. pointer to out frame buffer
- * @param out_len .in.out. length of out frame buffer. Return length of out frame
- * @param frame_type .in. [WS_TEXT_FRAME] frame type to build
- * @return [WS_ERROR_FRAME, WS_TEXT_FRAME]
- */
-enum ws_frame_type ws_make_frame(const uint8_t *data, size_t data_len,
-                                 uint8_t *out_frame, size_t *out_len, enum ws_frame_type frame_type);
+    /**
+     *
+     * @param inputFrame Pointer to input frame. Frame will be modified.
+     * @param inputLen Length of input frame
+     * @param outDataPtr Return pointer to extracted data in input frame
+     * @param outLen Return length of extracted data
+     * @return Type of parsed frame
+     */
+    enum wsFrameType wsParseInputFrame(uint8_t *inputFrame, size_t inputLength,
+                                       uint8_t **dataPtr, size_t *dataLength);
 
-/**
- *
- * @param input_frame .in. pointer to input frame
- * @param input_len .in. length of input frame
- * @param out_data_ptr .out. pointer to extracted data in input frame
- * @param out_len .in.out. length of out data buffer. Return length of extracted data
- * @return [WS_INCOMPLETE_FRAME, WS_TEXT_FRAME, WS_CLOSING_FRAME, WS_ERROR_FRAME]
- */
-enum ws_frame_type ws_parse_input_frame(const uint8_t *input_frame, size_t input_len,
-                                        uint8_t **out_data_ptr, size_t *out_len);
+    /**
+     * @param hs NULL handshake structure
+     */
+    void nullHandshake(struct handshake *hs);
 
-/**
- *
- * @param hs .out. nulled handshake struct
- */
-void nullhandshake(struct handshake *hs);
+    /**
+     * @param hs free and NULL handshake structure
+     */
+    void freeHandshake(struct handshake *hs);
 
-#ifdef  __cplusplus
+#ifdef	__cplusplus
 }
 #endif
-#endif  /* WEBSOCKET_H */
+
+#endif	/* WEBSOCKET_H */

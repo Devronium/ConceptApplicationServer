@@ -1,0 +1,355 @@
+include SIPTrunk.con
+
+include TLSESocket.con
+include Poll.con
+
+class HTTPWSSocket {
+	var socket;
+	var poll;
+	var[] timestamp;
+	var[] buffers;
+	var[] out_buffers;
+	var[] ws_sockets;
+	var next_check;
+	var WSPathKey = "/";
+	var tls = false;
+	var[] tls_sockets;
+
+	var OnData;
+
+	HTTPWSSocket(socket) {
+		this.socket = socket;
+		SocketSetBlocking(socket.Socket, false);
+		if (classof socket == "TLSESocket")
+			tls = true;
+		poll = new Poll();
+		poll.add(socket.Socket);
+	}
+
+	check(max_timeout = 40000, tls_handshake_timeout = 4000) {
+		var now = Date.now();
+
+		var keys = GetKeys(timestamp);
+		for (var i = 0; i < length keys; i ++) {
+			var k = keys[i];
+			var socket = value k;
+			if ((now - timestamp[k] >= max_timeout) || ((tls) && (!tls_sockets[k].Established) && (now - timestamp[k] >= tls_handshake_timeout))) {
+				poll.remove(socket);
+				SocketClose(socket, true);
+				deleteArrayElement(timestamp, k);
+				deleteArrayElement(buffers, k);
+				deleteArrayElement(out_buffers, k);
+				deleteArrayElement(ws_sockets, k);
+				if (tls)
+					deleteArrayElement(tls_sockets, k);
+				console.log(LOG_THIS, "removed socket $socket for inactivity");
+			} else
+			if (IsSet(ws_sockets, k)) {
+				if (now - timestamp[k] > max_timeout / 2) {
+					this.write(socket, "Ping", WS_PING_FRAME);
+					console.log(LOG_THIS, "ping");
+				}
+			}
+		}
+	}
+
+	response(socket, data) {
+		if (tls) {
+			var tls_socket = tls_sockets["" + socket];
+			if (tls_socket) {
+				try {
+					var written = tls_socket.Write(data);
+					return written;
+				} catch (var exc) {
+					console.warn(LOG_THIS, exc);
+					return -1;
+				}
+			}
+		}
+		return SocketWrite(socket, data);
+	}
+
+	close(socket) {
+		var key = "" + socket;
+		poll.remove(socket);
+		deleteArrayElement(timestamp, key);
+		deleteArrayElement(buffers, key);
+		deleteArrayElement(out_buffers, key);
+		deleteArrayElement(ws_sockets, key);
+		if (tls)
+			deleteArrayElement(tls_sockets, key);
+	}
+
+	headers(var buffer) {
+		var[] headers;
+		var arr = StrSplit(buffer, "\r\n");
+		if (!arr)
+			return headers;
+
+		var arr2 = StrSplit(arr[0], " ");
+		if (length arr2 < 3)
+			return headers;
+
+		headers[":method"] = ToUpper(arr2[0]);
+		headers[":path"] = arr2[1];
+		headers[":http"] = arr2[2];
+
+		for (var i = 1; i < length arr; i ++) {
+			var line = arr[i];
+			var pos = Pos(line, ":");
+			if (pos > 0) {
+				var k = ToLower(trim(SubStr(line, 0, pos - 1)));
+				if (k)
+					headers[k] = trim(SubStr(line, pos));
+			}
+		}
+		return headers;
+	}
+
+	flush() {
+		if (!out_buffers)
+			return;
+
+		var keys = GetKeys(out_buffers);
+		for (var i = 0; i < length keys; i ++) {
+			var k = keys[i];
+			var socket = value k;
+			var buf = out_buffers[k];
+			if (buf) {
+				var written = this.response(socket, buf);
+				if (written > 0) {
+					buf = SubStr(buf, written);
+					if (buf)
+						out_buffers[k] = buf;
+					else
+						deleteArrayElement(out_buffers, k);
+				}
+			}	
+		}
+	}
+
+	write(socket, data, type = WS_TEXT_FRAME) {
+		var frame = WSMakeFrame(data, type);
+		if (!frame)
+			return 0;
+
+		var key = "" + socket;
+		if (!out_buffers[key])
+			out_buffers[key] = frame;
+		else
+			out_buffers[key] += frame;
+
+		var buf = out_buffers[key];
+		var written = this.response(socket, buf);
+		if (written > 0) {
+			buf = SubStr(buf, written);
+			if (buf)
+				out_buffers[key] = buf;
+			else
+				deleteArrayElement(out_buffers, key);
+		}
+
+		return written;
+	}
+
+	wait(timeout = 0) {
+		var now = Date.now();
+
+		if (!next_check) {
+			next_check = now + 1000;
+		} else
+		if (next_check <= now) {
+			this.check();
+			next_check = now + 1000;
+		}
+
+		this.flush();
+
+		var sockets = poll.wait(timeout);
+		if (!sockets)
+			return false;
+
+		var server_socket = socket.Socket;
+		for (var i = 0; i < length sockets; i ++) {
+			var socket = sockets[i];
+			if (socket == server_socket) {
+				var client;
+				if (tls) {
+					var tls_socket = this.socket.AcceptTCP();
+					if (!tls_socket)
+						continue;
+
+					tls_socket.PrepareAcceptTLS();
+					client = tls_socket.Socket;
+
+					if (IsSet(tls_sockets, "" + client)) {
+						this.close(client);
+						continue;
+					}
+
+					tls_sockets["" + client] = tls_socket;
+				} else
+					client = this.socket.Accept(true);
+
+				if (client) {
+					poll.add(client);
+					SocketSetBlocking(client, false);
+					timestamp["" + client] = now;
+				}
+			} else {
+				var key = "" + socket;
+				timestamp[key] = now;
+				var buffer;
+				if (tls) {
+					try {
+						tls_socket = tls_sockets[key];
+						if (!tls_socket) {
+							this.close(socket);
+							continue;
+						}
+						if (tls_socket.GetEstablished()) {
+							buffer = tls_socket.Read();
+						} else {
+							if (!tls_socket.TLS) {
+								this.close(socket);
+								continue;
+							}
+							tls_socket.HandshakeIterate();
+							if (!tls_socket.GetEstablished())
+								continue;
+
+							buffer = "";
+							while (tls_socket.GetHasTLSData())
+								buffer += tls_socket.Read();
+
+							if (!buffer)
+								continue;
+						}
+					} catch (var exc) {
+						this.close(socket);
+						continue;
+					}
+				} else
+				if (SocketRead(socket, buffer, 0xFFFF) <= 0) {
+					this.close(socket);
+					continue;
+				}
+				if (IsSet(ws_sockets, key)) {
+					if (IsSet(buffers, key)) {
+						var buf_key = buffers[key];
+						if (buf_key)
+							buffer = buf_key + buffer;
+						deleteArrayElement(buffers, key);
+					}
+
+					do {
+						if (length buffer < 2)
+							break;
+
+						var mask = unpack("U8", buffer[1])[0];
+						var size = mask & 0x7F;
+						var offset = 2;
+
+						if (mask & 0x80)
+							offset += 4;
+
+						switch (size) {
+							case 126:
+								if (length buffer < 4) {
+									size = -1;
+									break;
+								}
+								size = unpack("U16", SubStr(buffer, 2, 2))[0];
+								offset += 2;
+								break;
+							case 127:
+								if (length buffer < 10) {
+									size = -1;
+									break;
+								}
+								size = unpack("U64", SubStr(buffer, 2, 8))[0];
+								offset += 8;
+								break;
+						}
+
+						// max frame size
+						if (size > 0x10000) {
+							buffer = "";
+							this.close(socket);
+							break;
+						}
+						if (size > 0)
+							size += offset;
+
+						if ((size < 0) || (length buffer < size))
+							break;
+
+						var payload = WSParseFrame(SubStr(buffer, 0, size), var type);
+						buffer = SubStr(buffer, size);
+						switch (type) {
+							case WS_TEXT_FRAME:
+							case WS_BINARY_FRAME:
+								if ((this.OnData) && (this.OnData(socket, payload))) {
+									buffer = "";
+									this.close(socket);
+								}
+								break;
+							case WS_PING_FRAME:
+								this.write(socket, "Pong", WS_PONG_FRAME);
+								break;
+							case WS_CLOSING_FRAME:
+								buffer = "";
+								this.close(socket);
+								break;
+						}
+					} while (buffer);
+
+					if (buffer)
+						buffers[key] = buffer;
+				} else {
+					if (this.OnData) {
+						try {
+							var pre_buffer = buffers[key];
+							if (pre_buffer)
+								buffer = pre_buffer + buffer;
+								
+							if (Pos(buffer, "\r\n\r\n") > 0) {
+								if (pre_buffer)
+									deleteArrayElement(buffers, key);
+
+								var headers = this.headers(buffer);
+								if ((headers[":method"] == "GET") && (("" + headers["upgrade"]) == "websocket") && (("" + headers[":path"]) == WSPathKey)) {
+									var ws_key = headers["sec-websocket-key"];
+									if (ws_key) {
+										var computed = trim(mime_encode(HexToString(sha1(ws_key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"))));
+										var protocol = headers["sec-websocket-protocol"] ?? "";
+										if (protocol)
+											protocol = "Sec-WebSocket-Protocol: ${protocol}\r\n";
+										var msg = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: $computed\r\n$protocol\r\n";
+										this.response(socket, msg);
+										ws_sockets[key] = true;
+									} else {
+										this.close(socket);
+									}
+								} else {
+									this.response(socket, "HTTP/1.1 404 Not Found\r\nConnection: close\r\nContent-Length: 13\r\n\r\n404 Not found");
+									this.close(socket);
+								}
+							} else
+							if (length buffer >= 0x10000) {
+								console.log(LOG_THIS, "header buffer to big for $socket");
+								this.close(socket);
+							} else {
+								buffers[key] = buffer;
+							}
+						} catch (exc) {
+							console.warn(LOG_THIS, exc);
+						}
+					}
+				}
+			}
+			
+		}
+		return length sockets;
+	}
+}

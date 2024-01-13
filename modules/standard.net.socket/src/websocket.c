@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Putilov Andrey
+ * Copyright (c) 2014 Putilov Andrey
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,69 +22,63 @@
  */
 
 #include "websocket.h"
-#ifndef _WIN32
- #include <arpa/inet.h>
-#endif
 
-#ifndef TRUE
- #define TRUE     1
-#endif
-#ifndef FALSE
- #define FALSE    1
-#endif
-
-static char       rn[] PROGMEM = "\r\n";
+static char rn[] PROGMEM = "\r\n";
 static const char cb64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 #define LITTLE_ENDIAN
 
-void nullhandshake(struct handshake *hs) {
-    hs->host     = NULL;
-    hs->key      = NULL;
-    hs->key1     = NULL;
-    hs->key2     = NULL;
-    hs->origin   = NULL;
-    hs->protocol = NULL;
+void nullHandshake(struct handshake *hs)
+{
+    hs->host = NULL;
+    hs->origin = NULL;
     hs->resource = NULL;
-    hs->version  = 0;
+    hs->key = NULL;
+    hs->frameType = WS_EMPTY_FRAME;
 }
 
-static uint32_t doStuffToObtainAnInt32(const char *key) {
-    char    res_decimals[15] = "";
-    char    *tail_res        = res_decimals;
-    uint8_t space_count      = 0;
-    uint8_t i = 0;
-
-    do {
-        if (isdigit(key[i]))
-            strncat(tail_res++, &key[i], 1);
-        if (key[i] == ' ')
-            space_count++;
-    } while (key[++i]);
-
-    return (uint32_t)strtoul(res_decimals, NULL, 10) / space_count;
+void freeHandshake(struct handshake *hs)
+{
+    if (hs->host) {
+        free(hs->host);
+    }
+    if (hs->origin) {
+        free(hs->origin);
+    }
+    if (hs->resource) {
+        free(hs->resource);
+    }
+    if (hs->key) {
+        free(hs->key);
+    }
+    nullHandshake(hs);
 }
 
-static char *get_upto_linefeed(const char *start_from) {
-    char    *write_to;
-    uint8_t new_length = strstr_P(start_from, rn) - start_from + 1;
+static char* getUptoLinefeed(const char *startFrom)
+{
+    char *writeTo = NULL;
+    uint8_t newLength = strstr_P(startFrom, rn) - startFrom;
+    assert(newLength);
+    writeTo = (char *)malloc(newLength+1); //+1 for '\x00'
+    assert(writeTo);
+    memcpy(writeTo, startFrom, newLength);
+    writeTo[ newLength ] = 0;
 
-    assert(new_length);
-    write_to = (char *)malloc(new_length);     //+1 for '\x00'
-    assert(write_to);
-    memcpy(write_to, start_from, new_length - 1);
-    write_to[new_length - 1] = 0;
-
-    return write_to;
+    return writeTo;
 }
 
-enum ws_frame_type ws_parse_handshake(const uint8_t *input_frame, size_t input_len,
-                                      struct handshake *hs) {
-    const char *input_ptr = (const char *)input_frame;
-    const char *end_ptr   = (const char *)input_frame + input_len;
+enum wsFrameType wsParseHandshake(const uint8_t *inputFrame, size_t inputLength,
+                                  struct handshake *hs)
+{
+    const char *inputPtr = (const char *)inputFrame;
+    const char *endPtr = (const char *)inputFrame + inputLength;
 
+    if (!strstr((const char *)inputFrame, "\r\n\r\n"))
+        return WS_INCOMPLETE_FRAME;
+	
+    if (memcmp_P(inputFrame, PSTR("GET "), 4) != 0)
+        return WS_ERROR_FRAME;
     // measure resource size
-    char *first = strchr((const char *)input_frame, ' ');
-
+    char *first = strchr((const char *)inputFrame, ' ');
     if (!first)
         return WS_ERROR_FRAME;
     first++;
@@ -96,81 +90,84 @@ enum ws_frame_type ws_parse_handshake(const uint8_t *input_frame, size_t input_l
         free(hs->resource);
         hs->resource = NULL;
     }
-    hs->resource = (char *)malloc(second - first + 1);     // +1 is for \x00 symbol
+    hs->resource = (char *)malloc(second - first + 1); // +1 is for \x00 symbol
     assert(hs->resource);
 
-    if (sscanf_P(input_ptr, PSTR("GET %s HTTP/1.1\r\n"), hs->resource) != 1)
+    if (sscanf_P(inputPtr, PSTR("GET %s HTTP/1.1\r\n"), hs->resource) != 1)
         return WS_ERROR_FRAME;
-    input_ptr = strstr_P(input_ptr, rn) + 2;
+    inputPtr = strstr_P(inputPtr, rn) + 2;
 
     /*
-            parse next lines
+        parse next lines
      */
-#define input_ptr_len    (input_len - (input_ptr - input_frame))
-#define prepare(x)    do { if (x) { free(x); x = NULL; } } while (0)
-    uint8_t connection_flag = FALSE;
-    uint8_t upgrade_flag    = FALSE;
-    while (input_ptr < end_ptr && input_ptr[0] != '\r' && input_ptr[1] != '\n') {
-        if (memcmp_P(input_ptr, host, strlen_P(host)) == 0) {
-            input_ptr += strlen_P(host);
+    #define prepare(x) do {if (x) { free(x); x = NULL; }} while(0)
+    #define strtolower(x) do { int i; for (i = 0; x[i]; i++) x[i] = tolower(x[i]); } while(0)
+    uint8_t connectionFlag = FALSE;
+    uint8_t upgradeFlag = FALSE;
+    uint8_t subprotocolFlag = FALSE;
+    uint8_t versionMismatch = FALSE;
+    while (inputPtr < endPtr && inputPtr[0] != '\r' && inputPtr[1] != '\n') {
+        if (memcmp_P(inputPtr, hostField, strlen_P(hostField)) == 0) {
+            inputPtr += strlen_P(hostField);
             prepare(hs->host);
-            hs->host = get_upto_linefeed(input_ptr);
+            hs->host = getUptoLinefeed(inputPtr);
         } else
-        if (memcmp_P(input_ptr, origin, strlen_P(origin)) == 0) {
-            input_ptr += strlen_P(origin);
+        if (memcmp_P(inputPtr, originField, strlen_P(originField)) == 0) {
+            inputPtr += strlen_P(originField);
             prepare(hs->origin);
-            hs->origin = get_upto_linefeed(input_ptr);
+            hs->origin = getUptoLinefeed(inputPtr);
         } else
-        if (memcmp_P(input_ptr, protocol, strlen_P(protocol)) == 0) {
-            input_ptr += strlen_P(protocol);
-            prepare(hs->protocol);
-            hs->protocol = get_upto_linefeed(input_ptr);
+        if (memcmp_P(inputPtr, protocolField, strlen_P(protocolField)) == 0) {
+            inputPtr += strlen_P(protocolField);
+            subprotocolFlag = TRUE;
         } else
-        if (memcmp_P(input_ptr, key1, strlen_P(key1)) == 0) {
-            input_ptr += strlen_P(key1);
-            prepare(hs->key1);
-            hs->key1 = get_upto_linefeed(input_ptr);
-        } else
-        if (memcmp_P(input_ptr, key2, strlen_P(key2)) == 0) {
-            input_ptr += strlen_P(key2);
-            prepare(hs->key2);
-            hs->key2 = get_upto_linefeed(input_ptr);
-        } else
-        if (memcmp_P(input_ptr, key, strlen_P(key)) == 0) {
-            input_ptr += strlen_P(key);
+        if (memcmp_P(inputPtr, keyField, strlen_P(keyField)) == 0) {
+            inputPtr += strlen_P(keyField);
             prepare(hs->key);
-            hs->key = get_upto_linefeed(input_ptr);
+            hs->key = getUptoLinefeed(inputPtr);
         } else
-        if (memcmp_P(input_ptr, version, strlen_P(version)) == 0) {
-            input_ptr  += strlen_P(version);
-            hs->version = atoi(get_upto_linefeed(input_ptr));
+        if (memcmp_P(inputPtr, versionField, strlen_P(versionField)) == 0) {
+            inputPtr += strlen_P(versionField);
+            char *versionString = NULL;
+            versionString = getUptoLinefeed(inputPtr);
+            if (memcmp_P(versionString, version, strlen_P(version)) != 0)
+                versionMismatch = TRUE;
+            free(versionString);
         } else
-        if (memcmp_P(input_ptr, connection, strlen_P(connection)) == 0) {
-            connection_flag = TRUE;
+        if (memcmp_P(inputPtr, connectionField, strlen_P(connectionField)) == 0) {
+            inputPtr += strlen_P(connectionField);
+            char *connectionValue = NULL;
+            connectionValue = getUptoLinefeed(inputPtr);
+            strtolower(connectionValue);
+            assert(connectionValue);
+            if (strstr_P(connectionValue, upgrade) != NULL)
+                connectionFlag = TRUE;
+            free(connectionValue);
         } else
-        if (memcmp_P(input_ptr, upgrade2, strlen_P(upgrade2)) == 0) {
-            upgrade_flag = TRUE;
-        } else
-        if (memcmp_P(input_ptr, upgrade, strlen_P(upgrade)) == 0) {
-            upgrade_flag = TRUE;
-        }
+        if (memcmp_P(inputPtr, upgradeField, strlen_P(upgradeField)) == 0) {
+            inputPtr += strlen_P(upgradeField);
+            char *compare = NULL;
+            compare = getUptoLinefeed(inputPtr);
+            strtolower(compare);
+            assert(compare);
+            if (memcmp_P(compare, websocket, strlen_P(websocket)) == 0)
+                upgradeFlag = TRUE;
+            free(compare);
+        };
 
-        input_ptr = strstr_P(input_ptr, rn) + 2;
+        inputPtr = strstr_P(inputPtr, rn) + 2;
     }
 
     // we have read all data, so check them
-    if (!hs->host || !hs->origin || ((!hs->key1 || !hs->key2) && (!hs->key)) ||
-        !connection_flag || !upgrade_flag)
-        return WS_ERROR_FRAME;
-
-    input_ptr += 2;     // skip empty line
-    if (hs->version == 8) {
-        if (end_ptr - input_ptr < 8)
-            return WS_INCOMPLETE_FRAME;
-        memcpy(hs->key3, input_ptr, 8);
+    if (!hs->host || !hs->key || !connectionFlag || !upgradeFlag || subprotocolFlag
+        || versionMismatch)
+    {
+        hs->frameType = WS_ERROR_FRAME;
+    } else {
+        hs->frameType = WS_OPENING_FRAME;
     }
-
-    return WS_OPENING_FRAME;
+    
+    return hs->frameType;
 }
 
 void encodeblock(unsigned char in[3], unsigned char out[4], int len) {
@@ -225,270 +222,195 @@ long encode(char *in_buffer, int in_buffer_size, char *out_buffer) {
     return (intptr_t)out_ptr - (intptr_t)out_buffer;
 }
 
-enum ws_frame_type ws_get_handshake_answer(const struct handshake *hs,
-                                           uint8_t *out_frame, size_t *out_len) {
-    assert(out_frame && *out_len);
-    // hs->key3 is always not NULL
-    assert(hs && hs->origin && hs->host && hs->resource);
+void sha1(char *sha1_sum, const char *key_buffer, int len) {
+    SHA1Context CTX;
+    SHA1Reset(&CTX);
+    SHA1Input(&CTX, key_buffer, len);
+    SHA1Result(&CTX);
 
-    uint8_t raw_md5[16];
-    uint8_t keys[16];
-    uint8_t raw_sha1[64];
-    raw_sha1[0] = 0;
-
-    unsigned int written;
-    if (hs->version == 8) {
-        if ((!hs->key1) || (!hs->key2)) {
-            out_len = 0;
-            return 0;
-        }
-
-        uint8_t  chrkey1[4];
-        uint8_t  chrkey2[4];
-        uint32_t key1 = doStuffToObtainAnInt32(hs->key1);
-        uint32_t key2 = doStuffToObtainAnInt32(hs->key2);
-        uint8_t  i;
-        for (i = 0; i < 4; i++)
-            chrkey1[i] = key1 << (8 * i) >> (8 * 3);
-        for (i = 0; i < 4; i++)
-            chrkey2[i] = key2 << (8 * i) >> (8 * 3);
-
-        memcpy(keys, chrkey1, 4);
-        memcpy(&keys[4], chrkey2, 4);
-        memcpy(&keys[8], hs->key3, 8);
-        md5(raw_md5, keys, sizeof(keys) * 8);
-    }
-    if (hs->version == 13) {
-        if (!hs->key) {
-            out_len = 0;
-            return 0;
-        }
-        char key_buffer[0xFFF];
-        int  p = strlen_P(hs->key);
-        if (p > 2048)
-            p = 2048;
-        memcpy(key_buffer, hs->key, p);
-        int p2 = strlen_P(magic);
-        memcpy(key_buffer + p, magic, p2);
-        key_buffer[p + p2] = 0;
-
-        SHA1Context CTX;
-
-        SHA1Reset(&CTX);
-        SHA1Input(&CTX, key_buffer, p + p2);
-        SHA1Result(&CTX);
-
-        unsigned char sha1_sum[20];
-
-        unsigned char *sha1_ptr = (unsigned char *)CTX.Message_Digest;
-        int           j;
-        int           k;
-        for (j = 0; j < 5; j++) {
+    unsigned char *sha1_ptr = (unsigned char *)CTX.Message_Digest;
+    int           j;
+    int           k;
+    for (j = 0; j < 5; j++) {
 #ifdef LITTLE_ENDIAN
-            for (k = 3; k >= 0; k--) {
-                sha1_sum[j * 4 + 3 - k] = sha1_ptr[j * 4 + k];
-            }
-#else
-            for (k = 0; k < 4; k++)
-                sha1_sum[j * 4 + k] = sha1_ptr[j * 4 + k];
-#endif
+        for (k = 3; k >= 0; k--) {
+            sha1_sum[j * 4 + 3 - k] = sha1_ptr[j * 4 + k];
         }
-        int len = encode(sha1_sum, 20, raw_sha1);
-        raw_sha1[len] = 0;
+#else
+        for (k = 0; k < 4; k++)
+            sha1_sum[j * 4 + k] = sha1_ptr[j * 4 + k];
+#endif
     }
-    if (hs->version == 13) {
-        written = sprintf_P((char *)out_frame,
+}
+
+void wsGetHandshakeAnswer(const struct handshake *hs, uint8_t *outFrame, 
+                          size_t *outLength)
+{
+    assert(outFrame && *outLength);
+    assert(hs->frameType == WS_OPENING_FRAME);
+    assert(hs && hs->key);
+
+    char *responseKey = NULL;
+    uint8_t length = strlen(hs->key)+strlen_P(secret);
+    responseKey = malloc(length);
+    memcpy(responseKey, hs->key, strlen(hs->key));
+    memcpy_P(&(responseKey[strlen(hs->key)]), secret, strlen_P(secret));
+    unsigned char shaHash[20];
+    memset(shaHash, 0, sizeof(shaHash));
+    sha1(shaHash, responseKey, length);
+    size_t base64Length = encode(shaHash, 20, responseKey);
+    responseKey[base64Length] = '\0';
+    
+    int written = sprintf_P((char *)outFrame,
                             PSTR("HTTP/1.1 101 Switching Protocols\r\n"
-                                 "Upgrade: websocket\r\n"
-                                 "Connection: Upgrade\r\n"
-                                 "Sec-WebSocket-Accept: %s\r\n"),
-                            raw_sha1);
-    } else {
-        written = sprintf_P((char *)out_frame,
-                            PSTR("HTTP/1.1 101 WebSocket Protocol Handshake\r\n"
-                                 "Upgrade: WebSocket\r\n"
-                                 "Connection: Upgrade\r\n"
-                                 "Sec-WebSocket-Origin: %s\r\n"
-                                 "Sec-WebSocket-Location: ws://%s%s\r\n"),
-                            hs->origin,
-                            hs->host,
-                            hs->resource);
-    }
-    if (hs->protocol)
-        written += sprintf_P((char *)out_frame + written,
-                             PSTR("Sec-WebSocket-Protocol: %s\r\n"), hs->protocol);
-    written += sprintf_P((char *)out_frame + written, rn);
-
+                                 "%s%s\r\n"
+                                 "%s%s\r\n"
+                                 "Sec-WebSocket-Accept: %s\r\n\r\n"),
+                            upgradeField,
+                            websocket,
+                            connectionField,
+                            upgrade2,
+                            responseKey);
+	
+    free(responseKey);
     // if assert fail, that means, that we corrupt memory
-    if (hs->version == 8) {
-        assert(written <= *out_len && written + sizeof(keys) <= *out_len);
-        memcpy(out_frame + written, raw_md5, sizeof(keys));
-        *out_len = written + sizeof(keys);
+    assert(written <= *outLength);
+    *outLength = written;
+}
+
+void wsMakeFrame(const uint8_t *data, size_t dataLength,
+                 uint8_t *outFrame, size_t *outLength, enum wsFrameType frameType)
+{
+    if ((!outFrame) || (!(*outLength)) || (frameType >= 0x10)) {
+        *outLength = 0;
+        return;
+    }
+
+    // assert(outFrame && *outLength);
+    // assert(frameType < 0x10);
+    if (dataLength > 0) {
+        if ((!data) || (dataLength > 0xFFFF)) {
+            *outLength = 0;
+            return;
+        }
+        // assert(data);
+    }
+	
+    outFrame[0] = 0x80 | frameType;
+    
+    if (dataLength <= 125) {
+        outFrame[1] = dataLength;
+        *outLength = 2;
+    } else if (dataLength <= 0xFFFF) {
+        outFrame[1] = 126;
+        uint16_t payloadLength16b = htons(dataLength);
+        memcpy(&outFrame[2], &payloadLength16b, 2);
+        *outLength = 4;
     } else {
-        *out_len = written;
+        assert(dataLength <= 0xFFFF);
+        
+        /* implementation for 64bit systems
+        outFrame[1] = 127;
+        dataLength = htonll(dataLength);
+        memcpy(&outFrame[2], &dataLength, 8);
+        *outLength = 10;
+        */
+    }
+    memcpy(&outFrame[*outLength], data, dataLength);
+    *outLength+= dataLength;
+}
+
+static size_t getPayloadLength(const uint8_t *inputFrame, size_t inputLength,
+                               uint8_t *payloadFieldExtraBytes, enum wsFrameType *frameType) 
+{
+    size_t payloadLength = inputFrame[1] & 0x7F;
+    *payloadFieldExtraBytes = 0;
+    if ((payloadLength == 0x7E && inputLength < 4) || (payloadLength == 0x7F && inputLength < 10)) {
+        *frameType = WS_INCOMPLETE_FRAME;
+        return 0;
+    }
+    if (payloadLength == 0x7F && (inputFrame[3] & 0x80) != 0x0) {
+        *frameType = WS_ERROR_FRAME;
+        return 0;
     }
 
-    return WS_OPENING_FRAME;
-}
-
-uint32_t SwapShort(uint16_t a) {
-    a = ((a & 0x00FF) << 8) | ((a & 0xFF00) >> 8);
-    return a;
-}
-
-uint32_t SwapWord(uint32_t a) {
-    a = ((a & 0x000000FF) << 24) |
-        ((a & 0x0000FF00) << 8) |
-        ((a & 0x00FF0000) >> 8) |
-        ((a & 0xFF000000) >> 24);
-    return a;
-}
-
-uint64_t SwapDWord(uint64_t a) {
-    a = ((a & 0x00000000000000FFULL) << 56) |
-        ((a & 0x000000000000FF00ULL) << 40) |
-        ((a & 0x0000000000FF0000ULL) << 24) |
-        ((a & 0x00000000FF000000ULL) << 8) |
-        ((a & 0x000000FF00000000ULL) >> 8) |
-        ((a & 0x0000FF0000000000ULL) >> 24) |
-        ((a & 0x00FF000000000000ULL) >> 40) |
-        ((a & 0xFF00000000000000ULL) >> 56);
-    return a;
-}
-
-enum ws_frame_type ws_make_frame(const uint8_t *data, size_t data_len,
-                                 uint8_t *out_frame, size_t *out_len, enum ws_frame_type frame_type) {
-    assert(out_frame && *out_len);
-    assert(data);
-
-    if (frame_type == WS_TEXT_FRAME) {
-        // check on latin alphabet. If not - return error
-        uint8_t *data_ptr = (uint8_t *)data;
-        uint8_t *end_ptr  = (uint8_t *)data + data_len;
-        do {
-            if (*data_ptr >> 7)
-                return WS_ERROR_FRAME;
-        } while ((++data_ptr < end_ptr));
-
-        assert(*out_len >= data_len + 2);
-        out_frame[0] = '\x00';
-        memcpy(&out_frame[1], data, data_len);
-        out_frame[data_len + 1] = '\xFF';
-        *out_len = data_len + 2;
-    } else if (frame_type == WS_BINARY_FRAME) {
-        uint64_t tmp = data_len;
-
-        /*uint8_t out_size_buf[sizeof (size_t)+2];
-           uint8_t *size_ptr = out_size_buf;
-           while (tmp > 0xFF) {
-         * size_ptr = ((unsigned char)tmp) | 0x7F;
-                tmp >>= 7;
-                size_ptr++;
-           }
-         * size_ptr = tmp;*/
-        int size_len = 0;
-        out_frame[0] = '\x80';
-        out_frame++;
-        if (tmp <= 0x7D) {
-            *out_frame = tmp;
-            size_len++;
-            out_frame++;
-        } else
-        if (tmp < 0xFFFF) {
-            *out_frame = 0x7E;
-            out_frame++;
-#ifdef LITTLE_ENDIAN
-            *(unsigned short *)out_frame = SwapShort((unsigned short)tmp);
-#else
-            *(unsigned short *)out_frame = (unsigned short)tmp;
-#endif
-            size_len  += 3;
-            out_frame += 2;
-        } else {
-            *out_frame = 0x7F;
-            out_frame++;
-#ifdef LITTLE_ENDIAN
-            *(uint64_t *)out_frame = SwapDWord(tmp);
-#else
-            *(uint64_t *)out_frame = tmp;
-#endif
-            size_len  += 9;
-            out_frame += 8;
+    if (payloadLength == 0x7E) {
+        uint16_t payloadLength16b = 0;
+        *payloadFieldExtraBytes = 2;
+        memcpy(&payloadLength16b, &inputFrame[2], *payloadFieldExtraBytes);
+        payloadLength = ntohs(payloadLength16b);
+    } else if (payloadLength == 0x7F) {
+        *frameType = WS_ERROR_FRAME;
+        return 0;
+        
+        /* // implementation for 64bit systems
+        uint64_t payloadLength64b = 0;
+        *payloadFieldExtraBytes = 8;
+        memcpy(&payloadLength64b, &inputFrame[2], *payloadFieldExtraBytes);
+        if (payloadLength64b > SIZE_MAX) {
+            *frameType = WS_ERROR_FRAME;
+            return 0;
         }
-        memcpy(out_frame, data, data_len);
-        *out_len = data_len + size_len + 1;
+        payloadLength = (size_t)ntohll(payloadLength64b);
+        */
     }
 
-    return frame_type;
+    return payloadLength;
 }
 
-enum ws_frame_type ws_parse_input_frame(const uint8_t *input_frame, size_t input_len,
-                                        uint8_t **out_data_ptr, size_t *out_len) {
-    enum ws_frame_type frame_type;
+enum wsFrameType wsParseInputFrame(uint8_t *inputFrame, size_t inputLength,
+                                   uint8_t **dataPtr, size_t *dataLength)
+{
+    if ((!inputFrame) || (!inputLength)) {
+        *dataLength = 0;
+        *dataPtr = 0;
 
-    assert(out_len);
-    assert(input_len);
+        return WS_ERROR_FRAME;
+    }
 
-    if (input_len < 2)
+    if (inputLength < 2)
         return WS_INCOMPLETE_FRAME;
+	
+    if ((inputFrame[0] & 0x70) != 0x0) // checks extensions off
+        return WS_ERROR_FRAME;
+    if ((inputFrame[0] & 0x80) != 0x80) // we haven't continuation frames support
+        return WS_ERROR_FRAME; // so, fin flag must be set
+    if ((inputFrame[1] & 0x80) != 0x80) // checks masking bit
+        return WS_ERROR_FRAME;
 
-    if ((input_frame[0] & 0x80) != 0x80) { // text frame
-        const uint8_t *data_start = &input_frame[1];
-        uint8_t       *end        = (uint8_t *)memchr(data_start, 0xFF, input_len - 1);
-        if (end) {
-            assert((size_t)(end - data_start) <= input_len);
-            *out_data_ptr = (uint8_t *)data_start;
-            *out_len      = end - data_start;
-            frame_type    = WS_TEXT_FRAME;
-        } else {
-            frame_type = WS_INCOMPLETE_FRAME;
-        }
-    } else if ((input_frame[0] & 0x80) == 0x80) { // binary frame
-        if ((input_frame[0] == 0xFF) && (input_frame[1] == 0x00))
-            frame_type = WS_CLOSING_FRAME;
-        else {
-            const uint8_t *frame_ptr  = &input_frame[1];
-            uint64_t      data_length = 0;
-            switch (*frame_ptr) {
-                case 0x7E:
-                    frame_ptr++;
-#ifdef LITTLE_ENDIAN
-                    data_length = SwapShort(*(unsigned short *)frame_ptr);
-#else
-                    data_length = *(unsigned short *)frame_ptr;
-#endif
-                    frame_ptr += 2;
-                    if (data_length > input_len - 3)
-                        return WS_ERROR_FRAME;
-                    break;
+    uint8_t opcode = inputFrame[0] & 0x0F;
+    if (opcode == WS_TEXT_FRAME ||
+            opcode == WS_BINARY_FRAME ||
+            opcode == WS_CLOSING_FRAME ||
+            opcode == WS_PING_FRAME ||
+            opcode == WS_PONG_FRAME
+    ){
+        enum wsFrameType frameType = opcode;
 
-                case 0x7F:
-#ifdef LITTLE_ENDIAN
-                    data_length = SwapDWord(*(uint64_t *)frame_ptr);
-#else
-                    data_length = *(uint64_t *)frame_ptr;
-#endif
-                    frame_ptr += 8;
-                    if (data_length > input_len - 9)
-                        return WS_ERROR_FRAME;
-                    break;
+        uint8_t payloadFieldExtraBytes = 0;
+        size_t payloadLength = getPayloadLength(inputFrame, inputLength,
+                                                &payloadFieldExtraBytes, &frameType);
+        if (payloadLength > 0) {
+            if (payloadLength + 6 + payloadFieldExtraBytes > inputLength) // 4-maskingKey, 2-header
+                return WS_INCOMPLETE_FRAME;
+            uint8_t *maskingKey = &inputFrame[2 + payloadFieldExtraBytes];
 
-                default:
-                    if (*frame_ptr <= 0x7D) {
-                        data_length = *frame_ptr;
-                        frame_ptr++;
-                        if (data_length > input_len - 2)
-                            return WS_ERROR_FRAME;
-                    } else
-                        return WS_ERROR_FRAME;
+            if (payloadLength != inputLength - 6 - payloadFieldExtraBytes) {
+                *dataLength = 0;
+                *dataPtr = 0;
+                return WS_ERROR_FRAME;
             }
-            *out_data_ptr = (uint8_t *)frame_ptr;
-            *out_len      = data_length;
-            frame_type    = WS_BINARY_FRAME;
+
+            *dataPtr = &inputFrame[2 + payloadFieldExtraBytes + 4];
+            *dataLength = payloadLength;
+		
+            size_t i;
+            for (i = 0; i < *dataLength; i++) {
+                (*dataPtr)[i] = (*dataPtr)[i] ^ maskingKey[i%4];
+            }
         }
-    } else
-        frame_type = WS_ERROR_FRAME;
+        return frameType;
+    }
 
-
-    return frame_type;
+    return WS_ERROR_FRAME;
 }
