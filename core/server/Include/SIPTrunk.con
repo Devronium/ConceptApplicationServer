@@ -36,7 +36,7 @@ class SRTPContext {
 	}
 
 	LocalInit(key_data, tag_size = 32) {
-		return Init(srtp_out, key_data);
+		return Init(srtp_out, key_data, tag_size);
 	}
 
 	static MasterSecret(key_data) {

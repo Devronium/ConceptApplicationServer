@@ -47,6 +47,7 @@
  */
 
 #include <stdint.h>
+#include <string.h>
 
 /* Field element representation:
  *

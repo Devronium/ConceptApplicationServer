@@ -5,6 +5,36 @@
 #include <string.h>
 #include "AnsiString.h"
 #include "tlse.c"
+#ifdef _WIN32
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+
+    int inet_pton(int af, const char *src, void *dst) {
+        struct sockaddr_storage ss;
+        int  size = sizeof(ss);
+        char src_copy[INET6_ADDRSTRLEN + 1];
+
+        ZeroMemory(&ss, sizeof(ss));
+        /* stupid non-const API */
+        strncpy(src_copy, src, INET6_ADDRSTRLEN + 1);
+        src_copy[INET6_ADDRSTRLEN] = 0;
+
+        if (WSAStringToAddress(src_copy, af, NULL, (struct sockaddr *)&ss, &size) == 0) {
+            switch (af) {
+                case AF_INET:
+                    *(struct in_addr *)dst = ((struct sockaddr_in *)&ss)->sin_addr;
+                    return 1;
+
+                case AF_INET6:
+                    *(struct in6_addr *)dst = ((struct sockaddr_in6 *)&ss)->sin6_addr;
+                    return 1;
+            }
+        }
+        return 0;
+    }
+#else
+    #include <arpa/inet.h>
+#endif
 
 static INVOKE_CALL InvokePtr = 0;
 
@@ -604,16 +634,21 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SRTPInit, 1, 2)
     RETURN_NUMBER((SYS_INT)context);
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(SRTPEncrypt, 3)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SRTPEncrypt, 3, 4)
     T_HANDLE(SRTPEncrypt, 0)
     T_STRING(SRTPEncrypt, 1)
     T_STRING(SRTPEncrypt, 2)
     SRTPContext *ctx = (SRTPContext *)(SYS_INT)PARAM(0);
     int out_buffer_len = PARAM_LEN(2) + 32;
     char *out = NULL;
+    unsigned char srtcp = 0;
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(SRTPEncrypt, 3)
+        srtcp = (unsigned char)PARAM_INT(3);
+    }
     CORE_NEW(out_buffer_len + 1, out);
     if (out) {
-        int res = srtp_encrypt(ctx, (unsigned char *)PARAM(1), PARAM_LEN(1), (unsigned char *)PARAM(2), PARAM_LEN(2), (unsigned char *)out, &out_buffer_len);
+        int res = srtp_encrypt(ctx, srtcp, (unsigned char *)PARAM(1), PARAM_LEN(1), (unsigned char *)PARAM(2), PARAM_LEN(2), (unsigned char *)out, &out_buffer_len);
         if (res) {
             CORE_DELETE(out);
             RETURN_STRING("");
@@ -626,16 +661,21 @@ CONCEPT_FUNCTION_IMPL(SRTPEncrypt, 3)
     }
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(SRTPDecrypt, 3)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SRTPDecrypt, 3, 4)
     T_HANDLE(SRTPDecrypt, 0)
     T_STRING(SRTPDecrypt, 1)
     T_STRING(SRTPDecrypt, 2)
     SRTPContext *ctx = (SRTPContext *)(SYS_INT)PARAM(0);
     int out_buffer_len = PARAM_LEN(2) + 1;
     char *out = NULL;
+    unsigned char srtcp = 0;
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(SRTPDecrypt, 3)
+        srtcp = (unsigned char)PARAM_INT(3);
+    }
     CORE_NEW(out_buffer_len + 1, out);
     if (out) {
-        int res = srtp_decrypt(ctx, (unsigned char *)PARAM(1), PARAM_LEN(1), (unsigned char *)PARAM(2), PARAM_LEN(2), (unsigned char *)out, &out_buffer_len);
+        int res = srtp_decrypt(ctx, srtcp, (unsigned char *)PARAM(1), PARAM_LEN(1), (unsigned char *)PARAM(2), PARAM_LEN(2), (unsigned char *)out, &out_buffer_len);
         if (res) {
             CORE_DELETE(out);
             RETURN_STRING("");
@@ -654,5 +694,236 @@ CONCEPT_FUNCTION_IMPL(SRTPDone, 1)
     srtp_destroy(ctx);
     SET_NUMBER(0, 0);
     RETURN_NUMBER(0);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RTCPeerConnectionInit, 3, 4)
+    T_NUMBER(RTCPeerConnectionInit, 0)
+    T_STRING(RTCPeerConnectionInit, 1)
+    T_STRING(RTCPeerConnectionInit, 2)
+
+    if (PARAMETERS_COUNT > 3)
+        SET_STRING(3, "");
+    struct TLSRTCPeerConnection *channel = tls_peerconnection_context((unsigned char)PARAM_INT(0), NULL, NULL);
+    if (channel) {
+        if (tls_peerconnection_load_keys(channel, (unsigned char *)PARAM(1), PARAM_LEN(1), (unsigned char *)PARAM(2), PARAM_LEN(2))) {
+            tls_destroy_peerconnection(channel);
+            RETURN_NUMBER(0);
+            return 0;
+        }
+        char fingerprint[1024];
+        if (!tls_cert_fingerprint(PARAM(1), PARAM_LEN(1), fingerprint, sizeof(fingerprint))) {
+            SET_STRING(3, fingerprint);
+        }
+    }
+
+    RETURN_NUMBER((SYS_INT)channel);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(RTCPeerConnectionConnect, 1)
+    T_HANDLE(RTCPeerConnectionConnect, 0)
+
+    struct TLSRTCPeerConnection *channel = (struct TLSRTCPeerConnection *)(SYS_INT)PARAM(0);
+    int err = tls_peerconnection_connect(channel, NULL);
+    RETURN_NUMBER(err);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(RTCPeerConnectionInfo, 1)
+    T_HANDLE(RTCPeerConnectionInfo, 0)
+
+    struct TLSRTCPeerConnection *channel = (struct TLSRTCPeerConnection *)(SYS_INT)PARAM(0);
+
+    const char *username = tls_peerconnection_local_username(channel);
+    const char *pwd = tls_peerconnection_local_pwd(channel);
+
+    CREATE_ARRAY(RESULT);
+
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "username", (INTEGER)VARIABLE_STRING, (char *)username, (NUMBER)(username ? strlen(username) : 0));
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "pwd", (INTEGER)VARIABLE_STRING, (char *)pwd, (NUMBER)(pwd ? strlen(pwd) : 0));
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(RTCPeerConnectionStatus, 1)
+    T_HANDLE(RTCPeerConnectionInfo, 0)
+
+    struct TLSRTCPeerConnection *channel = (struct TLSRTCPeerConnection *)(SYS_INT)PARAM(0);
+
+    int status = tls_peerconnection_status(channel);
+
+    RETURN_NUMBER(status);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(RTCPeerConnectionRemoteCredentials, 3)
+    T_HANDLE(RTCPeerConnectionRemoteCredentials, 0)
+    T_STRING(RTCPeerConnectionRemoteCredentials, 1)
+    T_STRING(RTCPeerConnectionRemoteCredentials, 2)
+
+    struct TLSRTCPeerConnection *channel = (struct TLSRTCPeerConnection *)(SYS_INT)PARAM(0);
+    int err = tls_peerconnection_remote_credentials(channel, PARAM(1), PARAM_LEN(1), PARAM(2), PARAM_LEN(2));
+
+    RETURN_NUMBER(err);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(RTCPeerConnectionClone, 1)
+    T_HANDLE(RTCPeerConnectionClone, 0)
+
+    struct TLSRTCPeerConnection *channel = (struct TLSRTCPeerConnection *)(SYS_INT)PARAM(0);
+    struct TLSRTCPeerConnection *clone = tls_peerconnection_duplicate(channel, NULL);
+    RETURN_NUMBER((SYS_INT)clone);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(RTCPeerConnectionConsume, 5)
+    T_HANDLE(RTCPeerConnectionConsume, 0)
+    T_STRING(RTCPeerConnectionConsume, 1)
+    T_STRING(RTCPeerConnectionConsume, 2)
+    T_NUMBER(RTCPeerConnectionConsume, 3)
+
+    struct TLSRTCPeerConnection *channel = (struct TLSRTCPeerConnection *)(SYS_INT)PARAM(0);
+    SET_NUMBER(4, 0);
+
+    if (!PARAM_LEN(2)) {
+        RETURN_NUMBER(-1);
+        return 0;
+    }
+
+    unsigned char is_ipv6 = 0;
+    struct sockaddr_in sa;
+    struct sockaddr_in6 sa6;
+    unsigned char *addr = NULL;
+    if (strchr(PARAM(2), ':')) {
+        if (inet_pton(AF_INET6, PARAM(2), &(sa6.sin6_addr)) != 1) {
+            RETURN_NUMBER(-1);
+            return 0;
+        }
+        addr = (unsigned char *)&(sa6.sin6_addr);
+        is_ipv6 = 1;
+    } else {
+        if (inet_pton(AF_INET, PARAM(2), &(sa.sin_addr)) != 1) {
+            RETURN_NUMBER(-1);
+            return 0;
+        }
+        addr = (unsigned char *)&(sa.sin_addr);
+    }
+
+    int validated = 0;
+    int err = tls_peerconnection_iterate(channel, (unsigned char *)PARAM(1), PARAM_LEN(1), addr, PARAM_INT(3), is_ipv6, NULL, &validated);
+    SET_NUMBER(4, validated);
+    RETURN_NUMBER(err);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(RTCPeerConnectionDone, 1)
+    T_NUMBER(RTCPeerConnectionDone, 0)
+    struct TLSRTCPeerConnection *channel = (struct TLSRTCPeerConnection *)(SYS_INT)PARAM(0);
+    tls_destroy_peerconnection(channel);
+    SET_NUMBER(0, 0);
+    RETURN_NUMBER(0);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(RTCPeerConnectionGetWriteBuffer, 1)
+    T_HANDLE(RTCPeerConnectionGetWriteBuffer, 0)
+
+    struct TLSRTCPeerConnection *channel = (struct TLSRTCPeerConnection *)(SYS_INT)PARAM(0);
+
+    int len = tls_peerconnection_get_write_msg(channel, NULL);
+    if (len <= 0) {
+        RETURN_STRING("");
+        return 0;
+    }
+
+    char *out = NULL;
+    CORE_NEW(len + 1, out);
+    if (!out) {
+        RETURN_STRING("");
+        return 0;
+    }
+    out[len] = 0;
+
+    tls_peerconnection_get_write_msg(channel, (unsigned char *)out);
+
+    SetVariable(RESULT, -1, out, len);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(RTCPeerConnectionGetReadBuffer, 1)
+    T_HANDLE(RTCPeerConnectionGetReadBuffer, 0)
+
+    struct TLSRTCPeerConnection *channel = (struct TLSRTCPeerConnection *)(SYS_INT)PARAM(0);
+
+    int len = tls_peerconnection_get_read_msg(channel, NULL);
+    if (len <= 0) {
+        RETURN_STRING("");
+        return 0;
+    }
+
+    char *out = NULL;
+    CORE_NEW(len + 1, out);
+    if (!out) {
+        RETURN_STRING("");
+        return 0;
+    }
+    out[len] = 0;
+
+    tls_peerconnection_get_read_msg(channel, (unsigned char *)out);
+
+    SetVariable(RESULT, -1, out, len);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RTCPeerConnectionEncrypt, 3, 4)
+    T_HANDLE(RTCPeerConnectionEncrypt, 0)
+    T_STRING(RTCPeerConnectionEncrypt, 1)
+    T_STRING(RTCPeerConnectionEncrypt, 2)
+
+    struct TLSRTCPeerConnection *channel = (struct TLSRTCPeerConnection *)(SYS_INT)PARAM(0);
+
+    unsigned char srtcp = 0;
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(RTCPeerConnectionEncrypt, 3)
+        srtcp = (unsigned char)PARAM_INT(3);
+    }
+
+    int out_buffer_len = PARAM_LEN(2) + 32;
+    char *out = NULL;
+    CORE_NEW(out_buffer_len + 1, out);
+
+    if (out) {
+        int res = tls_peerconnection_encrypt(channel, srtcp, (unsigned char *)PARAM(1), PARAM_LEN(1), (unsigned char *)PARAM(2), PARAM_LEN(2), (unsigned char *)out, &out_buffer_len);
+        if (res) {
+            CORE_DELETE(out);
+            RETURN_STRING("");
+        } else {
+            out[out_buffer_len] = 0;
+            SetVariable(RESULT, -1, out, out_buffer_len);
+        }
+    } else {
+        RETURN_STRING("");
+    }
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RTCPeerConnectionDecrypt, 3, 4)
+    T_HANDLE(RTCPeerConnectionDecrypt, 0)
+    T_STRING(RTCPeerConnectionDecrypt, 1)
+    T_STRING(RTCPeerConnectionDecrypt, 2)
+
+    struct TLSRTCPeerConnection *channel = (struct TLSRTCPeerConnection *)(SYS_INT)PARAM(0);
+
+    unsigned char srtcp = 0;
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(RTCPeerConnectionDecrypt, 3)
+        srtcp = (unsigned char)PARAM_INT(3);
+    }
+
+    int out_buffer_len = PARAM_LEN(2) + 1;
+    char *out = NULL;
+    CORE_NEW(out_buffer_len + 1, out);
+
+    if (out) {
+        int res = tls_peerconnection_encrypt(channel, srtcp, (unsigned char *)PARAM(1), PARAM_LEN(1), (unsigned char *)PARAM(2), PARAM_LEN(2), (unsigned char *)out, &out_buffer_len);
+        if (res) {
+            CORE_DELETE(out);
+            RETURN_STRING("");
+        } else {
+            out[out_buffer_len] = 0;
+            SetVariable(RESULT, -1, out, out_buffer_len);
+        }
+    } else {
+        RETURN_STRING("");
+    }
 END_IMPL
 //------------------------------------------------------------------------

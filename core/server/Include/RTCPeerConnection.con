@@ -1,0 +1,136 @@
+import standard.net.tlse
+
+define RTC_INITIALIZED	0
+define RTC_CONNECTING	1
+define RTC_HANDSHAKE	2
+define RTC_CONNECTED	3
+define RTC_CLOSED	4
+
+class RTCPeerConnection {
+	protected var handle;
+	public var ICEfingerprint = "";
+	public var ICEusername = "";
+	public var ICEpwd = "";
+	public var ICEip = "";
+	public var ICEport = "";
+
+	RTCPeerConnection(certificate, key = "", active = false) {
+		if (classof certificate == classof this) {
+			handle = RTCPeerConnectionClone(certificate->handle);
+			if (handle)
+				this.ICEfingerprint = certificate->handle.ICEfingerprint;
+		} else {
+			handle = RTCPeerConnectionInit(active, certificate, key, this.ICEfingerprint);
+		}
+
+		if (handle) {
+			var arr = RTCPeerConnectionInfo(handle);
+			if (arr) {
+				ICEusername = arr["username"] ?? "";
+				ICEpwd = arr["pwd"] ?? "";
+			}
+		}
+	}
+
+	connect() {
+		if (!handle)
+			return false;
+
+		if (RTCPeerConnectionConnect(handle))
+			return false;
+
+		return true;
+	}
+
+	setRemote(username, pwd) {
+		if (RTCPeerConnectionRemoteCredentials(handle, username, pwd))
+			return false;
+
+		return true;
+	}
+
+	status() {
+		if (!handle)
+			return -1;
+
+		return RTCPeerConnectionStatus(handle);
+	}
+
+	connected() {
+		if (!handle)
+			return false;
+		return (RTCPeerConnectionStatus(handle) == RTC_CONNECTED);
+	}
+
+	closed() {
+		if (!handle)
+			return true;
+
+		return (RTCPeerConnectionStatus(handle) == RTC_CLOSED);
+	}
+
+	connecting() {
+		if (!handle)
+			return false;
+		var status = RTCPeerConnectionStatus(handle);
+		return ((status == RTC_CONNECTING) || (status == RTC_HANDSHAKE));
+	}
+
+	buildPacket(var rtp_header, var buffer, rtcp = false) {
+		if (!connected())
+			return "";
+
+		var payload = RTCPeerConnectionEncrypt(handle, rtp_header, buffer, rtcp);
+		if (payload)
+			return rtp_header + payload;
+
+		return "";
+	}
+
+	getWriteMessage() {
+		if (!handle)
+			return "";
+
+		return RTCPeerConnectionGetWriteBuffer(handle);
+	}
+
+	getReadMessage() {
+		if (!handle)
+			return "";
+
+		return RTCPeerConnectionGetReadBuffer(handle);
+	}
+
+	consume(var buffer, ip, port) {
+		if (!handle)
+			return -1;
+
+		var err = RTCPeerConnectionConsume(handle, buffer, ip, port, var validated);
+		if (validated) {
+			ICEip = ip;
+			ICEport = port;
+		}
+		return err;
+	}
+
+	remoteCredentials(username, pwd) {
+		if (!handle)
+			return -1;
+
+		return RTCPeerConnectionRemoteCredentials(handle, username, pwd);
+	}
+
+	close() {
+		if (handle) {
+			RTCPeerConnectionDone(handle);
+			handle = null;
+		}
+	}
+
+	finalize() {
+		if (handle) {
+			RTCPeerConnectionDone(handle);
+			handle = null;
+		}
+	}
+}

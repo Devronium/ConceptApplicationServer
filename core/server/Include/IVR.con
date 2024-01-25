@@ -38,7 +38,7 @@ class DATASession {
 	var RecordedData = "";
 	var RecordUntil = "#";
 	var SkipUntil = 0;
-	var Expires = 300;
+	var Expires = 1200;
 	var[] IVRHistory;
 	public property SkipSeconds { set SetSkipSeconds, get GetSkipSeconds }
 

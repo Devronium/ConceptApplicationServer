@@ -42,5 +42,18 @@ extern "C" {
     CONCEPT_FUNCTION(SRTPEncrypt)
     CONCEPT_FUNCTION(SRTPDecrypt)
     CONCEPT_FUNCTION(SRTPDone)
+
+    CONCEPT_FUNCTION(RTCPeerConnectionInit)
+    CONCEPT_FUNCTION(RTCPeerConnectionConnect)
+    CONCEPT_FUNCTION(RTCPeerConnectionInfo)
+    CONCEPT_FUNCTION(RTCPeerConnectionStatus)
+    CONCEPT_FUNCTION(RTCPeerConnectionRemoteCredentials)
+    CONCEPT_FUNCTION(RTCPeerConnectionClone)
+    CONCEPT_FUNCTION(RTCPeerConnectionConsume)
+    CONCEPT_FUNCTION(RTCPeerConnectionDone)
+    CONCEPT_FUNCTION(RTCPeerConnectionGetWriteBuffer)
+    CONCEPT_FUNCTION(RTCPeerConnectionGetReadBuffer)
+    CONCEPT_FUNCTION(RTCPeerConnectionEncrypt)
+    CONCEPT_FUNCTION(RTCPeerConnectionDecrypt)
 }
 #endif // __LIBRARY_H
