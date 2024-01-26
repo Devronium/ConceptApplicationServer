@@ -722,7 +722,7 @@ class SIPSession {
 	GetSDP(codec = 48, extra = "") {
 		var res;
 		var type = typeof tcp_socket; 
-		if (((this.s.webrtc) && ((this.s.Transport[0] == "W") || (type[0] != "U"))) || (rtc_channel)) {
+		if (((this.s.webrtc) && ((this.s.Transport[0] == "W") || ((tcp_socket) && (type[0] != "U")))) || (rtc_channel)) {
 			// WebRTC peer connection
 			if (!rtc_channel)
 				rtc_channel = new RTCPeerConnection(this.s.webrtc);
