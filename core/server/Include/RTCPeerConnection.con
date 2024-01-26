@@ -1,4 +1,7 @@
 import standard.net.tlse
+import standard.lang.serialize
+import standard.lib.str
+import standard.lib.cripto
 
 define RTC_INITIALIZED	0
 define RTC_CONNECTING	1
@@ -8,17 +11,20 @@ define RTC_CLOSED	4
 
 class RTCPeerConnection {
 	protected var handle;
+
 	public var ICEfingerprint = "";
 	public var ICEusername = "";
 	public var ICEpwd = "";
 	public var ICEip = "";
 	public var ICEport = "";
 
+	protected var _has_credentials = false;
+
 	RTCPeerConnection(certificate, key = "", active = false) {
 		if (classof certificate == classof this) {
 			handle = RTCPeerConnectionClone(certificate->handle);
 			if (handle)
-				this.ICEfingerprint = certificate->handle.ICEfingerprint;
+				this.ICEfingerprint = certificate->ICEfingerprint;
 		} else {
 			handle = RTCPeerConnectionInit(active, certificate, key, this.ICEfingerprint);
 		}
@@ -32,18 +38,15 @@ class RTCPeerConnection {
 		}
 	}
 
+	created() {
+		return (handle != null);
+	}
+
 	connect() {
 		if (!handle)
 			return false;
 
 		if (RTCPeerConnectionConnect(handle))
-			return false;
-
-		return true;
-	}
-
-	setRemote(username, pwd) {
-		if (RTCPeerConnectionRemoteCredentials(handle, username, pwd))
 			return false;
 
 		return true;
@@ -105,6 +108,9 @@ class RTCPeerConnection {
 		if (!handle)
 			return -1;
 
+		if (!_has_credentials)
+			return 0;
+
 		var err = RTCPeerConnectionConsume(handle, buffer, ip, port, var validated);
 		if (validated) {
 			ICEip = ip;
@@ -117,6 +123,7 @@ class RTCPeerConnection {
 		if (!handle)
 			return -1;
 
+		_has_credentials = true;
 		return RTCPeerConnectionRemoteCredentials(handle, username, pwd);
 	}
 
@@ -125,6 +132,49 @@ class RTCPeerConnection {
 			RTCPeerConnectionDone(handle);
 			handle = null;
 		}
+	}
+
+	sdp(src_id, codec, ip, port, setup = "actpass") {
+		var codec_str;
+		if (codec == 48)
+			codec = "8 0";
+		else
+		if (codec == 8)
+			codec_str = "8 PCMA/8000";
+		else
+			codec_str = "0 PCMU/8000";
+		var str = md5("" + ClsPtr(this) + ":" + this.ICEusername + ":" + this.ICEpwd);
+		var cname = SubStr(str, 0, 8) + "-" + SubStr(str, 8, 4) + "-" + SubStr(str, 12, 4) + "-" + SubStr(str, 16, 4) + "-" + SubStr(str, 20, 12);
+
+		var sdp = 	"v=0\r\n" +
+				"o=- ${ClsPtr(this)} 0 IN IP4 $ip\r\n" +
+				"s=-\r\n" +
+				"t=0 0\r\n" +
+				"a=fingerprint:sha-256 ${this.ICEfingerprint}\r\n" +
+				"a=ice-options:trickle\r\n" +
+				"a=msid-semantic:WMS *\r\n" +
+				"m=audio $port UDP/TLS/RTP/SAVPF $codec 101\r\n" +
+				"c=IN IP4 $ip\r\n" +
+				"a=sendrecv\r\n" +
+				"a=rtcp:$port IN IP4 $ip\r\n" +
+				"a=candidate:0 1 UDP 2043278322 $ip $port typ host generation 0\r\n" +
+				"a=ice-ufrag:${this.ICEusername}\r\n" +
+				"a=ice-pwd:${this.ICEpwd}\r\n" +
+				"a=rtcp-mux\r\n";
+
+		if (!codec_str) {
+			sdp += 	"a=rtpmap:0 PCMU/8000\r\n";
+			sdp += 	"a=rtpmap:8 PCMA/8000\r\n";
+		} else
+			sdp += 	"a=rtpmap:$codec_str\r\n";
+
+		sdp +=		"a=rtpmap:101 telephone-event/8000\r\n" +
+				"a=fmtp:101 0-15\r\n" +
+				"a=mid:0\r\n" +
+				"a=ssrc:$src_id cname:{$cname}\r\n" +
+				"a=setup:$setup\r\n"; 
+
+		return sdp;
 	}
 
 	finalize() {

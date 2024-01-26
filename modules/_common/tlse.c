@@ -11433,14 +11433,14 @@ int tls_peerconnection_iterate(struct TLSRTCPeerConnection *channel, unsigned ch
             DEBUG_DUMP_HEX_LABEL("SRTP", buf, buf_len);
             if (buf_len > 12) {
                 unsigned char out[0x4000];
-                int out_buffer_len = sizeof(out);
-                int len = srtp_decrypt(channel->srtp_remote, 1, buf, 8, buf + 8, buf_len - 8, out, &out_buffer_len);
+                int out_buffer_len = sizeof(out) - 12;
+                int len = srtp_decrypt(channel->srtp_remote, 0, buf, 12, buf + 12, buf_len - 12, out + 12, &out_buffer_len);
                 
                 if (len >= 0) {
-                    DEBUG_DUMP_HEX_LABEL("RTP header", buf, 12);
-                    DEBUG_DUMP_HEX_LABEL("RTP payload", out, out_buffer_len);
-
-                    _private_tls_peerconnection_buffer_add(&channel->read_buffer, out, out_buffer_len);
+                    memcpy(out, buf, 12);
+                    DEBUG_DUMP_HEX_LABEL("RTP header", out, 12);
+                    DEBUG_DUMP_HEX_LABEL("RTP payload", out + 12, out_buffer_len);
+                    _private_tls_peerconnection_buffer_add(&channel->read_buffer, out, out_buffer_len + 12);
                 }
             }
         } else {

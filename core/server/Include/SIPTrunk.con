@@ -14,6 +14,8 @@ include TCPSocket.con
 include TLSESocket.con
 include Speex.con
 
+include RTCPeerConnection.con
+
 define SIP_CODES	["100" => "Trying", "180" => "Ringing", "181" => "Call Is Being Forwarded", "182" => "Queued", "200" => "OK", "300" => "Multiple Choices", "301" => "Moved Permanently", "302" => "Moved Temporarily", "303" => "See Other", "305" => "Use Proxy", "380" => "Alternative Service", "400" => "Bad Request", "401" => "Unauthorized", "402" => "Payment Required", "403" => "Forbidden", "404" => "Not Found", "405" => "Method Not Allowed", "406" => "Not Acceptable", "407" => "Proxy Authentication Required", "408" => "Request Timeout", "409" => "Conflict", "410" => "Gone", "411" => "Length Required", "413" => "Request Entity Too Large", "414" => "Request-URI Too Large", "415" => "Unsupported Media Type", "420" => "Bad Extension", "480" => "Temporarily not available", "481" => "Call Leg/Transaction Does Not Exist", "482" => "Loop Detected", "483" => "Too Many Hops", "484" => "Address Incomplete", "485" => "Ambiguous", "486" => "Busy Here", "500" => "Internal Server Error", "501" => "Not Implemented", "502" => "Bad Gateway", "503" => "Service Unavailable", "504" => "Gateway Time-out", "505" => "SIP Version not supported", "600" => "Busy Everywhere", "603" => "Decline", "604" => "Does not exist anywhere", "606" => "Not Acceptable"]
 define SIP_ALLOW	"REGISTER,INVITE,ACK,CANCEL,BYE,REFER,NOTIFY,MESSAGE,INFO,UPDATE"
 define SIP_SUPPORTED	"replaces, 100rel, timer, tdialog"
@@ -174,6 +176,8 @@ class SIPSession {
 	var rtp_dtmf_type = 0;
 	var rtp_dtmf = false;
 
+	var rtc_channel;
+
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
 		timestamp = RandomInteger(140, 140000) * 100;
@@ -189,7 +193,7 @@ class SIPSession {
 		this.port = port;
 		Expire = time() + expire + 1;
 		CallID = msg.Headers["call-id"];
-		ssrc_id = ClsPtr(this);
+		ssrc_id = ClsPtr(this) % 0x10000000;
 		sequence_number = RandomInteger(0, 0xFFF);
 
 		NATMode = s.NATFriendly;
@@ -234,6 +238,9 @@ class SIPSession {
 		var rtp_dtmf_type;
 		sdp_in = msg.PayloadBlob;
 		var has_connection = false;
+		var ice_fingerprint = "";
+		var ice_ufrag = "";
+		var ice_pwd = "";
 		for (var i = 0; i < length payload; i++) {
 			var line = payload[i];
 			switch (line[0] + line[1]) {
@@ -282,9 +289,29 @@ class SIPSession {
 							if (this.s.OnDTMFRelay)
 								this.rtp_dtmf = true;
 						}
+					} else
+					if (this.s.webrtc) {
+						if (SubStr(line_a, 0, 12) == "fingerprint:") {
+							ice_fingerprint = StrSplit(line_a, " ")[1];
+						} else
+						if (SubStr(line_a, 0, 10) == "ice-ufrag:") {
+							ice_ufrag = SubStr(line_a, 10);
+						} else
+						if (SubStr(line_a, 0, 8) == "ice-pwd:") {
+							ice_pwd = SubStr(line_a, 8);
+						}
 					}
 					break;
 			}
+		}
+		if ((this.s.webrtc) && (ice_fingerprint) && (ice_ufrag) && (ice_pwd)) {
+			if (!rtc_channel)
+				rtc_channel = new RTCPeerConnection(this.s.webrtc);
+			rtc_channel.remoteCredentials(ice_ufrag, ice_pwd);
+			remote_host = "";
+			remote_port = -1;
+			NATMode = false;
+			return;
 		}
 		if (this.s.NonRoutable(remote_host)) {
 			remote_host = ip;
@@ -406,6 +433,10 @@ class SIPSession {
 		try {
 			if (rtp)
 				rtp.Close();
+			if (rtc_channel) {
+				rtc_channel.close();
+				rtc_channel = null;
+			}
 			if (delete_session) {
 				if (this.s.OnEnd)
 					this.s.OnEnd(this, msg2, "");
@@ -423,6 +454,10 @@ class SIPSession {
 			this.s.use_socket = tcp_socket;
 			if (rtp)
 				rtp.Close();
+			if (rtc_channel) {
+				rtc_channel.close();
+				rtc_channel = null;
+			}
 			if (delete_session) {
 				if (this.s.OnEnd)
 					this.s.OnEnd(this, msg2, "");
@@ -451,6 +486,10 @@ class SIPSession {
 		try {
 			if (rtp)
 				rtp.Close();
+			if (rtc_channel) {
+				rtc_channel.close();
+				rtc_channel = null;
+			}
 			if (delete_session) {
 				if (this.s.OnEnd)
 					this.s.OnEnd(this, msg2, "");
@@ -560,7 +599,10 @@ class SIPSession {
 		}
 		
 		timestamp += length payload;
-		var res = pack("U8U8U16U32U32", 0x80, profile, sequence_number, timestamp, ClsPtr(this));
+		var res = pack("U8U8U16U32U32", 0x80, profile, sequence_number, timestamp, ssrc_id);
+		if (rtc_channel)
+			res = rtc_channel.buildPacket(res, payload);
+		else
 		if (srtp)
 			res += srtp.Encrypt(res, payload);
 		else
@@ -677,41 +719,31 @@ class SIPSession {
 		return "";
 	}
 
-	/* ParseRTP(data, var type = null) {
-		type = -1;
-		last_timestamp = microseconds();
-		if (length data > 12) {
-			type = tounumber(data[1], 8) & 0x7F;
-			if ((type >= 72) && (type <= 76))
-				return "";
-			var sequence_number = ntohs(tounumber(data[2] + data[3], 16));
-			if ((last_sequence_number != -1) && (sequence_number <= last_sequence_number)) {
-				var delta = sequence_number - last_sequence_number;
-				if (delta < 0)
-					delta *= -1;
-				if (delta < 20)
-					return "";
-			}
-			last_sequence_number = sequence_number;
-			var ssrc_id = (tounumber(data[8] + data[9] + data[10] + data[11], 32));
-			var payload = SubStr(data, 12, length data);
-			if (srtp)
-				payload = srtp.Decrypt(SubStr(data, 0, 12), payload);
-			if (Record)
-				RecordStream(ssrc_id, payload, "in-", type);
-			return payload;
-		}
-		return "";
-	} */
-
 	GetSDP(codec = 48, extra = "") {
 		var res;
+		var type = typeof tcp_socket; 
+		if (((this.s.webrtc) && ((this.s.Transport[0] == "W") || (type[0] != "U"))) || (rtc_channel)) {
+			// WebRTC peer connection
+			if (!rtc_channel)
+				rtc_channel = new RTCPeerConnection(this.s.webrtc);
+
+			NATMode = false;
+			remote_port = rtc_channel.ICEport;
+			remote_host = rtc_channel.ICEip;
+
+			res = rtc_channel.sdp(ssrc_id, codec, s.localip, rtp_port, "passive");
+			res += extra;
+			sdp_out = res;
+
+			return res;
+		}
+
 		if (this.s.SRTP) {
 			if (!srtp)
 				srtp = new SRTPContext();
 			if ((codec != 0) && (codec != 8))
 				codec = "8 0";
-			res = "v=0\r\no=somebody ${ClsPtr(this)} ${VarPtr(this)} IN IP4 ${s.localip}\r\ns=Concept\r\nc=IN IP4 ${s.localip}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/SAVP $codec\r\na=crypto:1 AES_CM_128_HMAC_SHA1_32 inline:${srtp.RandomInit(32)}\r\n";
+			res = "v=0\r\no=somebody ${ssrc_id} ${VarPtr(this)} IN IP4 ${s.localip}\r\ns=Concept\r\nc=IN IP4 ${s.localip}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/SAVP $codec\r\na=crypto:1 AES_CM_128_HMAC_SHA1_32 inline:${srtp.RandomInit(32)}\r\n";
 		} else {
 			var codecs_str = "";
 			if (codec == 8) {
@@ -732,7 +764,7 @@ class SIPSession {
 				codecs_str += "a=fmtp:${rtp_dtmf_type} 0-15\r\n";
 				codec += " ${rtp_dtmf_type}";
 			}
-			res = "v=0\r\no=somebody ${ClsPtr(this)} ${VarPtr(this)} IN IP4 ${s.localip}\r\ns=Concept\r\nc=IN IP4 ${s.localip}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/AVP $codec\r\n" + codecs_str;
+			res = "v=0\r\no=somebody ${ssrc_id} ${VarPtr(this)} IN IP4 ${s.localip}\r\ns=Concept\r\nc=IN IP4 ${s.localip}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/AVP $codec\r\n" + codecs_str;
 		}
 		if (extra)
 			res += "a=$extra\r\n";
@@ -743,6 +775,10 @@ class SIPSession {
 	finalize() {
 		if (rtp)
 			rtp.Close();
+		if (rtc_channel) {
+			rtc_channel.close();
+			rtc_channel = null;
+		}
 		for (var i = 0; i < length Children; i++) {
 			var sess = Children[i];
 			if (sess) {
@@ -755,6 +791,20 @@ class SIPSession {
 
 	CheckMedia(var type = null) {
 		if ((rtp) && (rtp.HasData)) {
+			if (rtc_channel) {
+				var packet_remote_ip;
+				var packet_remote_port;
+				rtc_channel.consume(rtp.Read(packet_remote_ip, packet_remote_port), packet_remote_ip, packet_remote_port);
+				remote_port = rtc_channel.ICEport;
+				remote_host = rtc_channel.ICEip;
+				var packet;
+				do {
+					packet = rtc_channel.getWriteMessage();
+					if (packet)
+						rtp.Write(packet, packet_remote_ip, packet_remote_port);
+				} while (packet);
+				return ParseRTP(rtc_channel.getReadMessage(), type);
+			}
 			if (nat_remote_host)
 				return ParseRTP(rtp.Read(), type);
 			return ParseRTP(rtp.Read(nat_remote_host, nat_remote_port), type);
@@ -1324,6 +1374,8 @@ class SIPStack {
 
 	var lastMessageTimestamp;
 
+	var webrtc;
+
 	SIPStack(localhost, bind_port = 5060, type = SIP_TRANSPORT_UDP, public_key = "", private_key = "", force_tls_version = 0) {
 		this.localhost = localhost;
 		this.local_port = bind_port;
@@ -1434,6 +1486,15 @@ class SIPStack {
 
 	public ClearRoutes() {
 		Routes = new [];
+	}
+
+	public EnableRTCPeerConnection(certificate, key) {
+		webrtc = new RTCPeerConnection(certificate, key);
+		if (!webrtc.created()) {
+			delete webrtc;
+			return false;
+		}
+		return true;
 	}
 
 	private ParseDestination(destination) {

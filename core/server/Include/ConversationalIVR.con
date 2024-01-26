@@ -13,7 +13,7 @@ include MP3.con
 include ElevenLabs.con
 include RWKV.con
 
-define SETTINTS_MAX_TIMEOUTS	8
+define SETTINTS_MAX_TIMEOUTS	4
 define SETTINGS_ENSURE_WORDS	false
 define SETTINGS_MAX_DEQUEUE	4096
 define SETTINGS_MAX_DURATION	1800
@@ -56,6 +56,7 @@ class IVRClientData {
 	var dtmf_timestamp;
 	var ai_wait;
 	var js_called;
+	var dtmf_stamp;
 
 	IVRClientData(ivr, ivr_tree, session, notify_event = true, is_queue = false) {
 		this.ivr_branch = ivr_tree;
@@ -121,7 +122,7 @@ class IVRClientData {
 			if (!music) {
 				music = ReadFile("repository/music.$codec");
 				if (music)
-					ivr.music[codec] = music;
+					ivr.music[codec] = music + music + music;
 			}
 			if (music)
 				session.sip.LoadVoice(music);
@@ -2237,6 +2238,7 @@ class ConversationalIVR {
 							case "9":
 							// case "*":
 							case "#":
+							case "*#":
 								at_least_one_dtmf = true;
 								break;
 							default:
@@ -2922,6 +2924,7 @@ class ConversationalIVR {
 		var append = false;
 		var k4 = "";
 		var has_default = false;
+		var has_dtmf_string = false;
 		// var check_kb = true;
 
 		var arr_text = tokens(text, ignore_diacritics);
@@ -2964,6 +2967,11 @@ class ConversationalIVR {
 							if (ignore_diacritics)
 								has_default = k_orig;
 							continue;
+						} else
+						if (k == "*#") {
+							if (ignore_diacritics)
+								has_dtmf_string = k_orig;
+							continue;
 						}
 						if (match(text, arr_text, k, ignore_diacritics)) {
 							message_understood = true;
@@ -2975,11 +2983,27 @@ class ConversationalIVR {
 					}
 				}
 			}
-			if ((has_default) && (!message_understood) && (j == ((length keys) - 1))) {
-				// check_kb = false;
-				k4 = "*";
-				message_understood = true;
-				k_orig = has_default;
+			if ((!message_understood) && (j == ((length keys) - 1))) {
+				if (has_dtmf_string) {
+					k4 = "*#";
+					// ignore echo keys
+					if (microseconds() - session.ClientData.dtmf_stamp < 150000) {
+						console.log(LOG_THIS, "ignored DTMF key");
+						return;
+					}
+					session.ClientData.dtmf_stamp = microseconds();
+					session.ClientData.ivr_path += "/" + text;
+					message_understood = true;
+					k_orig = has_dtmf_string;
+					if (text != "#")
+						return;
+				} else
+				if (has_default) {
+					// check_kb = false;
+					k4 = "*";
+					message_understood = true;
+					k_orig = has_default;
+				}
 			}
 			if (message_understood) {
 				session.ClientData.ivr_path += "/" + k4;
@@ -3263,6 +3287,7 @@ class ConversationalIVR {
 							case "9":
 							case "*":
 							case "#":
+							case "*#":
 								break;
 							default:
 								used_words[length used_words] = k2;
@@ -3686,15 +3711,23 @@ class ConversationalIVR {
 				}
 
 				var goto_text = "";
+				var redirect_set = false;
 				if ((typeof ivr_branch == "array") && (IsSet(ivr_branch, "\$goto"))) {
 					var goto = ivr_branch["\$goto"];
 					if ((goto) && (typeof goto == "string")) {
 						if (IsSet(session.ClientData.ivr_branch, goto)) {
 							session.ClientData.ivr_branch = session.ClientData.ivr_branch[goto];
-							if (typeof session.ClientData.ivr_branch == "string")
+							if (typeof session.ClientData.ivr_branch == "string") {
 								goto_text = session.ClientData.ivr_branch;
-							else
+							} else {
+								var goto_key = GetKeys(session.ClientData.ivr_branch)[0];
 								goto_text = session.ClientData.ivr_branch[0];
+								console.log(LOG_THIS, "goto key [$goto_key], text [$goto_text]");
+								if ((goto_key) && (goto_key[0] == "\$")) {
+									redirect_set = true;
+									session.ClientData.redirect = goto_key;
+								}
+							}
 							if (typeof goto_text != "string")
 								goto_text = "";
 						}
@@ -3709,18 +3742,24 @@ class ConversationalIVR {
 				} else
 				if (typeof ivr_branch == "array") {
 					text = ivr_branch[0] ?? "";
+					var k = GetKeys(ivr_branch)[0];
+					if ((k) && (k == "\$goto"))
+						text = "";
 					if (this.OnAPI) {
-						var k = GetKeys(ivr_branch)[0];
 						if (k[0] == "\$") {
 							if (Pos(k, "\$api") == 1) {
 								this.OnAPI(session, session.ClientData.ivr_path, trim(SubStr(k, 4)), "tree");
 								if ((!session.ClientData.finish_api) && (!session.ClientData.ivr_path))
 									session.ClientData.finish_api = trim(SubStr(k, 4));
+							} else
+							if (k != "\$goto") {
+								redirect_set = true;
+								session.ClientData.redirect = k;
 							}
 						}
 					}
 
-					if (length session.ClientData.ivr_branch > 1) {
+					if ((length session.ClientData.ivr_branch > 1) || (redirect_set)) {
 						session.EndOnIVRFinished = false;
 					} else {
 						session.EndOnIVRFinished = true;
@@ -3732,7 +3771,8 @@ class ConversationalIVR {
 					session.EndOnIVRFinished = true;
 				}
 
-				this.Raspuns(session.sip.CallID, text);
+				if (text)
+					this.Raspuns(session.sip.CallID, text);
 				if (goto_text)
 					this.Raspuns(session.sip.CallID, goto_text, true);
 			}
