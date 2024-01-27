@@ -5461,7 +5461,7 @@ struct TLSPacket *tls_build_server_key_exchange(struct TLSContext *context, int 
 #ifdef TLS_FORWARD_SECRECY
     if (method == KEA_dhe_rsa) {
 
-        if ((context->dtls) && (!context->ecc_dhe)) {
+        if (!context->dhe) {
             tls_init();
             _private_tls_dhe_create(context);
         
@@ -5521,7 +5521,7 @@ struct TLSPacket *tls_build_server_key_exchange(struct TLSContext *context, int 
             context->curve = default_curve;
         tls_packet_uint8(packet, 3);
         tls_packet_uint16(packet, context->curve->iana);
-        if ((context->dtls) && (!context->ecc_dhe)) {
+        if (!context->ecc_dhe) {
             tls_init();
             _private_tls_ecc_dhe_create(context);
         

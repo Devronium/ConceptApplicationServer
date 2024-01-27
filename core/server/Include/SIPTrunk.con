@@ -235,6 +235,9 @@ class SIPSession {
 
 	UpdateMedia(msg, ip = "", port = 0) {
 		var payload = msg.Payload;
+		if (!payload)
+			return;
+
 		var rtp_dtmf_type;
 		sdp_in = msg.PayloadBlob;
 		var has_connection = false;
@@ -722,7 +725,7 @@ class SIPSession {
 	GetSDP(codec = 48, extra = "") {
 		var res;
 		var type = typeof tcp_socket; 
-		if (((this.s.webrtc) && ((this.s.Transport[0] == "W") || ((tcp_socket) && (type[0] != "U")))) || (rtc_channel)) {
+		if (((this.s.webrtc) && ((tcp_socket) && (type[0] != "U"))) || (rtc_channel)) {
 			// WebRTC peer connection
 			if (!rtc_channel)
 				rtc_channel = new RTCPeerConnection(this.s.webrtc);
@@ -2954,11 +2957,13 @@ class SIPStack {
 		if ((target_user) && (IsSet(Users, target_user))) {
 			var uinfo = Users[target_user];
 			if ((uinfo) && (!uinfo.Expired())) {
-				if ((uinfo.non_routable) || (!server)) {
+				if ((uinfo.non_routable) || (!server) || (uinfo.socket)) {
 					if (uinfo.ip)
 						server = uinfo.ip;
 					if (uinfo.port)
 						server_port = uinfo.port;
+					if (uinfo.socket)
+						use_socket = uinfo.socket;
 				}
 			} else {
 				return null;
