@@ -3514,10 +3514,10 @@ class SIPStack {
 								uinfo.Update(timeout);
 							}
 							var type = classof use_socket;
+							var old_key = "${uinfo.ip}:${uinfo.port}";
 							if ((use_socket) && (type[0] != "U")) {
 								var host_key = "$ip:$port";
 								if (uinfo.ip) {
-									var old_key = "${uinfo.ip}:${uinfo.port}";
 									if (old_key != host_key) {
 										deleteArrayElement(HostToUser, old_key);
 										HostToUser[host_key] = username;
@@ -3702,6 +3702,12 @@ class SIPStack {
 						if ((sess) && (msg.ServerCode > 0))
 							sess.UpdateCode(msg.ServerCode);
 
+						if (msg.ServerCode == 180) {
+							if ((sess) && (!sess.bye_msg)) {
+								sess.bye_msg = msg;
+								sess.UpdateTags();
+							}
+						} else
 						if ((msg.ServerCode >= 200) && (msg.ServerCode < 300)) {
 							if ((sess) && (!sess.bye_set)) {
 								sess.bye_set = true;
