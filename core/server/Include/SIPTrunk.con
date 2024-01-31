@@ -2319,6 +2319,30 @@ class SIPStack {
 		return others;
 	}
 
+	public ClearChildSessions(session) {
+		var others = 0;
+		var exc;
+		for (var i = 0; i < length session.Children; i++) {
+			var child = session.Children[i];
+			if (child) {
+				others++;
+				child.OnMessage = null;
+				child.Parent = null;
+				try {
+					if (child._private_data)
+						child.Cancel(true);
+					else
+						child.Bye(true);
+				} catch (exc) {
+					// ignore exception
+				}
+				child._private_data = null;
+			}
+		}
+		session.Children = new [];
+		return others;
+	}
+
 	public ReferProxy(msg, address, max_forwards = 70, contact = "", identity = "", skip_user_addr = false) {
 		if (!msg)
 			return null;
@@ -2345,6 +2369,8 @@ class SIPStack {
 				var child_session = this.Invite(address, contact, max_forwards, null, null, identity, skip_user_addr);
 				use_socket = ref_use_socket;
 				if (child_session) {
+					session.buf = "";
+					session.buf_chunk = 0;
 					child_session._private_data = session.CallID;
 					session.AddChild(child_session);
 					child_session.Expire = session.Expire;
