@@ -310,7 +310,7 @@ class SIPSession {
 		if ((this.s.webrtc) && (ice_fingerprint) && (ice_ufrag) && (ice_pwd)) {
 			if (!rtc_channel)
 				rtc_channel = new RTCPeerConnection(this.s.webrtc);
-			rtc_channel.remoteCredentials(ice_ufrag, ice_pwd);
+			rtc_channel.remoteCredentials(ice_ufrag, ice_pwd, ice_fingerprint);
 			remote_host = "";
 			remote_port = -1;
 			NATMode = false;
@@ -2340,7 +2340,10 @@ class SIPStack {
 
 			var session = this.GetSession(msg);
 			if (session) {
+				var ref_use_socket = use_socket;
+				use_socket = null;
 				var child_session = this.Invite(address, contact, max_forwards, null, null, identity, skip_user_addr);
+				use_socket = ref_use_socket;
 				if (child_session) {
 					child_session._private_data = session.CallID;
 					session.AddChild(child_session);

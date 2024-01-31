@@ -1213,6 +1213,7 @@ struct DTLSData {
     unsigned char extended_master_secret;
 #endif
     unsigned char has_random;
+    char *remote_fingerprint;
 };
 
 struct TLSContext {
@@ -4619,6 +4620,7 @@ struct TLSContext *tls_accept(struct TLSContext *context) {
 #endif
         child->alpn = context->alpn;
         child->alpn_count = context->alpn_count;
+        child->request_client_certificate = context->request_client_certificate;
     }
     return child;
 }
@@ -4817,6 +4819,9 @@ void tls_destroy_context(struct TLSContext *context) {
         }
         if (context->dtls_data->key_exchange) {
             TLS_FREE(context->dtls_data->key_exchange);
+        }
+        if (context->dtls_data->remote_fingerprint) {
+            TLS_FREE(context->dtls_data->remote_fingerprint);
         }
         TLS_FREE(context->dtls_data);
     }
@@ -7096,6 +7101,39 @@ int tls_parse_certificate(struct TLSContext *context, const unsigned char *buf, 
                         memcpy(cert->bytes, &buf[res2], certificate_size2);
                     }
                 }
+                if ((context->dtls_data) && (context->dtls_data->remote_fingerprint)) {
+                    unsigned char hash[32];
+    
+                    hash_state state;
+
+                    sha256_init(&state);
+                    sha256_process(&state, cert->bytes, cert->len);
+                    sha256_done(&state, hash);
+
+                    int i;
+                    char buffer_data[100];
+                    char *buffer = buffer_data;
+                    int buf_len = sizeof(buffer_data);
+                    buffer[0] = 0;
+                    for (i = 0; i < 32; i++) {
+                        if (buf_len <= 1)
+                            break;
+                        if (i) {
+                            snprintf(buffer, buf_len, ":");
+                            buffer ++;
+                            buf_len --;
+                        }
+                        if (buf_len <= 2)
+                            break;
+                        snprintf(buffer, buf_len, "%02X", (unsigned int)hash[i]);
+                        buffer += 2;
+                        buf_len -= 2;
+                    }
+                    if (strcmp(buffer_data, context->dtls_data->remote_fingerprint)) {
+                        DEBUG_PRINT(stderr, "PEER CERTIFICATE FINGERPRINT VALIDATION FAILED, computed %s, expected %s\n", buffer_data, context->dtls_data->remote_fingerprint);
+                        return TLS_UNSUPPORTED_CERTIFICATE;
+                    }
+                }
                 // valid certificate
                 if (is_client) {
                     valid_certificate = 1;
@@ -8021,7 +8059,7 @@ int tls_parse_payload(struct TLSContext *context, const unsigned char *buf, int 
                             if ((certificate_verify) && (context->client_certificates_count))
                                 certificate_verify_alert = certificate_verify(context, context->client_certificates, context->client_certificates_count);
                             // empty certificates are permitted for client
-                            if (payload_res <= 0)
+                            if (payload_res == 0)
                                 payload_res = 1;
                         } else {
                             if ((certificate_verify) && (context->certificates_count))
@@ -8038,7 +8076,7 @@ int tls_parse_payload(struct TLSContext *context, const unsigned char *buf, int 
                         if ((certificate_verify) && (context->client_certificates_count))
                             certificate_verify_alert = certificate_verify(context, context->client_certificates, context->client_certificates_count);
                         // empty certificates are permitted for client
-                        if (payload_res <= 0)
+                        if (payload_res == 0)
                             payload_res = 1;
                     } else {
                         payload_res = tls_parse_certificate(context, buf + 1, payload_size, 0);
@@ -11123,7 +11161,7 @@ struct TLSContext *tls_peerconnection_dtls_context(struct TLSRTCPeerConnection *
     return channel->context;
 }
 
-int tls_peerconnection_remote_credentials(struct TLSRTCPeerConnection *channel, char *remote_username, int remote_username_len, char *remote_pwd, int remote_pwd_len) {
+int tls_peerconnection_remote_credentials(struct TLSRTCPeerConnection *channel, char *remote_username, int remote_username_len, char *remote_pwd, int remote_pwd_len, char *remote_fingerprint, int remote_fingerprint_len) {
     if (!channel)
         return TLS_GENERIC_ERROR;
 
@@ -11157,6 +11195,18 @@ int tls_peerconnection_remote_credentials(struct TLSRTCPeerConnection *channel, 
         memcpy(channel->remote_pwd, remote_pwd, remote_pwd_len);
         channel->remote_pwd[remote_pwd_len] = 0;
         channel->remote_pwd_len = remote_pwd_len;
+    }
+
+    if ((remote_fingerprint) && (remote_fingerprint_len > 0)) {
+        if (channel->context->dtls_data->remote_fingerprint)
+            TLS_FREE(channel->context->dtls_data->remote_fingerprint);
+
+        channel->context->dtls_data->remote_fingerprint = (char *)TLS_MALLOC(remote_fingerprint_len + 1);
+        if (!channel->context->dtls_data->remote_fingerprint)
+            return TLS_NO_MEMORY;
+
+        memcpy(channel->context->dtls_data->remote_fingerprint, remote_fingerprint, remote_fingerprint_len);
+        channel->context->dtls_data->remote_fingerprint[remote_fingerprint_len] = 0;
     }
 
     return 0;

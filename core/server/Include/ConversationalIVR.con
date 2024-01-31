@@ -49,6 +49,8 @@ class IVRClientData {
 	var remotehost;
 	var empty_buffer = true;
 	var forward = false;
+	var forward_url;
+	var forward_timestamp;
 	var diverted;
 	var is_queue;
 	var referTryCount;
@@ -1550,6 +1552,7 @@ class ConversationalIVR {
 	var OnBranch;
 	var OnAPI;
 	var OnEvent;
+	var OnForwardURL;
 
 	var OnFirewall;
 
@@ -1558,6 +1561,7 @@ class ConversationalIVR {
 
 	var OnWriteRecording;
 	var OnRegistered;
+	var OnRegisterAlias;
 
 	var OnAlert;
 
@@ -1593,6 +1597,10 @@ class ConversationalIVR {
 		console.trace(LOG_THIS, "REGISTER ${msg.ip}:${msg.port}");
 		if (auth) {
 			var code = ivr.stack.CheckAuth(auth, function(username) {
+				if (this.OnRegisterAlias)
+					username = this.OnRegisterAlias(username);
+				if (!username)
+					return "";
 				if (IsSet(this.sipUsers, username)) {
 					_sip_username = username;
 					return this.sipUsers[username];
@@ -2195,6 +2203,14 @@ class ConversationalIVR {
 				stt_worker.AddData(BinarizeObject(new STTWorkerData(session.sip.CallID, STT_ADDBUFFER, buffer, type)));
 			else
 				console.error(LOG_THIS, "no workers for ${session.To}, callid ${session.sip.CallID}");
+		} else
+		if (session.ClientData.forward_url) {
+			var now = microseconds();
+			if (now >= session.ClientData.forward_timestamp) {
+				if (this.OnForwardURL)
+					this.OnForwardURL(session, session.ClientData.forward_url);
+				session.ClientData.forward_timestamp = now + 1000000;
+			}
 		} else
 		if (session.ClientData.forward)
 			session.ClientData.forwardUDP(this, session, buffer, type, forwardUDP);
@@ -3910,8 +3926,11 @@ class ConversationalIVR {
 			return null;
 		}
 
-		if (session.ClientData)
+		if (session.ClientData) {
 			session.ClientData.referAddress = destination;
+			session.ClientData.forward = false;
+			session.ClientData.forward_url = null;
+		}
 
 		var arr = StrSplit(destination, "|");
 		if (length arr > 1)

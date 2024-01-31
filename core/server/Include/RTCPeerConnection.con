@@ -119,12 +119,12 @@ class RTCPeerConnection {
 		return err;
 	}
 
-	remoteCredentials(username, pwd) {
+	remoteCredentials(username, pwd, fingerprint = "") {
 		if (!handle)
 			return -1;
 
 		_has_credentials = true;
-		return RTCPeerConnectionRemoteCredentials(handle, username, pwd);
+		return RTCPeerConnectionRemoteCredentials(handle, username, pwd, fingerprint);
 	}
 
 	close() {

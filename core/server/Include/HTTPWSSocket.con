@@ -16,6 +16,7 @@ class HTTPWSSocket {
 	var[] tls_sockets;
 
 	var OnData;
+	var OnRequestValidation;
 
 	HTTPWSSocket(socket) {
 		this.socket = socket;
@@ -90,8 +91,20 @@ class HTTPWSSocket {
 		if (length arr2 < 3)
 			return headers;
 
+		var path_str = arr2[1];
+		var path = "";
+		var query_string = "";
+		if (path_str) {
+			var index = Pos(path_str, "?");
+			if (index > 0) {
+				path = SubStr(path_str, 0, index - 1);
+				query_string = SubStr(path_str, index);
+			} else
+				path = path_str;
+		}
 		headers[":method"] = ToUpper(arr2[0]);
-		headers[":path"] = arr2[1];
+		headers[":path"] = path;
+		headers[":query"] = this.parseQueryString(query_string);
 		headers[":http"] = arr2[2];
 
 		for (var i = 1; i < length arr; i ++) {
@@ -150,6 +163,32 @@ class HTTPWSSocket {
 		}
 
 		return written;
+	}
+
+	protected parseQueryString(var qstring) {
+		var get_query = [ ];
+		if (qstring) {
+			var arr = StrSplit(qstring, "&");
+			for (var i = 0; i < length arr; i++) {
+				var e = arr[i];
+				if (e) {
+					var pos = Pos(e, "=");
+					if (pos > 0) {
+						var k = URIDecode(StrReplace(SubStr(e, 0, pos - 1), "+", " "));
+						var val = URIDecode(StrReplace(SubStr(e, pos), "+", " "));
+						if (IsSet(get_query, k)) {
+							var prev = get_query[k];
+							if (typeof prev == "array")
+								prev[length prev] = val;
+							else
+								get_query[k] = [prev, val];
+						} else
+							get_query[k] = val;
+					}
+				}
+			}
+		}
+		return get_query;
 	}
 
 	wait(timeout = 0) {
@@ -321,6 +360,11 @@ class HTTPWSSocket {
 								if ((headers[":method"] == "GET") && (("" + headers["upgrade"]) == "websocket") && (("" + headers[":path"]) == WSPathKey)) {
 									var ws_key = headers["sec-websocket-key"];
 									if (ws_key) {
+										if ((this.OnRequestValidation) && (!this.OnRequestValidation(headers))) {
+											this.response(socket, "HTTP/1.1 401 Unauthorized\r\nConnection: close\r\nContent-Length: 16\r\n\r\n401 Unauthorized");
+											this.close(socket);
+											continue;
+										}
 										var computed = trim(mime_encode(HexToString(sha1(ws_key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"))));
 										var protocol = headers["sec-websocket-protocol"] ?? "";
 										if (protocol)

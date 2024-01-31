@@ -751,13 +751,20 @@ CONCEPT_FUNCTION_IMPL(RTCPeerConnectionStatus, 1)
     RETURN_NUMBER(status);
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(RTCPeerConnectionRemoteCredentials, 3)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RTCPeerConnectionRemoteCredentials, 3, 4)
     T_HANDLE(RTCPeerConnectionRemoteCredentials, 0)
     T_STRING(RTCPeerConnectionRemoteCredentials, 1)
     T_STRING(RTCPeerConnectionRemoteCredentials, 2)
+    char *fingerprint = NULL;
+    int fingerprint_len = 0;
+    if (PARAMETERS_COUNT > 3) {
+        T_STRING(RTCPeerConnectionRemoteCredentials, 3)
+        fingerprint = PARAM(3);
+        fingerprint_len = PARAM_LEN(3);
+    }
 
     struct TLSRTCPeerConnection *channel = (struct TLSRTCPeerConnection *)(SYS_INT)PARAM(0);
-    int err = tls_peerconnection_remote_credentials(channel, PARAM(1), PARAM_LEN(1), PARAM(2), PARAM_LEN(2));
+    int err = tls_peerconnection_remote_credentials(channel, PARAM(1), PARAM_LEN(1), PARAM(2), PARAM_LEN(2), fingerprint, fingerprint_len);
 
     RETURN_NUMBER(err);
 END_IMPL

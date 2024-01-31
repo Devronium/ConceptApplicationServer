@@ -365,7 +365,7 @@ typedef int (*tls_peerconnection_write_function)(struct TLSRTCPeerConnection *ch
 struct TLSRTCPeerConnection *tls_peerconnection_context(unsigned char active, tls_validation_function certificate_verify, void *userdata);
 struct TLSRTCPeerConnection *tls_peerconnection_duplicate(struct TLSRTCPeerConnection *channel, void *userdata);
 struct TLSContext *tls_peerconnection_dtls_context(struct TLSRTCPeerConnection *channel);
-int tls_peerconnection_remote_credentials(struct TLSRTCPeerConnection *channel, char *remote_username, int remote_username_len, char *remote_pwd, int remote_pwd_len);
+int tls_peerconnection_remote_credentials(struct TLSRTCPeerConnection *channel, char *remote_username, int remote_username_len, char *remote_pwd, int remote_pwd_len, char *remote_fingerprint, int remote_fingerprint_len);
 const char *tls_peerconnection_local_pwd(struct TLSRTCPeerConnection *channel);
 const char *tls_peerconnection_local_username(struct TLSRTCPeerConnection *channel);
 void *tls_peerconnection_userdata(struct TLSRTCPeerConnection *channel);
