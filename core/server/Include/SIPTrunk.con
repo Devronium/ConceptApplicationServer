@@ -3748,6 +3748,8 @@ class SIPStack {
 							if ((sess) && (sess.is_invite == true) && ((this.OnAnswered) || (this.OnRedirectAnswered))) {
 								var cseq = "" + msg.Headers["cseq"];
 								if (Pos(cseq, " INVITE") > 0) {
+									sess.buf = "";
+									sess.buf_chunk = 0;
 									if (this.OnAnswered)  {
 										this.OnAnswered(sess, msg);
 										sess.is_invite = 2;
