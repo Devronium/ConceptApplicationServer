@@ -1501,7 +1501,11 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
                 VD->name   = sPARSE;
                 VD->TYPE   = VARIABLE_NUMBER;
-                VD->USED   = 0;
+                // don't generate unused variable warning for variables declared in paranthesis (var exc)
+                if ((PREC_2_TYPE == TYPE_OPERATOR) && ((PREC_2_ID == KEY_P_OPEN) || (PREC_2_ID == KEY_COMMA)) && (PREC_TYPE == TYPE_KEYWORD) && (PREC_ID == KEY_VAR))
+                    VD->USED   = 1;
+                else
+                    VD->USED   = 0;
                 VD->nValue = 0;
                 VD->BY_REF = 0;
                 if (IS_ARRAY) {

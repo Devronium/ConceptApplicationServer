@@ -30,7 +30,7 @@
  #include <time.h>
 #endif
 
-#define COMPILER_COPYRIGHT    "Concept CLI/Compiler (Accelerator) version 5.0\n(c)2006-2023 Devronium Applications srl\n"
+#define COMPILER_COPYRIGHT    "Concept CLI/Compiler (Accelerator) version 5.0\n(c)2006-2024 Devronium Applications srl\n"
 
 POOLED_IMPLEMENTATION(tsVariableDESCRIPTOR);
 POOLED_IMPLEMENTATION(tsVariableDATA);
