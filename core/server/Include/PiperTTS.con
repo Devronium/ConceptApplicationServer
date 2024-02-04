@@ -1,0 +1,20 @@
+import standard.lib.piper
+
+class PiperTTS {
+	protected var handle;
+
+	PiperTTS(model_file) {
+		handle = PiperInit(model_file, model_file + ".json");
+	}
+
+	TTS(str) {
+		if (!handle)
+			throw "PiperTTS: error loading model file";
+
+		return PiperTTS(handle, str);
+	}
+
+	finalize() {
+		PiperDone(handle);
+	}
+}
