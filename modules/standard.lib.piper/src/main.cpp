@@ -51,7 +51,10 @@ CONCEPT_FUNCTION_IMPL(PiperTTS, 2)
     piper::SynthesisResult result;
 
     struct PiperContext *handle = (struct PiperContext *)(SYS_INT)PARAM(0);
-    textToAudio(handle->piper_config, handle->voice, PARAM(1), audioBuffer, result, NULL);
+    try {
+        textToAudio(handle->piper_config, handle->voice, PARAM(1), audioBuffer, result, NULL);
+    } catch (...) {
+    }
 
     if (audioBuffer.size() > 0) {
         RETURN_BUFFER((const char *)audioBuffer.data(), audioBuffer.size() * 2);
@@ -65,7 +68,10 @@ CONCEPT_FUNCTION_IMPL(PiperDone, 1)
 
     struct PiperContext *handle = (struct PiperContext *)(SYS_INT)PARAM(0);
     if (handle) {
-        piper::terminate(handle->piper_config);
+        try {
+            piper::terminate(handle->piper_config);
+        } catch (...) {
+        }
         delete handle;
         SET_NUMBER(0, 0);
     }
