@@ -420,6 +420,27 @@ class SIPSession {
 		}
 	}
 
+	Redirect(address, code = 302) {
+		var exc;
+		try {
+			this.s.use_socket = tcp_socket;
+			if ((address) && (Pos(address, "@") <= 0) && (msg)) {
+				if (this.s.ParseFullDestination(msg.Headers["from"], null, var from_ip, var from_port)) {
+					if (from_port != 5060)
+						from_ip = "" + from_ip + ":" + from_port;
+					address = "<" + this.s.sipproto + address + "@" + from_ip + ">";
+				}
+			}
+			var msg2 = this.s.ResponseUDP(code, msg, msg.Headers["from"], "", "", 70, null, address, ip, port);
+			if (this.s.OnEnd)
+				this.s.OnEnd(this, msg, "");
+			this.s.RemoveSessionByRef(this);
+			return msg2;
+		} catch (exc) {
+			return false;
+		}
+	}
+
 	Bye(delete_session=false) {
 		var exc;
 		try {

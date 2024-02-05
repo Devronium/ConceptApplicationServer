@@ -9,18 +9,24 @@
 
 #include "piper.hpp"
 
-struct PiperContext {
-    struct piper::PiperConfig piper_config;
-    struct piper::Voice voice;
-    piper::SpeakerId speaker;
-};
+struct piper::PiperConfig piper_config;
 
 //=====================================================================================//
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
+    try {
+        piper::initialize(piper_config);
+    } catch (...) {
+    }
     return 0;
 }
 //=====================================================================================//
 CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
+    if (!HANDLER) {
+        try {
+            piper::terminate(piper_config);
+        } catch (...) {
+        }
+    }
     return 0;
 }
 //=====================================================================================//
@@ -28,14 +34,12 @@ CONCEPT_FUNCTION_IMPL(PiperInit, 2)
     T_STRING(PiperInit, 0);
     T_STRING(PiperInit, 1);
 
-    struct PiperContext *handle = new PiperContext;
+    struct piper::Voice *handle = new piper::Voice;
     if (handle) {
         try {
-            piper::initialize(handle->piper_config);
             std::optional<piper::SpeakerId> speaker_id;
-            piper::loadVoice(handle->piper_config, PARAM(0), PARAM(1), handle->voice, speaker_id, false);
+            piper::loadVoice(piper_config, PARAM(0), PARAM(1), *handle, speaker_id, false);
        } catch (...) {
-            piper::terminate(handle->piper_config);
             delete handle;
             handle = NULL;
        }
@@ -50,9 +54,9 @@ CONCEPT_FUNCTION_IMPL(PiperTTS, 2)
     std::vector<int16_t> audioBuffer;
     piper::SynthesisResult result;
 
-    struct PiperContext *handle = (struct PiperContext *)(SYS_INT)PARAM(0);
+    struct piper::Voice *handle = (struct piper::Voice *)(SYS_INT)PARAM(0);
     try {
-        textToAudio(handle->piper_config, handle->voice, PARAM(1), audioBuffer, result, NULL);
+        textToAudio(piper_config, *handle, PARAM(1), audioBuffer, result, NULL);
     } catch (...) {
     }
 
@@ -66,12 +70,8 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(PiperDone, 1)
     T_NUMBER(PiperDone, 0);
 
-    struct PiperContext *handle = (struct PiperContext *)(SYS_INT)PARAM(0);
+    struct piper::Voice *handle = (struct piper::Voice *)(SYS_INT)PARAM(0);
     if (handle) {
-        try {
-            piper::terminate(handle->piper_config);
-        } catch (...) {
-        }
         delete handle;
         SET_NUMBER(0, 0);
     }

@@ -196,6 +196,8 @@ class IVR {
 	var OnFormatFrom;
 	var OnFormatTo;
 
+	var redirect;
+
 	Get(key, format = "alaw", dir = "repository") {
 		var key2 = "$key.$format";
 		var data = cache.getValue(key2);
@@ -392,11 +394,20 @@ class IVR {
 		if ((IsSet(msg.Headers, "remote-party-id")) && (Pos(msg.Headers["remote-party-id"], "privacy=full") > 0))
 			from = "anonymous";
 
+		this.redirect = null;
+
 		var res;
 		if (Greeting)
 			 res = this.Greeting(from);
 		if (GreetingTo)
 			 res = this.GreetingTo(from, msg_to, session.CallID, msg);
+
+		var redirect = this.redirect;
+		if (redirect) {
+			this.redirect = null;
+			session.Redirect(redirect);
+			return 0;
+		}
 		if (res) {
 			// ignore invite if res is -1
 			if (res == -1)

@@ -374,7 +374,7 @@ class TLSESocket extends TCPSocket {
 			var written = 0;
 			do {
 				var res=TLSEWrite(tls, buffer, written);
-				if (res<0)
+				if (res<=0)
 					throw "Broken TLS socket (Write)";
 				written += res;
 				// limit buffer to 64k
