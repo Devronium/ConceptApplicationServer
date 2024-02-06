@@ -184,95 +184,6 @@ am_standard_net_tlse_so_OBJECTS = stdlibrary.$(OBJEXT) main.$(OBJEXT) \
 	tomcrypt/encauth/ocb3/ocb3_int_ntz.$(OBJEXT) \
 	tomcrypt/encauth/ocb3/ocb3_int_xor_blocks.$(OBJEXT) \
 	tomcrypt/encauth/ocb3/ocb3_test.$(OBJEXT) \
-	tomcrypt/fastmath/addsub/fp_add.$(OBJEXT) \
-	tomcrypt/fastmath/addsub/fp_add_d.$(OBJEXT) \
-	tomcrypt/fastmath/addsub/fp_addmod.$(OBJEXT) \
-	tomcrypt/fastmath/addsub/fp_cmp.$(OBJEXT) \
-	tomcrypt/fastmath/addsub/fp_cmp_d.$(OBJEXT) \
-	tomcrypt/fastmath/addsub/fp_cmp_mag.$(OBJEXT) \
-	tomcrypt/fastmath/addsub/fp_sub.$(OBJEXT) \
-	tomcrypt/fastmath/addsub/fp_sub_d.$(OBJEXT) \
-	tomcrypt/fastmath/addsub/fp_submod.$(OBJEXT) \
-	tomcrypt/fastmath/addsub/s_fp_add.$(OBJEXT) \
-	tomcrypt/fastmath/addsub/s_fp_sub.$(OBJEXT) \
-	tomcrypt/fastmath/bin/fp_radix_size.$(OBJEXT) \
-	tomcrypt/fastmath/bin/fp_read_radix.$(OBJEXT) \
-	tomcrypt/fastmath/bin/fp_read_signed_bin.$(OBJEXT) \
-	tomcrypt/fastmath/bin/fp_read_unsigned_bin.$(OBJEXT) \
-	tomcrypt/fastmath/bin/fp_reverse.$(OBJEXT) \
-	tomcrypt/fastmath/bin/fp_s_rmap.$(OBJEXT) \
-	tomcrypt/fastmath/bin/fp_signed_bin_size.$(OBJEXT) \
-	tomcrypt/fastmath/bin/fp_to_signed_bin.$(OBJEXT) \
-	tomcrypt/fastmath/bin/fp_to_unsigned_bin.$(OBJEXT) \
-	tomcrypt/fastmath/bin/fp_toradix.$(OBJEXT) \
-	tomcrypt/fastmath/bin/fp_toradix_n.$(OBJEXT) \
-	tomcrypt/fastmath/bin/fp_unsigned_bin_size.$(OBJEXT) \
-	tomcrypt/fastmath/bit/fp_cnt_lsb.$(OBJEXT) \
-	tomcrypt/fastmath/bit/fp_count_bits.$(OBJEXT) \
-	tomcrypt/fastmath/bit/fp_div_2.$(OBJEXT) \
-	tomcrypt/fastmath/bit/fp_div_2d.$(OBJEXT) \
-	tomcrypt/fastmath/bit/fp_lshd.$(OBJEXT) \
-	tomcrypt/fastmath/bit/fp_mod_2d.$(OBJEXT) \
-	tomcrypt/fastmath/bit/fp_rshd.$(OBJEXT) \
-	tomcrypt/fastmath/divide/fp_div.$(OBJEXT) \
-	tomcrypt/fastmath/divide/fp_div_d.$(OBJEXT) \
-	tomcrypt/fastmath/divide/fp_mod.$(OBJEXT) \
-	tomcrypt/fastmath/divide/fp_mod_d.$(OBJEXT) \
-	tomcrypt/fastmath/exptmod/fp_2expt.$(OBJEXT) \
-	tomcrypt/fastmath/exptmod/fp_exptmod.$(OBJEXT) \
-	tomcrypt/fastmath/misc/fp_ident.$(OBJEXT) \
-	tomcrypt/fastmath/misc/fp_rand.$(OBJEXT) \
-	tomcrypt/fastmath/misc/fp_set.$(OBJEXT) \
-	tomcrypt/fastmath/mont/fp_montgomery_calc_normalization.$(OBJEXT) \
-	tomcrypt/fastmath/mont/fp_montgomery_reduce.$(OBJEXT) \
-	tomcrypt/fastmath/mont/fp_montgomery_setup.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_2.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_2d.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_comba.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_comba_12.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_comba_17.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_comba_20.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_comba_24.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_comba_28.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_comba_3.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_comba_32.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_comba_4.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_comba_48.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_comba_6.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_comba_64.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_comba_7.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_comba_8.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_comba_9.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_comba_small_set.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mul_d.$(OBJEXT) \
-	tomcrypt/fastmath/mul/fp_mulmod.$(OBJEXT) \
-	tomcrypt/fastmath/numtheory/fp_gcd.$(OBJEXT) \
-	tomcrypt/fastmath/numtheory/fp_invmod.$(OBJEXT) \
-	tomcrypt/fastmath/numtheory/fp_isprime.$(OBJEXT) \
-	tomcrypt/fastmath/numtheory/fp_isprime_ex.$(OBJEXT) \
-	tomcrypt/fastmath/numtheory/fp_lcm.$(OBJEXT) \
-	tomcrypt/fastmath/numtheory/fp_prime_miller_rabin.$(OBJEXT) \
-	tomcrypt/fastmath/numtheory/fp_prime_random_ex.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_12.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_17.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_20.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_24.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_28.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_3.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_32.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_4.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_48.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_6.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_64.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_7.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_8.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_9.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_generic.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_small_set.$(OBJEXT) \
-	tomcrypt/fastmath/sqr/fp_sqrmod.$(OBJEXT) \
 	tomcrypt/hashes/chc/chc.$(OBJEXT) \
 	tomcrypt/hashes/helper/hash_file.$(OBJEXT) \
 	tomcrypt/hashes/helper/hash_filehandle.$(OBJEXT) \
@@ -672,7 +583,163 @@ am_standard_net_tlse_so_OBJECTS = stdlibrary.$(OBJEXT) main.$(OBJEXT) \
 	tomcrypt/stream/sober128/sober128tab.$(OBJEXT) \
 	tomcrypt/stream/sosemanuk/sosemanuk.$(OBJEXT) \
 	tomcrypt/stream/sosemanuk/sosemanuk_memory.$(OBJEXT) \
-	tomcrypt/stream/sosemanuk/sosemanuk_test.$(OBJEXT)
+	tomcrypt/stream/sosemanuk/sosemanuk_test.$(OBJEXT) \
+	tomcrypt/tommath/mp_2expt.$(OBJEXT) \
+	tomcrypt/tommath/mp_abs.$(OBJEXT) \
+	tomcrypt/tommath/mp_add.$(OBJEXT) \
+	tomcrypt/tommath/mp_add_d.$(OBJEXT) \
+	tomcrypt/tommath/mp_addmod.$(OBJEXT) \
+	tomcrypt/tommath/mp_and.$(OBJEXT) \
+	tomcrypt/tommath/mp_clamp.$(OBJEXT) \
+	tomcrypt/tommath/mp_clear.$(OBJEXT) \
+	tomcrypt/tommath/mp_clear_multi.$(OBJEXT) \
+	tomcrypt/tommath/mp_cmp.$(OBJEXT) \
+	tomcrypt/tommath/mp_cmp_d.$(OBJEXT) \
+	tomcrypt/tommath/mp_cmp_mag.$(OBJEXT) \
+	tomcrypt/tommath/mp_cnt_lsb.$(OBJEXT) \
+	tomcrypt/tommath/mp_complement.$(OBJEXT) \
+	tomcrypt/tommath/mp_copy.$(OBJEXT) \
+	tomcrypt/tommath/mp_count_bits.$(OBJEXT) \
+	tomcrypt/tommath/mp_cutoffs.$(OBJEXT) \
+	tomcrypt/tommath/mp_div.$(OBJEXT) \
+	tomcrypt/tommath/mp_div_2.$(OBJEXT) \
+	tomcrypt/tommath/mp_div_2d.$(OBJEXT) \
+	tomcrypt/tommath/mp_div_d.$(OBJEXT) \
+	tomcrypt/tommath/mp_dr_is_modulus.$(OBJEXT) \
+	tomcrypt/tommath/mp_dr_reduce.$(OBJEXT) \
+	tomcrypt/tommath/mp_dr_setup.$(OBJEXT) \
+	tomcrypt/tommath/mp_error_to_string.$(OBJEXT) \
+	tomcrypt/tommath/mp_exch.$(OBJEXT) \
+	tomcrypt/tommath/mp_expt_n.$(OBJEXT) \
+	tomcrypt/tommath/mp_exptmod.$(OBJEXT) \
+	tomcrypt/tommath/mp_exteuclid.$(OBJEXT) \
+	tomcrypt/tommath/mp_fread.$(OBJEXT) \
+	tomcrypt/tommath/mp_from_sbin.$(OBJEXT) \
+	tomcrypt/tommath/mp_from_ubin.$(OBJEXT) \
+	tomcrypt/tommath/mp_fwrite.$(OBJEXT) \
+	tomcrypt/tommath/mp_gcd.$(OBJEXT) \
+	tomcrypt/tommath/mp_get_double.$(OBJEXT) \
+	tomcrypt/tommath/mp_get_i32.$(OBJEXT) \
+	tomcrypt/tommath/mp_get_i64.$(OBJEXT) \
+	tomcrypt/tommath/mp_get_l.$(OBJEXT) \
+	tomcrypt/tommath/mp_get_mag_u32.$(OBJEXT) \
+	tomcrypt/tommath/mp_get_mag_u64.$(OBJEXT) \
+	tomcrypt/tommath/mp_get_mag_ul.$(OBJEXT) \
+	tomcrypt/tommath/mp_grow.$(OBJEXT) \
+	tomcrypt/tommath/mp_hash.$(OBJEXT) \
+	tomcrypt/tommath/mp_init.$(OBJEXT) \
+	tomcrypt/tommath/mp_init_copy.$(OBJEXT) \
+	tomcrypt/tommath/mp_init_i32.$(OBJEXT) \
+	tomcrypt/tommath/mp_init_i64.$(OBJEXT) \
+	tomcrypt/tommath/mp_init_l.$(OBJEXT) \
+	tomcrypt/tommath/mp_init_multi.$(OBJEXT) \
+	tomcrypt/tommath/mp_init_set.$(OBJEXT) \
+	tomcrypt/tommath/mp_init_size.$(OBJEXT) \
+	tomcrypt/tommath/mp_init_u32.$(OBJEXT) \
+	tomcrypt/tommath/mp_init_u64.$(OBJEXT) \
+	tomcrypt/tommath/mp_init_ul.$(OBJEXT) \
+	tomcrypt/tommath/mp_invmod.$(OBJEXT) \
+	tomcrypt/tommath/mp_is_square.$(OBJEXT) \
+	tomcrypt/tommath/mp_kronecker.$(OBJEXT) \
+	tomcrypt/tommath/mp_lcm.$(OBJEXT) \
+	tomcrypt/tommath/mp_log.$(OBJEXT) \
+	tomcrypt/tommath/mp_log_n.$(OBJEXT) \
+	tomcrypt/tommath/mp_lshd.$(OBJEXT) \
+	tomcrypt/tommath/mp_mod.$(OBJEXT) \
+	tomcrypt/tommath/mp_mod_2d.$(OBJEXT) \
+	tomcrypt/tommath/mp_montgomery_calc_normalization.$(OBJEXT) \
+	tomcrypt/tommath/mp_montgomery_reduce.$(OBJEXT) \
+	tomcrypt/tommath/mp_montgomery_setup.$(OBJEXT) \
+	tomcrypt/tommath/mp_mul.$(OBJEXT) \
+	tomcrypt/tommath/mp_mul_2.$(OBJEXT) \
+	tomcrypt/tommath/mp_mul_2d.$(OBJEXT) \
+	tomcrypt/tommath/mp_mul_d.$(OBJEXT) \
+	tomcrypt/tommath/mp_mulmod.$(OBJEXT) \
+	tomcrypt/tommath/mp_neg.$(OBJEXT) \
+	tomcrypt/tommath/mp_or.$(OBJEXT) \
+	tomcrypt/tommath/mp_pack.$(OBJEXT) \
+	tomcrypt/tommath/mp_pack_count.$(OBJEXT) \
+	tomcrypt/tommath/mp_prime_fermat.$(OBJEXT) \
+	tomcrypt/tommath/mp_prime_frobenius_underwood.$(OBJEXT) \
+	tomcrypt/tommath/mp_prime_is_prime.$(OBJEXT) \
+	tomcrypt/tommath/mp_prime_miller_rabin.$(OBJEXT) \
+	tomcrypt/tommath/mp_prime_next_prime.$(OBJEXT) \
+	tomcrypt/tommath/mp_prime_rabin_miller_trials.$(OBJEXT) \
+	tomcrypt/tommath/mp_prime_rand.$(OBJEXT) \
+	tomcrypt/tommath/mp_prime_strong_lucas_selfridge.$(OBJEXT) \
+	tomcrypt/tommath/mp_radix_size.$(OBJEXT) \
+	tomcrypt/tommath/mp_radix_size_overestimate.$(OBJEXT) \
+	tomcrypt/tommath/mp_rand.$(OBJEXT) \
+	tomcrypt/tommath/mp_rand_source.$(OBJEXT) \
+	tomcrypt/tommath/mp_read_radix.$(OBJEXT) \
+	tomcrypt/tommath/mp_reduce.$(OBJEXT) \
+	tomcrypt/tommath/mp_reduce_2k.$(OBJEXT) \
+	tomcrypt/tommath/mp_reduce_2k_l.$(OBJEXT) \
+	tomcrypt/tommath/mp_reduce_2k_setup.$(OBJEXT) \
+	tomcrypt/tommath/mp_reduce_2k_setup_l.$(OBJEXT) \
+	tomcrypt/tommath/mp_reduce_is_2k.$(OBJEXT) \
+	tomcrypt/tommath/mp_reduce_is_2k_l.$(OBJEXT) \
+	tomcrypt/tommath/mp_reduce_setup.$(OBJEXT) \
+	tomcrypt/tommath/mp_root_n.$(OBJEXT) \
+	tomcrypt/tommath/mp_rshd.$(OBJEXT) \
+	tomcrypt/tommath/mp_sbin_size.$(OBJEXT) \
+	tomcrypt/tommath/mp_set.$(OBJEXT) \
+	tomcrypt/tommath/mp_set_double.$(OBJEXT) \
+	tomcrypt/tommath/mp_set_i32.$(OBJEXT) \
+	tomcrypt/tommath/mp_set_i64.$(OBJEXT) \
+	tomcrypt/tommath/mp_set_l.$(OBJEXT) \
+	tomcrypt/tommath/mp_set_u32.$(OBJEXT) \
+	tomcrypt/tommath/mp_set_u64.$(OBJEXT) \
+	tomcrypt/tommath/mp_set_ul.$(OBJEXT) \
+	tomcrypt/tommath/mp_shrink.$(OBJEXT) \
+	tomcrypt/tommath/mp_signed_rsh.$(OBJEXT) \
+	tomcrypt/tommath/mp_sqrmod.$(OBJEXT) \
+	tomcrypt/tommath/mp_sqrt.$(OBJEXT) \
+	tomcrypt/tommath/mp_sqrtmod_prime.$(OBJEXT) \
+	tomcrypt/tommath/mp_sub.$(OBJEXT) \
+	tomcrypt/tommath/mp_sub_d.$(OBJEXT) \
+	tomcrypt/tommath/mp_submod.$(OBJEXT) \
+	tomcrypt/tommath/mp_to_radix.$(OBJEXT) \
+	tomcrypt/tommath/mp_to_sbin.$(OBJEXT) \
+	tomcrypt/tommath/mp_to_ubin.$(OBJEXT) \
+	tomcrypt/tommath/mp_ubin_size.$(OBJEXT) \
+	tomcrypt/tommath/mp_unpack.$(OBJEXT) \
+	tomcrypt/tommath/mp_xor.$(OBJEXT) \
+	tomcrypt/tommath/mp_zero.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_add.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_copy_digs.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_div_3.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_div_recursive.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_div_school.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_div_small.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_exptmod.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_exptmod_fast.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_fp_log.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_fp_log_d.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_get_bit.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_invmod.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_invmod_odd.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_log_2expt.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_montgomery_reduce_comba.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_mul.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_mul_balance.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_mul_comba.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_mul_high.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_mul_high_comba.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_mul_karatsuba.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_mul_toom.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_prime_is_divisible.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_prime_tab.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_radix_map.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_radix_size_overestimate.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_rand_platform.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_sqr.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_sqr_comba.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_sqr_karatsuba.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_sqr_toom.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_sub.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_zero_buf.$(OBJEXT) \
+	tomcrypt/tommath/s_mp_zero_digs.$(OBJEXT)
 standard_net_tlse_so_OBJECTS = $(am_standard_net_tlse_so_OBJECTS)
 standard_net_tlse_so_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -777,95 +844,6 @@ am__depfiles_remade = ./$(DEPDIR)/AnsiString.Po \
 	tomcrypt/encauth/ocb3/$(DEPDIR)/ocb3_int_ntz.Po \
 	tomcrypt/encauth/ocb3/$(DEPDIR)/ocb3_int_xor_blocks.Po \
 	tomcrypt/encauth/ocb3/$(DEPDIR)/ocb3_test.Po \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/fp_add.Po \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/fp_add_d.Po \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/fp_addmod.Po \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/fp_cmp.Po \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/fp_cmp_d.Po \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/fp_cmp_mag.Po \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/fp_sub.Po \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/fp_sub_d.Po \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/fp_submod.Po \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/s_fp_add.Po \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/s_fp_sub.Po \
-	tomcrypt/fastmath/bin/$(DEPDIR)/fp_radix_size.Po \
-	tomcrypt/fastmath/bin/$(DEPDIR)/fp_read_radix.Po \
-	tomcrypt/fastmath/bin/$(DEPDIR)/fp_read_signed_bin.Po \
-	tomcrypt/fastmath/bin/$(DEPDIR)/fp_read_unsigned_bin.Po \
-	tomcrypt/fastmath/bin/$(DEPDIR)/fp_reverse.Po \
-	tomcrypt/fastmath/bin/$(DEPDIR)/fp_s_rmap.Po \
-	tomcrypt/fastmath/bin/$(DEPDIR)/fp_signed_bin_size.Po \
-	tomcrypt/fastmath/bin/$(DEPDIR)/fp_to_signed_bin.Po \
-	tomcrypt/fastmath/bin/$(DEPDIR)/fp_to_unsigned_bin.Po \
-	tomcrypt/fastmath/bin/$(DEPDIR)/fp_toradix.Po \
-	tomcrypt/fastmath/bin/$(DEPDIR)/fp_toradix_n.Po \
-	tomcrypt/fastmath/bin/$(DEPDIR)/fp_unsigned_bin_size.Po \
-	tomcrypt/fastmath/bit/$(DEPDIR)/fp_cnt_lsb.Po \
-	tomcrypt/fastmath/bit/$(DEPDIR)/fp_count_bits.Po \
-	tomcrypt/fastmath/bit/$(DEPDIR)/fp_div_2.Po \
-	tomcrypt/fastmath/bit/$(DEPDIR)/fp_div_2d.Po \
-	tomcrypt/fastmath/bit/$(DEPDIR)/fp_lshd.Po \
-	tomcrypt/fastmath/bit/$(DEPDIR)/fp_mod_2d.Po \
-	tomcrypt/fastmath/bit/$(DEPDIR)/fp_rshd.Po \
-	tomcrypt/fastmath/divide/$(DEPDIR)/fp_div.Po \
-	tomcrypt/fastmath/divide/$(DEPDIR)/fp_div_d.Po \
-	tomcrypt/fastmath/divide/$(DEPDIR)/fp_mod.Po \
-	tomcrypt/fastmath/divide/$(DEPDIR)/fp_mod_d.Po \
-	tomcrypt/fastmath/exptmod/$(DEPDIR)/fp_2expt.Po \
-	tomcrypt/fastmath/exptmod/$(DEPDIR)/fp_exptmod.Po \
-	tomcrypt/fastmath/misc/$(DEPDIR)/fp_ident.Po \
-	tomcrypt/fastmath/misc/$(DEPDIR)/fp_rand.Po \
-	tomcrypt/fastmath/misc/$(DEPDIR)/fp_set.Po \
-	tomcrypt/fastmath/mont/$(DEPDIR)/fp_montgomery_calc_normalization.Po \
-	tomcrypt/fastmath/mont/$(DEPDIR)/fp_montgomery_reduce.Po \
-	tomcrypt/fastmath/mont/$(DEPDIR)/fp_montgomery_setup.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_2.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_2d.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_12.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_17.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_20.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_24.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_28.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_3.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_32.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_4.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_48.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_6.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_64.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_7.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_8.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_9.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_small_set.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_d.Po \
-	tomcrypt/fastmath/mul/$(DEPDIR)/fp_mulmod.Po \
-	tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_gcd.Po \
-	tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_invmod.Po \
-	tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_isprime.Po \
-	tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_isprime_ex.Po \
-	tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_lcm.Po \
-	tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_prime_miller_rabin.Po \
-	tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_prime_random_ex.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_12.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_17.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_20.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_24.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_28.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_3.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_32.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_4.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_48.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_6.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_64.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_7.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_8.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_9.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_generic.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_small_set.Po \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqrmod.Po \
 	tomcrypt/hashes/$(DEPDIR)/blake2b.Po \
 	tomcrypt/hashes/$(DEPDIR)/blake2s.Po \
 	tomcrypt/hashes/$(DEPDIR)/md2.Po \
@@ -1271,7 +1249,163 @@ am__depfiles_remade = ./$(DEPDIR)/AnsiString.Po \
 	tomcrypt/stream/sober128/$(DEPDIR)/sober128tab.Po \
 	tomcrypt/stream/sosemanuk/$(DEPDIR)/sosemanuk.Po \
 	tomcrypt/stream/sosemanuk/$(DEPDIR)/sosemanuk_memory.Po \
-	tomcrypt/stream/sosemanuk/$(DEPDIR)/sosemanuk_test.Po
+	tomcrypt/stream/sosemanuk/$(DEPDIR)/sosemanuk_test.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_2expt.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_abs.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_add.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_add_d.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_addmod.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_and.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_clamp.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_clear.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_clear_multi.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_cmp.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_cmp_d.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_cmp_mag.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_cnt_lsb.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_complement.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_copy.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_count_bits.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_cutoffs.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_div.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_div_2.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_div_2d.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_div_d.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_dr_is_modulus.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_dr_reduce.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_dr_setup.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_error_to_string.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_exch.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_expt_n.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_exptmod.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_exteuclid.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_fread.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_from_sbin.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_from_ubin.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_fwrite.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_gcd.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_get_double.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_get_i32.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_get_i64.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_get_l.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_get_mag_u32.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_get_mag_u64.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_get_mag_ul.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_grow.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_hash.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_init.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_init_copy.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_init_i32.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_init_i64.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_init_l.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_init_multi.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_init_set.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_init_size.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_init_u32.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_init_u64.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_init_ul.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_invmod.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_is_square.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_kronecker.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_lcm.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_log.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_log_n.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_lshd.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_mod.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_mod_2d.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_montgomery_calc_normalization.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_montgomery_reduce.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_montgomery_setup.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_mul.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_mul_2.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_mul_2d.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_mul_d.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_mulmod.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_neg.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_or.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_pack.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_pack_count.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_prime_fermat.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_prime_frobenius_underwood.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_prime_is_prime.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_prime_miller_rabin.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_prime_next_prime.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_prime_rabin_miller_trials.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_prime_rand.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_prime_strong_lucas_selfridge.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_radix_size.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_radix_size_overestimate.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_rand.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_rand_source.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_read_radix.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_reduce.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_reduce_2k.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_reduce_2k_l.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_reduce_2k_setup.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_reduce_2k_setup_l.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_reduce_is_2k.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_reduce_is_2k_l.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_reduce_setup.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_root_n.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_rshd.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_sbin_size.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_set.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_set_double.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_set_i32.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_set_i64.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_set_l.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_set_u32.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_set_u64.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_set_ul.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_shrink.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_signed_rsh.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_sqrmod.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_sqrt.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_sqrtmod_prime.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_sub.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_sub_d.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_submod.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_to_radix.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_to_sbin.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_to_ubin.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_ubin_size.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_unpack.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_xor.Po \
+	tomcrypt/tommath/$(DEPDIR)/mp_zero.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_add.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_copy_digs.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_div_3.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_div_recursive.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_div_school.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_div_small.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_exptmod.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_exptmod_fast.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_fp_log.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_fp_log_d.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_get_bit.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_invmod.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_invmod_odd.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_log_2expt.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_montgomery_reduce_comba.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_mul.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_mul_balance.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_mul_comba.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_mul_high.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_mul_high_comba.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_mul_karatsuba.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_mul_toom.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_prime_is_divisible.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_prime_tab.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_radix_map.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_radix_size_overestimate.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_rand_platform.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_sqr.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_sqr_comba.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_sqr_karatsuba.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_sqr_toom.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_sub.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_zero_buf.Po \
+	tomcrypt/tommath/$(DEPDIR)/s_mp_zero_digs.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -1424,8 +1558,8 @@ top_srcdir = @top_srcdir@
 
 # what flags you want to pass to the C compiler & linker
 AUTOMAKE_OPTIONS = subdir-objects
-AM_CFLAGS = -O2 -fPIC -I. -I./tomcrypt/headers -I./tomcrypt/fastmath/headers -march=native -DTLS_WITH_CHACHA20_POLY1305 -DTFM_DESC -DLTC_PTHREAD -DTLS_SRTP -DTLS_CURVE25519
-AM_CXXFLAGS = -O2 -fPIC -I. -I./tomcrypt/headers -I./tomcrypt/fastmath/headers -march=native -DTLS_WITH_CHACHA20_POLY1305 -DTFM_DESC -DLTC_PTHREAD -DTLS_SRTP -DTLS_CURVE25519
+AM_CFLAGS = -O2 -fPIC -I. -I./tomcrypt/headers -I./tomcrypt/tommath -march=native -DTLS_WITH_CHACHA20_POLY1305 -DLTM_DESC -DLTC_PTHREAD -DTLS_SRTP -DTLS_CURVE25519
+AM_CXXFLAGS = -O2 -fPIC -I. -I./tomcrypt/headers -I./tomcrypt/tommath -march=native -DTLS_WITH_CHACHA20_POLY1305 -DLTM_DESC -DLTC_PTHREAD -DTLS_SRTP -DTLS_CURVE25519
 AM_LDFLAGS = -shared
 standard_net_tlse_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp \
 	AnsiTypes.h AnsiString.cpp AnsiString.h curve25519.c \
@@ -1501,98 +1635,7 @@ standard_net_tlse_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp \
 	tomcrypt/encauth/ocb3/ocb3_init.c \
 	tomcrypt/encauth/ocb3/ocb3_int_ntz.c \
 	tomcrypt/encauth/ocb3/ocb3_int_xor_blocks.c \
-	tomcrypt/encauth/ocb3/ocb3_test.c \
-	tomcrypt/fastmath/addsub/fp_add.c \
-	tomcrypt/fastmath/addsub/fp_add_d.c \
-	tomcrypt/fastmath/addsub/fp_addmod.c \
-	tomcrypt/fastmath/addsub/fp_cmp.c \
-	tomcrypt/fastmath/addsub/fp_cmp_d.c \
-	tomcrypt/fastmath/addsub/fp_cmp_mag.c \
-	tomcrypt/fastmath/addsub/fp_sub.c \
-	tomcrypt/fastmath/addsub/fp_sub_d.c \
-	tomcrypt/fastmath/addsub/fp_submod.c \
-	tomcrypt/fastmath/addsub/s_fp_add.c \
-	tomcrypt/fastmath/addsub/s_fp_sub.c \
-	tomcrypt/fastmath/bin/fp_radix_size.c \
-	tomcrypt/fastmath/bin/fp_read_radix.c \
-	tomcrypt/fastmath/bin/fp_read_signed_bin.c \
-	tomcrypt/fastmath/bin/fp_read_unsigned_bin.c \
-	tomcrypt/fastmath/bin/fp_reverse.c \
-	tomcrypt/fastmath/bin/fp_s_rmap.c \
-	tomcrypt/fastmath/bin/fp_signed_bin_size.c \
-	tomcrypt/fastmath/bin/fp_to_signed_bin.c \
-	tomcrypt/fastmath/bin/fp_to_unsigned_bin.c \
-	tomcrypt/fastmath/bin/fp_toradix.c \
-	tomcrypt/fastmath/bin/fp_toradix_n.c \
-	tomcrypt/fastmath/bin/fp_unsigned_bin_size.c \
-	tomcrypt/fastmath/bit/fp_cnt_lsb.c \
-	tomcrypt/fastmath/bit/fp_count_bits.c \
-	tomcrypt/fastmath/bit/fp_div_2.c \
-	tomcrypt/fastmath/bit/fp_div_2d.c \
-	tomcrypt/fastmath/bit/fp_lshd.c \
-	tomcrypt/fastmath/bit/fp_mod_2d.c \
-	tomcrypt/fastmath/bit/fp_rshd.c \
-	tomcrypt/fastmath/divide/fp_div.c \
-	tomcrypt/fastmath/divide/fp_div_d.c \
-	tomcrypt/fastmath/divide/fp_mod.c \
-	tomcrypt/fastmath/divide/fp_mod_d.c \
-	tomcrypt/fastmath/exptmod/fp_2expt.c \
-	tomcrypt/fastmath/exptmod/fp_exptmod.c \
-	tomcrypt/fastmath/headers/tfm.h \
-	tomcrypt/fastmath/headers/tfm_private.h \
-	tomcrypt/fastmath/misc/fp_ident.c \
-	tomcrypt/fastmath/misc/fp_rand.c \
-	tomcrypt/fastmath/misc/fp_set.c \
-	tomcrypt/fastmath/mont/fp_montgomery_calc_normalization.c \
-	tomcrypt/fastmath/mont/fp_montgomery_reduce.c \
-	tomcrypt/fastmath/mont/fp_montgomery_setup.c \
-	tomcrypt/fastmath/mul/fp_mul.c \
-	tomcrypt/fastmath/mul/fp_mul_2.c \
-	tomcrypt/fastmath/mul/fp_mul_2d.c \
-	tomcrypt/fastmath/mul/fp_mul_comba.c \
-	tomcrypt/fastmath/mul/fp_mul_comba_12.c \
-	tomcrypt/fastmath/mul/fp_mul_comba_17.c \
-	tomcrypt/fastmath/mul/fp_mul_comba_20.c \
-	tomcrypt/fastmath/mul/fp_mul_comba_24.c \
-	tomcrypt/fastmath/mul/fp_mul_comba_28.c \
-	tomcrypt/fastmath/mul/fp_mul_comba_3.c \
-	tomcrypt/fastmath/mul/fp_mul_comba_32.c \
-	tomcrypt/fastmath/mul/fp_mul_comba_4.c \
-	tomcrypt/fastmath/mul/fp_mul_comba_48.c \
-	tomcrypt/fastmath/mul/fp_mul_comba_6.c \
-	tomcrypt/fastmath/mul/fp_mul_comba_64.c \
-	tomcrypt/fastmath/mul/fp_mul_comba_7.c \
-	tomcrypt/fastmath/mul/fp_mul_comba_8.c \
-	tomcrypt/fastmath/mul/fp_mul_comba_9.c \
-	tomcrypt/fastmath/mul/fp_mul_comba_small_set.c \
-	tomcrypt/fastmath/mul/fp_mul_d.c \
-	tomcrypt/fastmath/mul/fp_mulmod.c \
-	tomcrypt/fastmath/numtheory/fp_gcd.c \
-	tomcrypt/fastmath/numtheory/fp_invmod.c \
-	tomcrypt/fastmath/numtheory/fp_isprime.c \
-	tomcrypt/fastmath/numtheory/fp_isprime_ex.c \
-	tomcrypt/fastmath/numtheory/fp_lcm.c \
-	tomcrypt/fastmath/numtheory/fp_prime_miller_rabin.c \
-	tomcrypt/fastmath/numtheory/fp_prime_random_ex.c \
-	tomcrypt/fastmath/sqr/fp_sqr.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_12.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_17.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_20.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_24.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_28.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_3.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_32.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_4.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_48.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_6.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_64.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_7.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_8.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_9.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_generic.c \
-	tomcrypt/fastmath/sqr/fp_sqr_comba_small_set.c \
-	tomcrypt/fastmath/sqr/fp_sqrmod.c tomcrypt/hashes/chc/chc.c \
+	tomcrypt/encauth/ocb3/ocb3_test.c tomcrypt/hashes/chc/chc.c \
 	tomcrypt/hashes/helper/hash_file.c \
 	tomcrypt/hashes/helper/hash_filehandle.c \
 	tomcrypt/hashes/helper/hash_memory.c \
@@ -1932,7 +1975,117 @@ standard_net_tlse_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp \
 	tomcrypt/stream/sober128/sober128tab.c \
 	tomcrypt/stream/sosemanuk/sosemanuk.c \
 	tomcrypt/stream/sosemanuk/sosemanuk_memory.c \
-	tomcrypt/stream/sosemanuk/sosemanuk_test.c
+	tomcrypt/stream/sosemanuk/sosemanuk_test.c \
+	tomcrypt/tommath/mp_2expt.c tomcrypt/tommath/mp_abs.c \
+	tomcrypt/tommath/mp_add.c tomcrypt/tommath/mp_add_d.c \
+	tomcrypt/tommath/mp_addmod.c tomcrypt/tommath/mp_and.c \
+	tomcrypt/tommath/mp_clamp.c tomcrypt/tommath/mp_clear.c \
+	tomcrypt/tommath/mp_clear_multi.c tomcrypt/tommath/mp_cmp.c \
+	tomcrypt/tommath/mp_cmp_d.c tomcrypt/tommath/mp_cmp_mag.c \
+	tomcrypt/tommath/mp_cnt_lsb.c tomcrypt/tommath/mp_complement.c \
+	tomcrypt/tommath/mp_copy.c tomcrypt/tommath/mp_count_bits.c \
+	tomcrypt/tommath/mp_cutoffs.c tomcrypt/tommath/mp_div.c \
+	tomcrypt/tommath/mp_div_2.c tomcrypt/tommath/mp_div_2d.c \
+	tomcrypt/tommath/mp_div_d.c \
+	tomcrypt/tommath/mp_dr_is_modulus.c \
+	tomcrypt/tommath/mp_dr_reduce.c tomcrypt/tommath/mp_dr_setup.c \
+	tomcrypt/tommath/mp_error_to_string.c \
+	tomcrypt/tommath/mp_exch.c tomcrypt/tommath/mp_expt_n.c \
+	tomcrypt/tommath/mp_exptmod.c tomcrypt/tommath/mp_exteuclid.c \
+	tomcrypt/tommath/mp_fread.c tomcrypt/tommath/mp_from_sbin.c \
+	tomcrypt/tommath/mp_from_ubin.c tomcrypt/tommath/mp_fwrite.c \
+	tomcrypt/tommath/mp_gcd.c tomcrypt/tommath/mp_get_double.c \
+	tomcrypt/tommath/mp_get_i32.c tomcrypt/tommath/mp_get_i64.c \
+	tomcrypt/tommath/mp_get_l.c tomcrypt/tommath/mp_get_mag_u32.c \
+	tomcrypt/tommath/mp_get_mag_u64.c \
+	tomcrypt/tommath/mp_get_mag_ul.c tomcrypt/tommath/mp_grow.c \
+	tomcrypt/tommath/mp_hash.c tomcrypt/tommath/mp_init.c \
+	tomcrypt/tommath/mp_init_copy.c tomcrypt/tommath/mp_init_i32.c \
+	tomcrypt/tommath/mp_init_i64.c tomcrypt/tommath/mp_init_l.c \
+	tomcrypt/tommath/mp_init_multi.c \
+	tomcrypt/tommath/mp_init_set.c tomcrypt/tommath/mp_init_size.c \
+	tomcrypt/tommath/mp_init_u32.c tomcrypt/tommath/mp_init_u64.c \
+	tomcrypt/tommath/mp_init_ul.c tomcrypt/tommath/mp_invmod.c \
+	tomcrypt/tommath/mp_is_square.c \
+	tomcrypt/tommath/mp_kronecker.c tomcrypt/tommath/mp_lcm.c \
+	tomcrypt/tommath/mp_log.c tomcrypt/tommath/mp_log_n.c \
+	tomcrypt/tommath/mp_lshd.c tomcrypt/tommath/mp_mod.c \
+	tomcrypt/tommath/mp_mod_2d.c \
+	tomcrypt/tommath/mp_montgomery_calc_normalization.c \
+	tomcrypt/tommath/mp_montgomery_reduce.c \
+	tomcrypt/tommath/mp_montgomery_setup.c \
+	tomcrypt/tommath/mp_mul.c tomcrypt/tommath/mp_mul_2.c \
+	tomcrypt/tommath/mp_mul_2d.c tomcrypt/tommath/mp_mul_d.c \
+	tomcrypt/tommath/mp_mulmod.c tomcrypt/tommath/mp_neg.c \
+	tomcrypt/tommath/mp_or.c tomcrypt/tommath/mp_pack.c \
+	tomcrypt/tommath/mp_pack_count.c \
+	tomcrypt/tommath/mp_prime_fermat.c \
+	tomcrypt/tommath/mp_prime_frobenius_underwood.c \
+	tomcrypt/tommath/mp_prime_is_prime.c \
+	tomcrypt/tommath/mp_prime_miller_rabin.c \
+	tomcrypt/tommath/mp_prime_next_prime.c \
+	tomcrypt/tommath/mp_prime_rabin_miller_trials.c \
+	tomcrypt/tommath/mp_prime_rand.c \
+	tomcrypt/tommath/mp_prime_strong_lucas_selfridge.c \
+	tomcrypt/tommath/mp_radix_size.c \
+	tomcrypt/tommath/mp_radix_size_overestimate.c \
+	tomcrypt/tommath/mp_rand.c tomcrypt/tommath/mp_rand_source.c \
+	tomcrypt/tommath/mp_read_radix.c tomcrypt/tommath/mp_reduce.c \
+	tomcrypt/tommath/mp_reduce_2k.c \
+	tomcrypt/tommath/mp_reduce_2k_l.c \
+	tomcrypt/tommath/mp_reduce_2k_setup.c \
+	tomcrypt/tommath/mp_reduce_2k_setup_l.c \
+	tomcrypt/tommath/mp_reduce_is_2k.c \
+	tomcrypt/tommath/mp_reduce_is_2k_l.c \
+	tomcrypt/tommath/mp_reduce_setup.c \
+	tomcrypt/tommath/mp_root_n.c tomcrypt/tommath/mp_rshd.c \
+	tomcrypt/tommath/mp_sbin_size.c tomcrypt/tommath/mp_set.c \
+	tomcrypt/tommath/mp_set_double.c tomcrypt/tommath/mp_set_i32.c \
+	tomcrypt/tommath/mp_set_i64.c tomcrypt/tommath/mp_set_l.c \
+	tomcrypt/tommath/mp_set_u32.c tomcrypt/tommath/mp_set_u64.c \
+	tomcrypt/tommath/mp_set_ul.c tomcrypt/tommath/mp_shrink.c \
+	tomcrypt/tommath/mp_signed_rsh.c tomcrypt/tommath/mp_sqrmod.c \
+	tomcrypt/tommath/mp_sqrt.c tomcrypt/tommath/mp_sqrtmod_prime.c \
+	tomcrypt/tommath/mp_sub.c tomcrypt/tommath/mp_sub_d.c \
+	tomcrypt/tommath/mp_submod.c tomcrypt/tommath/mp_to_radix.c \
+	tomcrypt/tommath/mp_to_sbin.c tomcrypt/tommath/mp_to_ubin.c \
+	tomcrypt/tommath/mp_ubin_size.c tomcrypt/tommath/mp_unpack.c \
+	tomcrypt/tommath/mp_xor.c tomcrypt/tommath/mp_zero.c \
+	tomcrypt/tommath/s_mp_add.c tomcrypt/tommath/s_mp_copy_digs.c \
+	tomcrypt/tommath/s_mp_div_3.c \
+	tomcrypt/tommath/s_mp_div_recursive.c \
+	tomcrypt/tommath/s_mp_div_school.c \
+	tomcrypt/tommath/s_mp_div_small.c \
+	tomcrypt/tommath/s_mp_exptmod.c \
+	tomcrypt/tommath/s_mp_exptmod_fast.c \
+	tomcrypt/tommath/s_mp_fp_log.c \
+	tomcrypt/tommath/s_mp_fp_log_d.c \
+	tomcrypt/tommath/s_mp_get_bit.c tomcrypt/tommath/s_mp_invmod.c \
+	tomcrypt/tommath/s_mp_invmod_odd.c \
+	tomcrypt/tommath/s_mp_log_2expt.c \
+	tomcrypt/tommath/s_mp_montgomery_reduce_comba.c \
+	tomcrypt/tommath/s_mp_mul.c \
+	tomcrypt/tommath/s_mp_mul_balance.c \
+	tomcrypt/tommath/s_mp_mul_comba.c \
+	tomcrypt/tommath/s_mp_mul_high.c \
+	tomcrypt/tommath/s_mp_mul_high_comba.c \
+	tomcrypt/tommath/s_mp_mul_karatsuba.c \
+	tomcrypt/tommath/s_mp_mul_toom.c \
+	tomcrypt/tommath/s_mp_prime_is_divisible.c \
+	tomcrypt/tommath/s_mp_prime_tab.c \
+	tomcrypt/tommath/s_mp_radix_map.c \
+	tomcrypt/tommath/s_mp_radix_size_overestimate.c \
+	tomcrypt/tommath/s_mp_rand_platform.c \
+	tomcrypt/tommath/s_mp_sqr.c tomcrypt/tommath/s_mp_sqr_comba.c \
+	tomcrypt/tommath/s_mp_sqr_karatsuba.c \
+	tomcrypt/tommath/s_mp_sqr_toom.c tomcrypt/tommath/s_mp_sub.c \
+	tomcrypt/tommath/s_mp_zero_buf.c \
+	tomcrypt/tommath/s_mp_zero_digs.c tomcrypt/tommath/tommath.h \
+	tomcrypt/tommath/tommath_c89.h \
+	tomcrypt/tommath/tommath_class.h \
+	tomcrypt/tommath/tommath_cutoffs.h \
+	tomcrypt/tommath/tommath_private.h \
+	tomcrypt/tommath/tommath_superclass.h
 all: all-am
 
 .SUFFIXES:
@@ -2305,333 +2458,6 @@ tomcrypt/encauth/ocb3/ocb3_int_xor_blocks.$(OBJEXT):  \
 tomcrypt/encauth/ocb3/ocb3_test.$(OBJEXT):  \
 	tomcrypt/encauth/ocb3/$(am__dirstamp) \
 	tomcrypt/encauth/ocb3/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/addsub/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/addsub
-	@: > tomcrypt/fastmath/addsub/$(am__dirstamp)
-tomcrypt/fastmath/addsub/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/addsub/$(DEPDIR)
-	@: > tomcrypt/fastmath/addsub/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/addsub/fp_add.$(OBJEXT):  \
-	tomcrypt/fastmath/addsub/$(am__dirstamp) \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/addsub/fp_add_d.$(OBJEXT):  \
-	tomcrypt/fastmath/addsub/$(am__dirstamp) \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/addsub/fp_addmod.$(OBJEXT):  \
-	tomcrypt/fastmath/addsub/$(am__dirstamp) \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/addsub/fp_cmp.$(OBJEXT):  \
-	tomcrypt/fastmath/addsub/$(am__dirstamp) \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/addsub/fp_cmp_d.$(OBJEXT):  \
-	tomcrypt/fastmath/addsub/$(am__dirstamp) \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/addsub/fp_cmp_mag.$(OBJEXT):  \
-	tomcrypt/fastmath/addsub/$(am__dirstamp) \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/addsub/fp_sub.$(OBJEXT):  \
-	tomcrypt/fastmath/addsub/$(am__dirstamp) \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/addsub/fp_sub_d.$(OBJEXT):  \
-	tomcrypt/fastmath/addsub/$(am__dirstamp) \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/addsub/fp_submod.$(OBJEXT):  \
-	tomcrypt/fastmath/addsub/$(am__dirstamp) \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/addsub/s_fp_add.$(OBJEXT):  \
-	tomcrypt/fastmath/addsub/$(am__dirstamp) \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/addsub/s_fp_sub.$(OBJEXT):  \
-	tomcrypt/fastmath/addsub/$(am__dirstamp) \
-	tomcrypt/fastmath/addsub/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bin/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/bin
-	@: > tomcrypt/fastmath/bin/$(am__dirstamp)
-tomcrypt/fastmath/bin/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/bin/$(DEPDIR)
-	@: > tomcrypt/fastmath/bin/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bin/fp_radix_size.$(OBJEXT):  \
-	tomcrypt/fastmath/bin/$(am__dirstamp) \
-	tomcrypt/fastmath/bin/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bin/fp_read_radix.$(OBJEXT):  \
-	tomcrypt/fastmath/bin/$(am__dirstamp) \
-	tomcrypt/fastmath/bin/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bin/fp_read_signed_bin.$(OBJEXT):  \
-	tomcrypt/fastmath/bin/$(am__dirstamp) \
-	tomcrypt/fastmath/bin/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bin/fp_read_unsigned_bin.$(OBJEXT):  \
-	tomcrypt/fastmath/bin/$(am__dirstamp) \
-	tomcrypt/fastmath/bin/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bin/fp_reverse.$(OBJEXT):  \
-	tomcrypt/fastmath/bin/$(am__dirstamp) \
-	tomcrypt/fastmath/bin/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bin/fp_s_rmap.$(OBJEXT):  \
-	tomcrypt/fastmath/bin/$(am__dirstamp) \
-	tomcrypt/fastmath/bin/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bin/fp_signed_bin_size.$(OBJEXT):  \
-	tomcrypt/fastmath/bin/$(am__dirstamp) \
-	tomcrypt/fastmath/bin/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bin/fp_to_signed_bin.$(OBJEXT):  \
-	tomcrypt/fastmath/bin/$(am__dirstamp) \
-	tomcrypt/fastmath/bin/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bin/fp_to_unsigned_bin.$(OBJEXT):  \
-	tomcrypt/fastmath/bin/$(am__dirstamp) \
-	tomcrypt/fastmath/bin/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bin/fp_toradix.$(OBJEXT):  \
-	tomcrypt/fastmath/bin/$(am__dirstamp) \
-	tomcrypt/fastmath/bin/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bin/fp_toradix_n.$(OBJEXT):  \
-	tomcrypt/fastmath/bin/$(am__dirstamp) \
-	tomcrypt/fastmath/bin/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bin/fp_unsigned_bin_size.$(OBJEXT):  \
-	tomcrypt/fastmath/bin/$(am__dirstamp) \
-	tomcrypt/fastmath/bin/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bit/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/bit
-	@: > tomcrypt/fastmath/bit/$(am__dirstamp)
-tomcrypt/fastmath/bit/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/bit/$(DEPDIR)
-	@: > tomcrypt/fastmath/bit/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bit/fp_cnt_lsb.$(OBJEXT):  \
-	tomcrypt/fastmath/bit/$(am__dirstamp) \
-	tomcrypt/fastmath/bit/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bit/fp_count_bits.$(OBJEXT):  \
-	tomcrypt/fastmath/bit/$(am__dirstamp) \
-	tomcrypt/fastmath/bit/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bit/fp_div_2.$(OBJEXT):  \
-	tomcrypt/fastmath/bit/$(am__dirstamp) \
-	tomcrypt/fastmath/bit/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bit/fp_div_2d.$(OBJEXT):  \
-	tomcrypt/fastmath/bit/$(am__dirstamp) \
-	tomcrypt/fastmath/bit/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bit/fp_lshd.$(OBJEXT):  \
-	tomcrypt/fastmath/bit/$(am__dirstamp) \
-	tomcrypt/fastmath/bit/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bit/fp_mod_2d.$(OBJEXT):  \
-	tomcrypt/fastmath/bit/$(am__dirstamp) \
-	tomcrypt/fastmath/bit/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/bit/fp_rshd.$(OBJEXT):  \
-	tomcrypt/fastmath/bit/$(am__dirstamp) \
-	tomcrypt/fastmath/bit/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/divide/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/divide
-	@: > tomcrypt/fastmath/divide/$(am__dirstamp)
-tomcrypt/fastmath/divide/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/divide/$(DEPDIR)
-	@: > tomcrypt/fastmath/divide/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/divide/fp_div.$(OBJEXT):  \
-	tomcrypt/fastmath/divide/$(am__dirstamp) \
-	tomcrypt/fastmath/divide/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/divide/fp_div_d.$(OBJEXT):  \
-	tomcrypt/fastmath/divide/$(am__dirstamp) \
-	tomcrypt/fastmath/divide/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/divide/fp_mod.$(OBJEXT):  \
-	tomcrypt/fastmath/divide/$(am__dirstamp) \
-	tomcrypt/fastmath/divide/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/divide/fp_mod_d.$(OBJEXT):  \
-	tomcrypt/fastmath/divide/$(am__dirstamp) \
-	tomcrypt/fastmath/divide/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/exptmod/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/exptmod
-	@: > tomcrypt/fastmath/exptmod/$(am__dirstamp)
-tomcrypt/fastmath/exptmod/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/exptmod/$(DEPDIR)
-	@: > tomcrypt/fastmath/exptmod/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/exptmod/fp_2expt.$(OBJEXT):  \
-	tomcrypt/fastmath/exptmod/$(am__dirstamp) \
-	tomcrypt/fastmath/exptmod/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/exptmod/fp_exptmod.$(OBJEXT):  \
-	tomcrypt/fastmath/exptmod/$(am__dirstamp) \
-	tomcrypt/fastmath/exptmod/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/misc/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/misc
-	@: > tomcrypt/fastmath/misc/$(am__dirstamp)
-tomcrypt/fastmath/misc/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/misc/$(DEPDIR)
-	@: > tomcrypt/fastmath/misc/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/misc/fp_ident.$(OBJEXT):  \
-	tomcrypt/fastmath/misc/$(am__dirstamp) \
-	tomcrypt/fastmath/misc/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/misc/fp_rand.$(OBJEXT):  \
-	tomcrypt/fastmath/misc/$(am__dirstamp) \
-	tomcrypt/fastmath/misc/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/misc/fp_set.$(OBJEXT):  \
-	tomcrypt/fastmath/misc/$(am__dirstamp) \
-	tomcrypt/fastmath/misc/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mont/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/mont
-	@: > tomcrypt/fastmath/mont/$(am__dirstamp)
-tomcrypt/fastmath/mont/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/mont/$(DEPDIR)
-	@: > tomcrypt/fastmath/mont/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mont/fp_montgomery_calc_normalization.$(OBJEXT):  \
-	tomcrypt/fastmath/mont/$(am__dirstamp) \
-	tomcrypt/fastmath/mont/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mont/fp_montgomery_reduce.$(OBJEXT):  \
-	tomcrypt/fastmath/mont/$(am__dirstamp) \
-	tomcrypt/fastmath/mont/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mont/fp_montgomery_setup.$(OBJEXT):  \
-	tomcrypt/fastmath/mont/$(am__dirstamp) \
-	tomcrypt/fastmath/mont/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/mul
-	@: > tomcrypt/fastmath/mul/$(am__dirstamp)
-tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/mul/$(DEPDIR)
-	@: > tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_2.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_2d.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_comba.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_comba_12.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_comba_17.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_comba_20.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_comba_24.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_comba_28.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_comba_3.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_comba_32.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_comba_4.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_comba_48.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_comba_6.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_comba_64.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_comba_7.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_comba_8.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_comba_9.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_comba_small_set.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mul_d.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/mul/fp_mulmod.$(OBJEXT):  \
-	tomcrypt/fastmath/mul/$(am__dirstamp) \
-	tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/numtheory/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/numtheory
-	@: > tomcrypt/fastmath/numtheory/$(am__dirstamp)
-tomcrypt/fastmath/numtheory/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/numtheory/$(DEPDIR)
-	@: > tomcrypt/fastmath/numtheory/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/numtheory/fp_gcd.$(OBJEXT):  \
-	tomcrypt/fastmath/numtheory/$(am__dirstamp) \
-	tomcrypt/fastmath/numtheory/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/numtheory/fp_invmod.$(OBJEXT):  \
-	tomcrypt/fastmath/numtheory/$(am__dirstamp) \
-	tomcrypt/fastmath/numtheory/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/numtheory/fp_isprime.$(OBJEXT):  \
-	tomcrypt/fastmath/numtheory/$(am__dirstamp) \
-	tomcrypt/fastmath/numtheory/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/numtheory/fp_isprime_ex.$(OBJEXT):  \
-	tomcrypt/fastmath/numtheory/$(am__dirstamp) \
-	tomcrypt/fastmath/numtheory/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/numtheory/fp_lcm.$(OBJEXT):  \
-	tomcrypt/fastmath/numtheory/$(am__dirstamp) \
-	tomcrypt/fastmath/numtheory/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/numtheory/fp_prime_miller_rabin.$(OBJEXT):  \
-	tomcrypt/fastmath/numtheory/$(am__dirstamp) \
-	tomcrypt/fastmath/numtheory/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/numtheory/fp_prime_random_ex.$(OBJEXT):  \
-	tomcrypt/fastmath/numtheory/$(am__dirstamp) \
-	tomcrypt/fastmath/numtheory/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/sqr
-	@: > tomcrypt/fastmath/sqr/$(am__dirstamp)
-tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) tomcrypt/fastmath/sqr/$(DEPDIR)
-	@: > tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba_12.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba_17.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba_20.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba_24.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba_28.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba_3.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba_32.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba_4.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba_48.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba_6.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba_64.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba_7.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba_8.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba_9.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba_generic.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqr_comba_small_set.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-tomcrypt/fastmath/sqr/fp_sqrmod.$(OBJEXT):  \
-	tomcrypt/fastmath/sqr/$(am__dirstamp) \
-	tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
 tomcrypt/hashes/chc/$(am__dirstamp):
 	@$(MKDIR_P) tomcrypt/hashes/chc
 	@: > tomcrypt/hashes/chc/$(am__dirstamp)
@@ -4213,6 +4039,436 @@ tomcrypt/stream/sosemanuk/sosemanuk_memory.$(OBJEXT):  \
 tomcrypt/stream/sosemanuk/sosemanuk_test.$(OBJEXT):  \
 	tomcrypt/stream/sosemanuk/$(am__dirstamp) \
 	tomcrypt/stream/sosemanuk/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/$(am__dirstamp):
+	@$(MKDIR_P) tomcrypt/tommath
+	@: > tomcrypt/tommath/$(am__dirstamp)
+tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) tomcrypt/tommath/$(DEPDIR)
+	@: > tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_2expt.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_abs.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_add.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_add_d.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_addmod.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_and.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_clamp.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_clear.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_clear_multi.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_cmp.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_cmp_d.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_cmp_mag.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_cnt_lsb.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_complement.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_copy.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_count_bits.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_cutoffs.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_div.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_div_2.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_div_2d.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_div_d.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_dr_is_modulus.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_dr_reduce.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_dr_setup.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_error_to_string.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_exch.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_expt_n.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_exptmod.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_exteuclid.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_fread.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_from_sbin.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_from_ubin.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_fwrite.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_gcd.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_get_double.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_get_i32.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_get_i64.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_get_l.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_get_mag_u32.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_get_mag_u64.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_get_mag_ul.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_grow.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_hash.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_init.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_init_copy.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_init_i32.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_init_i64.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_init_l.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_init_multi.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_init_set.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_init_size.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_init_u32.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_init_u64.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_init_ul.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_invmod.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_is_square.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_kronecker.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_lcm.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_log.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_log_n.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_lshd.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_mod.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_mod_2d.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_montgomery_calc_normalization.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_montgomery_reduce.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_montgomery_setup.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_mul.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_mul_2.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_mul_2d.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_mul_d.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_mulmod.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_neg.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_or.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_pack.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_pack_count.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_prime_fermat.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_prime_frobenius_underwood.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_prime_is_prime.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_prime_miller_rabin.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_prime_next_prime.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_prime_rabin_miller_trials.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_prime_rand.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_prime_strong_lucas_selfridge.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_radix_size.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_radix_size_overestimate.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_rand.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_rand_source.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_read_radix.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_reduce.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_reduce_2k.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_reduce_2k_l.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_reduce_2k_setup.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_reduce_2k_setup_l.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_reduce_is_2k.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_reduce_is_2k_l.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_reduce_setup.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_root_n.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_rshd.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_sbin_size.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_set.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_set_double.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_set_i32.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_set_i64.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_set_l.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_set_u32.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_set_u64.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_set_ul.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_shrink.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_signed_rsh.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_sqrmod.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_sqrt.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_sqrtmod_prime.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_sub.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_sub_d.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_submod.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_to_radix.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_to_sbin.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_to_ubin.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_ubin_size.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_unpack.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_xor.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/mp_zero.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_add.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_copy_digs.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_div_3.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_div_recursive.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_div_school.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_div_small.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_exptmod.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_exptmod_fast.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_fp_log.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_fp_log_d.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_get_bit.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_invmod.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_invmod_odd.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_log_2expt.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_montgomery_reduce_comba.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_mul.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_mul_balance.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_mul_comba.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_mul_high.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_mul_high_comba.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_mul_karatsuba.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_mul_toom.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_prime_is_divisible.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_prime_tab.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_radix_map.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_radix_size_overestimate.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_rand_platform.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_sqr.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_sqr_comba.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_sqr_karatsuba.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_sqr_toom.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_sub.$(OBJEXT): tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_zero_buf.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+tomcrypt/tommath/s_mp_zero_digs.$(OBJEXT):  \
+	tomcrypt/tommath/$(am__dirstamp) \
+	tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
 
 standard.net.tlse.so$(EXEEXT): $(standard_net_tlse_so_OBJECTS) $(standard_net_tlse_so_DEPENDENCIES) $(EXTRA_standard_net_tlse_so_DEPENDENCIES) 
 	@rm -f standard.net.tlse.so$(EXEEXT)
@@ -4230,16 +4486,6 @@ mostlyclean-compile:
 	-rm -f tomcrypt/encauth/gcm/*.$(OBJEXT)
 	-rm -f tomcrypt/encauth/ocb/*.$(OBJEXT)
 	-rm -f tomcrypt/encauth/ocb3/*.$(OBJEXT)
-	-rm -f tomcrypt/fastmath/addsub/*.$(OBJEXT)
-	-rm -f tomcrypt/fastmath/bin/*.$(OBJEXT)
-	-rm -f tomcrypt/fastmath/bit/*.$(OBJEXT)
-	-rm -f tomcrypt/fastmath/divide/*.$(OBJEXT)
-	-rm -f tomcrypt/fastmath/exptmod/*.$(OBJEXT)
-	-rm -f tomcrypt/fastmath/misc/*.$(OBJEXT)
-	-rm -f tomcrypt/fastmath/mont/*.$(OBJEXT)
-	-rm -f tomcrypt/fastmath/mul/*.$(OBJEXT)
-	-rm -f tomcrypt/fastmath/numtheory/*.$(OBJEXT)
-	-rm -f tomcrypt/fastmath/sqr/*.$(OBJEXT)
 	-rm -f tomcrypt/hashes/*.$(OBJEXT)
 	-rm -f tomcrypt/hashes/chc/*.$(OBJEXT)
 	-rm -f tomcrypt/hashes/helper/*.$(OBJEXT)
@@ -4310,6 +4556,7 @@ mostlyclean-compile:
 	-rm -f tomcrypt/stream/salsa20/*.$(OBJEXT)
 	-rm -f tomcrypt/stream/sober128/*.$(OBJEXT)
 	-rm -f tomcrypt/stream/sosemanuk/*.$(OBJEXT)
+	-rm -f tomcrypt/tommath/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
@@ -4403,95 +4650,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/encauth/ocb3/$(DEPDIR)/ocb3_int_ntz.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/encauth/ocb3/$(DEPDIR)/ocb3_int_xor_blocks.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/encauth/ocb3/$(DEPDIR)/ocb3_test.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/addsub/$(DEPDIR)/fp_add.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/addsub/$(DEPDIR)/fp_add_d.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/addsub/$(DEPDIR)/fp_addmod.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/addsub/$(DEPDIR)/fp_cmp.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/addsub/$(DEPDIR)/fp_cmp_d.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/addsub/$(DEPDIR)/fp_cmp_mag.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/addsub/$(DEPDIR)/fp_sub.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/addsub/$(DEPDIR)/fp_sub_d.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/addsub/$(DEPDIR)/fp_submod.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/addsub/$(DEPDIR)/s_fp_add.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/addsub/$(DEPDIR)/s_fp_sub.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bin/$(DEPDIR)/fp_radix_size.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bin/$(DEPDIR)/fp_read_radix.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bin/$(DEPDIR)/fp_read_signed_bin.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bin/$(DEPDIR)/fp_read_unsigned_bin.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bin/$(DEPDIR)/fp_reverse.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bin/$(DEPDIR)/fp_s_rmap.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bin/$(DEPDIR)/fp_signed_bin_size.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bin/$(DEPDIR)/fp_to_signed_bin.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bin/$(DEPDIR)/fp_to_unsigned_bin.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bin/$(DEPDIR)/fp_toradix.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bin/$(DEPDIR)/fp_toradix_n.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bin/$(DEPDIR)/fp_unsigned_bin_size.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bit/$(DEPDIR)/fp_cnt_lsb.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bit/$(DEPDIR)/fp_count_bits.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bit/$(DEPDIR)/fp_div_2.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bit/$(DEPDIR)/fp_div_2d.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bit/$(DEPDIR)/fp_lshd.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bit/$(DEPDIR)/fp_mod_2d.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/bit/$(DEPDIR)/fp_rshd.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/divide/$(DEPDIR)/fp_div.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/divide/$(DEPDIR)/fp_div_d.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/divide/$(DEPDIR)/fp_mod.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/divide/$(DEPDIR)/fp_mod_d.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/exptmod/$(DEPDIR)/fp_2expt.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/exptmod/$(DEPDIR)/fp_exptmod.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/misc/$(DEPDIR)/fp_ident.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/misc/$(DEPDIR)/fp_rand.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/misc/$(DEPDIR)/fp_set.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mont/$(DEPDIR)/fp_montgomery_calc_normalization.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mont/$(DEPDIR)/fp_montgomery_reduce.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mont/$(DEPDIR)/fp_montgomery_setup.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_2.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_2d.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_12.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_17.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_20.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_24.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_28.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_3.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_32.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_4.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_48.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_6.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_64.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_7.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_8.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_9.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_small_set.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_d.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/mul/$(DEPDIR)/fp_mulmod.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_gcd.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_invmod.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_isprime.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_isprime_ex.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_lcm.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_prime_miller_rabin.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_prime_random_ex.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_12.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_17.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_20.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_24.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_28.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_3.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_32.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_4.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_48.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_6.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_64.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_7.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_8.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_9.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_generic.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_small_set.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqrmod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/hashes/$(DEPDIR)/blake2b.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/hashes/$(DEPDIR)/blake2s.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/hashes/$(DEPDIR)/md2.Po@am__quote@ # am--include-marker
@@ -4898,6 +5056,162 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/stream/sosemanuk/$(DEPDIR)/sosemanuk.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/stream/sosemanuk/$(DEPDIR)/sosemanuk_memory.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/stream/sosemanuk/$(DEPDIR)/sosemanuk_test.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_2expt.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_abs.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_add.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_add_d.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_addmod.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_and.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_clamp.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_clear.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_clear_multi.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_cmp.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_cmp_d.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_cmp_mag.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_cnt_lsb.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_complement.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_copy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_count_bits.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_cutoffs.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_div.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_div_2.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_div_2d.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_div_d.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_dr_is_modulus.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_dr_reduce.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_dr_setup.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_error_to_string.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_exch.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_expt_n.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_exptmod.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_exteuclid.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_fread.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_from_sbin.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_from_ubin.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_fwrite.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_gcd.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_get_double.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_get_i32.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_get_i64.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_get_l.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_get_mag_u32.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_get_mag_u64.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_get_mag_ul.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_grow.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_hash.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_init.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_init_copy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_init_i32.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_init_i64.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_init_l.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_init_multi.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_init_set.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_init_size.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_init_u32.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_init_u64.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_init_ul.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_invmod.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_is_square.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_kronecker.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_lcm.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_log.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_log_n.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_lshd.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_mod.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_mod_2d.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_montgomery_calc_normalization.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_montgomery_reduce.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_montgomery_setup.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_mul.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_mul_2.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_mul_2d.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_mul_d.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_mulmod.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_neg.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_or.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_pack.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_pack_count.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_prime_fermat.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_prime_frobenius_underwood.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_prime_is_prime.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_prime_miller_rabin.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_prime_next_prime.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_prime_rabin_miller_trials.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_prime_rand.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_prime_strong_lucas_selfridge.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_radix_size.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_radix_size_overestimate.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_rand.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_rand_source.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_read_radix.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_reduce.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_reduce_2k.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_reduce_2k_l.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_reduce_2k_setup.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_reduce_2k_setup_l.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_reduce_is_2k.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_reduce_is_2k_l.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_reduce_setup.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_root_n.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_rshd.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_sbin_size.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_set.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_set_double.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_set_i32.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_set_i64.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_set_l.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_set_u32.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_set_u64.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_set_ul.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_shrink.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_signed_rsh.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_sqrmod.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_sqrt.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_sqrtmod_prime.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_sub.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_sub_d.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_submod.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_to_radix.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_to_sbin.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_to_ubin.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_ubin_size.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_unpack.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_xor.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/mp_zero.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_add.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_copy_digs.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_div_3.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_div_recursive.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_div_school.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_div_small.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_exptmod.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_exptmod_fast.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_fp_log.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_fp_log_d.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_get_bit.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_invmod.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_invmod_odd.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_log_2expt.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_montgomery_reduce_comba.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_mul.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_mul_balance.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_mul_comba.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_mul_high.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_mul_high_comba.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_mul_karatsuba.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_mul_toom.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_prime_is_divisible.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_prime_tab.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_radix_map.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_radix_size_overestimate.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_rand_platform.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_sqr.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_sqr_comba.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_sqr_karatsuba.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_sqr_toom.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_sub.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_zero_buf.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/tommath/$(DEPDIR)/s_mp_zero_digs.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -5075,26 +5389,6 @@ distclean-generic:
 	-rm -f tomcrypt/encauth/ocb/$(am__dirstamp)
 	-rm -f tomcrypt/encauth/ocb3/$(DEPDIR)/$(am__dirstamp)
 	-rm -f tomcrypt/encauth/ocb3/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/addsub/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/bin/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/bit/$(DEPDIR)/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/bit/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/divide/$(DEPDIR)/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/divide/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/exptmod/$(DEPDIR)/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/exptmod/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/misc/$(DEPDIR)/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/misc/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/mont/$(DEPDIR)/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/mont/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/mul/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/numtheory/$(DEPDIR)/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/numtheory/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/$(am__dirstamp)
-	-rm -f tomcrypt/fastmath/sqr/$(am__dirstamp)
 	-rm -f tomcrypt/hashes/$(DEPDIR)/$(am__dirstamp)
 	-rm -f tomcrypt/hashes/$(am__dirstamp)
 	-rm -f tomcrypt/hashes/chc/$(DEPDIR)/$(am__dirstamp)
@@ -5235,6 +5529,8 @@ distclean-generic:
 	-rm -f tomcrypt/stream/sober128/$(am__dirstamp)
 	-rm -f tomcrypt/stream/sosemanuk/$(DEPDIR)/$(am__dirstamp)
 	-rm -f tomcrypt/stream/sosemanuk/$(am__dirstamp)
+	-rm -f tomcrypt/tommath/$(DEPDIR)/$(am__dirstamp)
+	-rm -f tomcrypt/tommath/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -5333,95 +5629,6 @@ distclean: distclean-am
 	-rm -f tomcrypt/encauth/ocb3/$(DEPDIR)/ocb3_int_ntz.Po
 	-rm -f tomcrypt/encauth/ocb3/$(DEPDIR)/ocb3_int_xor_blocks.Po
 	-rm -f tomcrypt/encauth/ocb3/$(DEPDIR)/ocb3_test.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_add.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_add_d.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_addmod.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_cmp.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_cmp_d.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_cmp_mag.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_sub.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_sub_d.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_submod.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/s_fp_add.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/s_fp_sub.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_radix_size.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_read_radix.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_read_signed_bin.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_read_unsigned_bin.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_reverse.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_s_rmap.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_signed_bin_size.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_to_signed_bin.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_to_unsigned_bin.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_toradix.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_toradix_n.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_unsigned_bin_size.Po
-	-rm -f tomcrypt/fastmath/bit/$(DEPDIR)/fp_cnt_lsb.Po
-	-rm -f tomcrypt/fastmath/bit/$(DEPDIR)/fp_count_bits.Po
-	-rm -f tomcrypt/fastmath/bit/$(DEPDIR)/fp_div_2.Po
-	-rm -f tomcrypt/fastmath/bit/$(DEPDIR)/fp_div_2d.Po
-	-rm -f tomcrypt/fastmath/bit/$(DEPDIR)/fp_lshd.Po
-	-rm -f tomcrypt/fastmath/bit/$(DEPDIR)/fp_mod_2d.Po
-	-rm -f tomcrypt/fastmath/bit/$(DEPDIR)/fp_rshd.Po
-	-rm -f tomcrypt/fastmath/divide/$(DEPDIR)/fp_div.Po
-	-rm -f tomcrypt/fastmath/divide/$(DEPDIR)/fp_div_d.Po
-	-rm -f tomcrypt/fastmath/divide/$(DEPDIR)/fp_mod.Po
-	-rm -f tomcrypt/fastmath/divide/$(DEPDIR)/fp_mod_d.Po
-	-rm -f tomcrypt/fastmath/exptmod/$(DEPDIR)/fp_2expt.Po
-	-rm -f tomcrypt/fastmath/exptmod/$(DEPDIR)/fp_exptmod.Po
-	-rm -f tomcrypt/fastmath/misc/$(DEPDIR)/fp_ident.Po
-	-rm -f tomcrypt/fastmath/misc/$(DEPDIR)/fp_rand.Po
-	-rm -f tomcrypt/fastmath/misc/$(DEPDIR)/fp_set.Po
-	-rm -f tomcrypt/fastmath/mont/$(DEPDIR)/fp_montgomery_calc_normalization.Po
-	-rm -f tomcrypt/fastmath/mont/$(DEPDIR)/fp_montgomery_reduce.Po
-	-rm -f tomcrypt/fastmath/mont/$(DEPDIR)/fp_montgomery_setup.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_2.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_2d.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_12.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_17.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_20.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_24.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_28.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_3.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_32.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_4.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_48.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_6.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_64.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_7.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_8.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_9.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_small_set.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_d.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mulmod.Po
-	-rm -f tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_gcd.Po
-	-rm -f tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_invmod.Po
-	-rm -f tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_isprime.Po
-	-rm -f tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_isprime_ex.Po
-	-rm -f tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_lcm.Po
-	-rm -f tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_prime_miller_rabin.Po
-	-rm -f tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_prime_random_ex.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_12.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_17.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_20.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_24.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_28.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_3.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_32.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_4.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_48.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_6.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_64.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_7.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_8.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_9.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_generic.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_small_set.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqrmod.Po
 	-rm -f tomcrypt/hashes/$(DEPDIR)/blake2b.Po
 	-rm -f tomcrypt/hashes/$(DEPDIR)/blake2s.Po
 	-rm -f tomcrypt/hashes/$(DEPDIR)/md2.Po
@@ -5828,6 +6035,162 @@ distclean: distclean-am
 	-rm -f tomcrypt/stream/sosemanuk/$(DEPDIR)/sosemanuk.Po
 	-rm -f tomcrypt/stream/sosemanuk/$(DEPDIR)/sosemanuk_memory.Po
 	-rm -f tomcrypt/stream/sosemanuk/$(DEPDIR)/sosemanuk_test.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_2expt.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_abs.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_add.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_add_d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_addmod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_and.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_clamp.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_clear.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_clear_multi.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_cmp.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_cmp_d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_cmp_mag.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_cnt_lsb.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_complement.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_copy.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_count_bits.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_cutoffs.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_div.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_div_2.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_div_2d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_div_d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_dr_is_modulus.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_dr_reduce.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_dr_setup.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_error_to_string.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_exch.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_expt_n.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_exptmod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_exteuclid.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_fread.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_from_sbin.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_from_ubin.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_fwrite.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_gcd.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_get_double.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_get_i32.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_get_i64.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_get_l.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_get_mag_u32.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_get_mag_u64.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_get_mag_ul.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_grow.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_hash.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_copy.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_i32.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_i64.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_l.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_multi.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_set.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_size.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_u32.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_u64.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_ul.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_invmod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_is_square.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_kronecker.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_lcm.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_log.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_log_n.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_lshd.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_mod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_mod_2d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_montgomery_calc_normalization.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_montgomery_reduce.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_montgomery_setup.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_mul.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_mul_2.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_mul_2d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_mul_d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_mulmod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_neg.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_or.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_pack.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_pack_count.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_prime_fermat.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_prime_frobenius_underwood.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_prime_is_prime.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_prime_miller_rabin.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_prime_next_prime.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_prime_rabin_miller_trials.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_prime_rand.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_prime_strong_lucas_selfridge.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_radix_size.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_radix_size_overestimate.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_rand.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_rand_source.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_read_radix.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_reduce.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_reduce_2k.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_reduce_2k_l.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_reduce_2k_setup.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_reduce_2k_setup_l.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_reduce_is_2k.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_reduce_is_2k_l.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_reduce_setup.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_root_n.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_rshd.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_sbin_size.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_set.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_set_double.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_set_i32.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_set_i64.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_set_l.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_set_u32.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_set_u64.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_set_ul.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_shrink.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_signed_rsh.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_sqrmod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_sqrt.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_sqrtmod_prime.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_sub.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_sub_d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_submod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_to_radix.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_to_sbin.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_to_ubin.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_ubin_size.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_unpack.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_xor.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_zero.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_add.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_copy_digs.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_div_3.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_div_recursive.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_div_school.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_div_small.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_exptmod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_exptmod_fast.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_fp_log.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_fp_log_d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_get_bit.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_invmod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_invmod_odd.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_log_2expt.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_montgomery_reduce_comba.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_mul.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_mul_balance.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_mul_comba.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_mul_high.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_mul_high_comba.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_mul_karatsuba.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_mul_toom.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_prime_is_divisible.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_prime_tab.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_radix_map.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_radix_size_overestimate.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_rand_platform.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_sqr.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_sqr_comba.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_sqr_karatsuba.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_sqr_toom.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_sub.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_zero_buf.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_zero_digs.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -5962,95 +6325,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f tomcrypt/encauth/ocb3/$(DEPDIR)/ocb3_int_ntz.Po
 	-rm -f tomcrypt/encauth/ocb3/$(DEPDIR)/ocb3_int_xor_blocks.Po
 	-rm -f tomcrypt/encauth/ocb3/$(DEPDIR)/ocb3_test.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_add.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_add_d.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_addmod.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_cmp.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_cmp_d.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_cmp_mag.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_sub.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_sub_d.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/fp_submod.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/s_fp_add.Po
-	-rm -f tomcrypt/fastmath/addsub/$(DEPDIR)/s_fp_sub.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_radix_size.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_read_radix.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_read_signed_bin.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_read_unsigned_bin.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_reverse.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_s_rmap.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_signed_bin_size.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_to_signed_bin.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_to_unsigned_bin.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_toradix.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_toradix_n.Po
-	-rm -f tomcrypt/fastmath/bin/$(DEPDIR)/fp_unsigned_bin_size.Po
-	-rm -f tomcrypt/fastmath/bit/$(DEPDIR)/fp_cnt_lsb.Po
-	-rm -f tomcrypt/fastmath/bit/$(DEPDIR)/fp_count_bits.Po
-	-rm -f tomcrypt/fastmath/bit/$(DEPDIR)/fp_div_2.Po
-	-rm -f tomcrypt/fastmath/bit/$(DEPDIR)/fp_div_2d.Po
-	-rm -f tomcrypt/fastmath/bit/$(DEPDIR)/fp_lshd.Po
-	-rm -f tomcrypt/fastmath/bit/$(DEPDIR)/fp_mod_2d.Po
-	-rm -f tomcrypt/fastmath/bit/$(DEPDIR)/fp_rshd.Po
-	-rm -f tomcrypt/fastmath/divide/$(DEPDIR)/fp_div.Po
-	-rm -f tomcrypt/fastmath/divide/$(DEPDIR)/fp_div_d.Po
-	-rm -f tomcrypt/fastmath/divide/$(DEPDIR)/fp_mod.Po
-	-rm -f tomcrypt/fastmath/divide/$(DEPDIR)/fp_mod_d.Po
-	-rm -f tomcrypt/fastmath/exptmod/$(DEPDIR)/fp_2expt.Po
-	-rm -f tomcrypt/fastmath/exptmod/$(DEPDIR)/fp_exptmod.Po
-	-rm -f tomcrypt/fastmath/misc/$(DEPDIR)/fp_ident.Po
-	-rm -f tomcrypt/fastmath/misc/$(DEPDIR)/fp_rand.Po
-	-rm -f tomcrypt/fastmath/misc/$(DEPDIR)/fp_set.Po
-	-rm -f tomcrypt/fastmath/mont/$(DEPDIR)/fp_montgomery_calc_normalization.Po
-	-rm -f tomcrypt/fastmath/mont/$(DEPDIR)/fp_montgomery_reduce.Po
-	-rm -f tomcrypt/fastmath/mont/$(DEPDIR)/fp_montgomery_setup.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_2.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_2d.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_12.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_17.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_20.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_24.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_28.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_3.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_32.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_4.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_48.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_6.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_64.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_7.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_8.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_9.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_comba_small_set.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mul_d.Po
-	-rm -f tomcrypt/fastmath/mul/$(DEPDIR)/fp_mulmod.Po
-	-rm -f tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_gcd.Po
-	-rm -f tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_invmod.Po
-	-rm -f tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_isprime.Po
-	-rm -f tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_isprime_ex.Po
-	-rm -f tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_lcm.Po
-	-rm -f tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_prime_miller_rabin.Po
-	-rm -f tomcrypt/fastmath/numtheory/$(DEPDIR)/fp_prime_random_ex.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_12.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_17.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_20.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_24.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_28.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_3.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_32.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_4.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_48.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_6.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_64.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_7.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_8.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_9.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_generic.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqr_comba_small_set.Po
-	-rm -f tomcrypt/fastmath/sqr/$(DEPDIR)/fp_sqrmod.Po
 	-rm -f tomcrypt/hashes/$(DEPDIR)/blake2b.Po
 	-rm -f tomcrypt/hashes/$(DEPDIR)/blake2s.Po
 	-rm -f tomcrypt/hashes/$(DEPDIR)/md2.Po
@@ -6457,6 +6731,162 @@ maintainer-clean: maintainer-clean-am
 	-rm -f tomcrypt/stream/sosemanuk/$(DEPDIR)/sosemanuk.Po
 	-rm -f tomcrypt/stream/sosemanuk/$(DEPDIR)/sosemanuk_memory.Po
 	-rm -f tomcrypt/stream/sosemanuk/$(DEPDIR)/sosemanuk_test.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_2expt.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_abs.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_add.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_add_d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_addmod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_and.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_clamp.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_clear.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_clear_multi.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_cmp.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_cmp_d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_cmp_mag.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_cnt_lsb.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_complement.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_copy.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_count_bits.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_cutoffs.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_div.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_div_2.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_div_2d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_div_d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_dr_is_modulus.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_dr_reduce.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_dr_setup.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_error_to_string.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_exch.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_expt_n.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_exptmod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_exteuclid.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_fread.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_from_sbin.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_from_ubin.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_fwrite.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_gcd.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_get_double.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_get_i32.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_get_i64.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_get_l.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_get_mag_u32.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_get_mag_u64.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_get_mag_ul.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_grow.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_hash.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_copy.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_i32.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_i64.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_l.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_multi.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_set.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_size.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_u32.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_u64.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_init_ul.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_invmod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_is_square.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_kronecker.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_lcm.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_log.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_log_n.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_lshd.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_mod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_mod_2d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_montgomery_calc_normalization.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_montgomery_reduce.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_montgomery_setup.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_mul.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_mul_2.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_mul_2d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_mul_d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_mulmod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_neg.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_or.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_pack.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_pack_count.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_prime_fermat.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_prime_frobenius_underwood.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_prime_is_prime.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_prime_miller_rabin.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_prime_next_prime.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_prime_rabin_miller_trials.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_prime_rand.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_prime_strong_lucas_selfridge.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_radix_size.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_radix_size_overestimate.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_rand.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_rand_source.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_read_radix.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_reduce.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_reduce_2k.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_reduce_2k_l.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_reduce_2k_setup.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_reduce_2k_setup_l.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_reduce_is_2k.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_reduce_is_2k_l.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_reduce_setup.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_root_n.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_rshd.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_sbin_size.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_set.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_set_double.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_set_i32.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_set_i64.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_set_l.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_set_u32.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_set_u64.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_set_ul.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_shrink.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_signed_rsh.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_sqrmod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_sqrt.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_sqrtmod_prime.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_sub.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_sub_d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_submod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_to_radix.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_to_sbin.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_to_ubin.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_ubin_size.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_unpack.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_xor.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/mp_zero.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_add.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_copy_digs.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_div_3.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_div_recursive.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_div_school.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_div_small.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_exptmod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_exptmod_fast.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_fp_log.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_fp_log_d.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_get_bit.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_invmod.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_invmod_odd.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_log_2expt.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_montgomery_reduce_comba.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_mul.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_mul_balance.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_mul_comba.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_mul_high.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_mul_high_comba.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_mul_karatsuba.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_mul_toom.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_prime_is_divisible.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_prime_tab.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_radix_map.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_radix_size_overestimate.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_rand_platform.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_sqr.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_sqr_comba.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_sqr_karatsuba.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_sqr_toom.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_sub.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_zero_buf.Po
+	-rm -f tomcrypt/tommath/$(DEPDIR)/s_mp_zero_digs.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
