@@ -197,8 +197,8 @@
 #define CHECK_HANDSHAKE_STATE(context, n, limit)  { if (context->hs_messages[n] >= limit) { if (context->dtls) { DEBUG_PRINT("* REPEATED MESSAGE, RE-HASHING\n"); _private_dtls_rehash(context, type); context->hs_messages[n]++;} else { DEBUG_PRINT("* UNEXPECTED MESSAGE (%i)\n", (int)n); payload_res = TLS_UNEXPECTED_MESSAGE; break; } } context->hs_messages[n]++; }
 #define TLS_24_BIT(buf, index, val) { unsigned int u_val = (unsigned int)val; buf[index] =  u_val / 0x10000; u_val %= 0x10000; buf[index + 1] =  u_val / 0x100; u_val %= 0x100; buf[index + 2] = u_val; }
 
-#if CRYPT > 0x0118
-    #define TLS_TOMCRYPT_PRIVATE_DP(key)                ((key).dp)
+#if CRYPT >= 0x0118
+    #define TLS_TOMCRYPT_PRIVATE_DP(key)                (&((key)->dp))
     #define TLS_TOMCRYPT_PRIVATE_SET_INDEX(key, k_idx)
 #else
     #define TLS_TOMCRYPT_PRIVATE_DP(key)                ((key)->dp)
@@ -1054,6 +1054,10 @@ static DHKey ffdhe8192 = {
 };
 #endif
 
+#if CRYPT > 0x0117
+    #define ltc_ecc_set_type    ltc_ecc_curve
+#endif
+
 struct ECCCurveParameters {
     int size;
     int iana;
@@ -1170,8 +1174,13 @@ static struct ECCCurveParameters x25519 = {
 static struct ECCCurveParameters * const default_curve = &secp256r1;
 
 void init_curve(struct ECCCurveParameters *curve) {
+#if CRYPT < 0x0118
     curve->dp.size = curve->size;
     curve->dp.name = (char *)curve->name;
+#else
+    curve->dp.cofactor = 1;
+    curve->dp.A = (char *)curve->A;
+#endif
     curve->dp.B = (char *)curve->B;
     curve->dp.prime = (char *)curve->P;
     curve->dp.Gx = (char *)curve->Gx;
@@ -1666,7 +1675,11 @@ unsigned char *_private_tls_decrypt_rsa(struct TLSContext *context, const unsign
     unsigned long out_size = len;
     int res = 0;
 
+#if (CRYPT >= 0x0118)
+    err = rsa_decrypt_key_ex(buffer, len, out, &out_size, NULL, 0, -1, -1, LTC_PKCS_1_V1_5, &res, &key);
+#else
     err = rsa_decrypt_key_ex(buffer, len, out, &out_size, NULL, 0, -1, LTC_PKCS_1_V1_5, &res, &key);
+#endif
     rsa_free(&key);
 
     if ((err) || (out_size != 48) || (ntohs(*(unsigned short *)out) != context->version)) {
@@ -1700,7 +1713,11 @@ unsigned char *_private_tls_encrypt_rsa(struct TLSContext *context, const unsign
     unsigned char *out = (unsigned char *)TLS_MALLOC(out_size);
     int hash_idx = find_hash("sha256");
     int prng_idx = find_prng("sprng");
+#if (CRYPT >= 0x0118)
+    err = rsa_encrypt_key_ex(buffer, len, out, &out_size, (unsigned char *)"Concept", 7, NULL, prng_idx, hash_idx, -1, LTC_PKCS_1_V1_5, &key);
+#else
     err = rsa_encrypt_key_ex(buffer, len, out, &out_size, (unsigned char *)"Concept", 7, NULL, prng_idx, hash_idx, LTC_PKCS_1_V1_5, &key);
+#endif
     rsa_free(&key);
     if ((err) || (!out_size)) {
         TLS_FREE(out);
@@ -2047,10 +2064,10 @@ static int _private_tls_is_point(ecc_key *key) {
     }
     
     /* load prime and b */
-    if ((err = mp_read_radix(prime, TLS_TOMCRYPT_PRIVATE_DP(key)->prime, 16)) != CRYPT_OK) {
+    if ((err = mp_read_radix(prime, (const char *)TLS_TOMCRYPT_PRIVATE_DP(key)->prime, 16)) != CRYPT_OK) {
         goto error;
     }
-    if ((err = mp_read_radix(b, TLS_TOMCRYPT_PRIVATE_DP(key)->B, 16)) != CRYPT_OK) {
+    if ((err = mp_read_radix(b, (const char *)TLS_TOMCRYPT_PRIVATE_DP(key)->B, 16)) != CRYPT_OK) {
         goto error;
     }
     
@@ -2141,8 +2158,10 @@ int _private_tls_ecc_import_key(const unsigned char *private_key, int private_le
         return err;
     }
     
+#if CRYPT < 0x0118
     TLS_TOMCRYPT_PRIVATE_SET_INDEX(key, -1);
     TLS_TOMCRYPT_PRIVATE_DP(key) = dp;
+#endif
     
     /* set z */
     if ((err = mp_set(key->pubkey.z, 1)) != CRYPT_OK) {
@@ -2326,9 +2345,10 @@ int _private_tls_ecc_import_pk(const unsigned char *public_key, int public_len, 
         return err;
     }
     
-    
+#if CRYPT < 0x0118
     TLS_TOMCRYPT_PRIVATE_SET_INDEX(key, -1);
     TLS_TOMCRYPT_PRIVATE_DP(key) = dp;
+#endif
     
     /* set z */
     if ((err = mp_set(key->pubkey.z, 1)) != CRYPT_OK) {
