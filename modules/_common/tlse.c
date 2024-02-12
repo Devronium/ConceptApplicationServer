@@ -1912,7 +1912,7 @@ int _private_tls_verify_rsa(struct TLSContext *context, unsigned int hash_type, 
 #endif
 #ifdef WITH_TLS_13
     if ((context->version == TLS_V13) || (context->version == DTLS_V13))
-        err = rsa_verify_hash_ex(buffer, len, hash, hash_len, LTC_PKCS_1_PSS, hash_idx, 0, &rsa_stat, &key);
+        err = rsa_verify_hash_ex(buffer, len, hash, hash_len, LTC_PKCS_1_PSS, hash_idx, hash_len, &rsa_stat, &key);
     else
 #endif
         err = rsa_verify_hash_ex(buffer, len, hash, hash_len, LTC_PKCS_1_V1_5, hash_idx, 0, &rsa_stat, &key);
@@ -7834,9 +7834,9 @@ int tls_parse_verify_tls13(struct TLSContext *context, const unsigned char *buf,
     memset(signing_data, 0x20, 64);
     // context string 33 bytes
     if (context->is_server)
-        memcpy(signing_data + 64, "TLS 1.3, server CertificateVerify", 33);
-    else
         memcpy(signing_data + 64, "TLS 1.3, client CertificateVerify", 33);
+    else
+        memcpy(signing_data + 64, "TLS 1.3, server CertificateVerify", 33);
     // a single 0 byte separator
     signing_data[97] = 0;
     signing_data_len = 98;
@@ -9128,7 +9128,7 @@ int tls_certificate_verify_signature(struct TLSCertificate *cert, struct TLSCert
         signature++;
         signature_len--;
     }
-    err = rsa_verify_hash_ex(signature, signature_len, cert->fingerprint, hash_len, LTC_PKCS_1_V1_5, hash_index, 0, &rsa_stat, &key);
+    err = rsa_verify_hash_ex(signature, signature_len, cert->fingerprint, hash_len, LTC_PKCS_1_V1_5, hash_index, hash_len, &rsa_stat, &key);
     rsa_free(&key);
     if (err) {
         DEBUG_PRINT("HASH VERIFY ERROR %i\n", err);
