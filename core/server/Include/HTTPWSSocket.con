@@ -401,4 +401,15 @@ class HTTPWSSocket {
 		}
 		return length sockets;
 	}
+
+	sockets() {
+		var arr = [socket.Socket];
+		var tls = tls_sockets;
+		for (var i = 0; i < length tls; i ++) {
+			var socket = tls[i];
+			if (socket)
+				arr[length arr] = socket.Socket;
+		}
+		return arr;
+	}
 }

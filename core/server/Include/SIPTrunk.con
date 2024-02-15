@@ -725,7 +725,7 @@ class SIPSession {
 					return "";
 			}
 			last_sequence_number = sequence_number;
-			var payload = SubStr(data, 12, length data);
+			var payload = SubStr(data, 12);
 			if (srtp)
 				payload = srtp.Decrypt(SubStr(data, 0, 12), payload);
 
@@ -901,7 +901,7 @@ class SIPSession {
 		return false;
 	}
 
-	Write(payload, max_frames = 0) {
+	Write(var payload, max_frames = 0) {
 		if ((remote_host) && (remote_port > 0)) {
 			if (max_frames > 0) {
 				var max_size = chunk_size / 1000 * 8 * max_frames;

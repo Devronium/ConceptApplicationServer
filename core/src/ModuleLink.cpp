@@ -2296,6 +2296,21 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
             }
             break;
 
+        case INVOKE_RESIZE_STRING:
+            {
+                VariableDATA *target      = va_arg(ap, VariableDATA *);
+                intptr_t      len =         va_arg(ap, intptr_t);
+                if ((!target) || (len < 0) || (target->TYPE != VARIABLE_STRING) || (!target->CLASS_DATA) || (!((struct plainstring *)target->CLASS_DATA)->DATA) || (len > ((struct plainstring *)target->CLASS_DATA)->LENGTH)) {
+                    result = INVALID_INVOKE_PARAMETER;
+                    break;
+                }
+
+                ((struct plainstring *)target->CLASS_DATA)->LENGTH = len;
+                if (len < ((struct plainstring *)target->CLASS_DATA)->DATA_SIZE)
+                    ((struct plainstring *)target->CLASS_DATA)->DATA[len] = 0;
+            }
+            break;
+
         case INVOKE_DYNAMIC_INCLUDE:
             {
                 PIFAlizator *pif           = va_arg(ap, PIFAlizator *);

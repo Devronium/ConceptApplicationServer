@@ -16712,7 +16712,6 @@ CONCEPT_FUNCTION_IMPL(U_, 1)
     }
 END_IMPL
 //---------------------------------------------------------------------------
-
 CONCEPT_FUNCTION_IMPL(UTF8Map, 2)
     T_STRING(UTF8Map, 0)
     T_NUMBER(UTF8Map, 1)
@@ -16731,4 +16730,31 @@ CONCEPT_FUNCTION_IMPL(UTF8Map, 2)
     }
 END_IMPL
 //---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(StrMove, 2)
+    T_STRING(StrMove, 0)
+    T_NUMBER(StrMove, 1)
 
+    int from = PARAM_INT(1);
+    if (from < 0)
+        from = 0;
+    if (from > PARAM_LEN(0))
+        from = PARAM_LEN(0);
+
+    if (from == 0) {
+        RETURN_STRING("");
+    } else
+    if (from == PARAM_LEN(0)) {
+        RETURN_BUFFER(PARAM(0), PARAM_LEN(0));
+        SET_STRING(0, "");
+    } else {
+        RETURN_BUFFER(PARAM(0), from);
+
+        char *str = NULL;
+        int len = PARAM_LEN(0) - from; 
+
+        memmove(PARAM(0), PARAM(0) + from, len);
+
+        Invoke(INVOKE_RESIZE_STRING, PARAMETER(0), (intptr_t)len);
+    }
+END_IMPL
+//---------------------------------------------------------------------------
