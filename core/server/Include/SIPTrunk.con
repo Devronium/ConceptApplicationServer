@@ -708,7 +708,7 @@ class SIPSession {
 		}
 	}
 
-	ParseRTP(data, var type = null) {
+	ParseRTP(var data, var type = null) {
 		type = -1;
 		last_timestamp = microseconds();
 		if (length data > 12) {
@@ -1066,11 +1066,11 @@ class SIPSession {
 						if (delta >= buf_chunk) {
 							buf_chunk = delta + 1;
 							f_size = chunk_size / 1000 * 8;
-							var d_buf = SubStr(buf, 0, /*160*/f_size);
+							var d_buf = StrMove(buf, f_size); // SubStr(buf, 0, /*160*/f_size);
 							if (!d_buf)
 								d_buf = SubStr(this.s.emptyData, 0, f_size);
 							if (d_buf) {
-								buf = SubStr(buf, /*160*/f_size);
+								// buf = SubStr(buf, /*160*/f_size);
 								if (this.s.OnAudioOut)
 									this.s.OnAudioOut(s, d_buf);
 								rtp_payload = SimpleRTP(d_buf);

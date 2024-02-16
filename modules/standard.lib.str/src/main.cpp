@@ -16749,9 +16749,7 @@ CONCEPT_FUNCTION_IMPL(StrMove, 2)
     } else {
         RETURN_BUFFER(PARAM(0), from);
 
-        char *str = NULL;
         int len = PARAM_LEN(0) - from; 
-
         memmove(PARAM(0), PARAM(0) + from, len);
 
         Invoke(INVOKE_RESIZE_STRING, PARAMETER(0), (intptr_t)len);

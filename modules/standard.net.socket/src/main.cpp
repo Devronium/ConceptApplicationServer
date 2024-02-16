@@ -442,6 +442,159 @@ int getdomainname(char *const domain, unsigned int dsize) {
  #define TCP_FASTOPEN   23
 #endif
 
+#define MAX_HEX_NUMBER_COUNT 8
+
+int ishexdigit(char ch) {
+    if ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F'))
+        return 1;
+    return 0;
+}
+
+int isIP6str(char *str) {
+    int hdcount = 0;
+    int hncount = 0;
+    int err = 0;
+    int packed = 0;
+
+    if (*str == ':') {
+        str ++;
+        if (*str != ':')
+            return 0;
+        else {
+            packed = 1;
+            hncount = 1;
+            str ++;
+
+            if (*str == 0)
+                return 1;
+        }
+    }
+
+    if (ishexdigit(*str) == 0)
+        return 0;
+
+    hdcount = 1;
+    hncount = 1;
+    str ++;
+
+    while (err == 0 && *str != 0) {
+        if (*str == ':') {
+            str ++;
+            if (*str == ':') {
+                if (packed == 1) {
+                    err = 1;
+                } else {
+                    str ++;
+
+                    if ((ishexdigit(*str)) || ((*str == 0) && (hncount < MAX_HEX_NUMBER_COUNT))) {
+                        packed = 1;
+                        hncount ++;
+
+                        if (ishexdigit(*str)) {
+                            if (hncount == MAX_HEX_NUMBER_COUNT) {
+                                err = 1;
+                            } else {
+                                hdcount = 1;
+                                hncount ++;
+                                str ++;
+                            }
+                        }
+                    } else {
+                        err = 1;
+                    }
+                }
+            } else {
+                if (!ishexdigit(*str)) {
+                    err = 1;
+                } else {
+                    if (hncount == MAX_HEX_NUMBER_COUNT) {
+                        err = 1;
+                    } else {
+                        hdcount = 1;
+                        hncount ++;
+                        str ++;
+                    }
+                }
+            }
+        } else {
+            if (ishexdigit(*str)) {
+                if (hdcount == 4) {
+                    err = 1;
+                } else {
+                    hdcount ++;
+                    str ++;
+                }
+            } else
+                err = 1;
+        }
+    }
+
+    if (hncount < MAX_HEX_NUMBER_COUNT && packed == 0)
+        err = 1;
+
+    return (err == 0);
+}
+
+int isIP4str(char *str) {
+    int nnumber = 0;
+    int value = 0;
+    int err = 0;
+
+    if (*str >= '0' && *str <= '9') {
+        value = *str - '0';
+        str ++;
+    } else
+        return 0;
+
+    nnumber = 1;
+
+    while ((err == 0) && (*str != 0)) {
+        if (*str >= '0' && *str <= '9') {
+            if (255 / value >= 10) {
+                value *= 10;
+
+                if (255 - value >= (*str - '0')) {
+                    value += (*str - '0');
+                    str ++;
+                } else
+                    err = 1;
+            } else
+                err = 1;
+        } else {
+            if (*str == '.') {
+                str ++;
+                if ((*str >= '0') && (*str <= '9')) {
+                    if (nnumber == 4) {
+                        err = 1;
+                    } else {
+                        if (*str == '0') {
+                            str ++;
+                            if ((*str != '.') && (*str != 0))
+                                err = 1;
+                            else {
+                                nnumber ++;
+                                value = 0;
+                            }
+                        } else {
+                            nnumber ++;
+                            value = *str - '0';
+                            str ++;
+                        }
+                    }
+                } else {
+                    err = 1;
+                }
+            } else
+            if (*str != 0)
+                err = 1;
+        }
+    }
+
+    if (nnumber != 4)
+        err = 1;
+
+    return (err == 0);
+}
 
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
 #ifdef _WIN32
@@ -1364,9 +1517,12 @@ CONCEPT_DLL_API CONCEPT_SocketWrite CONCEPT_API_PARAMETERS {
             if (result)
                 freeaddrinfo(result);
         } else {
-            if ((hp = gethostbyname(hostname)) == 0) {
-                RETURN_NUMBER(-2);
-                return 0;
+            int is_ip = isIP4str(hostname);
+            if (!is_ip) {
+                if ((hp = gethostbyname(hostname)) == 0) {
+                    RETURN_NUMBER(-2);
+                    return 0;
+                }
             }
 #ifdef _WIN32
             struct sockaddr_in host_address;
@@ -1378,7 +1534,17 @@ CONCEPT_DLL_API CONCEPT_SocketWrite CONCEPT_API_PARAMETERS {
             memset(&host_address, 0, sizeof(host_address));
             host_address.sin_family      = AF_INET;
             host_address.sin_port        = htons((unsigned short)nPort);
-            host_address.sin_addr.s_addr = ((struct in_addr *)(hp->h_addr))->s_addr;
+            if (is_ip) {
+                if (!inet_pton(AF_INET, hostname, &host_address.sin_addr)) {
+                    if ((hp = gethostbyname(hostname)) == 0) {
+                        RETURN_NUMBER(-2);
+                        return 0;
+                    }
+                    host_address.sin_addr.s_addr = ((struct in_addr *)(hp->h_addr))->s_addr;
+                }
+            } else {
+                host_address.sin_addr.s_addr = ((struct in_addr *)(hp->h_addr))->s_addr;
+            }
 
             sent_size = sendto((int)sock, buffer, (int)nSize, 0, (struct sockaddr *)&host_address, addr_length);
         }
@@ -2268,8 +2434,8 @@ CONCEPT_DLL_API CONCEPT_SCTPWrite CONCEPT_API_PARAMETERS {
     NUMBER nSize     = 0;
     NUMBER offset    = 0;
 
-    GET_CHECK_NUMBER(0, sock, "SocketWrite: parameter 1 should be a number");
-    GET_CHECK_BUFFER(1, buffer, nSize, "SocketWrite: parameter 2 should be a string buffer");
+    GET_CHECK_NUMBER(0, sock, "SCTPWrite: parameter 1 should be a number");
+    GET_CHECK_BUFFER(1, buffer, nSize, "SCTPWrite: parameter 2 should be a string buffer");
 
     int sent_size = 0;
     NUMBER stream_no = 0;
@@ -2278,20 +2444,20 @@ CONCEPT_DLL_API CONCEPT_SCTPWrite CONCEPT_API_PARAMETERS {
     NUMBER ppid = 0;
     unsigned int ref_flags = 0;
     if (PARAMETERS_COUNT > 2) {
-        GET_CHECK_NUMBER(2, stream_no, "SocketWrite: parameter 3 should be a number");
+        GET_CHECK_NUMBER(2, stream_no, "SCTPWrite: parameter 3 should be a number");
     }
     if (PARAMETERS_COUNT > 3) {
-        GET_CHECK_NUMBER(3, ttl, "SocketWrite: parameter 4 should be a number");
+        GET_CHECK_NUMBER(3, ttl, "SCTPWrite: parameter 4 should be a number");
     }
     if (PARAMETERS_COUNT > 4) {
-        GET_CHECK_NUMBER(4, ppid, "SocketWrite: parameter 5 should be a number");
+        GET_CHECK_NUMBER(4, ppid, "SCTPWrite: parameter 5 should be a number");
     }
     if (PARAMETERS_COUNT > 5) {
-        GET_CHECK_NUMBER(5, flags, "SocketWrite: parameter 6 should be a number");
+        GET_CHECK_NUMBER(5, flags, "SCTPWrite: parameter 6 should be a number");
         ref_flags = (unsigned int)flags;
     }
     if (PARAMETERS_COUNT > 6) {
-        GET_CHECK_NUMBER(6, offset, "SocketWrite: parameter 7 should be a number");
+        GET_CHECK_NUMBER(6, offset, "SCTPWrite: parameter 7 should be a number");
 
         buffer += (int)offset;
         nSize  -= (int)offset;
@@ -2302,7 +2468,7 @@ CONCEPT_DLL_API CONCEPT_SCTPWrite CONCEPT_API_PARAMETERS {
     }
     if (PARAMETERS_COUNT > 7) {
         NUMBER max_size = 0;
-        GET_CHECK_NUMBER(7, max_size, "SocketWrite: parameter 8 should be a number");
+        GET_CHECK_NUMBER(7, max_size, "SCTPWrite: parameter 8 should be a number");
         if ((nSize > max_size) && (max_size > 0))
             nSize = max_size;
         if (nSize <= 0) {
