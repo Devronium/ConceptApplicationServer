@@ -148,8 +148,8 @@ class SIPSession {
 	var Parent;
 	var ProxyCall;
 
-	var sdp_in = "";
-	var sdp_out = "";
+	// var sdp_in = "";
+	// var sdp_out = "";
 
 	var OnMessage;
 	var OnReferError;
@@ -239,7 +239,7 @@ class SIPSession {
 			return;
 
 		var rtp_dtmf_type;
-		sdp_in = msg.PayloadBlob;
+		// sdp_in = msg.PayloadBlob;
 		var has_connection = false;
 		var ice_fingerprint = "";
 		var ice_ufrag = "";
@@ -757,7 +757,7 @@ class SIPSession {
 
 			res = rtc_channel.sdp(ssrc_id, codec, s.localip, rtp_port, "passive");
 			res += extra;
-			sdp_out = res;
+			// sdp_out = res;
 
 			return res;
 		}
@@ -792,7 +792,7 @@ class SIPSession {
 		}
 		if (extra)
 			res += "a=$extra\r\n";
-		sdp_out = res;
+		// sdp_out = res;
 		return res;
 	}
 
@@ -1551,107 +1551,102 @@ class SIPStack {
 		return false;
 	}
 
-	public Parse(msg) {
-		if (msg) {
-			var orig_msg = msg;
-			msg = StrReplace(msg, "\r", "");
+	public Parse(var msg) {
+		if (!msg)
+			return null;
 
-			var arr = StrSplit(msg, "\n", true);
-			var len = length arr;
+		var arr = StrSplit(msg, "\r\n", true);
+		var len = length arr;
 
-			var first_line = arr[0];
-			if (first_line) {
-				var first_line_arr = StrSplit(first_line, " ");
-				var sipid = ToUpper(first_line_arr[0]);	
-				var message = new SIPMessage();
-				if (sipid[0] + sipid[1] + sipid[2] == "SIP") {
-					// is server response
-					message.FromServer = true;
-					message.ServerCode = value first_line_arr[1];
-					message.ServerCodeText = "";
-					for (var i = 2; i < length first_line_arr; i++) {
-						if (i > 2)
-							message.ServerCodeText += " ";
-						message.ServerCodeText += first_line_arr[i];
-					}
-					message.Protocol = sipid;
-				} else {
-					switch (sipid) {
-						case "INVITE":
-						case "ACK":
-						case "BYE":
-						case "CANCEL":
-						case "OPTIONS":
-						case "REGISTER":
-						case "PRACK":
-						case "NOTIFY":
-						case "PUBLISH":
-						case "INFO":
-						case "REFER":
-						case "MESSAGE":
-						case "UPDATE":
-							if (length first_line_arr > 1) {
-								message.Understood = true;	
-								message.Destination = this.ParseDestination(first_line_arr[1]);
-								message.Method = sipid;
-								if (first_line_arr[2])
-									message.Protocol = first_line_arr[2];
-							}
-							break;
-					}
-				}
-				
-				var headers = new [];
-				var need_payload = false;
-				var has_content = false;
-				for (i = 1; i < len; i++) {
-					var line = arr[i];
-					if (line) {
-						var pos = Pos(line, ":");
-						if (pos > 0) {
-							var name = ToLower(SubStr(line, 0, pos - 1));
-							var val = trim(SubStr(line, pos, length line));
-							if (headers[name]) {
-								if (typeof headers[name] == "array")
-									headers[name] += val;
-								else
-									headers[name] = [ headers[name], val ];
-							} else
-								headers[name] = val;
+		var first_line = arr[0];
+		if (!first_line)
+			return null;
 
-							if (name == "content-type") {
-								if ((val == "application/sdp") || (val=="sdp"))
-									need_payload = true;
-								has_content = true;
-							}
-						}
-					} else {
-						// switch to payload
-						break;
+		var first_line_arr = StrSplit(first_line, " ");
+		var sipid = ToUpper(first_line_arr[0]);	
+		var message = new SIPMessage();
+		if (sipid[0] + sipid[1] + sipid[2] == "SIP") {
+			// is server response
+			message.FromServer = true;
+			message.ServerCode = value first_line_arr[1];
+			message.ServerCodeText = "";
+			for (var i = 2; i < length first_line_arr; i++) {
+				if (i > 2)
+					message.ServerCodeText += " ";
+				message.ServerCodeText += first_line_arr[i];
+			}
+			message.Protocol = sipid;
+		} else {
+			switch (sipid) {
+				case "INVITE":
+				case "ACK":
+				case "BYE":
+				case "CANCEL":
+				case "OPTIONS":
+				case "REGISTER":
+				case "PRACK":
+				case "NOTIFY":
+				case "PUBLISH":
+				case "INFO":
+				case "REFER":
+				case "MESSAGE":
+				case "UPDATE":
+					if (length first_line_arr > 1) {
+						message.Understood = true;	
+						message.Destination = this.ParseDestination(first_line_arr[1]);
+						message.Method = sipid;
+						if (first_line_arr[2])
+							message.Protocol = first_line_arr[2];
 					}
-				}
-				var payload = new [];
-				if (need_payload) {
-					message.PayloadBlob = "";
-					while (i < len) {
-						line = arr[i++];
-						if (line) {
-							payload[length payload] = line;
-							message.PayloadBlob += line + "\r\n";
-						}
-					}
-				} else
-				if (has_content) {
-					pos = Pos(orig_msg, "\r\n\r\n");
-					if (pos > 0)
-						message.PayloadBlob = SubStr(orig_msg, pos + 3);
-				}
-				message.Headers = headers;
-				message.Payload = payload;
-				message.Local = false;
-				this.lastMessageTimestamp = time();
+					break;
 			}
 		}
+		
+		var headers = new [];
+		var need_payload = false;
+		var has_content = false;
+		for (i = 1; i < len; i++) {
+			var line = arr[i];
+			if (line) {
+				var pos = Pos(line, ":");
+				if (pos > 0) {
+					var name = ToLower(SubStr(line, 0, pos - 1));
+					var val = trim(SubStr(line, pos, length line));
+					if (headers[name]) {
+						if (typeof headers[name] == "array")
+							headers[name] += val;
+						else
+							headers[name] = [ headers[name], val ];
+					} else
+						headers[name] = val;
+					if (name == "content-type") {
+						if ((val == "application/sdp") || (val=="sdp"))
+							need_payload = true;
+						has_content = true;
+					}
+				}
+			} else {
+				// switch to payload
+				break;
+			}
+		}
+		var payload = new [];
+		if (has_content) {
+			pos = Pos(msg, "\r\n\r\n");
+			if (pos > 0)
+				message.PayloadBlob = SubStr(msg, pos + 3);
+		}
+		if (need_payload) {
+			while (i < len) {
+				line = arr[i++];
+				if (line)
+					payload[length payload] = line;
+			}
+		}
+		message.Headers = headers;
+		message.Payload = payload;
+		message.Local = false;
+		this.lastMessageTimestamp = time();
 		return message;
 	}
 
@@ -3431,7 +3426,7 @@ class SIPStack {
 		return ops;
 	}
 
-	io(socket_emulation, msg_buffer, ip, port, max_forwards = 70) {
+	io(socket_emulation, var msg_buffer, ip, port, max_forwards = 70) {
 		use_socket = null;
 
 		if (!msg_buffer)

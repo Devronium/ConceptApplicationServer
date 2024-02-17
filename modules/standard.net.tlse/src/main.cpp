@@ -661,6 +661,38 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SRTPEncrypt, 3, 4)
     }
 END_IMPL
 //------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SRTPEncryptPacket, 3, 4)
+    T_HANDLE(SRTPEncryptPacket, 0)
+    T_STRING(SRTPEncryptPacket, 1)
+    T_NUMBER(SRTPEncryptPacket, 2)
+    SRTPContext *ctx = (SRTPContext *)(SYS_INT)PARAM(0);
+    char *out = NULL;
+    unsigned char srtcp = 0;
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(SRTPEncryptPacket, 3)
+        srtcp = (unsigned char)PARAM_INT(3);
+    }
+    int header_len = PARAM_INT(2);
+    if (header_len >= PARAM_LEN(1)) {
+        RETURN_STRING("");
+        return 0;
+    }
+    int out_buffer_len = PARAM_LEN(1) - header_len + 32;
+    CORE_NEW(out_buffer_len + 1, out);
+    if (out) {
+        int res = srtp_encrypt(ctx, srtcp, (unsigned char *)PARAM(1), header_len, (unsigned char *)(PARAM(1) + header_len), (PARAM_LEN(1) - header_len), (unsigned char *)out, &out_buffer_len);
+        if (res) {
+            CORE_DELETE(out);
+            RETURN_STRING("");
+        } else {
+            out[out_buffer_len] = 0;
+            SetVariable(RESULT, -1, out, out_buffer_len);
+        }
+    } else {
+        RETURN_STRING("");
+    }
+END_IMPL
+//------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SRTPDecrypt, 3, 4)
     T_HANDLE(SRTPDecrypt, 0)
     T_STRING(SRTPDecrypt, 1)
@@ -676,6 +708,38 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SRTPDecrypt, 3, 4)
     CORE_NEW(out_buffer_len + 1, out);
     if (out) {
         int res = srtp_decrypt(ctx, srtcp, (unsigned char *)PARAM(1), PARAM_LEN(1), (unsigned char *)PARAM(2), PARAM_LEN(2), (unsigned char *)out, &out_buffer_len);
+        if (res) {
+            CORE_DELETE(out);
+            RETURN_STRING("");
+        } else {
+            out[out_buffer_len] = 0;
+            SetVariable(RESULT, -1, out, out_buffer_len);
+        }
+    } else {
+        RETURN_STRING("");
+    }
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SRTPDecryptPacket, 3, 4)
+    T_HANDLE(SRTPDecryptPacket, 0)
+    T_STRING(SRTPDecryptPacket, 1)
+    T_NUMBER(SRTPDecryptPacket, 2)
+    SRTPContext *ctx = (SRTPContext *)(SYS_INT)PARAM(0);
+    char *out = NULL;
+    unsigned char srtcp = 0;
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(SRTPDecryptPacket, 3)
+        srtcp = (unsigned char)PARAM_INT(3);
+    }
+    int header_len = PARAM_INT(2);
+    if (header_len >= PARAM_LEN(1)) {
+        RETURN_STRING("");
+        return 0;
+    }
+    int out_buffer_len = PARAM_LEN(1) - header_len + 1;
+    CORE_NEW(out_buffer_len + 1, out);
+    if (out) {
+        int res = srtp_decrypt(ctx, srtcp, (unsigned char *)PARAM(1), header_len, (unsigned char *)(PARAM(1) + header_len), (PARAM_LEN(1) - header_len), (unsigned char *)out, &out_buffer_len);
         if (res) {
             CORE_DELETE(out);
             RETURN_STRING("");

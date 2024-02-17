@@ -1489,6 +1489,27 @@ CONCEPT_DLL_API CONCEPT_SocketWrite CONCEPT_API_PARAMETERS {
     }
     if (isUdp) {
         if (family == AF_INET6) {
+            int is_ip = isIP6str(hostname);
+
+            if (is_ip) {
+                struct sockaddr_in6 host_address;
+#ifdef _WIN32
+                int addr_length = sizeof(host_address);
+#else
+                socklen_t addr_length = sizeof(host_address);
+#endif
+                memset(&host_address, 0, sizeof(host_address));
+                host_address.sin6_family      = AF_INET6;
+                host_address.sin6_port        = htons((unsigned short)nPort);
+                if (is_ip) {
+                    if (inet_pton(AF_INET6, hostname, &host_address.sin6_addr)) {
+                        sent_size = sendto((int)sock, buffer, (int)nSize, 0, (struct sockaddr *)&host_address, addr_length);
+                        RETURN_NUMBER(sent_size);
+                        return 0;
+                    }
+                }
+            }
+
             struct addrinfo hints;
             struct addrinfo *res, *result;
 
@@ -1524,12 +1545,11 @@ CONCEPT_DLL_API CONCEPT_SocketWrite CONCEPT_API_PARAMETERS {
                     return 0;
                 }
             }
-#ifdef _WIN32
             struct sockaddr_in host_address;
+#ifdef _WIN32
             int addr_length = sizeof(host_address);
 #else
-            struct sockaddr_in host_address;
-            socklen_t          addr_length = sizeof(host_address);
+            socklen_t addr_length = sizeof(host_address);
 #endif
             memset(&host_address, 0, sizeof(host_address));
             host_address.sin_family      = AF_INET;
