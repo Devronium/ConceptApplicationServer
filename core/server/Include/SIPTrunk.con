@@ -814,7 +814,7 @@ class SIPSession {
 	}
 
 	CheckMedia(var type = null) {
-		if ((rtp) && (rtp.HasData)) {
+		if ((rtp) && (rtp.GetHasData())) {
 			if (rtc_channel) {
 				var packet_remote_ip;
 				var packet_remote_port;
@@ -2607,7 +2607,7 @@ class SIPStack {
 
 	PeekMessage(var ip, var port, max_forwards = 70) {
 		try {
-			if (udpclientsocket.HasData) {
+			if (udpclientsocket.GetHasData()) {
 				// var msg = this.Parse(udpclientsocket.Read(ip, port));
 				var msg = this.Parse(this.DoRead(udpclientsocket, ip, port));
 				if (msg) {

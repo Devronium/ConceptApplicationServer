@@ -53,7 +53,7 @@ class Worker {
 		return "";
 	}
 
-	AddData(string data, priority = 0, key = 0) {
+	AddData(var string data, priority = 0, key = 0) {
 		if (_workerobj) {
 			if (priority > 0)
 				return AddWorkerData(_workerobj, data, priority, key);
@@ -98,7 +98,7 @@ class Worker {
 		return GetWorkerDataAll(data, 0, max_elements);
 	}
 
-	static Result(data) {
+	static Result(var data) {
 		return AddWorkerResultData(data);
 	}
 

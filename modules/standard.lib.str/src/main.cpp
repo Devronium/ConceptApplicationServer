@@ -16756,3 +16756,180 @@ CONCEPT_FUNCTION_IMPL(StrMove, 2)
     }
 END_IMPL
 //---------------------------------------------------------------------------
+void setArrayElement(void *RESULT, INVOKE_CALL Invoke, const char *key, int key_len, const char *value, int value_len) {
+    const char *no_key = "::";
+    const char *empty_value = "";
+    char key_buffer[0x100];
+
+    int do_exit = 0;
+    while ((!do_exit) && (value_len > 0)) {
+        switch (value[value_len - 1]) {
+            case ' ':
+            case '\r':
+            case '\n':
+            case '\t':
+            case '\x0B':
+                value_len --;
+                break;
+            default:
+                do_exit = 1;
+        }
+    }
+
+    do_exit = 0;
+    while ((!do_exit) && (key_len > 0)) {
+        switch (key[key_len - 1]) {
+            case ' ':
+            case '\r':
+            case '\n':
+            case '\t':
+            case '\x0B':
+                key_len --;
+                break;
+            default:
+                do_exit = 1;
+        }
+    }
+
+    if ((key_len <= 0) && (value_len <= 0))
+        return;
+
+    if (key_len >= sizeof(key_buffer))
+        key_len = sizeof(key_buffer);
+
+    if ((!key) || (key_len <= 0)) {
+        key = no_key;
+    } else {
+        int i;
+        for (i = 0; i < key_len; i ++)
+            key_buffer[i] = tolower(key[i]);
+        key_buffer[key_len] = 0;
+        key = key_buffer;
+    }
+
+    if (value_len <= 0) {
+        value = empty_value;
+        value_len = 0;
+    }
+
+    void *var = NULL;
+    
+    Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, key, &var);
+
+    char *szData;
+    INTEGER type;
+    NUMBER nData;
+
+    Invoke(INVOKE_GET_VARIABLE, var, &type, &szData, &nData);
+
+    char *buf = NULL;
+    int len;
+
+    switch (type) {
+        case VARIABLE_STRING:
+            len = (int)nData;
+            if (len > 0) {
+                buf = (char *)malloc(len + 1);
+                if (buf) {
+                    memcpy(buf, szData, len);
+                    buf[len] = 0;
+                }
+            }
+
+            CREATE_ARRAY(var);
+            if (buf) {
+                Invoke(INVOKE_SET_ARRAY_ELEMENT, var, (INTEGER)0, (INTEGER)VARIABLE_STRING, (char *)buf, (NUMBER)len);
+                free(buf);
+            } else {
+                Invoke(INVOKE_SET_ARRAY_ELEMENT, var, (INTEGER)0, (INTEGER)VARIABLE_STRING, (char *)"", (NUMBER)0);
+            }
+            // no break here
+        case VARIABLE_ARRAY:
+            Invoke(INVOKE_SET_ARRAY_ELEMENT, var, (INTEGER)Invoke(INVOKE_GET_ARRAY_COUNT, var), (INTEGER)VARIABLE_STRING, (char *)value, (NUMBER)value_len);
+            break;
+        default:
+            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, key, (INTEGER)VARIABLE_STRING, (char *)value, (NUMBER)value_len);
+            break;
+    }
+}
+
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(StrKeyValue, 1, 3)
+    T_STRING(StrKeyValue, 0)
+    int skip_lines = 0;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(StrKeyValue, 1)
+        skip_lines = PARAM_INT(1);
+        if (skip_lines < 0)
+            skip_lines = 0;
+    }
+    int as_array = 0;
+    if (PARAMETERS_COUNT > 2) {
+        if (skip_lines > 1) {
+            CREATE_ARRAY(PARAMETER(2));
+            as_array = 1;
+        } else {
+            SET_STRING(2, "");
+        }
+    }
+
+    CREATE_ARRAY(RESULT);
+
+    char *str = PARAM(0);
+    int len = PARAM_LEN(0);
+    int in_key = 0;
+    int in_val = 0;
+    int key_len = 0;
+    char *key = str;
+    if ((str) && (len > 0)) {
+        int i;
+        for (i = 0; i < len; i ++) {
+            char ch = str[i];
+            switch (ch) {
+                case '\n':
+                    // new line
+                    if (!in_val) {
+                        int line_len = (str - key) + i - 1;
+                        if ((PARAMETERS_COUNT > 2) && (skip_lines)) {
+                            if (line_len > 0) {
+                                if (as_array) {
+                                    Invoke(INVOKE_SET_ARRAY_ELEMENT, PARAMETER(2), (INTEGER)Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(2)), (INTEGER)VARIABLE_STRING, (char *)key, (NUMBER)line_len);
+                                } else {
+                                    SET_BUFFER(2, key, line_len);
+                                }
+                            }
+                        } else {
+                            setArrayElement(RESULT, Invoke, NULL, 0, key, key_len);
+                        }
+                    } else {
+                        setArrayElement(RESULT, Invoke, key, key_len, str + in_val, i - in_val - 1);
+                    }
+                    if (skip_lines)
+                        skip_lines --;
+                    in_key = i + 1;
+                    key = str + in_key;
+                    in_val = 0;
+
+                    if ((i < len - 1) && ((str[i + 1] == '\r') || (str[i + 1] == '\n')))
+                        return 0;
+                    break;
+                case ':':
+                    if ((!skip_lines) && (!in_val)) {
+                        key_len = (str - key) + i;
+                        in_val = i + 1;
+                        in_key = 0;
+                    }
+                    break;
+                case ' ':
+                case '\t':
+                case '\x0B':
+                    if ((in_key) && (in_key == i) && (!in_val))
+                        in_key ++;
+                    else
+                    if ((in_val) && (in_val == i))
+                        in_val ++;
+                    break;
+            }
+        }
+    }
+END_IMPL
+//---------------------------------------------------------------------------

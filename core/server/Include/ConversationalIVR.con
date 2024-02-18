@@ -12,11 +12,14 @@ include OpenAI.con
 include MP3.con
 include ElevenLabs.con
 include RWKV.con
+include PiperTTS.con
 
 define SETTINTS_MAX_TIMEOUTS	4
 define SETTINGS_ENSURE_WORDS	false
 define SETTINGS_MAX_DEQUEUE	4096
 define SETTINGS_MAX_DURATION	1800
+define SETTINGS_MAX_CALLCACHE	10000
+define SETTINGS_REREGISTER	120
 
 define STT_RESET	0
 define STT_ADDBUFFER	1
@@ -98,7 +101,11 @@ class IVRClientData {
 	}
 
 	callDuration() {
-		return floor((microseconds() - this.timestamp) / 1000);
+		return round((microseconds() - this.timestamp) / 1000);
+	}
+
+	callDurationSeconds() {
+		return round((microseconds() - this.timestamp) / 1000000);
 	}
 
 	waitingMusic(ivr, session, type = 8) {
@@ -982,6 +989,21 @@ class VoiceWorker {
 						}
 					}
 				}
+			} else
+			if (Pos(voice, "piper/") > 0) {
+				arr = StrSplit(voice, "/");
+				if (length arr == 3) {
+					console.log(LOG_THIS, "using PiperVoice for [$text]");
+					var piper = GLOBALS()[voice];
+					if (!piper) {
+						piper = new PiperTTS("./models/piper/${arr[2]}.onnx");
+						GLOBALS()[voice] = piper;
+					}
+					var piper_data = piper.TTS(text);
+					if (piper_data)
+						piper_data = pack("s4u32s4s4u32u16u16u32u32u16u16s4u32", "RIFF", length piper_data + 28, "WAVE", "fmt ", 16, 1, 1, 22050, 44100, 2, 16, "data", length piper_data) + piper_data;
+					return piper_data;
+				}
 			}
 
 
@@ -1049,13 +1071,15 @@ class VoiceWorker {
 
 		console.log(LOG_THIS, "preparing $voice/[$text]");
 		if (!FileExists("./repository/$format/$fname.$format")) {
-			VoiceWorker::tts(text, voice, "./repository/$fname.wav");
+			var buf = VoiceWorker::tts(text, voice, "./repository/$fname.wav");
+			if (typeof buf != "string")
+				buf = ReadFile("./repository/$fname.wav");
 			if (format == "ulaw") {
-				var ulaw_data = VoiceWorker::ulaw(ReadFile("./repository/$fname.wav"));
+				var ulaw_data = VoiceWorker::ulaw(buf);
 				if (ulaw_data)
 					WriteFile(ulaw_data, "./repository/ulaw/$fname.ulaw");
 			} else {
-				var alaw_data = VoiceWorker::alaw(ReadFile("./repository/$fname.wav"));
+				var alaw_data = VoiceWorker::alaw(buf);
 				if (alaw_data)
 					WriteFile(alaw_data, "./repository/alaw/$fname.alaw");
 			}
@@ -1545,6 +1569,7 @@ class ConversationalIVR {
 	var[] ivr_quota_limit;
 	var[] ivr_quota;
 	var[] ivr_alerts;
+	var[] ivr_cache;
 
 	var ivr_api_trees_dirty;
 
@@ -1985,7 +2010,18 @@ class ConversationalIVR {
 			ivr_tree = ivr_api_trees[callid] ?? ivr_tree;
 			event_type = "out";
 		} else {
-			ivr_tree = this.dequeueCallbackTree(from, to, false) ?? this.loadDefaultTree(to);
+			if (IsSet(this.ivr_cache, to)) {
+				var cache_arr = this.ivr_cache[to];
+				if ((cache_arr) && (IsSet(cache_arr, from))) {
+					ivr_tree = cache_arr[from];
+					deleteArrayElement(cache_arr, from);
+				}
+			}
+
+			if (ivr_tree)
+				ivr_tree = this.dequeueCallbackTree(from, to, false) ?? ivr_tree;
+			else
+				ivr_tree = this.dequeueCallbackTree(from, to, false) ?? this.loadDefaultTree(to);
 			event_type = "in";
 		}
 
@@ -2008,6 +2044,19 @@ class ConversationalIVR {
 			if (Pos(ivr_msg, "\$js") == 1) {
 				// to do
 				return [""];
+			}
+		}
+		if (event_type == "in") {
+			var key = GetKeys(ivr_tree)[0];
+			if (key) {
+				key = trim(key);
+				if (Pos(key, "\$redirect") == 1) {
+					var redirect_addr = trim(SubStr(key, 10));
+					if (redirect_addr) {
+						this.ivr.redirect = redirect_addr;
+						return 0;
+					}
+				}
 			}
 		}
 		var msg = trim(StrSplit(ivr_msg, "|")[0]);
@@ -2693,10 +2742,10 @@ class ConversationalIVR {
 			for (i = 0; i < length ai_workers; i ++)
 				this.OnIdle_openAIWorker(ai_workers[i]);
 
-			if (microseconds() - every_second >= 1000000) {
-				this.ivr.stack.Reregister();
-				this.every_second = microseconds();
-			}
+			// if (microseconds() - every_second >= (SETTINGS_REREGISTER * 1000000)) {
+			// 	this.ivr.stack.Reregister();
+			// 	this.every_second = microseconds();
+			// }
 			if (this.OnReloadConfig) {
 				if (time() - reload_config_second >= 48) {
 					this.OnReloadConfig(this);
@@ -3862,7 +3911,7 @@ class ConversationalIVR {
 		}
 	}
 
-	call(who, from, tree = null, max_duration = SETTINGS_MAX_DURATION, force_identity = "", var info_resources = null) {
+	call(who, from, tree = null, max_duration = SETTINGS_MAX_DURATION, cache = false, force_identity = "", var info_resources = null) {
 		var voice = "";
 
 		this.loadConfig(from);
@@ -3893,6 +3942,20 @@ class ConversationalIVR {
 			this.ensureWords(from_parsed, voice, used_words);
 		}
 
+		if ((cache) && (from) && (who) && (tree)) {
+			var cache_arr = this.ivr_cache[from];
+			if (!cache_arr) {
+				cache_arr = new [];
+				this.ivr_cache[from] = cache_arr;
+			}
+			cache_arr[StrSplit(who, "@")[0]] = tree;
+
+			if (length cache_arr >= SETTINGS_MAX_CALLCACHE)
+				deleteArrayElement(cache_arr, 0);
+
+			console.log(LOG_THIS, "cached call from $from to $who");
+		}
+
 		if ((!texts) || (length texts == 0))
 			return callSyncAll(who, from, tree, max_duration, force_identity);
 
@@ -3920,11 +3983,14 @@ class ConversationalIVR {
 		this.ivr.stack.Registrations = new [];
 	}
 
-	refer(session, destination) {
+	refer(session, destination, clear_sessions = true) {
 		if (!session) {
 			console.warn(LOG_THIS, "cannot refer: invalid session");
 			return null;
 		}
+
+		if (clear_sessions)
+			this.ivr.stack.ClearChildSessions(session.sip);
 
 		if (session.ClientData) {
 			session.ClientData.referAddress = destination;
@@ -3942,7 +4008,7 @@ class ConversationalIVR {
 			for (var i = 0; i < length arr; i ++) {
 				var destination_address = trim(arr[i]);
 				if (destination_address)
-					this.refer(session, destination_address);
+					this.refer(session, destination_address, false);
 			}
 			return;
 		}
@@ -4103,7 +4169,7 @@ class ConversationalIVR {
 				var obj = data[i];
 				if ((obj) && (obj["status"]) && ("" + obj["who"] == to) && (obj["text"])) {
 					obj["status"] = "answered";
-					obj["duration"] = _floor(session.ClientData.callDuration() / 1000);
+					obj["duration"] = session.ClientData.callDurationSeconds();
 					obj["path"] = session.ClientData.ivr_path;
 					obj["timestamp"] = (new Date()).toISOString();
 					obj["conversation"] = session.ClientData.debug_text ?? session.ClientData.last_text;
@@ -4161,7 +4227,7 @@ class ConversationalIVR {
 					} else {
 						obj["status"] = "not answered";
 					}
-					obj["duration"] = _floor(session.ClientData.callDuration() / 1000);
+					obj["duration"] = session.ClientData.callDurationSeconds();
 					obj["path"] = session.ClientData.ivr_path;
 					obj["timestamp"] = (new Date()).toISOString();
 					obj["conversation"] = session.ClientData.debug_text ?? session.ClientData.last_text;
@@ -4185,7 +4251,7 @@ class ConversationalIVR {
 				if (!route)
 					route = ivr_queues[identity]["route"];
 
-				if (this.call(trim(StrSplit(obj["who"], ",")[0]) + "@" + route, identity, tree, SETTINGS_MAX_DURATION, obj["as"] ?? "")) {
+				if (this.call(trim(StrSplit(obj["who"], ",")[0]) + "@" + route, identity, tree, SETTINGS_MAX_DURATION, false, obj["as"] ?? "")) {
 					active_calls ++;
 					this._updateNa(identity, obj["who"], tree);
 					return true;
@@ -4284,3 +4350,4 @@ class ConversationalIVR {
 		}
 	}
 }
+
