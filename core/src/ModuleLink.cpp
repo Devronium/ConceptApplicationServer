@@ -2298,8 +2298,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 
         case INVOKE_RESIZE_STRING:
             {
-                VariableDATA *target      = va_arg(ap, VariableDATA *);
-                intptr_t      len =         va_arg(ap, intptr_t);
+                VariableDATA *target = va_arg(ap, VariableDATA *);
+                intptr_t len = va_arg(ap, intptr_t);
                 if ((!target) || (len < 0) || (target->TYPE != VARIABLE_STRING) || (!target->CLASS_DATA) || (!((struct plainstring *)target->CLASS_DATA)->DATA) || (len > ((struct plainstring *)target->CLASS_DATA)->LENGTH)) {
                     result = INVALID_INVOKE_PARAMETER;
                     break;
@@ -2308,6 +2308,27 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 ((struct plainstring *)target->CLASS_DATA)->LENGTH = len;
                 if (len < ((struct plainstring *)target->CLASS_DATA)->DATA_SIZE)
                     ((struct plainstring *)target->CLASS_DATA)->DATA[len] = 0;
+            }
+            break;
+
+        case INVOKE_REUSE_STRING:
+            {
+                VariableDATA *target = va_arg(ap, VariableDATA *);
+                char **str = va_arg(ap, char **);
+
+                if ((!target) || (!str) || (target->TYPE != VARIABLE_STRING)) {
+                    result = INVALID_INVOKE_PARAMETER;
+                    break;
+                }
+
+                if ((target->CLASS_DATA) && (((struct plainstring *)target->CLASS_DATA)->LENGTH) && (((struct plainstring *)target->CLASS_DATA)->DATA)) {
+                    *str = ((struct plainstring *)target->CLASS_DATA)->DATA;
+
+                    // reset string variable
+                    plainstring_init((struct plainstring *)target->CLASS_DATA);
+                } else {
+                    *str = NULL;
+                }
             }
             break;
 

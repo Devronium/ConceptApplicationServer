@@ -1255,7 +1255,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(CreateWorker, 3, 6)
     RETURN_NUMBER((uintptr_t)worker);
 END_IMPL
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerData, 2, 4)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerData, 2, 5)
     T_HANDLE(AddWorkerData, 0)
     T_STRING(AddWorkerData, 1)
 
@@ -1269,6 +1269,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerData, 2, 4)
         T_NUMBER(AddWorkerData, 3);
         key = (intptr_t)PARAM(3);
     }
+    int reuse_string = 0;
+    if (PARAMETERS_COUNT > 4) {
+        T_NUMBER(AddWorkerData, 4);
+        reuse_string = PARAM_INT(4);
+    }
+
     void *worker = (void *)(uintptr_t)PARAM(0);
     ThreadMetaContainer *tmc = NULL;
     Invoke(INVOKE_GETPROTODATA, worker, (int)2, &tmc);
@@ -1278,11 +1284,19 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerData, 2, 4)
     int len = PARAM_LEN(1);
     if (len > 0) {
         char *owned_buffer = NULL;
-        CORE_NEW(len + 1, owned_buffer);
-        if (!owned_buffer)
-            return (void *)"AddWorkerData: Not enough memory";
-        memcpy(owned_buffer, PARAM(1), len);
-        owned_buffer[len] = 0;
+        if (reuse_string) {
+            Invoke(INVOKE_REUSE_STRING, PARAMETER(1), &owned_buffer);
+            if (!owned_buffer) {
+                RETURN_NUMBER(-1);
+                return 0;
+            }
+        } else {
+            CORE_NEW(len + 1, owned_buffer);
+            if (!owned_buffer)
+                return (void *)"AddWorkerData: Not enough memory";
+            memcpy(owned_buffer, PARAM(1), len);
+            owned_buffer[len] = 0;
+        }
         int size = tmc->AddInput(owned_buffer, len, priority, key);
         RETURN_NUMBER(size);
     } else {
@@ -1341,7 +1355,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerDataAll, 2, 4)
     }
 END_IMPL
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(AddWorkerResultData, 1)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerResultData, 1, 2)
     T_STRING(AddWorkerResultData, 0)
 
     ThreadMetaContainer * tmc = NULL;
@@ -1349,14 +1363,24 @@ CONCEPT_FUNCTION_IMPL(AddWorkerResultData, 1)
     if (!tmc)
         return (void *)"Using a worker function on a non-worker";
 
+    int reuse_string = 0;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(AddWorkerResultData, 1);
+        reuse_string = PARAM_INT(1);
+    }
+
     int len = PARAM_LEN(0);
     if (len > 0) {
         char *owned_buffer = NULL;
-        CORE_NEW(len + 1, owned_buffer);
-        if (!owned_buffer)
-            return (void *)"AddWorkerData: Not enough memory";
-        memcpy(owned_buffer, PARAM(0), len);
-        owned_buffer[len] = 0;
+        if (reuse_string) {
+            Invoke(INVOKE_REUSE_STRING, PARAMETER(0), &owned_buffer);
+        } else {
+            CORE_NEW(len + 1, owned_buffer);
+            if (!owned_buffer)
+                return (void *)"AddWorkerData: Not enough memory";
+            memcpy(owned_buffer, PARAM(0), len);
+            owned_buffer[len] = 0;
+        }
         int size = tmc->AddOutput(owned_buffer, len);
         RETURN_NUMBER(size);
     } else {

@@ -1555,10 +1555,9 @@ class SIPStack {
 		if (!msg)
 			return null;
 
-		var arr = StrSplit(msg, "\r\n", true);
-		var len = length arr;
+		var headers = StrKeyValue(msg, 1, var first_line);
+		var len = length headers;
 
-		var first_line = arr[0];
 		if (!first_line)
 			return null;
 
@@ -1602,49 +1601,24 @@ class SIPStack {
 			}
 		}
 		
-		var headers = new [];
 		var need_payload = false;
 		var has_content = false;
-		for (i = 1; i < len; i++) {
-			var line = arr[i];
-			if (line) {
-				var pos = Pos(line, ":");
-				if (pos > 0) {
-					var name = ToLower(SubStr(line, 0, pos - 1));
-					var val = trim(SubStr(line, pos, length line));
-					if (headers[name]) {
-						if (typeof headers[name] == "array")
-							headers[name] += val;
-						else
-							headers[name] = [ headers[name], val ];
-					} else
-						headers[name] = val;
-					if (name == "content-type") {
-						if ((val == "application/sdp") || (val=="sdp"))
-							need_payload = true;
-						has_content = true;
-					}
-				}
-			} else {
-				// switch to payload
-				break;
-			}
+
+		if (IsSet(headers, "content-type")) {
+			var val = headers["content-type"];
+			if ((val == "application/sdp") || (val=="sdp"))
+				need_payload = true;
+			has_content = true;
 		}
-		var payload = new [];
+
 		if (has_content) {
-			pos = Pos(msg, "\r\n\r\n");
+			var pos = Pos(msg, "\r\n\r\n");
 			if (pos > 0)
 				message.PayloadBlob = SubStr(msg, pos + 3);
-		}
-		if (need_payload) {
-			while (i < len) {
-				line = arr[i++];
-				if (line)
-					payload[length payload] = line;
-			}
+			if (need_payload)
+				message.Payload = StrSplit(message.PayloadBlob, "\r\n");
 		}
 		message.Headers = headers;
-		message.Payload = payload;
 		message.Local = false;
 		this.lastMessageTimestamp = time();
 		return message;

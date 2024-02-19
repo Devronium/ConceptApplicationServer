@@ -1,4 +1,5 @@
 import standard.lib.thread
+import standard.lang.serialize
 
 class Worker {
 	var _workerobj;
@@ -62,6 +63,16 @@ class Worker {
 		return -1;
 	}
 
+	AddObject(obj, priority = 0, key = 0) {
+		if (_workerobj) {
+			if (priority < 0)
+				priority = 0;
+
+			return AddWorkerData(_workerobj, BinarizeObject(obj), 0, key, true);
+		}
+		return -1;
+	}
+
 	RemoveData(key) {
 		if (_workerobj)
 			return RemoveWorkerData(_workerobj, key);
@@ -100,6 +111,10 @@ class Worker {
 
 	static Result(var data) {
 		return AddWorkerResultData(data);
+	}
+
+	static ResultObject(obj) {
+		return AddWorkerResultData(BinarizeObject(obj), true);
 	}
 
 	static Get(masterkey, key) {

@@ -110,6 +110,7 @@ static const char *empty_string = "";
 #define INVOKE_ARRAY_DELETE                   0x80
 #define INVOKE_CREATE_ARRAY_2                 0x81
 #define INVOKE_RESIZE_STRING                  0x84
+#define INVOKE_REUSE_STRING                   0x85
 
 #define     VARIABLE_CONSTANT                 0x00
 #define     VARIABLE_UNDEFINED                0x01

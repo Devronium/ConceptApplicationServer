@@ -152,6 +152,7 @@ typedef void (*DESTROY_PROTO_DATA)(void *data, void *handler);
 #define INVOKE_ARRAY_DELETE                   0x80
 #define INVOKE_CREATE_ARRAY_2                 0x81
 #define INVOKE_RESIZE_STRING                  0x84
+#define INVOKE_REUSE_STRING                   0x85
 
 
 #define INVOKE_SUCCESS                        0
