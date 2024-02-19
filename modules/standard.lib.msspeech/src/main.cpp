@@ -117,7 +117,7 @@ CONCEPT_FUNCTION_IMPL(MsSpeech_Free, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(MsSpeech_Reset, 1)
-    T_HANDLE(MsSpeech_Stop, 0)
+    T_HANDLE(MsSpeech_Reset, 0)
 
     struct STT_Container *container = (struct STT_Container *)(SYS_INT)PARAM(0);
     if ((container) && (container->haudioStream) && (container->hreco)) {
@@ -131,7 +131,7 @@ CONCEPT_FUNCTION_IMPL(MsSpeech_Reset, 1)
     }
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MsSpeech_Decode, 1, 2)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MsSpeech_Decode, 1, 3)
     T_HANDLE(MsSpeech_Decode, 0)
 
     RETURN_STRING("");
@@ -140,6 +140,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MsSpeech_Decode, 1, 2)
         T_NUMBER(MsSpeech_Decode, 1);
         ms = PARAM_INT(1);
     }
+    if (PARAMETERS_COUNT > 2)
+        SET_NUMBER(2, -1);
+
     struct STT_Container *container = (struct STT_Container *)(SYS_INT)PARAM(0);
     if ((container) && (container->haudioStream) && (container->hreco)) {
         SPXRESULTHANDLE hresult = SPXHANDLE_INVALID;
@@ -157,13 +160,17 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MsSpeech_Decode, 1, 2)
                     RETURN_STRING(pszText);
             }
             recognizer_result_handle_release(hresult);
+
+            if (PARAMETERS_COUNT > 2) {
+                SET_NUMBER(2, reason);
+            }
         }
     }
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(MsSpeech_FeedAudioContent, 2)
-    T_HANDLE(MsSpeech_SpeechToText, 0)
-    T_STRING(MsSpeech_SpeechToText, 1)
+    T_HANDLE(MsSpeech_FeedAudioContent, 0)
+    T_STRING(MsSpeech_FeedAudioContent, 1)
 
     struct STT_Container *container = (struct STT_Container *)(SYS_INT)PARAM(0);
     if ((container) && (container->haudioStream) && (container->hreco)) {

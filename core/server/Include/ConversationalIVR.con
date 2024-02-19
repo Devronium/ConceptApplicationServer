@@ -536,14 +536,15 @@ class MSSWorker {
 							worker_obj.stream = new MSSpeechStream(stt, 4);
 					}
 
-
 					// worker_obj.silence_buffer += obj.buffer;
 					// if (length worker_obj.silence_buffer >= 8000) {
 						if (worker_obj.age() < 12000)
 							worker_obj.stream.feed(obj.buffer);
 					//	worker_obj.silence_buffer = "";
 					//}
-					var str = worker_obj.stream.decode();
+					var str = worker_obj.stream.decode(var reason);
+					if ((!str) && (!reason))
+						worker_obj.stream.reset();
 					if ((str) && (worker_obj.canSend())) {
 						Worker::Result(BinarizeObject(new STTWorkerData(obj.id, STT_TIMEDOUT, this.parse(str))));
 						worker_obj.resetText();
@@ -2249,7 +2250,8 @@ class ConversationalIVR {
 		if (session.ClientData.count == 1) {
 			var stt_worker = this.chooseWorker(session, session.ClientData.hash);
 			if (stt_worker)
-				stt_worker.AddData(BinarizeObject(new STTWorkerData(session.sip.CallID, STT_ADDBUFFER, buffer, type)));
+				stt_worker.AddObject(new STTWorkerData(session.sip.CallID, STT_ADDBUFFER, buffer, type));
+				// stt_worker.AddData(BinarizeObject(new STTWorkerData(session.sip.CallID, STT_ADDBUFFER, buffer, type)));
 			else
 				console.error(LOG_THIS, "no workers for ${session.To}, callid ${session.sip.CallID}");
 		} else
@@ -4350,4 +4352,3 @@ class ConversationalIVR {
 		}
 	}
 }
-

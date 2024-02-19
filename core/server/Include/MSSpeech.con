@@ -38,11 +38,18 @@ class MSSpeechStream {
 		MsSpeech_FeedAudioContent(this._handle, buffer);
 	}
 
-	decode() {
+	decode(var reason) {
 		if (!_handle)
 			throw "MSSpeechStream is closed";
 
-		return MsSpeech_Decode(this._handle);
+		return MsSpeech_Decode(this._handle, 0, reason);
+	}
+
+	reset() {
+		if (!_handle)
+			throw "MSSpeechStream is closed";
+
+		return MsSpeech_Reset(this._handle);
 	}
 
 	finish() {
