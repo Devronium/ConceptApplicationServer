@@ -145,7 +145,7 @@ class SocketIOBase {
 		var to_send = BinarizeObject(this);
 		to_send = ToSize(length to_send) + to_send;
 		if (io) {
-			AddWorkerData(io, BinarizeObject([socket, to_send, null, true]));
+			AddWorkerData(io, BinarizeObject([socket, to_send, null, true]), 0, 0, true);
 			return length to_send;
 		}
 		return SendBuffer(socket, to_send);
@@ -801,7 +801,7 @@ pragma used
 	static Sync(obj, syncworker) {
 		if (syncworker) {
 			obj.w = time();
-			AddWorkerData(syncworker, BinarizeObject(obj));
+			AddWorkerData(syncworker, BinarizeObject(obj), 0, 0, true);
 		}
 	}
 
@@ -1312,7 +1312,7 @@ pragma used
 								storage_dbs[storage_key] = storage;
 							}
 						}
-						AddWorkerData(storage, BinarizeObject([sock, obj, current_worker, ctx_key]), priority, queue_key);
+						AddWorkerData(storage, BinarizeObject([sock, obj, current_worker, ctx_key]), priority, queue_key, true);
 					}
 				} else
 				if (RequestAuth)
@@ -1415,7 +1415,7 @@ pragma used
 			for (i = 0; i < length other_workers; i++) {
 				var worker = other_workers[i];
 				if (worker)
-					AddWorkerData(worker, BinarizeObject([-7, subject, message]));
+					AddWorkerData(worker, BinarizeObject([-7, subject, message]), 0, 0, true);
 			}
 		}
 	}
@@ -2046,7 +2046,7 @@ pragma used
 							if ((js.UserData[1]) || (join)) {
 								if (callback) {
 									q_obj.cb = ["db" => dbname, "cb" => callback, "io" => CurrentWorker()];
-									AddWorkerData(jsworker, BinarizeObject([-1, q_obj, "", ""]));
+									AddWorkerData(jsworker, BinarizeObject([-1, q_obj, "", ""]), 0, 0, true);
 									return ["async" => true];
 								}
 								// dummy call
@@ -2093,7 +2093,7 @@ pragma used
 							db = this.EnsureDB(q_obj);
 						js = this.EnsureJSContext(db);
 						q_obj.cb = ["db" => dbname, "cb" => callback, "io" => CurrentWorker()];
-						AddWorkerData(jsworker, BinarizeObject([-1, q_obj, "", ""]));
+						AddWorkerData(jsworker, BinarizeObject([-1, q_obj, "", ""]), 0, 0, true);
 						return ["async" => true];
 					} catch (exc) {
 						return ["error" => exc];
@@ -2123,7 +2123,7 @@ pragma used
 							db = this.EnsureDB(q_obj);
 						js = this.EnsureJSContext(db);
 						q_obj.cb = ["db" => dbname, "cb" => callback, "io" => CurrentWorker()];
-						AddWorkerData(jsworker, BinarizeObject([-1, q_obj, "", ""]));
+						AddWorkerData(jsworker, BinarizeObject([-1, q_obj, "", ""]), 0, 0, true);
 						return ["async" => true];
 					} catch (exc) {
 						return ["error" => exc];
@@ -2152,7 +2152,7 @@ pragma used
 							db = this.EnsureDB(q_obj);
 						js = this.EnsureJSContext(db);
 						q_obj.cb = ["db" => dbname, "cb" => callback, "io" => CurrentWorker()];
-						AddWorkerData(jsworker, BinarizeObject([-1, q_obj, "", ""]));
+						AddWorkerData(jsworker, BinarizeObject([-1, q_obj, "", ""]), 0, 0, true);
 						return ["async" => true];
 					} catch (exc) {
 						return ["error" => exc];
@@ -2175,7 +2175,7 @@ pragma used
 							db = this.EnsureDB(q_obj);
 						js = this.EnsureJSContext(db);
 						q_obj.cb = ["db" => dbname, "cb" => callback, "io" => CurrentWorker()];
-						AddWorkerData(jsworker, BinarizeObject([-1, q_obj, "", ""]));
+						AddWorkerData(jsworker, BinarizeObject([-1, q_obj, "", ""]), 0, 0, true);
 						return ["async" => true];
 					} catch (exc) {
 						return ["error" => exc];
@@ -2203,7 +2203,7 @@ pragma used
 	}
 
 	jsnotify(subject, data) {
-		AddWorkerData(jsworker, BinarizeObject([-7, subject, data]));
+		AddWorkerData(jsworker, BinarizeObject([-7, subject, data]), 0, 0, true);
 	}
 
 	jsprint(text) {
@@ -2649,7 +2649,7 @@ pragma used
 										r.p = o;
 										r.id = o['$'];
 										r.e = NOTIFY_MORE_DATA;
-										AddWorkerData(data[1], BinarizeObject([data[2], data[3], r]), data[4]);
+										AddWorkerData(data[1], BinarizeObject([data[2], data[3], r]), data[4], 0, true);
 									}
 								}, [obj, target_worker, socket, target_key, priority], group);
 							} else {
@@ -3651,14 +3651,14 @@ pragma used
 		if ((!obj) || (!obj.x) || (!IsSet(obj.x, 'silent')) || (!obj.x['silent'])) {
 			if (obj.worker) {
 				obj.r = r;
-				AddWorkerData(obj.worker, BinarizeObject([socket, obj, 0, target_key]), priority);
+				AddWorkerData(obj.worker, BinarizeObject([socket, obj, 0, target_key]), priority, 0, true);
 			} else
 			if ((target_worker) && (target_key)) {
-				AddWorkerData(target_worker, BinarizeObject([socket, target_key, r]), priority);
+				AddWorkerData(target_worker, BinarizeObject([socket, target_key, r]), priority, 0, true);
 			} else
 			if ((socket < 0) && (!obj.io)) {
 				if (obj.cb)
-					AddWorkerData(obj.cb["io"], BinarizeObject([-1, r, 0, "", obj.cb]), priority);
+					AddWorkerData(obj.cb["io"], BinarizeObject([-1, r, 0, "", obj.cb]), priority, 0, true);
 				else
 					return r;
 			} else
@@ -3955,7 +3955,7 @@ class QueryAggregator {
 					data_ready = true;
 
 				if (!data_ready)
-					AddWorkerData(worker, BinarizeObject([-1, new_obj]), priority);
+					AddWorkerData(worker, BinarizeObject([-1, new_obj]), priority, 0, true);
 			} else
 				data_ready = true;
 
@@ -3967,7 +3967,7 @@ class QueryAggregator {
 				if (obj.data)
 					obj.r.p = obj.data[0];
 				if (obj.cb)
-					AddWorkerData(obj.cb["io"], BinarizeObject([-1, obj.r, 0, "", obj.cb]), priority);
+					AddWorkerData(obj.cb["io"], BinarizeObject([-1, obj.r, 0, "", obj.cb]), priority, 0, true);
 				else
 					obj.r.Send(obj.socket, obj.io);
 			}
@@ -4084,7 +4084,7 @@ class QuerySyncWorker {
 			}
 			if (TIN_CLUSTER_LOG)
 				console.info(LOG_THIS, "Added '${obj.o}' to queue");
-			AddWorkerData(worker, BinarizeObject([-20, obj]));
+			AddWorkerData(worker, BinarizeObject([-20, obj]), 0, 0, true);
 		}
 		return wait_confirmation;
 	}

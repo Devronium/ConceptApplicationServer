@@ -68,7 +68,7 @@ class Worker {
 			if (priority < 0)
 				priority = 0;
 
-			return AddWorkerData(_workerobj, BinarizeObject(obj), 0, key, true);
+			return AddWorkerData(_workerobj, BinarizeObject(obj), priority, key, true);
 		}
 		return -1;
 	}

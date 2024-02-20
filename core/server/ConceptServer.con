@@ -2971,7 +2971,7 @@ class ConceptServer extends IniCache {
 								var tls_data = "";
 								if (tls)
 									tls_data = socket.Socket.Save();
-								appworker.AddData(BinarizeObject(["job" => 1, "tls" => tls, "socket" => socket.Socket.Socket, "tls_data" => tls_data, "filename" => filename, "headers" => headers, "session" => session]));
+								appworker.AddObject(["job" => 1, "tls" => tls, "socket" => socket.Socket.Socket, "tls_data" => tls_data, "filename" => filename, "headers" => headers, "session" => session]);
 								return REQUEST_DETACH;	
 							}
 						}
@@ -3002,7 +3002,7 @@ class ConceptServer extends IniCache {
 							return REQUEST_CGI_ERROR;
 					} else {
 						var worker = this.ChooseWorker();
-						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, query, pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), "", headers[":root"], 2)));
+						worker.AddObject(new WDataContainer(socket.Socket, filename, headers, query, pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), "", headers[":root"], 2));
 					}
 					return REQUEST_DETACH;
 				case "application/concept-server-page":
@@ -3016,7 +3016,7 @@ class ConceptServer extends IniCache {
 							return REQUEST_CGI_ERROR;
 					} else {
 						worker = this.ChooseWorker();
-						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, query, pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), this.cgi, headers[":root"], false)));
+						worker.AddObject(new WDataContainer(socket.Socket, filename, headers, query, pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), this.cgi, headers[":root"], false));
 					}
 					return REQUEST_DETACH;
 				case "application/javascript-server-page":
@@ -3030,7 +3030,7 @@ class ConceptServer extends IniCache {
 							return REQUEST_CGI_ERROR;
 					} else {
 						worker = this.ChooseWorker();
-						worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, query, pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), "", headers[":root"], 1)));
+						worker.AddObject(new WDataContainer(socket.Socket, filename, headers, query, pending_buffer, headers[":method"], headers["host"] ?? "", headers[":path"], this.getPort(tls), "", headers[":root"], 1));
 					}
 					return REQUEST_DETACH;
 				case "application/concept-private":
@@ -3049,7 +3049,7 @@ class ConceptServer extends IniCache {
 								return REQUEST_CGI_ERROR;
 						} else {
 							worker = this.ChooseWorker();
-							worker.AddData(BinarizeObject(new WDataContainer(socket.Socket, filename, headers, query, "", headers[":method"], headers[":host"] ?? "", headers[":path"], this.getPort(tls), this.Owner.cgiother[content_type], headers[":root"], false)));
+							worker.AddObject(new WDataContainer(socket.Socket, filename, headers, query, "", headers[":method"], headers[":host"] ?? "", headers[":path"], this.getPort(tls), this.Owner.cgiother[content_type], headers[":root"], false));
 							return REQUEST_DETACH;
 						}
 					}

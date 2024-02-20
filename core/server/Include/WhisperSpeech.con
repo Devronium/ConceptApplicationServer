@@ -143,7 +143,7 @@ class WhisperSpeechStream {
 			if (buf_size_ms < 1000)
 				audio_buffer += _dummy_buffer;
 
-			_worker.AddData(BinarizeObject(new WhisperMessage(_worker_id, audio_buffer, stream_id)));
+			_worker.AddObject(new WhisperMessage(_worker_id, audio_buffer, stream_id));
 			_pending = true;
 			_started = true;
 
