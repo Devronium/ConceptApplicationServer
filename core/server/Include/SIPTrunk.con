@@ -119,6 +119,8 @@ class SIPSession {
 	var nat_remote_port = -1;
 	var nat_remote_host = "";
 	var remote_id = 0;
+	var remote_ssrc_id;
+	var remote_ssrc_fail;
 	var ip;
 	var port;
 	var packet_time;
@@ -293,6 +295,9 @@ class SIPSession {
 								this.rtp_dtmf = true;
 						}
 					} else
+					// if (SubStr(line_a, 0, 4) == "ssrc") {
+					// 	remote_ssrc_id = value StrSplit(line_a, ":")[1];
+					// } else
 					if (this.s.webrtc) {
 						if (SubStr(line_a, 0, 12) == "fingerprint:") {
 							ice_fingerprint = StrSplit(line_a, " ")[1];
@@ -708,15 +713,30 @@ class SIPSession {
 		}
 	}
 
-	ParseRTP(var data, var type = null) {
+	ParseRTP(var data, var type = null, check_ssrc = true) {
 		type = -1;
-		last_timestamp = microseconds();
 		if (length data > 12) {
 			var data_arr = unpack("U8U8U16U32U32", data);
 			type = data_arr[1] & 0x7F;
 			if ((type >= 72) && (type <= 76))
 				return "";
+
 			var sequence_number = data_arr[2];
+
+			var ssrc_id = data_arr[4];
+			if (check_ssrc) {
+				if (!remote_ssrc_id)
+					remote_ssrc_id = ssrc_id;
+
+				if (ssrc_id != remote_ssrc_id) {
+					remote_ssrc_fail ++;
+					if ((remote_ssrc_fail >= 4) && (microseconds() - last_timestamp >= 100000))
+						remote_ssrc_id = ssrc_id;
+					return "";
+				} else
+					remote_ssrc_fail = 0;
+			}
+
 			if ((last_sequence_number != -1) && (sequence_number <= last_sequence_number)) {
 				var delta = sequence_number - last_sequence_number;
 				if (delta < 0)
@@ -724,6 +744,9 @@ class SIPSession {
 				if (delta < 20)
 					return "";
 			}
+
+			last_timestamp = microseconds();
+
 			last_sequence_number = sequence_number;
 			var payload = SubStr(data, 12);
 			if (srtp)
@@ -734,10 +757,9 @@ class SIPSession {
 				return false;
 			}
 
-			if (Record) {
-				var ssrc_id = data_arr[4];
+			if (Record)
 				RecordStream(ssrc_id, payload, "in-", type);
-			}
+
 			return payload;
 		}
 		return "";
@@ -827,7 +849,7 @@ class SIPSession {
 					if (packet)
 						rtp.Write(packet, packet_remote_ip, packet_remote_port);
 				} while (packet);
-				return ParseRTP(rtc_channel.getReadMessage(), type);
+				return ParseRTP(rtc_channel.getReadMessage(), type, false);
 			}
 			if (nat_remote_host)
 				return ParseRTP(rtp.Read(), type);
@@ -1023,7 +1045,9 @@ class SIPSession {
 				ops++;
 				if (s.OnAudio)
 					s.OnAudio(this, data, type);
+
 				started = true;
+
 				if (Children) {
 					for (var i = 0; i < length Children; i++) {
 						var child = Children[i];
