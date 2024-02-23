@@ -1492,13 +1492,13 @@ CONCEPT_DLL_API CONCEPT_SocketWrite CONCEPT_API_PARAMETERS {
             int is_ip = isIP6str(hostname);
 
             if (is_ip) {
-                struct sockaddr_in6 host_address;
+                struct sockaddr_in6 host_address = { };
 #ifdef _WIN32
                 int addr_length = sizeof(host_address);
 #else
                 socklen_t addr_length = sizeof(host_address);
 #endif
-                memset(&host_address, 0, sizeof(host_address));
+                // memset(&host_address, 0, sizeof(host_address));
                 host_address.sin6_family      = AF_INET6;
                 host_address.sin6_port        = htons((unsigned short)nPort);
                 if (is_ip) {
@@ -1545,13 +1545,13 @@ CONCEPT_DLL_API CONCEPT_SocketWrite CONCEPT_API_PARAMETERS {
                     return 0;
                 }
             }
-            struct sockaddr_in host_address;
+            struct sockaddr_in host_address = { };
 #ifdef _WIN32
             int addr_length = sizeof(host_address);
 #else
             socklen_t addr_length = sizeof(host_address);
 #endif
-            memset(&host_address, 0, sizeof(host_address));
+            // memset(&host_address, 0, sizeof(host_address));
             host_address.sin_family      = AF_INET;
             host_address.sin_port        = htons((unsigned short)nPort);
             if (is_ip) {
@@ -2721,5 +2721,211 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SocketReusePort, 1, 2)
                 sizeof(flag));
 #endif
     RETURN_NUMBER(res);
+END_IMPL
+//=====================================================================================//
+int proxyForward(int sock, char *buffer, int size, int family, char *hostname, unsigned short port) {
+    if (!hostname)
+        return -1;
+    int sent_size = -1;
+    struct hostent *hp = NULL;
+    if (family == AF_INET6) {
+        int is_ip = isIP6str(hostname);
+
+        if (is_ip) {
+            struct sockaddr_in6 host_address = { };
+#ifdef _WIN32
+            int addr_length = sizeof(host_address);
+#else
+            socklen_t addr_length = sizeof(host_address);
+#endif
+            host_address.sin6_family      = AF_INET6;
+            host_address.sin6_port        = htons(port);
+            if (is_ip) {
+                if (inet_pton(AF_INET6, hostname, &host_address.sin6_addr))
+                    return sendto((int)sock, buffer, size, 0, (struct sockaddr *)&host_address, addr_length);
+            }
+        }
+
+        struct addrinfo hints;
+        struct addrinfo *res, *result;
+
+        memset(&hints, 0, sizeof hints);
+        hints.ai_family   = AF_UNSPEC;
+        hints.ai_socktype = SOCK_DGRAM;
+
+        AnsiString port_str((long)port);
+        if (getaddrinfo(hostname, port_str.c_str(), &hints, &result) != 0)
+            return -2;
+
+        for (res = result; res != NULL; res = res->ai_next) {
+            char hostname[NI_MAXHOST] = "";
+            if (res->ai_family == AF_INET6) {
+                int error = getnameinfo(res->ai_addr, res->ai_addrlen, hostname, NI_MAXHOST, NULL, 0, 0);
+                if (!error) {
+                    sent_size = sendto((int)sock, buffer, size, 0, res->ai_addr, res->ai_addrlen);
+                    break;
+                }
+            }
+        }
+
+        if (result)
+            freeaddrinfo(result);
+    } else {
+        int is_ip = isIP4str(hostname);
+        if (!is_ip) {
+            if ((hp = gethostbyname(hostname)) == 0)
+                return -2;
+        }
+        struct sockaddr_in host_address = { };
+#ifdef _WIN32
+        int addr_length = sizeof(host_address);
+#else
+        socklen_t addr_length = sizeof(host_address);
+#endif
+        host_address.sin_family      = AF_INET;
+        host_address.sin_port        = htons(port);
+        if (is_ip) {
+            if (!inet_pton(AF_INET, hostname, &host_address.sin_addr)) {
+                if ((hp = gethostbyname(hostname)) == 0)
+                    return -2;
+                host_address.sin_addr.s_addr = ((struct in_addr *)(hp->h_addr))->s_addr;
+            }
+        } else {
+            host_address.sin_addr.s_addr = ((struct in_addr *)(hp->h_addr))->s_addr;
+        }
+        return sendto((int)sock, buffer, size, 0, (struct sockaddr *)&host_address, addr_length);
+    }
+    return sent_size;
+}
+
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UDPSocketProxy, 3, 7)
+    // socket
+    T_NUMBER(UDPSocketProxy, 0)
+    // host or hosts (1)
+    // port or ports (2)
+
+    char *szHost;
+    INTEGER hostType;
+    NUMBER  nData;
+
+    Invoke(INVOKE_GET_VARIABLE, PARAMETER(1), &hostType, &szHost, &nData);
+    if ((hostType != VARIABLE_STRING) && (hostType != VARIABLE_ARRAY) && ((hostType != VARIABLE_NUMBER) || ((int)nData != 0)))
+        return (void *)"UDPSocketProxy: parameter 1 should be a host string or an array of hosts strings";
+
+
+    char *szData;
+    INTEGER portType;
+    NUMBER nPort;
+
+    int family = AF_INET;
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(UDPSocketProxy, 3)
+        if (PARAM_INT(3))
+            family = AF_INET6;
+    }
+
+    int sock = PARAM_INT(0);
+
+    Invoke(INVOKE_GET_VARIABLE, PARAMETER(2), &portType, &szData, &nPort);
+    if ((hostType == VARIABLE_STRING) && (portType != VARIABLE_NUMBER))
+        return (void *)"UDPSocketProxy: parameter 2 should be a port number when host is a string";
+
+    if ((portType != VARIABLE_ARRAY) && (portType != VARIABLE_NUMBER))
+        return (void *)"UDPSocketProxy: parameter 2 should be a port number or an array of port numbers";
+
+    char *buf = 0;
+    CORE_NEW(0x10000, buf);
+
+    if (!buf)
+        return (void *)"UDPSocketProxy: error allocating memoy";
+
+#ifdef _WIN32
+    struct sockaddr_storage host_address;
+    int addr_length = sizeof(host_address);
+    int rec_size = recvfrom(sock, buf, 0x10000 - 1, 0, (sockaddr *)&host_address, &addr_length);
+#else
+    struct sockaddr_storage host_address;
+    socklen_t addr_length = sizeof(host_address);
+    int rec_size = recvfrom(sock, buf, 0x10000 - 1, 0, (sockaddr *)&host_address, &addr_length);
+#endif
+    if (PARAMETERS_COUNT > 4) {
+        if (rec_size > 0) {
+            SetVariable(PARAMETER(4), -1, buf, rec_size);
+        } else {
+            SET_STRING(4, "");
+        }
+    }
+    if (rec_size <= 0) {
+        CORE_DELETE(buf);
+        buf = NULL;
+    }
+
+    if (PARAMETERS_COUNT > 5) {
+        if (rec_size >= 0) {
+            char *ip  = 0;
+            int  port = 0;
+            char ipstr[INET6_ADDRSTRLEN];
+            if (host_address.ss_family == AF_INET) {
+                struct sockaddr_in *s = (struct sockaddr_in *)&host_address;
+                ip   = (char *)inet_ntop(AF_INET, &s->sin_addr, ipstr, sizeof ipstr);
+                port = ntohs(s->sin_port);
+            } else
+            if (host_address.ss_family == AF_INET6) {
+                struct sockaddr_in6 *s = (struct sockaddr_in6 *)&host_address;
+                ip   = (char *)inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof ipstr);
+                port = ntohs(s->sin6_port);
+            }
+            if (ip) {
+                SET_STRING(5, ip);
+            } else {
+                SET_STRING(5, "");
+            }
+            if (PARAMETERS_COUNT > 6) {
+                SET_NUMBER(6, port);
+            }
+        } else {
+            SET_STRING(5, "");
+            if (PARAMETERS_COUNT > 6) {
+                SET_NUMBER(6, 0);
+            }
+        }
+    }
+
+    if (rec_size > 0) {
+        buf[rec_size] = 0;
+        if (hostType == VARIABLE_STRING) {
+            proxyForward(sock, buf, rec_size, family, szHost, (unsigned short)nPort);
+        } else {
+            int count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(1));
+            unsigned short port = 0;
+
+            if (portType == VARIABLE_NUMBER)
+                port = (unsigned short)nPort;
+
+            for (INTEGER i = 0; i < count; i ++) {
+                char *str = 0;
+                NUMBER nDummy;
+                INTEGER type = -1;
+
+                Invoke(INVOKE_GET_ARRAY_ELEMENT, PARAMETER(1), i, &type, &str, &nDummy);
+
+                if ((type == VARIABLE_STRING) && (str) && (str[0])) {
+                    if (portType != VARIABLE_NUMBER) {
+                        char *szDummy = 0;
+                        NUMBER nHostPort;
+
+                        Invoke(INVOKE_GET_ARRAY_ELEMENT, PARAMETER(2), i, &type, &szDummy, &nHostPort);
+                        if (type != VARIABLE_NUMBER)
+                            continue;
+
+                        port = (unsigned short)nHostPort;
+                    }
+                    proxyForward(sock, buf, rec_size, family, str, port);
+                }
+            }
+        }
+    }
+
+    RETURN_NUMBER(rec_size);
 END_IMPL
 //=====================================================================================//

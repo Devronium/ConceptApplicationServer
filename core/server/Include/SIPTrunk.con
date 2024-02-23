@@ -731,7 +731,7 @@ class SIPSession {
 
 			if ((rtp_dtmf_type) && (type == rtp_dtmf_type)) {
 				this.ParseRTPDTMF(type, payload);
-				return "";
+				return false;
 			}
 
 			if (Record) {
@@ -901,7 +901,26 @@ class SIPSession {
 		return false;
 	}
 
+	WriteNoBuffer(var payload) {
+		if ((remote_host) && (remote_port > 0)) {
+			if (this.s.OnAudioOut)
+				this.s.OnAudioOut(s, payload);
+			var rtp_payload = SimpleRTP(payload);
+			try {
+				rtp.Write(rtp_payload, remote_host, remote_port);
+				if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
+					rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
+			} catch (var exc) {
+				return -1;
+			}
+			return length payload;
+		}
+		return -1;
+	}
+
 	Write(var payload, max_frames = 0) {
+		if (this.s.NoBuffering)
+			return WriteNoBuffer(payload);
 		if ((remote_host) && (remote_port > 0)) {
 			if (max_frames > 0) {
 				var max_size = chunk_size / 1000 * 8 * max_frames;
@@ -1062,15 +1081,15 @@ class SIPSession {
 							}
 							ops++;
 						}
-					} else {
+					} else
+					if (!this.s.NoBuffering) {
 						if (delta >= buf_chunk) {
 							buf_chunk = delta + 1;
 							f_size = chunk_size / 1000 * 8;
-							var d_buf = StrMove(buf, f_size); // SubStr(buf, 0, /*160*/f_size);
+							var d_buf = StrMove(buf, f_size);
 							if (!d_buf)
 								d_buf = SubStr(this.s.emptyData, 0, f_size);
 							if (d_buf) {
-								// buf = SubStr(buf, /*160*/f_size);
 								if (this.s.OnAudioOut)
 									this.s.OnAudioOut(s, d_buf);
 								rtp_payload = SimpleRTP(d_buf);
@@ -1086,12 +1105,8 @@ class SIPSession {
 			if (!started) {
 				if ((packet_time >= microseconds()) && (rtp)) {
 					if ((remote_host) && (remote_port > 0)) {
-						var str = "";
-						var blocks = chunk_size / 1000 * 8 / 10;
-						for (i = 0; i < blocks; i++)
-							str += '\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5';
-						buf = str;
-						rtp_payload = this.SimpleRTP(str);
+						buf = SubStr(this.s.emptyData, 0, chunk_size / 1000 * 8);
+						rtp_payload = this.SimpleRTP(buf);
 						rtp.Write(rtp_payload, remote_host, remote_port);
 						if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
 							rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
@@ -1400,6 +1415,8 @@ class SIPStack {
 
 	var webrtc;
 
+	var NoBuffering = false;
+
 	SIPStack(localhost, bind_port = 5060, type = SIP_TRANSPORT_UDP, public_key = "", private_key = "", force_tls_version = 0) {
 		this.localhost = localhost;
 		this.local_port = bind_port;
@@ -1556,7 +1573,6 @@ class SIPStack {
 			return null;
 
 		var headers = StrKeyValue(msg, 1, var first_line);
-		var len = length headers;
 
 		if (!first_line)
 			return null;

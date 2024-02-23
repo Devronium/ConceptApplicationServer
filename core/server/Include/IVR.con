@@ -39,6 +39,7 @@ class DATASession {
 	var RecordUntil = "#";
 	var SkipUntil = 0;
 	var Expires = 1200;
+	var AudioEvents = true;
 	var[] IVRHistory;
 	public property SkipSeconds { set SetSkipSeconds, get GetSkipSeconds }
 
@@ -113,6 +114,8 @@ class DATASession {
 		this.CreateTime = time();
 		this.From = from;
 		this.To = to;
+		if (session.ProxyCall)
+			this.AudioEvents = false;
 	}
 
 	ResetTime() {
@@ -298,6 +301,9 @@ class IVR {
 					session.Bye(true);
 				return;
 			}
+			if (!session.UserData.AudioEvents)
+				return;
+
 			if (this.AudioFrame)
 				this.AudioFrame(session.UserData, buffer, type);
 		}
