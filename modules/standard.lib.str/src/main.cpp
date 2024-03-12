@@ -16933,3 +16933,50 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(StrKeyValue, 1, 3)
     }
 END_IMPL
 //---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PhraseSplit, 1, 2)
+    T_STRING(PhraseSplit, 0)
+
+    int min_len = 0;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(PhraseSplit, 1)
+        min_len = PARAM_INT(1);
+    }
+
+    CREATE_ARRAY(RESULT);
+    char *str = PARAM(0);
+    int len = PARAM_LEN(0);
+    int start = 0;
+    INTEGER index = 0;
+    int str_len;
+    for (int i = 0; i < len; i ++) {
+        switch (str[i]) {
+            case '.':
+            case '!':
+            case '?':
+                if (i + 1 < len) {
+                    switch (str[i + 1]) {
+                        case '.':
+                        case '!':
+                        case '?':
+                            continue;
+                    }
+                }
+                str_len = i + 1 - start;
+                if (min_len > 0) {
+                    if (u8_strlen(str + start, str_len) < min_len)
+                        continue;
+                }
+                Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index++, (INTEGER)VARIABLE_STRING, str + start, (NUMBER)str_len);
+                start = i + 1;
+                while ((i + 1 < len) && ((str[i + 1] == ' ') || (str[i + 1] == '\t') || (str[i + 1] == '\r'))) {
+                    i ++;
+                    start ++;
+                }
+                break;
+        }
+    }
+    if (start != len)
+        Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index++, (INTEGER)VARIABLE_STRING, str + start, (NUMBER)(len + 1 - start));
+
+END_IMPL
+//-------------------------------
