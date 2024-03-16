@@ -1,6 +1,9 @@
 import standard.lib.msspeech
 import standard.C.io
 import standard.lib.str
+import standard.lang.serialize
+
+define TTS_MAX_CACHE	1024
 
 class MSTTSHelper {
 	var modelName;
@@ -78,6 +81,9 @@ class MSSpeech {
 	var language;
 	var key;
 	var region;
+	var[] stats;
+	var[] cache;
+	var enableCache = false;
 
 	MSSpeech(string language, key, region) {
 		this.language = language;
@@ -85,7 +91,100 @@ class MSSpeech {
 		this.region = region;
 	}
 
+	static stripHeader(var wav_data) {
+		var header = unpack("s4u32s4s4u32u16u16u32u32u16u16", wav_data);
+		if ((header[0] != "RIFF") || (header[2] != "WAVE"))
+			return "";
+
+		var data_offset = header[4] + 20;
+		do {
+			var header2 = unpack("s4u32", wav_data, data_offset);
+			if (header2[0] == "data") {
+				data_offset += 8;
+				break;
+			}
+
+			data_offset += header2[1] + 8;
+		} while (data_offset < length wav_data);
+
+		if (data_offset >= length wav_data)
+			return "";
+
+		return SubStr(wav_data, data_offset);
+	}
+
+	static clearCache(var stats, var cache, level = 1) {
+		var keys = GetKeys(stats);
+		var new_stats = new [];
+		var new_cache = new [];
+		for (var i = 0; i < length keys; i ++) {
+			var k = keys[i];
+			var val = stats[i];
+			if (val > level) {
+				new_stats[k] = val;
+				if (cache[k])
+					new_cache[k] = cache[k];
+			}
+		}
+		stats = new_stats;
+		cache = new_cache;
+	}
+
+	static MsSpeech_TTS_withCache(language, voice, key, region, text, ssml, var stats, var cache, cache_start = 10) {
+		if ((length text > 48) && (!ssml)) {
+			if (length stats > TTS_MAX_CACHE) {
+				MSSpeech::clearCache(stats, cache);
+				if (length stats > TTS_MAX_CACHE) {
+					MSSpeech::clearCache(stats, cache, 4);
+					if (length stats > TTS_MAX_CACHE) {
+						stats = new [];
+						cache = new [];
+					}
+				}
+			}
+			var keys = PhraseSplit(text, 24);
+			var can_cache = 0;
+			for (var i = 0; i < length keys; i ++) {
+				var k = keys[i];
+				if (k) {
+					var cache_key = "[$voice] $k";
+					stats[cache_key] ++;
+
+					if (stats[cache_key] > cache_start) {
+						can_cache ++;
+						if (!cache[cache_key])
+							cache[cache_key] = MSSpeech::stripHeader(MsSpeech_TTS(language, voice, key, region, k, ssml));
+					}
+				}
+			}
+			if (can_cache) {
+				var tts_data = "";
+				for (i = 0; i < length keys; i ++) {
+					k = keys[i];
+					if (k) {
+						cache_key = "[$voice] $k";
+						var data = "";
+						if (IsSet(cache, cache_key))
+							data = cache[cache_key];
+
+						if (!data)
+							data = MSSpeech::stripHeader(MsSpeech_TTS(language, voice, key, region, k, ssml));
+
+						if (data)
+							tts_data += data;
+					}
+				}
+				if (tts_data)
+					return pack("s4u32s4s4u32u16u16u32u32u16u16s4u32", "RIFF", length tts_data + 28, "WAVE", "fmt ", 16, 1, 1, 16000, 32000, 2, 16, "data", length tts_data) + tts_data;
+			}
+		}
+		return MsSpeech_TTS(language, voice, key, region, text, ssml);
+	}
+
 	TTS(voice, text, ssml = false) {
+		if ((enableCache) && (length text > 48) && (!ssml))
+			return MSSpeech::MsSpeech_TTS_withCache(language, voice, key, region, text, ssml, stats, cache);
+
 		return MsSpeech_TTS(language, voice, key, region, text, ssml);
 	}
 }

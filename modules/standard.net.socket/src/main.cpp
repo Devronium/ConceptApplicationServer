@@ -4,6 +4,8 @@
 #include "library.h"
 #include "AnsiString.h"
 #include "interface.h"
+#include <time.h>
+
 #ifdef _WIN32
  #ifdef _WIN32_WINNT
   #undef _WIN32_WINNT
@@ -2927,5 +2929,49 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UDPSocketProxy, 3, 7)
     }
 
     RETURN_NUMBER(rec_size);
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL(RTPHeader, 5)
+    T_NUMBER(RTPHeader, 0)
+    T_NUMBER(RTPHeader, 1)
+    T_NUMBER(RTPHeader, 2)
+    T_NUMBER(RTPHeader, 3)
+    T_NUMBER(RTPHeader, 4)
+
+    char* buf = NULL;
+    CORE_NEW(13, buf);
+    buf[12] = 0;
+
+    buf[0] = (unsigned char)PARAM_INT(0);
+    buf[1] = (unsigned char)PARAM_INT(1);
+    *((unsigned short*)(buf + 2)) = htons(PARAM_INT(2));
+    *((uint32_t*)(buf + 4)) = htonl(PARAM_INT(3));
+    *((uint32_t*)(buf + 8)) = htonl(PARAM_INT(4));
+
+    SetVariable(RESULT, -1, (char*)buf, 12);
+    END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL(RTPHeaderParse, 6)
+    T_STRING(RTPHeaderParse, 0)
+
+    if (PARAM_LEN(0) < 12) {
+        SET_NUMBER(1, 0);
+        SET_NUMBER(2, 0);
+        SET_NUMBER(3, 0);
+        SET_NUMBER(4, 0);
+        SET_NUMBER(5, 0);
+        RETURN_NUMBER(0);
+        return 0;
+    }
+    char* buf = PARAM(0);
+
+    SET_NUMBER(1, (unsigned char)buf[0]);
+    SET_NUMBER(2, (unsigned char)buf[1]);
+
+    SET_NUMBER(3, ntohs(*((unsigned short*)(buf + 2))));
+    SET_NUMBER(4, ntohl(*((uint32_t*)(buf + 4))));
+    SET_NUMBER(5, ntohl(*((uint32_t*)(buf + 8))));
+
+    RETURN_NUMBER(1);
 END_IMPL
 //=====================================================================================//

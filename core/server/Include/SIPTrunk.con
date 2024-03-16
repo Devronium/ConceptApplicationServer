@@ -628,7 +628,7 @@ class SIPSession {
 		}
 		
 		timestamp += length payload;
-		var res = pack("U8U8U16U32U32", 0x80, profile, sequence_number, timestamp, ssrc_id);
+		var res = RTPHeader(0x80, profile, sequence_number, timestamp, ssrc_id); // pack("U8U8U16U32U32", 0x80, profile, sequence_number, timestamp, ssrc_id);
 		if (rtc_channel)
 			res = rtc_channel.buildPacket(res, payload);
 		else
@@ -716,14 +716,19 @@ class SIPSession {
 	ParseRTP(var data, var type = null, check_ssrc = true) {
 		type = -1;
 		if (length data > 12) {
-			var data_arr = unpack("U8U8U16U32U32", data);
-			type = data_arr[1] & 0x7F;
+			// var data_arr = unpack("U8U8U16U32U32", data);
+			// type = data_arr[1] & 0x7F;
+			// if ((type >= 72) && (type <= 76))
+			// 	return "";
+
+			// var sequence_number = data_arr[2];
+
+			// var ssrc_id = data_arr[4];
+			RTPHeaderParse(data, null, var profile, var sequence_number, null, var ssrc_id);
+			type = profile & 0x7F;
 			if ((type >= 72) && (type <= 76))
 				return "";
 
-			var sequence_number = data_arr[2];
-
-			var ssrc_id = data_arr[4];
 			if (check_ssrc) {
 				if (!remote_ssrc_id)
 					remote_ssrc_id = ssrc_id;

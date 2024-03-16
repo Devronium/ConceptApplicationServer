@@ -952,14 +952,18 @@ class VoiceWorker {
 		return pcm2ulaw(resample(wav_data, samplerate, 8000, SRC_SINC_BEST_QUALITY));
 	}
 
-	static tts(text, voice, output) {
+	static tts(text, voice, output, use_cache = false, var stats = null, var cache = null) {
 		try {
 			if (Pos(voice, "microsoft/") > 0) {
 				var arr = StrSplit(voice, "/");
 				if (length arr == 4) {
 					var key_arr = StrSplit(arr[3], "@");
 					console.log(LOG_THIS, "using MSTTS for [$text]");
-					var ms_data = MsSpeech_TTS(arr[1], arr[2], key_arr[0], key_arr[1], text, (text[0] == "<"));
+					var ms_data;
+					if (use_cache)
+						ms_data = MSSpeech::MsSpeech_TTS_withCache(arr[1], arr[2], key_arr[0], key_arr[1], text, (text[0] == "<"), stats, cache, 4);
+					else
+						ms_data = MsSpeech_TTS(arr[1], arr[2], key_arr[0], key_arr[1], text, (text[0] == "<"));
 					if (ms_data) {
 						WriteFile(ms_data, output);
 						return 0;
@@ -1062,7 +1066,7 @@ class VoiceWorker {
 		return FileExists("./repository/$format/$fname.$format");
 	}
 
-	static ensureAudio(text, voice, tts_keys = null, format = "alaw") {
+	static ensureAudio(text, voice, tts_keys = null, format = "alaw", use_cache = false, var stats = null, var cache = null) {
 		var fname = VoiceWorker::key(text, voice);
 		if (!voice)
 			return fname;
@@ -1072,7 +1076,7 @@ class VoiceWorker {
 
 		console.log(LOG_THIS, "preparing $voice/[$text]");
 		if (!FileExists("./repository/$format/$fname.$format")) {
-			var buf = VoiceWorker::tts(text, voice, "./repository/$fname.wav");
+			var buf = VoiceWorker::tts(text, voice, "./repository/$fname.wav", use_cache, stats, cache);
 			if (typeof buf != "string")
 				buf = ReadFile("./repository/$fname.wav");
 			if (format == "ulaw") {
@@ -1095,6 +1099,8 @@ class VoiceWorker {
 		var voice = data[0];
 		var tts_keys = data[1];
 		console.info(LOG_THIS, "created worker for $voice");
+		var[] stats;
+		var[] cache;
 		while (true) {
 			if (Worker::Pending(var buffer, 1000)) {
 				var obj = UnBinarizeObject(buffer);
@@ -1108,7 +1114,7 @@ class VoiceWorker {
 					for (var i = 0; i < length obj.text; i ++) {
 						var text = obj.text[i];
 						if ((text) && (text[0] != "\$") && (!VoiceWorker::exists(text, voice, obj.codec)))
-							this.ensureAudio(text, voice, tts_keys, obj.codec);
+							this.ensureAudio(text, voice, tts_keys, obj.codec, true, stats, cache);
 					}
 				}
 				
@@ -3699,7 +3705,7 @@ class ConversationalIVR {
 			IVRClientData::checkEvent(session, who_parsed, from_parsed, this, tree, "try");
 			return session.CallID;
 		}
-		IVRClientData::checkEvent(session, who_parsed, from_parsed, this, tree, "fail");
+		IVRClientData::checkEvent(__object("SIPSession"), who_parsed, from_parsed, this, tree, "fail");
 		console.warn(LOG_THIS, "cannot call $who_parsed");
 		return false;
 	}
@@ -4049,6 +4055,7 @@ class ConversationalIVR {
 		var refer_session = session.Refer(destination, ref_contact, sessionRemoteParty(session));
 		if (refer_session) {
 			session.sip.setMaxJitter(2);
+			session.AudioEvents = false;
 			if (session.ClientData) {
 				session.ClientData.count = 0;
 				if (!session.ClientData.referTryCount)
