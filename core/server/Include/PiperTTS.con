@@ -1,16 +1,86 @@
 import standard.lib.piper
+import standard.lib.str
+import standard.lang.serialize
+
+define PIPER_TTS_MAX_CACHE	1024
 
 class PiperTTS {
 	protected var handle;
+	var[] stats;
+	var[] cache;
+	var cacheStart = 10;
+	var enableCache = false;
 
 	PiperTTS(model_file) {
 		handle = PiperInit(model_file, model_file + ".json");
+	}
+
+	static clearCache(var stats, var cache, level = 1) {
+		var keys = GetKeys(stats);
+		var new_stats = new [];
+		var new_cache = new [];
+		for (var i = 0; i < length keys; i ++) {
+			var k = keys[i];
+			var val = stats[i];
+			if (val > level) {
+				new_stats[k] = val;
+				if (cache[k])
+					new_cache[k] = cache[k];
+			}
+		}
+		stats = new_stats;
+		cache = new_cache;
 	}
 
 	TTS(str) {
 		if (!handle)
 			throw "PiperTTS: error loading model file";
 
+		if ((length str > 48) && (enableCache)) {
+			if (length this.stats > PIPER_TTS_MAX_CACHE) {
+				this.clearCache(this.stats, this.cache);
+				if (length this.stats > PIPER_TTS_MAX_CACHE) {
+					this.clearCache(this.stats, this.cache, 4);
+					if (length this.stats > PIPER_TTS_MAX_CACHE) {
+						this.stats = new [];
+						this.cache = new [];
+					}
+				}
+			}
+			var keys = PhraseSplit(str, 24);
+			var can_cache = 0;
+			for (var i = 0; i < length keys; i ++) {
+				var k = keys[i];
+				if (k) {
+					this.stats[k] ++;
+
+					if (this.stats[k] > cacheStart) {
+						can_cache ++;
+						if (!this.cache[k])
+							this.cache[k] = PiperTTS(handle, k);
+					}
+				}
+			}
+			if (can_cache) {
+				var tts_data = "";
+				for (i = 0; i < length keys; i ++) {
+					k = keys[i];
+					if (k) {
+						var data = "";
+						if (IsSet(this.cache, k))
+							data = this.cache[k];
+
+						if (!data)
+							data = PiperTTS(handle, k);
+
+						if (data)
+							tts_data += data;
+					}
+				}
+				if (tts_data)
+					return tts_data;
+			}
+		}
 		return PiperTTS(handle, str);
 	}
 

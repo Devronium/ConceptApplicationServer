@@ -16980,3 +16980,64 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PhraseSplit, 1, 2)
 
 END_IMPL
 //-------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LeftOf, 2, 3)
+    T_STRING(LeftOf, 0)
+    T_STRING(LeftOf, 1)
+    const char *default_value = "";
+    if (PARAMETERS_COUNT > 2) {
+        T_STRING(LeftOf, 2)
+        default_value = PARAM(2);
+    }
+
+    const char* sep = PARAM(1);
+    INTEGER len_sep = PARAM_LEN(1);
+
+    if ((len_sep == 0) || (PARAM_LEN(0) == 0)) {
+        RETURN_STRING(default_value);
+        return 0;
+    }
+
+    const char* pos;
+    if (len_sep == 1)
+        pos = (const char*)memchr(PARAM(0), *sep, len_sep);
+    else
+        pos = strstr(PARAM(0), sep);
+
+    if (pos) {
+        INTEGER buf_len = pos - PARAM(0);
+        RETURN_BUFFER(PARAM(0), buf_len);
+    } else {
+        RETURN_STRING(default_value);
+    }
+END_IMPL
+//-------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RightOf, 2, 3)
+    T_STRING(RightOf, 0)
+    T_STRING(RightOf, 1)
+    const char *default_value = "";
+    if (PARAMETERS_COUNT > 2) {
+        T_STRING(RightOf, 2)
+        default_value = PARAM(2);
+    }
+
+    const char* sep = PARAM(1);
+    INTEGER len_sep = PARAM_LEN(1);
+
+    if ((len_sep == 0) || (PARAM_LEN(0) == 0)) {
+        RETURN_STRING(default_value);
+        return 0;
+    }
+
+    const char* pos;
+    if (len_sep == 1)
+        pos = (const char*)memchr(PARAM(0), *sep, len_sep);
+    else
+        pos = strstr(PARAM(0), sep);
+
+    if (pos) {
+        RETURN_STRING(pos + len_sep);
+    } else {
+        RETURN_STRING(default_value);
+    }
+END_IMPL
+//-------------------------------
