@@ -16999,7 +16999,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LeftOf, 2, 3)
 
     const char* pos;
     if (len_sep == 1)
-        pos = (const char*)memchr(PARAM(0), *sep, len_sep);
+        pos = (const char*)memchr(PARAM(0), *sep, PARAM_LEN(0));
     else
         pos = strstr(PARAM(0), sep);
 
@@ -17030,7 +17030,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RightOf, 2, 3)
 
     const char* pos;
     if (len_sep == 1)
-        pos = (const char*)memchr(PARAM(0), *sep, len_sep);
+        pos = (const char*)memchr(PARAM(0), *sep, PARAM_LEN(0));
     else
         pos = strstr(PARAM(0), sep);
 

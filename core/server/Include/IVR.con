@@ -355,7 +355,7 @@ class IVR {
 		if (pos > 0)
 			from = SubStr(from, pos -1);
 		from = StrReplace(from, "sip:", "");
-		from = "" + StrSplit(from, "@")[0];
+		from = LeftOf(from, "@", from);
 		return trim(from);
 	}
 
@@ -381,11 +381,6 @@ class IVR {
 
 	OnInvite(session, msg) {
 		var from = ParseFrom2(msg.Headers["from"]);
-		/* var from = "" + StrSplit("" + msg.Headers["from"], " ")[0];
-		if ((from) && ((from[0] == '"') && (from[length from - 1] == '"')))
-			from = SubStr(from, 1, length from - 2);
-		else
-			from = ParseFrom(from); */
 		
 		var msg_to = this.ParseFrom(msg.Headers["to"]);
 
@@ -440,11 +435,6 @@ class IVR {
 		if ((session.Referred) || (session.Parent))
 			return;
 
-		/* var from = "" + StrSplit("" + msg.Headers["from"], " ")[0];
-		if ((from) && ((from[0] == '"') && (from[length from - 1] == '"')))
-			from = SubStr(from, 1, length from - 2);
-		else
-			from = ParseFrom(from);*/
 		var from = ParseFrom2(msg.Headers["from"]);
 		
 		var msg_to = this.ParseFrom(msg.Headers["to"]);

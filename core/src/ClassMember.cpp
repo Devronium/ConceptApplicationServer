@@ -548,7 +548,11 @@ promise_resolve:
             this->EndMainCall(PIF, RESULT, THROW_DATA, PREV, &STACK_TRACE);
         else
         if ((USE_RESULT) && (RESULT) && (!THROW_DATA) && (FLAGS != MAY_IGNORE_RESULT)) {
-            COPY_VARIABLE(USE_RESULT, RESULT, PREV);
+            if (this->IS_OPERATOR) {
+                COPY_VARIABLE(USE_RESULT, RESULT, PREV);
+            } else {
+                REPLACE_VARIABLE_AND_FREE_SRC(USE_RESULT, RESULT, PREV);
+            }
             FREE_VARIABLE(RESULT, PREV);
             RESULT = USE_RESULT;
             RESULT->LINKS++;

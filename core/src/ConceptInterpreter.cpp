@@ -240,6 +240,18 @@ void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE) 
     }
 }
 //---------------------------------------------------------
+void REPLACE_VARIABLE_AND_FREE_SRC(VariableDATA* DEST, VariableDATA* SRC, SCStack* STACK_TRACE) {
+    CLASS_CHECK(DEST, STACK_TRACE);
+    DEST->TYPE = SRC->TYPE;
+    DEST->IS_PROPERTY_RESULT = 0;
+    if (SRC->TYPE == VARIABLE_NUMBER) {
+        DEST->NUMBER_DATA = SRC->NUMBER_DATA;
+    } else {
+        DEST->CLASS_DATA = SRC->CLASS_DATA;
+    }
+    SRC->TYPE = VARIABLE_NUMBER;
+}
+//---------------------------------------------------------
 #define RESTORE_TRY_DATA(THISREF)                                                    \
     if (PREVIOUS_TRY) {                                                              \
         CATCH_INSTRUCTION_POINTER = OPT->CODE [PREVIOUS_TRY - 1].OperandReserved_ID; \

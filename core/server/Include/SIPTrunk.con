@@ -329,10 +329,9 @@ class SIPSession {
 	}
 
 	static GetTag(addr) {
-		var tag = "";
-		var arr = StrSplit(addr, ";tag=");
-		if (length arr > 1) {
-			tag = StrSplit(arr[1], ";")[0];
+		var tag = RightOf(addr, ";tag=");
+		if (tag) {
+			tag = LeftOf(tag, ";", tag);
 			if (!tag)
 				tag = "";
 		}
@@ -357,14 +356,14 @@ class SIPSession {
 				// from / to reversed
 				if (msg_to) {
 					if (Pos(msg_to, ";tag=") > 0)
-						msg_to = StrSplit(msg_to, ";tag=")[0];
+						msg_to = LeftOf(msg_to, ";tag=", msg_to);
 					msg_to += ";tag=$to_tag";
 					msg.Headers["To"] = msg_to;
 					msg.Headers["to"] = msg_to;
 				}
 				if (msg_from) {
 					if (Pos(msg_from, ";tag=") > 0)
-						msg_from = StrSplit(msg_from, ";tag=")[0];
+						msg_from = LeftOf(msg_from, ";tag=", msg_from);
 
 					msg_from += ";tag=$from_tag";
 					msg.Headers["From"] = msg_from;
@@ -618,7 +617,7 @@ class SIPSession {
 		return files;
 	}
 
-	SimpleRTP(var payload, profile = 48) {
+	SimpleRTP(var res, var payload, profile = 48) {
 		if (profile == 48) {
 			profile = remote_type;
 			if (profile < 0)
@@ -628,7 +627,7 @@ class SIPSession {
 		}
 		
 		timestamp += length payload;
-		var res = RTPHeader(0x80, profile, sequence_number, timestamp, ssrc_id); // pack("U8U8U16U32U32", 0x80, profile, sequence_number, timestamp, ssrc_id);
+		res = RTPHeader(0x80, profile, sequence_number, timestamp, ssrc_id); // pack("U8U8U16U32U32", 0x80, profile, sequence_number, timestamp, ssrc_id);
 		if (rtc_channel)
 			res = rtc_channel.buildPacket(res, payload);
 		else
@@ -842,10 +841,11 @@ class SIPSession {
 
 	CheckMedia(var type = null) {
 		if ((rtp) && (rtp.GetHasData())) {
+			var maxReadBuffer = 1024;
 			if (rtc_channel) {
 				var packet_remote_ip;
 				var packet_remote_port;
-				rtc_channel.consume(rtp.Read(packet_remote_ip, packet_remote_port), packet_remote_ip, packet_remote_port);
+				rtc_channel.consume(rtp.Read(packet_remote_ip, packet_remote_port, maxReadBuffer), packet_remote_ip, packet_remote_port);
 				remote_port = rtc_channel.ICEport;
 				remote_host = rtc_channel.ICEip;
 				var packet;
@@ -857,8 +857,8 @@ class SIPSession {
 				return ParseRTP(rtc_channel.getReadMessage(), type, false);
 			}
 			if (nat_remote_host)
-				return ParseRTP(rtp.Read(), type);
-			return ParseRTP(rtp.Read(nat_remote_host, nat_remote_port), type);
+				return ParseRTP(rtp.Read(null, null, maxReadBuffer), type);
+			return ParseRTP(rtp.Read(nat_remote_host, nat_remote_port, maxReadBuffer), type);
 		}
 
 		return "";
@@ -932,7 +932,7 @@ class SIPSession {
 		if ((remote_host) && (remote_port > 0)) {
 			if (this.s.OnAudioOut)
 				this.s.OnAudioOut(s, payload);
-			var rtp_payload = SimpleRTP(payload);
+			SimpleRTP(var rtp_payload, payload);
 			try {
 				rtp.Write(rtp_payload, remote_host, remote_port);
 				if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
@@ -1097,7 +1097,7 @@ class SIPSession {
 							if (d_ivr) {
 								if (this.s.OnAudioOut)
 									this.s.OnAudioOut(s, d_ivr);
-								var rtp_payload = SimpleRTP(d_ivr);
+								SimpleRTP(var rtp_payload, d_ivr);
 								rtp.Write(rtp_payload, remote_host, remote_port);
 								if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
 									rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
@@ -1121,7 +1121,7 @@ class SIPSession {
 							if (d_buf) {
 								if (this.s.OnAudioOut)
 									this.s.OnAudioOut(s, d_buf);
-								rtp_payload = SimpleRTP(d_buf);
+								SimpleRTP(rtp_payload, d_buf);
 								rtp.Write(rtp_payload, remote_host, remote_port);
 								if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
 									rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
@@ -1135,7 +1135,7 @@ class SIPSession {
 				if ((packet_time >= microseconds()) && (rtp)) {
 					if ((remote_host) && (remote_port > 0)) {
 						buf = SubStr(this.s.emptyData, 0, chunk_size / 1000 * 8);
-						rtp_payload = this.SimpleRTP(buf);
+						this.SimpleRTP(rtp_payload, buf);
 						rtp.Write(rtp_payload, remote_host, remote_port);
 						if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
 							rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
@@ -1570,8 +1570,9 @@ class SIPStack {
 	private ParseDestination(destination) {
 		if (typeof destination == "array")
 			destination = destination[0];
-		var arr = StrSplit(destination, ";");
-		return arr[0];
+		// var arr = StrSplit(destination, ";");
+		// return arr[0];
+		return LeftOf(destination, ";", destination);
 	}
 
 	public ValidOrigin(ip) {
@@ -3238,7 +3239,7 @@ class SIPStack {
 			} else
 				host = full_host;
 			if (host)
-				host = StrSplit(host, ">")[0];
+				host = LeftOf(host, ">", host);// StrSplit(host, ">")[0];
 		}
 	}
 

@@ -85,6 +85,7 @@ extern "C" {
 void FREE_VARIABLE(VariableDATA *VARIABLE, SCStack *STACK_TRACE);
 #endif
 void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE);
+void REPLACE_VARIABLE_AND_FREE_SRC(VariableDATA* DEST, VariableDATA* SRC, SCStack* STACK_TRACE);
 
 #ifdef SIMPLE_MULTI_THREADING
 #define FREE_VARIABLE_TS(VARIABLE, STACK_TRACE)                                                \
