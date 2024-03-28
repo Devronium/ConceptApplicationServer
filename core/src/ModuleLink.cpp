@@ -2332,6 +2332,20 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
             }
             break;
 
+        case INVOKE_ENSURE_STRING_BUFFER:
+            {
+                VariableDATA* target = va_arg(ap, VariableDATA *);
+                intptr_t size = va_arg(ap, intptr_t);
+
+                if ((!target) || (target->TYPE != VARIABLE_STRING) || (!target->CLASS_DATA) || (size <= 0)) {
+                    result = INVALID_INVOKE_PARAMETER;
+                    break;
+                }
+                if (size > ((struct plainstring*)target->CLASS_DATA)->DATA_SIZE)
+                    plainstring_increasebuffer((struct plainstring*)target->CLASS_DATA, size - ((struct plainstring*)target->CLASS_DATA)->DATA_SIZE);
+            }
+            break;
+
         case INVOKE_DYNAMIC_INCLUDE:
             {
                 PIFAlizator *pif           = va_arg(ap, PIFAlizator *);

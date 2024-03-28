@@ -17041,3 +17041,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RightOf, 2, 3)
     }
 END_IMPL
 //-------------------------------
+CONCEPT_FUNCTION_IMPL(EnsureBuffer, 2)
+    T_STRING(EnsureBuffer, 0);
+    T_NUMBER(EnsureBuffer, 1);
+
+    int err = Invoke(INVOKE_ENSURE_STRING_BUFFER, PARAMETER(0), (intptr_t)PARAM(1));
+
+    RETURN_NUMBER(err);
+END_IMPL
+//-------------------------------
