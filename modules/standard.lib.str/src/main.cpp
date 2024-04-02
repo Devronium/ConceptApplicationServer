@@ -15799,7 +15799,7 @@ void DoubleMetaphone(char *str, int length, char **codes) {
                     current += 1;
                 break;
 
-            case ' ':
+            case '\xC7':
                 MetaphAdd(primary, "S");
                 MetaphAdd(secondary, "S");
                 current += 1;
@@ -16270,7 +16270,7 @@ void DoubleMetaphone(char *str, int length, char **codes) {
                 MetaphAdd(secondary, "N");
                 break;
 
-            case ' ':
+            case '\xD1':
                 current += 1;
                 MetaphAdd(primary, "N");
                 MetaphAdd(secondary, "N");
@@ -17058,9 +17058,6 @@ CONCEPT_FUNCTION_IMPL(LevenshteinDistance, 2)
     int n = (PARAM(0)) ? u8_strlen(PARAM(0), PARAM_LEN(0)) + 1 : 0;
     int m = (PARAM(1)) ? u8_strlen(PARAM(1), PARAM_LEN(1)) + 1 : 0;
 
-    if ((n > 1024) || (m > 1024))
-        return (void *)"LevenshteinDistance: string too long";
-
     if (n < 2) {
         RETURN_NUMBER(m);
         return 0;
@@ -17070,8 +17067,13 @@ CONCEPT_FUNCTION_IMPL(LevenshteinDistance, 2)
         return 0;
     }
 
+    if (n > 64)
+        n = 64;
+    if (m > 64)
+        m = 64;
+
     // String matrix
-    int d[n][m];
+    int d[64][64];
     int i, j;
 
     for (i = 0; i < n; i++)
