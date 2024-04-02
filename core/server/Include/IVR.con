@@ -426,8 +426,14 @@ class IVR {
 			if (Begin)
 				Begin(session.UserData);
 		} else {
-			if ((!this.InviteProxy) || (!this.InviteProxy(session, msg, from, msg_to)))
-				session.Reject();
+			if (this.InviteProxy)  {
+				res = this.InviteProxy(session, msg, from, msg_to);
+				if (res < 0)
+					return -1;
+				if (res)
+					return;
+			}
+			session.Reject();
 		}
 	}
 
@@ -529,7 +535,7 @@ class IVR {
 
 		stack.OnNotUnderstood = function(msg) {
 			if (Debug)
-				console.error(LOG_THIS, "Message not understood:\n" + msg.ToString());
+				console.error(LOG_THIS, "Message not understood:\n" + msg.ToString(stack));
 		};
 
 		stack.OnResponse = function(msg) {

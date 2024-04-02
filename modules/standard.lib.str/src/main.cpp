@@ -15799,7 +15799,7 @@ void DoubleMetaphone(char *str, int length, char **codes) {
                     current += 1;
                 break;
 
-            case 'Ç':
+            case ' ':
                 MetaphAdd(primary, "S");
                 MetaphAdd(secondary, "S");
                 current += 1;
@@ -16270,7 +16270,7 @@ void DoubleMetaphone(char *str, int length, char **codes) {
                 MetaphAdd(secondary, "N");
                 break;
 
-            case 'Ñ':
+            case ' ':
                 current += 1;
                 MetaphAdd(primary, "N");
                 MetaphAdd(secondary, "N");
@@ -17048,5 +17048,57 @@ CONCEPT_FUNCTION_IMPL(EnsureBuffer, 2)
     int err = Invoke(INVOKE_ENSURE_STRING_BUFFER, PARAMETER(0), (intptr_t)PARAM(1));
 
     RETURN_NUMBER(err);
+END_IMPL
+//-------------------------------
+#define LEVENSHTEIN_MIN(a, b)   (a) < (b) ? (a) : (b)
+CONCEPT_FUNCTION_IMPL(LevenshteinDistance, 2)
+    T_STRING(LevenshteinDistance, 0);
+    T_STRING(LevenshteinDistance, 1);
+
+    int n = (PARAM(0)) ? u8_strlen(PARAM(0), PARAM_LEN(0)) + 1 : 0;
+    int m = (PARAM(1)) ? u8_strlen(PARAM(1), PARAM_LEN(1)) + 1 : 0;
+
+    if ((n > 1024) || (m > 1024))
+        return (void *)"LevenshteinDistance: string too long";
+
+    if (n < 2) {
+        RETURN_NUMBER(m);
+        return 0;
+    }
+    if (m < 2) {
+        RETURN_NUMBER(n);
+        return 0;
+    }
+
+    // String matrix
+    int d[n][m];
+    int i, j;
+
+    for (i = 0; i < n; i++)
+        d[i][0] = i;
+    for (j = 0; j < m; j++)
+        d[0][j] = j;
+
+    int idx_0 = 0;
+    for (i = 1; i < n; i++) {
+        // Current char in string s
+        int s0 = u8_nextchar(PARAM(0), &idx_0, PARAM_LEN(0));
+
+        int idx_1 = 0;
+        for (j = 1; j < m; j++) {
+            int jm1 = j - 1;
+            int im1 = i - 1;
+
+            int s1 = u8_nextchar(PARAM(1), &idx_1, PARAM_LEN(1));
+
+            int a = d[im1][j] + 1;
+            int b = d[i][jm1] + 1;
+            int c = d[im1][jm1] + (s1 != s0);
+
+            d[i][j] = (a < b) ? LEVENSHTEIN_MIN(a, c) : LEVENSHTEIN_MIN(b, c);
+        }
+    }
+
+    RETURN_NUMBER(d[n - 1][m - 1]);
 END_IMPL
 //-------------------------------

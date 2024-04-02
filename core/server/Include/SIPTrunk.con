@@ -162,6 +162,7 @@ class SIPSession {
 	var Referred;
 
 	var Record = false;
+	var RecordRedirect = false;
 	var RecordBuffers;
 	var last_sequence_number = -1;
 	var last_timestamp;
@@ -1034,9 +1035,9 @@ class SIPSession {
 				if (write_retry) {
 					this.write_timestamp = microseconds();
 					if (bye_msg) {
-						this.s.DoWrite(this.s.use_socket ?? this.s.udpclientsocket, bye_msg.ToString(), write_server[0], write_server[1]);
+						this.s.DoWrite(this.s.use_socket ?? this.s.udpclientsocket, bye_msg.ToString(this.s), write_server[0], write_server[1]);
 					} else {
-						this.s.DoWrite(this.s.use_socket ?? this.s.udpclientsocket, msg.ToString(), write_server[0], write_server[1]);
+						this.s.DoWrite(this.s.use_socket ?? this.s.udpclientsocket, msg.ToString(this.s), write_server[0], write_server[1]);
 					}
 					write_retry --;
 				} else {
@@ -1189,15 +1190,17 @@ class SIPMessage {
 	var ip;
 	var port;
 
-	GenerateResponse(code) {
+	GenerateResponse(code, stack = null) {
 		var msg = new SIPMessage();
 		msg.FromServer = true;
 		msg.Understood = true;
 		msg.Protocol = this.Protocol;
 		msg.ServerCode = code;
-		var exp = SIP_CODES["" + this.ServerCode];
-		if (exp)
-			msg.ServerCodeText = exp;
+		if (stack) {
+			var exp = stack.SIPCodeText(this.ServerCode);
+			if (exp)
+				msg.ServerCodeText = exp;
+		}
 		msg.Destination = this.Destination;
 		msg.Method = this.Method;
 		msg.Branch = this.Branch;
@@ -1205,11 +1208,14 @@ class SIPMessage {
 		return msg;
 	}
 
-	ToString() {
+	ToString(stack) {
 		var res = "";
+		EnsureBuffer(res, 1024);
 		if (this.FromServer) {
 			if ((this.ServerCode) && (this.Protocol)) {
-				var exp = SIP_CODES["" + this.ServerCode];
+				var exp;
+				if (stack)
+					exp = stack.SIPCodeText(this.ServerCode);
 				if (!exp)
 					exp = this.ServerCodeText;
 				res += this.Protocol + " " + this.ServerCode + " " + exp + "\r\n";
@@ -1437,6 +1443,7 @@ class SIPStack {
 
 	var CacheNames = false;
 	var[] dns_cache;
+	var[] sip_codes;
 
 	var emptyData = "";
 
@@ -1482,6 +1489,8 @@ class SIPStack {
 
 		while (length this.emptyData < 4800)
 			this.emptyData += '\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5';
+
+		this.sip_codes = SIP_CODES;
 	}
 
 	static IPFromName(host) {
@@ -1610,7 +1619,7 @@ class SIPStack {
 		var first_line_arr = StrSplit(first_line, " ");
 		var sipid = ToUpper(first_line_arr[0]);	
 		var message = new SIPMessage();
-		if (sipid[0] + sipid[1] + sipid[2] == "SIP") {
+		if (SubStr(sipid, 0, 3) == "SIP") {
 			// is server response
 			message.FromServer = true;
 			message.ServerCode = value first_line_arr[1];
@@ -1871,7 +1880,7 @@ class SIPStack {
 		var register = this.RegisterMessage(username, password, server, server_port, null, var nonce);
 		var local_udpclientsocket = use_socket ?? udpclientsocket;
 	
-		if (this.DoWrite(local_udpclientsocket, register.ToString(), server, server_port) < 0)
+		if (this.DoWrite(local_udpclientsocket, register.ToString(this), server, server_port) < 0)
 			return null;
 
 		var registration_data = new RegistrationData(username, password, server, server_port);
@@ -1937,7 +1946,7 @@ class SIPStack {
 				registration.err401_timestamp = time();
 				var local_udpclientsocket = use_socket ?? udpclientsocket;
 				var register = this.RegisterMessage(registration.username, registration.password, registration.server, registration.server_port, msg, var nonce);
-				if (this.DoWrite(local_udpclientsocket, register.ToString(), registration.server, registration.server_port) < 0)
+				if (this.DoWrite(local_udpclientsocket, register.ToString(this), registration.server, registration.server_port) < 0)
 					return;
 				registration.nonce = nonce;
 			}
@@ -1975,7 +1984,7 @@ class SIPStack {
 				registration.updateIp();
 				try {
 					var register = this.RegisterMessage(registration.username, registration.password, registration.server, registration.server_port);
-					this.DoWrite(local_udpclientsocket, register.ToString(), registration.server, registration.server_port);
+					this.DoWrite(local_udpclientsocket, register.ToString(this), registration.server, registration.server_port);
 					count ++;
 				} catch (var exc) {
 				}
@@ -1989,13 +1998,13 @@ class SIPStack {
 			var register = this.RegisterMessage(username, password, server, server_port, null, var nonce);
 			var local_udpclientsocket = use_socket ?? udpclientsocket;//new UDPSocket();
 
-			if (this.DoWrite(local_udpclientsocket,  register.ToString(), server, server_port) <= 0)
+			if (this.DoWrite(local_udpclientsocket,  register.ToString(this), server, server_port) <= 0)
 				return null;
 
 			var msg = this.TimedOutRead(local_udpclientsocket, timeout);
 			if ((msg) && (msg.ServerCode == 401)) {
 				register = this.RegisterMessage(username, password, server, server_port, msg, nonce);
-				if (this.DoWrite(local_udpclientsocket, register.ToString(), server, server_port) < 0)
+				if (this.DoWrite(local_udpclientsocket, register.ToString(this), server, server_port) < 0)
 					return null;
 				var msg2 = this.TimedOutRead(local_udpclientsocket, timeout);
 				if (msg2)
@@ -2044,7 +2053,7 @@ class SIPStack {
 		session.auth = 2;
 		session.write_timestamp = microseconds();
 		session.write_server = [registration.server, registration.server_port];
-		if (this.DoWrite(use_socket ?? udpclientsocket, session.msg.ToString(), registration.server, registration.server_port) <= 0)
+		if (this.DoWrite(use_socket ?? udpclientsocket, session.msg.ToString(this), registration.server, registration.server_port) <= 0)
 			return null;
 
 		return true;
@@ -2153,7 +2162,7 @@ class SIPStack {
 				this.OnSend(msg, server, server_port);
 
 			// if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
-			if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(), server, server_port) <= 0)
+			if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(this), server, server_port) <= 0)
 				return null;
 			return msg;
 		} catch (var exc) {
@@ -2193,7 +2202,7 @@ class SIPStack {
 				}
 
 				// if (udpclientsocket.Write(msg.ToString(), ip, port) <= 0)
-				if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(), ip, port) <= 0)
+				if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(this), ip, port) <= 0)
 					return false;
 				return true;
 			} catch (var exc) {
@@ -2204,7 +2213,7 @@ class SIPStack {
 	}
 
 	ResponseUDP(code, parent_msg, destination, payload = "", payload_type = "application/sdp", max_forwards = 70, extra_headers = null, contact = "", ip = "", port = 0, add_tag = false) {
-		var msg = parent_msg.GenerateResponse(code);
+		var msg = parent_msg.GenerateResponse(code, this);
 
 		var server = "";
 		var server_port = 0;
@@ -2303,7 +2312,7 @@ class SIPStack {
 			if (this.OnSend)
 				this.OnSend(msg, server, server_port);
 			// if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
-			if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(), server, server_port) <= 0)
+			if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(this), server, server_port) <= 0)
 				return null;
 			return msg;
 		} catch (var exc) {
@@ -2918,7 +2927,7 @@ class SIPStack {
 				this.OnSend(msg, server, server_port);
 
 			// if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
-			if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(), server, server_port) <= 0)
+			if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(this), server, server_port) <= 0)
 				return false;
 		} catch (var exc) {
 			// nothing
@@ -3000,7 +3009,7 @@ class SIPStack {
 					this.OnSend(msg2, server, server_port);
 
 				// udpclientsocket.Write(msg2.ToString(), server, server_port);
-				this.DoWrite(use_socket ?? udpclientsocket, msg2.ToString(), server, server_port);
+				this.DoWrite(use_socket ?? udpclientsocket, msg2.ToString(this), server, server_port);
 			} catch (var exc) {
 				// nothing
 			}
@@ -3116,7 +3125,7 @@ class SIPStack {
 				sess.write_timestamp = microseconds();
 				sess.write_server = [server, server_port];
 
-				if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(), server, server_port) <= 0)
+				if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(this), server, server_port) <= 0)
 					return null;
 				return sess;
 			} catch (var exc) {
@@ -3207,7 +3216,7 @@ class SIPStack {
 					this.OnSend(msg, server, server_port);
 
 				// if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
-				if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(), server, server_port) <= 0)
+				if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(this), server, server_port) <= 0)
 					return null;
 				return msg;
 			} catch (var exc) {
@@ -3402,6 +3411,11 @@ class SIPStack {
 				return NonRoutable(ip);
 		}
 		return false;
+	}
+
+
+	SIPCodeText(code) {
+		return sip_codes["" + code];
 	}
 
 	needsIO(var out_sockets = null, timeout = 0, base_sockets = null) {
@@ -3746,6 +3760,7 @@ class SIPStack {
 									if ((sess.ProxyCall == 1) && (msg.ServerCode >= 200) && (msg.ServerCode < 300)) {
 										sess.Parent.Accept();
 										sess.ProxyCall = msg.ServerCode;
+//
 										if (this.OnProxyAnswered)
 											this.OnProxyAnswered(sess);
 									} else {
@@ -3779,6 +3794,12 @@ class SIPStack {
 								sess.accept_bye = true;
 								sess.bye_msg = msg;
 								sess.UpdateTags();
+							}
+
+							if ((sess) && (sess.Parent) && (sess.Parent.RecordRedirect)) {
+								sess.Parent.ResetBuffers();
+								sess.Parent.Record = true;
+								sess.Parent.RecordRedirect = false;
 							}
 
 							if ((sess) && (sess.is_invite == true) && ((this.OnAnswered) || (this.OnRedirectAnswered))) {
