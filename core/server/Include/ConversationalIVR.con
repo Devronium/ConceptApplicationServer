@@ -58,6 +58,7 @@ class IVRClientData {
 	var is_queue;
 	var referTryCount;
 	var referAddress;
+	var referError;
 	var dtmf_timestamp;
 	var ai_wait;
 	var js_called;
@@ -122,8 +123,8 @@ class IVRClientData {
 			session.Expires = SETTINGS_MAX_DURATION;
 			session.sip.setExpires(SETTINGS_MAX_DURATION);
 			session.sip.ResetBuffers();
-			session.sip.Record = true;
-			session.StartRecording(session.Expires);
+			session.sip.RecordRedirect = true;
+			// session.StartRecording(session.Expires);
 		}
 		session.sip.setMaxJitter(2);
 		if (empty_buffer) {
@@ -216,8 +217,8 @@ class IVRClientData {
 	static checkEvent(session, to, from, ivr, ivr_tree, key) {
 		if (((ivr.OnAPI) || (ivr.OnEvent)) && (typeof ivr_tree == "array")) {
 			var ref_session;
-			to = StrSplit(to, "@")[0];
-			from = StrSplit(from, "@")[0];
+			to = LeftOf(to, "@", to); // StrSplit(to, "@")[0];
+			from = LeftOf(from, "@", from); // StrSplit(from, "@")[0];
 			if (ivr.OnAPI) {
 				var k = GetKeys(ivr_tree)[0];
 				if (k) {
@@ -542,6 +543,7 @@ class MSSWorker {
 							worker_obj.stream.feed(obj.buffer);
 					//	worker_obj.silence_buffer = "";
 					//}
+
 					var str = worker_obj.stream.decode(var reason);
 					if ((!str) && (!reason))
 						worker_obj.stream.reset();
@@ -1002,6 +1004,7 @@ class VoiceWorker {
 					var piper = GLOBALS()[voice];
 					if (!piper) {
 						piper = new PiperTTS("./models/piper/${arr[2]}.onnx");
+						piper.enableCache = true;
 						GLOBALS()[voice] = piper;
 					}
 					var piper_data = piper.TTS(text);
@@ -1340,7 +1343,7 @@ class OpenAIWorker {
 	}
 
 	prefix(text) {
-		var date = StrSplit((new Date()).toISOString(), "T")[0];
+		var date = LeftOf((new Date()).toISOString(), "T");
 		return "Answer as concisely as possible. Knowledge cutoff: 2021-09-01 Current date: $date.\n" + instructions + text;
 	}
 
@@ -1568,6 +1571,7 @@ class ConversationalIVR {
 	var[] ivr_kb_timestamps;
 	var[] ivr_model_keys;
 	var[] ivr_timeout;
+	var[] ivr_redirect_error;
 	var[] ivr_api_trees;
 	var[] ivr_limits;
 	var[] ivr_queues;
@@ -1577,6 +1581,7 @@ class ConversationalIVR {
 	var[] ivr_quota;
 	var[] ivr_alerts;
 	var[] ivr_cache;
+	var[] ivr_pending_sessions;
 
 	var ivr_api_trees_dirty;
 
@@ -1940,6 +1945,10 @@ class ConversationalIVR {
 			var ivr_timeout_message = config["timeout"];
 			if ((ivr_timeout_message) && (typeof ivr_timeout_message == "string"))
 				ivr_timeout[to] = ivr_timeout_message;
+
+			var ivr_error_message = config["error"];
+			if ((ivr_error_message) && (typeof ivr_error_message == "string"))
+				ivr_redirect_error[to] = ivr_error_message;
 		}
 	}
 
@@ -1998,7 +2007,7 @@ class ConversationalIVR {
 		// 	to = divert_from;
 
 		var limit = ivr_limits[to];
-		if ((limit) && (length this.getSessions(to) > limit)) {
+		if ((limit) && (this.getSessionCount(to) > limit)) {
 			console.warn(LOG_THIS, "call limit exceeded for $to (more than $limit calls)");
 			return null;
 		}
@@ -2255,10 +2264,10 @@ class ConversationalIVR {
 		// count == 2 means DTMF only
 		if (session.ClientData.count == 1) {
 			var stt_worker = this.chooseWorker(session, session.ClientData.hash);
-			if (stt_worker)
+			if (stt_worker) {
 				stt_worker.AddObject(new STTWorkerData(session.sip.CallID, STT_ADDBUFFER, buffer, type));
 				// stt_worker.AddData(BinarizeObject(new STTWorkerData(session.sip.CallID, STT_ADDBUFFER, buffer, type)));
-			else
+			} else
 				console.error(LOG_THIS, "no workers for ${session.To}, callid ${session.sip.CallID}");
 		} else
 		if (session.ClientData.forward_url) {
@@ -2289,10 +2298,18 @@ class ConversationalIVR {
 			if ((k2[0] == "/") && (k2[length k2 - 1] == "/")) {
 				return null;
 			} else {
+				while ((k2[0] == "!") || (k2[0] == "~"))
+					k2 = trim(SubStr(k2, 1));
+
+				// ignore scheduling
+				if (k2[0] == "[")
+					k2 = trim(RightOf(k2, "]"));
+
 				k2 = StrReplace(k2, ",", "|");
 				k2 = StrReplace(k2, ".", "|");
 				k2 = StrReplace(k2, ";", "|");
 				k2 = StrReplace(k2, ":", "|");
+
 				var subkeys = StrSplit(k2, "|");
 				for (var jj = 0; jj < length subkeys; jj ++) {
 					var k = trim(subkeys[jj]);
@@ -2828,6 +2845,57 @@ class ConversationalIVR {
 		return [key];
 	}
 
+	similarWord(word, tree_word, var coef = null) {
+		coef = 0;
+		if ((UTF8Length(tree_word) < 4) || (UTF8Length(word) < 4))
+			return (word == tree_word);
+
+
+		var distance = LevenshteinDistance(word, tree_word);
+
+		coef = distance / (length tree_word);
+
+		if (coef > 0.25) {
+			if ((Pos(tree_word, word) == 1) || (Pos(word, tree_word) == 1))
+				return true;
+
+			if ((length tree_word < 8) || (coef > 0.35))
+				return false;
+		}
+		return true;
+	}
+
+	bestMatch(var context, words, tree_word, ignore_diacritics = true) {
+		if (ignore_diacritics)
+			tree_word = UTF8ToLower(tree_word);
+
+		if (length tree_word < 4)
+			return "";
+
+		if (!context)
+			context = [ 1, "" ];
+
+		var arr = compile(tree_word, ignore_diacritics);
+		if (length arr != 1)
+			return "";
+
+		for (var j = 0; j < length arr; j ++) {
+			var compiled_word = arr[j];
+			if ((compiled_word) && (compiled_word[0] != "-") && (compiled_word[0] != "+")) {
+				for (var i = 0; i < length words; i ++) {
+					var word = trim(UTF8ToLower(words[i]));
+					if ((word) && (similarWord(word, compiled_word, var coef))) {
+						if (coef < context[0]) {
+							context[0] = coef;
+							context[1] = tree_word;
+						}
+					}
+				}
+			}
+		}
+		return context[1];
+	}
+
 	match(text, text_arr, k, ignore_diacritics = false) {
 		var message_understood = false;
 		var key_array = compile(k, ignore_diacritics);
@@ -2892,6 +2960,7 @@ class ConversationalIVR {
 		var message_understood = false;
 		var k4 = "";
 		var has_default = false;
+		var levenshtein_context;
 
 		for (var j = 0; j < length keys; j ++) {
 			var k2 = keys[j];
@@ -2935,11 +3004,20 @@ class ConversationalIVR {
 						if (match(text, arr_text, k, ignore_diacritics)) {
 							message_understood = true;
 							k4 = k;
-						}
+						} else
+						if (ignore_diacritics)
+							bestMatch(levenshtein_context, arr_text, k, ignore_diacritics);
 
 						if (message_understood)
 							break;
 					}
+				}
+			}
+			if ((!message_understood) && (levenshtein_context)) {
+				k4 = levenshtein_context[1];
+				if (k4) {
+					console.log(LOG_THIS, "[$text] approximated to [$k4], score: ${round(levenshtein_context[0], 4)}");
+					message_understood = true;
 				}
 			}
 			if ((has_default) && (!message_understood) && (j == ((length keys) - 1))) {
@@ -2999,6 +3077,7 @@ class ConversationalIVR {
 		var has_default = false;
 		var has_dtmf_string = false;
 		// var check_kb = true;
+		var levenshtein_context;
 
 		var arr_text = tokens(text, ignore_diacritics);
 
@@ -3049,11 +3128,20 @@ class ConversationalIVR {
 						if (match(text, arr_text, k, ignore_diacritics)) {
 							message_understood = true;
 							k4 = k;
-						}
+						} else
+						if (ignore_diacritics)
+							bestMatch(levenshtein_context, arr_text, k, ignore_diacritics);
 
 						if (message_understood)
 							break;
 					}
+				}
+			}
+			if ((!message_understood) && (levenshtein_context)) {
+				k4 = levenshtein_context[1];
+				if (k4) {
+					console.log(LOG_THIS, "[$text] approximated to [$k4], score: ${round(levenshtein_context[0], 4)}");
+					message_understood = true;
 				}
 			}
 			if ((!message_understood) && (j == ((length keys) - 1))) {
@@ -3309,6 +3397,10 @@ class ConversationalIVR {
 			if ((ivr_timeout_message) && (typeof ivr_timeout_message == "string"))
 				ivr_timeout[to] = ivr_timeout_message;
 
+			var ivr_error_message = config["error"];
+			if ((ivr_error_message) && (typeof ivr_error_message == "string"))
+				ivr_redirect_error[to] = ivr_error_message;
+
 			if (config["limit"])
 				ivr_limits[to] = value config["limit"];
 		}
@@ -3462,7 +3554,7 @@ class ConversationalIVR {
 		if (!session.UserData.ClientData.count) {
 			if (microseconds() - session.UserData.ClientData.dtmf_timestamp < 1000000)
 				return;
-			if ((typeof session.UserData.ClientData.ivr_branch != "array") || ((!IsSet(session.UserData.ClientData.ivr_branch, key)) && (!IsSet(session.UserData.ClientData.ivr_branch, " " + key))))
+			if ((typeof session.UserData.ClientData.ivr_branch != "array") || ((!IsSet(session.UserData.ClientData.ivr_branch, key)) && (!IsSet(session.UserData.ClientData.ivr_branch, " " + key)) && (!IsSet(session.UserData.ClientData.ivr_branch, "~" + key))))
 				return;
 			force_dtmf = true;
 			session.UserData.ClientData.dtmf_timestamp = microseconds();
@@ -3739,6 +3831,7 @@ class ConversationalIVR {
 
 				switch (obj.opaque[0]) {
 					case 1:
+						this.ivr_pending_sessions[ obj.opaque[2] ] --;
 						this.callSyncAll(obj.opaque[1], obj.opaque[2], obj.opaque[3], obj.opaque[4], obj.opaque[5]);
 						break;
 					case 2:
@@ -3956,7 +4049,7 @@ class ConversationalIVR {
 				cache_arr = new [];
 				this.ivr_cache[from] = cache_arr;
 			}
-			cache_arr[StrSplit(who, "@")[0]] = tree;
+			cache_arr[LeftOf(who, "@", who)] = tree;
 
 			if (length cache_arr >= SETTINGS_MAX_CALLCACHE)
 				deleteArrayElement(cache_arr, 0);
@@ -3971,7 +4064,36 @@ class ConversationalIVR {
 		if (!worker)
 			return null;
 
+		this.ivr_pending_sessions[from] ++;
 		return worker.AddData(BinarizeObject(new VoiceWorkerData(texts, [1, who, from, tree, max_duration, force_identity])));
+	}
+
+	sendText(who, from, text) {
+		var from_parsed = from;
+		
+		if (ivr.OnFormatFrom)
+			from_parsed = ivr.OnFormatFrom(from_parsed);
+
+		var gateway_arr = StrSplit(who, "@");
+		var gateway = "";
+		if (length gateway_arr == 2) {
+			who = gateway_arr[0];
+			gateway = "@" + gateway_arr[1];
+		}
+		var arr = StrSplit(who, ",");
+		var idx = 0;
+		for (var i = 0; i < length arr; i ++) {
+			var phone = trim(arr[i]);
+			if (phone) {
+				if (this.OnCheckDestination)
+					phone = this.OnCheckDestination(phone);
+
+				console.log(LOG_THIS, "texting $phone from $from: [$text]");
+				if (this.ivr.stack.TextMessage(phone, from, text))
+					idx ++;
+			}
+		}
+		return idx;
 	}
 
 	isSuspended(identity) {
@@ -4021,8 +4143,20 @@ class ConversationalIVR {
 			return;
 		}
 
+		var error = trim(RightOf(destination, "/"));
+		if ((error) && (Pos(error, "@") > 0)) {
+			destination = LeftOf(destination, "/");
+			if (!destination)
+				return;
+
+			if (session.ClientData)
+				session.ClientData.referError = error;
+		}
+
+		var ref_contact = "";
+		var remote_party = sessionRemoteParty(session);
 		if (this.OnRouteRequest)
-			destination = this.OnRouteRequest(destination);
+			destination = this.OnRouteRequest(session, destination, ref_contact, remote_party);
 
 		if ((Pos(destination, "@") <= 0) && (session.sip.msg) && ((session.sip.ip) || (session.sip.msg.RemoteAddress))) {
 			var use_server = session.sip.ip;
@@ -4040,19 +4174,21 @@ class ConversationalIVR {
 		}
 		console.log(LOG_THIS, "refering $destination");
 
-		var ref_contact = "";
-		this.ivr.stack.ParseFullDestination(session.sip.msg.LocalAddress, ref_contact, null, null);
+		if (!ref_contact)
+			this.ivr.stack.ParseFullDestination(session.sip.msg.LocalAddress, ref_contact, null, null);
 
 		session.Expires = SETTINGS_MAX_DURATION;
 		session.sip.setExpires(SETTINGS_MAX_DURATION);
-		session.sip.ResetBuffers();
-		session.sip.Record = true;
-		session.StartRecording(session.Expires);
+		if (!session.ClientData.referTryCount)
+			session.sip.ResetBuffers();
+		session.ResetTime();
+		session.sip.RecordRedirect = true;
+		// session.StartRecording(session.Expires);
 
 		if (this.OnCheckDestination)
 			destination = this.OnCheckDestination(destination);
 
-		var refer_session = session.Refer(destination, ref_contact, sessionRemoteParty(session));
+		var refer_session = session.Refer(destination, ref_contact, remote_party);
 		if (refer_session) {
 			session.sip.setMaxJitter(2);
 			session.AudioEvents = false;
@@ -4070,10 +4206,26 @@ class ConversationalIVR {
 	OnReferNoAnswer(session) {
 		var ivr_session = session.UserData;
 		if ((ivr_session) && (ivr_session.ClientData)) {
-			if (ivr_session.ClientData.referTryCount <= 8) {
+			if (ivr_session.ClientData.referTryCount < 4) {
 				ivr_session.ClientData.referTryCount ++;
-				if (session.ClientData.referAddress) {
-					this.refer(session.UserData, session.ClientData.referAddress);
+				console.log(LOG_THIS, "retry ${ivr_session.ClientData.referTryCount}...");
+				if (ivr_session.ClientData.referAddress) {
+					this.refer(session.UserData, ivr_session.ClientData.referAddress);
+					return false;
+				}
+			}
+			var account;
+			if (ivr_session.sip.is_invite)
+				account = ivr_session.From;
+			else
+				account = ivr_session.To;
+			if (IsSet(ivr_redirect_error, account)) {
+				var error_text = ivr_redirect_error[account];
+				if (error_text) {
+					ivr_session.ClientData.count = 0;
+					ivr_session.EndOnIVRFinished = true;
+					ivr_session.ClientData.redirect = "";
+					this.Raspuns(ivr_session.sip.CallID, error_text);
 					return false;
 				}
 			}
@@ -4110,14 +4262,43 @@ class ConversationalIVR {
 				var to = this.ivr.ParseFrom2(session.msg.Headers["to"]);
 
 				if ((!account) || (((session.is_invite) && (from == account)) || ((!session.is_invite) && (to == account)))) {
-					var code = session.callStatus;
-					if (code)
-						code = "$code - ";
-					sess_ids[session.CallID] = ["account" => account ?? identity, "isInvite" => session.is_invite, "from" => from, "to" => to, "callDuration" => 0, "path" => "(${code}setting up call - not answered yet)", "text" => ""];
+					if (session.callStatus == 200) {
+						sess_ids[session.CallID] = ["account" => account ?? identity, "isInvite" => session.is_invite, "from" => from, "to" => to, "callDuration" => 0, "path" => "", "text" => ""];
+					} else {
+						var code = session.callStatus;
+						if (code)
+							code = "$code - ";
+						sess_ids[session.CallID] = ["account" => account ?? identity, "isInvite" => session.is_invite, "from" => from, "to" => to, "callDuration" => 0, "path" => "(${code}setting up call - not answered yet)", "text" => ""];
+					}
 				}
 			}
 		}
+		var pending = this.ivr_pending_sessions[account];
+		for (i = 0; i < pending; i ++)
+			sess_ids["pending_${i + 1}"] = ["account" => account ?? identity, "isInvite" => false, "from" => "pending", "to" => "pending", "callDuration" => 0, "path" => "(preparing audio)", "text" => ""];
+
 		return sess_ids;
+	}
+
+	getSessionCount(account) {
+		var sess_ids = 0;
+		var sessions = this.ivr.stack.Sessions;
+		for (var i = 0; i < length sessions; i ++) {
+			var session = sessions[i];
+			if ((session) && (session.UserData)) {
+				if ((!account) || (((session.is_invite) && (session.UserData.From == account)) || ((!session.is_invite) && (session.UserData.To == account))))
+					sess_ids ++;
+			} else
+			if (session) {
+				if ((!account) || (((session.is_invite) && (this.ivr.ParseFrom2(session.msg.Headers["from"]) == account)) || ((!session.is_invite) && (this.ivr.ParseFrom2(session.msg.Headers["to"]) == account))))
+					sess_ids ++;
+			}
+		}
+		return sess_ids + this.ivr_pending_sessions[account];
+	}
+
+	pendingSessions(account) {
+		return this.ivr_pending_sessions[account];
 	}
 
 	alertData(to) {
@@ -4282,7 +4463,7 @@ class ConversationalIVR {
 				limit = q["maxCalls"];
 		}
 
-		var session_len = length this.getSessions(identity);
+		var session_len = this.getSessionCount(identity);
 		if ((session_len) && (minus_one_session))
 			session_len --;
 

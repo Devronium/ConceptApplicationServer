@@ -2476,12 +2476,9 @@ class SIPStack {
 										return;
 								}
 								if (!canceled) {
-									if (child_len <= 1) {
-										if ((this.OnReferNoAnswer) && (!this.OnReferNoAnswer(session)))
-											session.RemoveChild(child_session);
-										else
-											session.Bye(true);
-									} else
+									if (child_len <= 1)
+										session.Bye(true);
+									else
 										session.RemoveChild(child_session);
 								}
 							} else {
@@ -3838,9 +3835,11 @@ class SIPStack {
 								if ((!this.Registrations) || ((msg.ServerCode != 401) && (msg.ServerCode != 407)) || (!this.Invite401(sess, msg))) {
 									parent = sess.Parent;
 									// sess.Bye();
-									this.RemoveSessionByRef(sess, msg.ServerCode);
-									if (this.OnEnd)
-										this.OnEnd(sess, msg, msg.Headers["reason"] ?? "");
+									if ((!parent) || (!this.OnReferNoAnswer) || (this.OnReferNoAnswer(parent))) {
+										this.RemoveSessionByRef(sess, msg.ServerCode);
+										if (this.OnEnd)
+											this.OnEnd(sess, msg, msg.Headers["reason"] ?? "");
+									}
 								}
 							} else
 							if ((this.Registrations) && (msg.ServerCode == 401))

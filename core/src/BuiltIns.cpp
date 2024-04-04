@@ -244,7 +244,7 @@ CONCEPT_FUNCTION_IMPL(localtime, 1)
     T_NUMBER(localtime, 0)
     CREATE_ARRAY(RESULT);
 
-    time_t tempp = PARAM_INT(0);
+    time_t tempp = (time_t)PARAM(0);
     struct tm tmbuf;
     struct tm *timeinfo = localtime_r(&tempp, &tmbuf);
     if (timeinfo) {
@@ -264,7 +264,7 @@ CONCEPT_FUNCTION_IMPL(gmtime, 1)
     T_NUMBER(gmtime, 0)
     CREATE_ARRAY(RESULT);
 
-    time_t tempp = PARAM_INT(0);
+    time_t tempp = (time_t)PARAM(0);
     struct tm tmbuf;
     struct tm *timeinfo = gmtime_r(&tempp, &tmbuf);
     if (timeinfo) {
