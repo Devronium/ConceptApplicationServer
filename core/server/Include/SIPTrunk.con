@@ -1026,66 +1026,115 @@ class SIPSession {
 		}
 	}
 
+	_iterateReinvite() {
+		if ((write_timestamp) && (msg) && (write_server) && (microseconds() - write_timestamp >= 500000)) {
+			if (write_retry) {
+				this.write_timestamp = microseconds();
+				if (bye_msg) {
+					this.s.DoWrite(this.s.use_socket ?? this.s.udpclientsocket, bye_msg.ToString(this.s), write_server[0], write_server[1]);
+				} else {
+					this.s.DoWrite(this.s.use_socket ?? this.s.udpclientsocket, msg.ToString(this.s), write_server[0], write_server[1]);
+				}
+				write_retry --;
+			} else {
+				write_timestamp = 0;
+				delete write_server;
+				throw "Session invite expired !\n";
+			}
+		}
+	}
+
+	_iterateData(var data, type, var ops) {
+		ops++;
+		if (s.OnAudio)
+			s.OnAudio(this, data, type);
+
+		started = true;
+
+		if (Children) {
+			for (var i = 0; i < length Children; i++) {
+				var child = Children[i];
+				if (child)
+					child.Write(data, this.MaxJitter);
+			}
+		} else
+		if (Parent) {
+			if ((length Parent.Children <= 1) || (Parent.Referred))
+				Parent.Write(data, this.MaxJitter);
+		} else
+		if (((s.OnDTMF) || (this.OnDTMF)) && (!this.IgnoreDTMF) && (!this.rtp_dtmf)) {
+			if (!d) {
+				d = new DTMFDetector();
+				d.Threshold = 1000;
+			}
+			if (type == 8)
+				d.AddBuffer(alaw2pcm(data));
+			else
+			if (type == 0)
+				d.AddBuffer(ulaw2pcm(data));
+
+			var buttons = d.Buttons;
+			if ((buttons) && (buttons != DTMFHistory)) {
+				DTMFHistory = buttons;
+				if (this.OnDTMF)
+					this.OnDTMF(this, buttons[length buttons - 1]);
+				else
+					s.OnDTMF(this, buttons[length buttons - 1]);
+			}
+		}
+	}
+
+	_iterateException(var ops) {
+		if ((this.Parent) && (this.ProxyCall == 1))
+			this.s.ResponseUDP(408, this.Parent.msg, this.Parent.msg.Headers["from"], "", "", 70, null, "", this.Parent.ip, this.Parent.port);
+
+		if (this.tcp_socket)
+			this.s.RemoveTCPSocket(this.tcp_socket);
+		this.s.RemoveSessionByRef(this);
+		if ((!this.is_invite) || (this.callStatus == 200))
+			this.Bye();
+		else
+			this.Cancel();
+		if (this.s.OnEnd)
+			this.s.OnEnd(this, msg, "");
+		ops++;
+	}
+
+	_iterateStarted(var ops) {
+		if ((packet_time >= microseconds()) && (rtp)) {
+			if ((remote_host) && (remote_port > 0)) {
+				buf = SubStr(this.s.emptyData, 0, chunk_size / 1000 * 8);
+				this.SimpleRTP(var rtp_payload, buf);
+				rtp.Write(rtp_payload, remote_host, remote_port);
+				if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
+					rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
+			}
+			packet_time = microseconds() + chunk_size;
+			ops++;
+		}
+		started = true;
+	}
+
+	_iterateAudio(var d_buf) {
+		if (this.s.OnAudioOut)
+			this.s.OnAudioOut(s, d_buf);
+		SimpleRTP(var rtp_payload, d_buf);
+		rtp.Write(rtp_payload, remote_host, remote_port);
+		if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
+			rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
+	}
+
 	Iterate() {
 		var exc;
 		var ops = 0;
 		try {
 			// 500ms reinvite
-			if ((write_timestamp) && (msg) && (write_server) && (microseconds() - write_timestamp >= 500000)) {
-				if (write_retry) {
-					this.write_timestamp = microseconds();
-					if (bye_msg) {
-						this.s.DoWrite(this.s.use_socket ?? this.s.udpclientsocket, bye_msg.ToString(this.s), write_server[0], write_server[1]);
-					} else {
-						this.s.DoWrite(this.s.use_socket ?? this.s.udpclientsocket, msg.ToString(this.s), write_server[0], write_server[1]);
-					}
-					write_retry --;
-				} else {
-					write_timestamp = 0;
-					delete write_server;
-					throw "Session invite expired !\n";
-				}
-			}
+			if (write_server)
+				this._iterateReinvite();
+
 			var data = CheckMedia(var type);
-			if (data) {
-				ops++;
-				if (s.OnAudio)
-					s.OnAudio(this, data, type);
-
-				started = true;
-
-				if (Children) {
-					for (var i = 0; i < length Children; i++) {
-						var child = Children[i];
-						if (child)
-							child.Write(data, this.MaxJitter);
-					}
-				} else
-				if (Parent) {
-					if ((length Parent.Children <= 1) || (Parent.Referred))
-						Parent.Write(data, this.MaxJitter);
-				} else
-				if (((s.OnDTMF) || (this.OnDTMF)) && (!this.IgnoreDTMF) && (!this.rtp_dtmf)) {
-					if (!d) {
-						d = new DTMFDetector();
-						d.Threshold = 1000;
-					}
-					if (type == 8)
-						d.AddBuffer(alaw2pcm(data));
-					else
-					if (type == 0)
-						d.AddBuffer(ulaw2pcm(data));
-
-					var buttons = d.Buttons;
-					if ((buttons) && (buttons != DTMFHistory)) {
-						DTMFHistory = buttons;
-						if (this.OnDTMF)
-							this.OnDTMF(this, buttons[length buttons - 1]);
-						else
-							s.OnDTMF(this, buttons[length buttons - 1]);
-					}
-				}
-			}
+			if (data)
+				this._iterateData(data, type, ops);
 
 			if (started) {
 				if ((remote_host) && (remote_port > 0) && (rtp)) {
@@ -1096,12 +1145,7 @@ class SIPSession {
 							var d_ivr = SubStr(ivr, ivr_chunk * /*160*/ f_size, f_size);
 							ivr_chunk = delta + 1;
 							if (d_ivr) {
-								if (this.s.OnAudioOut)
-									this.s.OnAudioOut(s, d_ivr);
-								SimpleRTP(var rtp_payload, d_ivr);
-								rtp.Write(rtp_payload, remote_host, remote_port);
-								if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
-									rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
+								this._iterateAudio(d_ivr);
 							} else {
 								ivr = "";
 								ivr_chunk = 0;
@@ -1119,52 +1163,23 @@ class SIPSession {
 							var d_buf = StrMove(buf, f_size);
 							if (!d_buf)
 								d_buf = SubStr(this.s.emptyData, 0, f_size);
-							if (d_buf) {
-								if (this.s.OnAudioOut)
-									this.s.OnAudioOut(s, d_buf);
-								SimpleRTP(rtp_payload, d_buf);
-								rtp.Write(rtp_payload, remote_host, remote_port);
-								if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
-									rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
-							}
+							if (d_buf)
+								this._iterateAudio(d_buf);
 							ops++;
 						}
 					}
 				}
 			} else
-			if (!started) {
-				if ((packet_time >= microseconds()) && (rtp)) {
-					if ((remote_host) && (remote_port > 0)) {
-						buf = SubStr(this.s.emptyData, 0, chunk_size / 1000 * 8);
-						this.SimpleRTP(rtp_payload, buf);
-						rtp.Write(rtp_payload, remote_host, remote_port);
-						if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
-							rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
-					}
-					packet_time = microseconds() + chunk_size;
-					ops++;
-				}
-				started = true;
-			}
+			if (!started)
+				this._iterateStarted(ops);
+
 			if (Expired()) {
 				if (this.s.OnTimedout)
 					this.s.OnTimedout(this);
 				throw "Session expired !\n";
 			}
 		} catch (exc) {
-			if ((this.Parent) && (this.ProxyCall == 1))
-				this.s.ResponseUDP(408, this.Parent.msg, this.Parent.msg.Headers["from"], "", "", 70, null, "", this.Parent.ip, this.Parent.port);
-
-			if (this.tcp_socket)
-				this.s.RemoveTCPSocket(this.tcp_socket);
-			this.s.RemoveSessionByRef(this);
-			if ((!this.is_invite) || (this.callStatus == 200))
-				this.Bye();
-			else
-				this.Cancel();
-			if (this.s.OnEnd)
-				this.s.OnEnd(this, msg, "");
-			ops++;
+			this._iterateException(ops);
 		}
 		return ops;
 	}

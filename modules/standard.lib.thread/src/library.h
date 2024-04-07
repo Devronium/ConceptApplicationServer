@@ -39,6 +39,7 @@ extern "C" {
     CONCEPT_FUNCTION(AddWorkerResultDataAll)
     CONCEPT_FUNCTION(GetWorkerResultData)
     CONCEPT_FUNCTION(GetWorkerResultDataAll)
+    CONCEPT_FUNCTION(GetAllWorkersResultDataAll)
     CONCEPT_FUNCTION(RemoveWorkerData)
     CONCEPT_FUNCTION(SetWorkerName)
     CONCEPT_FUNCTION(GetWorkerInputSemaphore)

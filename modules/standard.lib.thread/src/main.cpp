@@ -682,7 +682,9 @@ public:
         int size = output_data.size();
 
         if (size > 0) {
-            INTEGER idx = 0;
+            INTEGER idx = Invoke(INVOKE_GET_ARRAY_COUNT, OUTPUT);
+            if (idx < 0)
+                idx = 0;
             int pending = size;
             do {
                 ThreadDataContainer *temp = (ThreadDataContainer *)output_data.front();
@@ -1476,6 +1478,58 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetWorkerResultDataAll, 2, 4)
 
     CREATE_ARRAY(PARAMETER(1));
     int size  = tmc->GetOutputAll(Invoke, PARAMETER(1), locking, max_elements);
+    RETURN_NUMBER(size);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetAllWorkersResultDataAll, 2, 4)
+    T_ARRAY(GetAllWorkersResultDataAll, 0)
+
+    int locking = 0;
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(GetAllWorkersResultDataAll, 2);
+        locking = PARAM_INT(2);
+    }
+    int max_elements = 0;
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(GetAllWorkersResultDataAll, 3);
+        max_elements = PARAM_INT(3);
+    }
+
+    CREATE_ARRAY(PARAMETER(1));
+
+    INTEGER count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(0));
+    void* arr = PARAMETER(0);
+    int size = 0;
+    for (INTEGER i = 0; i < count; i++) {
+        void* var = 0;
+        Invoke(INVOKE_ARRAY_VARIABLE, arr, i, &var);
+        if (var) {
+            INTEGER type = 0;
+            char* szData = 0;
+            NUMBER  nData = 0;
+
+            Invoke(INVOKE_GET_VARIABLE, var, &type, &szData, &nData);
+            void* worker = NULL;
+            if (type == VARIABLE_NUMBER) {
+                worker = (void*)(uintptr_t)nData;
+            } else
+            if (type == VARIABLE_CLASS) {
+                if (IS_OK(Invoke(INVOKE_GET_CLASS_MEMBER, szData, "_workerobj", &type, &szData, &nData))) {
+                    if (type == VARIABLE_NUMBER)
+                        worker = (void*)(uintptr_t)nData;
+                }
+            }
+            if (worker) {
+                ThreadMetaContainer* tmc = NULL;
+                Invoke(INVOKE_GETPROTODATA, worker, (int)2, &tmc);
+                if (!tmc)
+                    return (void*)"Using a worker function on a non-worker";
+
+                size += tmc->GetOutputAll(Invoke, PARAMETER(1), locking, max_elements);
+            }
+        }
+    }
+
     RETURN_NUMBER(size);
 END_IMPL
 //---------------------------------------------------------------------------
