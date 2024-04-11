@@ -1514,7 +1514,7 @@ class TimeParser {
 		return false;
 	}
 
-	static checkText(str, now = null) {
+	static checkText(str, now = null, var stripped_text = null) {
 		str = trim(str);
 		while ((str) && ((str[0] == "!") || (str[0] == "~")))
 			str = SubStr(str, 1);
@@ -1531,8 +1531,10 @@ class TimeParser {
 			if (!now)
 				now = localtime(time());
 
-			if (!TimeParser.checkPrefix(prefix, now))
+			if (!TimeParser.checkPrefix(prefix, now)) {
+				stripped_text = trim(SubStr(str, end));
 				return "";
+			}
 		}
 
 		return trim(SubStr(str, end));
@@ -1572,6 +1574,7 @@ class ConversationalIVR {
 	var[] ivr_model_keys;
 	var[] ivr_timeout;
 	var[] ivr_redirect_error;
+	var[] ivr_working_hours;
 	var[] ivr_api_trees;
 	var[] ivr_limits;
 	var[] ivr_queues;
@@ -1949,6 +1952,10 @@ class ConversationalIVR {
 			var ivr_error_message = config["error"];
 			if ((ivr_error_message) && (typeof ivr_error_message == "string"))
 				ivr_redirect_error[to] = ivr_error_message;
+
+			var ivr_outside_working_hours_message = config["working_hours"];
+			if ((ivr_outside_working_hours_message) && (typeof ivr_outside_working_hours_message == "string"))
+				ivr_working_hours[to] = ivr_outside_working_hours_message;
 		}
 	}
 
@@ -2747,25 +2754,39 @@ class ConversationalIVR {
 		try {
 			for (var i = 0; i < length stt_workers; i ++) {
 				var arr = stt_workers[i];
-				for (var j = 0; j < length arr; j ++)
-					this.OnIdle_worker(arr[j]);
+				// for (var j = 0; j < length arr; j ++)
+				// 	this.OnIdle_worker(arr[j]);
+				if (GetAllWorkersResultDataAll(arr, var data, 0, 100) > 0)
+					this.OnIdle_worker(data);
 			}
 			for (i = 0; i < length cheap_workers; i ++) {
 				arr = cheap_workers[i];
-				for (j = 0; j < length arr; j ++)
-					this.OnIdle_worker(arr[j]);
+				// for (j = 0; j < length arr; j ++)
+				// 	this.OnIdle_worker(arr[j]);
+				if (GetAllWorkersResultDataAll(arr, data, 0, 100) > 0)
+					this.OnIdle_worker(data);
 			}
-			for (i = 0; i < length voice_workers; i ++)
-				this.OnIdle_voiceWorker(voice_workers[i]);
+			// for (i = 0; i < length voice_workers; i ++)
+			// 	this.OnIdle_voiceWorker(voice_workers[i]);
+			if (GetAllWorkersResultDataAll(voice_workers, data, 0, 100) > 0)
+				this.OnIdle_voiceWorker(data);
 
-			for (i = 0; i < length js_workers; i ++)
-				this.OnIdle_jsWorker(js_workers[i]);
+			// for (i = 0; i < length js_workers; i ++)
+			// 	this.OnIdle_jsWorker(js_workers[i]);
+			if (GetAllWorkersResultDataAll(js_workers, data, 0, 100) > 0)
+				this.OnIdle_jsWorker(data);
 
-			if (this.openAIWorker)
-				this.OnIdle_openAIWorker(this.openAIWorker);
+			if (this.openAIWorker) {
+				// this.OnIdle_openAIWorker(this.openAIWorker);
+				this.openAIWorker.GetAll(data, 0, 100);
+				if (data)
+					this.OnIdle_openAIWorker(data);
+			}
 
-			for (i = 0; i < length ai_workers; i ++)
-				this.OnIdle_openAIWorker(ai_workers[i]);
+			// for (i = 0; i < length ai_workers; i ++)
+			// 	this.OnIdle_openAIWorker(ai_workers[i]);
+			if (GetAllWorkersResultDataAll(ai_workers, data, 0, 100) > 0)
+				this.OnIdle_openAIWorker(data);
 
 			// if (microseconds() - every_second >= (SETTINGS_REREGISTER * 1000000)) {
 			// 	this.ivr.stack.Reregister();
@@ -3084,26 +3105,41 @@ class ConversationalIVR {
 		if (TextEvent_kb(session, arr_text, text, ignore_diacritics))
 			return true;
 
+		var working_hours_message = ivr_working_hours[sessionTo(session)];
+		var working_hours_k = "";
+		var working_hours_match = false;
 		for (var j = 0; j < length keys; j ++) {
 			var k2 = keys[j];
 			if (!k2)
 				continue;
 
-			var k_orig = k2;
+			var outside_working_hours = false;
 
-			k2 = TimeParser::checkText(k2);
+			var k_orig = k2;
+			var working_k;
+
+			k2 = TimeParser::checkText(k2, null, working_k);
 			// while ((k2) && ((k2[0] == "!") || (k2[0] == "~")))
 			// 	k2 = SubStr(k2, 1);
 
-			if (!k2)
-				continue;
+			if (!k2) {
+				if (working_hours_message) {
+					k2 = working_k;
+					outside_working_hours = true;
+				} else {
+					continue;
+				}
+			}
 
 			if ((k2[0] == "/") && (k2[length k2 - 1] == "/")) {
 				var regexp_str = SubStr(k2, 1, length k2 - 2);
 				var regexp = new RegExp(regexp_str);
 				if (regexp.test(text)) {
 					k4 = regexp_str;
-					message_understood = true;
+					if (outside_working_hours)
+						working_hours_k = k_orig;
+					else
+						message_understood = true;
 				}
 			} else {
 				k2 = StrReplace(k2, ",", "|");
@@ -3126,7 +3162,10 @@ class ConversationalIVR {
 							continue;
 						}
 						if (match(text, arr_text, k, ignore_diacritics)) {
-							message_understood = true;
+							if (outside_working_hours)
+								working_hours_k = k_orig;
+							else
+								message_understood = true;
 							k4 = k;
 						} else
 						if (ignore_diacritics)
@@ -3137,7 +3176,7 @@ class ConversationalIVR {
 					}
 				}
 			}
-			if ((!message_understood) && (levenshtein_context)) {
+			if ((!message_understood) && (levenshtein_context) && (!working_hours_k)) {
 				k4 = levenshtein_context[1];
 				if (k4) {
 					console.log(LOG_THIS, "[$text] approximated to [$k4], score: ${round(levenshtein_context[0], 4)}");
@@ -3145,6 +3184,11 @@ class ConversationalIVR {
 				}
 			}
 			if ((!message_understood) && (j == ((length keys) - 1))) {
+				if (working_hours_k) {
+					k_orig = working_hours_k;
+					message_understood = true;
+					working_hours_match = true;
+				} else
 				if (has_dtmf_string) {
 					k4 = "*#";
 					// ignore echo keys
@@ -3169,7 +3213,17 @@ class ConversationalIVR {
 			if (message_understood) {
 				session.ClientData.ivr_path += "/" + k4;
 				session.ClientData.prev_branch = session.ClientData.ivr_branch;
-				session.ClientData.ivr_branch = session.ClientData.ivr_branch[k_orig];
+				if (working_hours_match) {
+					session.ClientData.ivr_branch = working_hours_message;
+
+					var orig = session.ClientData.prev_branch[k_orig];
+					if ((orig) && (typeof orig == "array")) {
+						var redirect_key = GetKeys(orig)[0];
+						if ((redirect_key) && (redirect_key[0] == "\$"))
+							session.ClientData.ivr_branch = [redirect_key => working_hours_message];
+					}
+				} else
+					session.ClientData.ivr_branch = session.ClientData.ivr_branch[k_orig];
 
 				try {
 					if (this.OnBranch)
@@ -3281,8 +3335,8 @@ class ConversationalIVR {
 		return timeout_msg;
 	}
 
-	OnIdle_worker(stt_worker) {
-		stt_worker.GetAll(var data, 0, 100);
+	OnIdle_worker(data/* stt_worker */) {
+		// stt_worker.GetAll(var data, 0, 100);
 		if (data) {
 			var[] ids;
 			for (var i = length data - 1; i >= 0; i --) {
@@ -3400,6 +3454,10 @@ class ConversationalIVR {
 			var ivr_error_message = config["error"];
 			if ((ivr_error_message) && (typeof ivr_error_message == "string"))
 				ivr_redirect_error[to] = ivr_error_message;
+
+			var ivr_outside_working_hours_message = config["working_hours"];
+			if ((ivr_outside_working_hours_message) && (typeof ivr_outside_working_hours_message == "string"))
+				ivr_working_hours[to] = ivr_outside_working_hours_message;
 
 			if (config["limit"])
 				ivr_limits[to] = value config["limit"];
@@ -3821,8 +3879,8 @@ class ConversationalIVR {
 		return idx;
 	}
 
-	OnIdle_voiceWorker(worker) {
-		worker.GetAll(var data, 0, 100);
+	OnIdle_voiceWorker(data /* worker */) {
+		// worker.GetAll(var data, 0, 100);
 		if (data) {
 			for (var i = 0; i < length data; i ++) {
 				var obj = UnBinarizeObject(data[i]);
@@ -3850,8 +3908,8 @@ class ConversationalIVR {
 		}
 	}
 
-	OnIdle_jsWorker(worker) {
-		worker.GetAll(var data, 0, 100);
+	OnIdle_jsWorker(data /* worker */) {
+		// worker.GetAll(var data, 0, 100);
 		if (data) {
 			for (var i = 0; i < length data; i ++) {
 				var obj = UnBinarizeObject(data[i]);
@@ -3966,8 +4024,8 @@ class ConversationalIVR {
 		return null;
 	}
 
-	OnIdle_openAIWorker(worker) {
-		worker.GetAll(var data, 0, 100);
+	OnIdle_openAIWorker(data /* worker */) {
+		// worker.GetAll(var data, 0, 100);
 		if (data) {
 			for (var i = 0; i < length data; i ++) {
 				var obj = UnBinarizeObject(data[i]);

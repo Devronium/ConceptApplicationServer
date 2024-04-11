@@ -2739,7 +2739,10 @@ class SIPStack {
 				return null;
 			}
 
-			var session = new SIPSession(this, msg, rtp_port_index++, ip, port, this.FrameSize, MaxTime);
+			var session = new SIPSession(this, msg, rtp_port_index ++, ip, port, this.FrameSize, MaxTime);
+			// increase rtp port (rtp port + 1 used for rtcp)
+			rtp_port_index ++;
+			// ==========
 			session.Branch = branch;
 			if (rtp_port_index > RTP_END_PORT)
 				rtp_port_index = RTP_START_PORT;
@@ -3458,6 +3461,7 @@ class SIPStack {
 			if (session)
 				ops += session.Iterate();
 		}
+
 		var msg;
 		use_socket = null;
 		if (tcp) {

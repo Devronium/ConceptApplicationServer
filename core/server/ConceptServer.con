@@ -1493,7 +1493,7 @@ class ConceptBaseWorker {
 			return 0;
 
 		var ops = 0;
-		var removed_workers = 0;
+		// var removed_workers = 0;
 		for (var i = 0; i < length workers; i++) {
 			var worker = workers[i];
 			if (worker) {
@@ -1511,38 +1511,40 @@ class ConceptBaseWorker {
 									child.onmessage(data);
 							} else
 							if (data["do"] == "drop") {
-								ops++;
+								ops ++;
 								worker.ClearCache();
 								worker.Join();
-								workers[i] = null;
-								removed_workers ++;
+								// workers[i] = null;
+								// removed_workers ++;
+								deleteArrayElement(workers, i);
 								continue;
 							}
 						}
 					}
 				} else
 				if (worker_get) {
-					ops++;
+					ops ++;
 					worker.ClearCache();
 					worker.Join();
-					workers[i] = null;
-					removed_workers ++;
+					// workers[i] = null;
+					// removed_workers ++;
+					deleteArrayElement(workers, i);
 					continue;
 				}
 				worker.SendCached();
 			}
 		}
-		if (removed_workers) {
-			var new_workers = new [];
-			var keys = GetKeys(workers);
-			for (i = 0; i < length keys; i++) {
-				var k = keys[i];
-				worker = workers[k];
-				if (worker)
-					new_workers[k] = worker;
-			}
-			cgiworkers = new_workers;
-		}
+		// if (removed_workers) {
+		// 	var new_workers = new [];
+		// 	var keys = GetKeys(workers);
+		// 	for (i = 0; i < length keys; i++) {
+		// 		var k = keys[i];
+		// 		worker = workers[k];
+		// 		if (worker)
+		// 			new_workers[k] = worker;
+		// 	}
+		// 	cgiworkers = new_workers;
+		// }
 		return ops;
 	}
 }
@@ -1588,7 +1590,7 @@ class ConceptWorker extends ConceptBaseWorker {
 pragma used
 	protected var WorkerName;
 	protected var[] Children;
-	protected var Placeholders;
+	// protected var Placeholders;
 	protected var Framework = "";
 	protected var ExcludeSandbox;
 
@@ -1723,37 +1725,37 @@ pragma used
 	}
 
 	AddChild(child) {
-		if (Placeholders > 0) {
-			for (var i = 0; i < length Children; i++) {
-				if (!Children[i]) {
-					Children[i] = child;
-					Placeholders--;
-					return;
-				}
-			}
-		}
+		// if (Placeholders > 0) {
+		// 	for (var i = 0; i < length Children; i++) {
+		// 		if (!Children[i]) {
+		// 			Children[i] = child;
+		// 			Placeholders--;
+		// 			return;
+		// 		}
+		// 	}
+		// }
 		Children[length Children] = child;
 	}
 
-	Clean() {
-		if (Placeholders < 10)
-			return;
+	// Clean() {
+	// 	if (Placeholders < 10)
+	// 		return;
 
-		var new_children = new [];
-		var children = this.Children;
-		this.Children = new_children;
-		if (Placeholders == length children) {
-			Placeholders = 0;
-			return;
-		}
+	// 	var new_children = new [];
+	// 	var children = this.Children;
+	// 	this.Children = new_children;
+	// 	if (Placeholders == length children) {
+	// 		Placeholders = 0;
+	// 		return;
+	// 	}
 
-		for (var i = 0; i < length children; i++) {
-			var child = children[i];
-			if (child)
-				new_children[length new_children] = child;
-		}
-		Placeholders = 0;
-	}
+	// 	for (var i = 0; i < length children; i++) {
+	// 		var child = children[i];
+	// 		if (child)
+	// 			new_children[length new_children] = child;
+	// 	}
+	// 	Placeholders = 0;
+	// }
 
 	Iterate() {
 		var children = this.Children;
@@ -1771,8 +1773,8 @@ pragma used
 			}
 		}
 		this.IterateAsyncWorkers(children);
-		if (Placeholders >= 50)
-			this.Clean();
+		// if (Placeholders >= 50)
+		// 	this.Clean();
 		return res;
 	}
 
@@ -2386,14 +2388,14 @@ class ConceptChild {
 	finalize() {
 		Owner.ClientCount--;
 		console.trace(LOG_THIS, "${Owner.ClientCount} active client(s)");
-		Owner.Clean();
+		// Owner.Clean();
 	}
 }
 
 class ConceptAppWorker extends IniCache {
 	public var ClientCount = 0;
 	public var[] Connections;
-	public var PlaceHolders;
+	// public var PlaceHolders;
 	public var Iterations;
 	public var APID;
 
@@ -2481,26 +2483,26 @@ class ConceptAppWorker extends IniCache {
 		return buf;
 	}
 
-	public Clean() {
-		if (this.PlaceHolders >= 50) {
-			this.PlaceHolders = 0;
-			var clients = this.Connections;
-			var len = length clients;
-			var res = new [];
-			var cleaned = 0;
-			for (var i = 0;i < len;i ++) {
-				var c = clients[i];
-				if (c)
-					res["" + c.APID] = c;
-				else
-					cleaned ++;
-			}
-			if (cleaned) {
-				console.trace(LOG_THIS, "$cleaned placeholders cleaned");
-				this.Connections = res;
-			}
-		}
-	}
+	// public Clean() {
+	// 	if (this.PlaceHolders >= 50) {
+	// 		this.PlaceHolders = 0;
+	// 		var clients = this.Connections;
+	// 		var len = length clients;
+	// 		var res = new [];
+	// 		var cleaned = 0;
+	// 		for (var i = 0;i < len;i ++) {
+	// 			var c = clients[i];
+	// 			if (c)
+	// 				res["" + c.APID] = c;
+	// 			else
+	// 				cleaned ++;
+	// 		}
+	// 		if (cleaned) {
+	// 			console.trace(LOG_THIS, "$cleaned placeholders cleaned");
+	// 			this.Connections = res;
+	// 		}
+	// 	}
+	// }
 
 	Iterate() {
 		this.Iterations = 0;
@@ -2517,7 +2519,7 @@ class ConceptAppWorker extends IniCache {
 				}
 			}
 		}
-		this.Clean();
+		// this.Clean();
 		return this.Iterations;
 	}
 
@@ -2623,7 +2625,7 @@ class ConceptAppWorker extends IniCache {
 
 class ConceptH2Worker extends ConceptBaseWorker {
 pragma used
-	protected var CGIPlaceholders;
+	// protected var CGIPlaceholders;
 	protected var Framework;
 	protected var ExcludeSandbox;
 
