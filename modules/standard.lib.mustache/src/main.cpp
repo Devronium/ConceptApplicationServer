@@ -32,7 +32,7 @@ struct mustache_closure {
     int pos;
     int count;
     struct mustache_stack stack[0x100];
-    char temp[0xFFF];
+    char temp[0x4000];
 };
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
@@ -112,6 +112,7 @@ char *resolve(mustache_closure *mustacheclosure, const char *name, void *DATA) {
                             if (len >= sizeof(mustacheclosure->temp))
                                 len = sizeof(mustacheclosure->temp) - 1;
                             memcpy(mustacheclosure->temp, data, len);
+                            mustacheclosure->temp[len] = 0;
                         }
                         mustacheclosure->Invoke(INVOKE_FREE_VARIABLE, RES);
                         return mustacheclosure->temp;
@@ -308,7 +309,8 @@ int mustache_partial(void *closure, const char *name, struct mustach_sbuf *sbuf)
                 int len = strlen(data);
                 if (len >= sizeof(mustacheclosure->temp))
                     len = sizeof(mustacheclosure->temp) - 1;
-                memcpy(mustacheclosure->temp, data, len);
+                memmove(mustacheclosure->temp, data, len);
+                mustacheclosure->temp[len] = 0;
             }
             mustacheclosure->Invoke(INVOKE_FREE_VARIABLE, RES);
             sbuf->value = mustacheclosure->temp;

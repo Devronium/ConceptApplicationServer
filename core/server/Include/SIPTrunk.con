@@ -181,6 +181,9 @@ class SIPSession {
 
 	var rtc_channel;
 
+	var receivedRTPPackets;
+	var sentRTPPackets;
+
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
 		timestamp = RandomInteger(140, 140000) * 100;
@@ -448,6 +451,7 @@ class SIPSession {
 
 	Bye(delete_session=false) {
 		var exc;
+		var ref_use_socket = this.s.use_socket;
 		try {
 			this.s.use_socket = tcp_socket;
 			if (accept_bye) {
@@ -459,6 +463,7 @@ class SIPSession {
 		} catch (exc) {
 			// nothing
 		}
+		this.s.use_socket = ref_use_socket;
 		try {
 			if (rtp)
 				rtp.Close();
@@ -500,6 +505,7 @@ class SIPSession {
 
 	Cancel(delete_session=false, reject_code = 486) {
 		var exc;
+		var ref_use_socket = this.s.use_socket;
 		try {
 			this.s.use_socket = tcp_socket;
 			if (accept_bye)
@@ -512,6 +518,7 @@ class SIPSession {
 		} catch (exc) {
 			// nothing
 		}
+		this.s.use_socket = ref_use_socket;
 		try {
 			if (rtp)
 				rtp.Close();
@@ -639,6 +646,7 @@ class SIPSession {
 		sequence_number++;
 		if (Record)
 			RecordStream(ssrc_id, payload, "out-", profile);
+		sentRTPPackets ++;
 		return res;
 	}
 
@@ -751,6 +759,7 @@ class SIPSession {
 			}
 
 			last_timestamp = microseconds();
+			receivedRTPPackets ++;
 
 			last_sequence_number = sequence_number;
 			var payload = SubStr(data, 12);
@@ -1468,6 +1477,8 @@ class SIPStack {
 
 	var NoBuffering = false;
 
+	var localId;
+
 	SIPStack(localhost, bind_port = 5060, type = SIP_TRANSPORT_UDP, public_key = "", private_key = "", force_tls_version = 0) {
 		this.localhost = localhost;
 		this.local_port = bind_port;
@@ -1506,6 +1517,7 @@ class SIPStack {
 			this.emptyData += '\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5\xD5';
 
 		this.sip_codes = SIP_CODES;
+		this.localId = GetHostName() + "-e164";
 	}
 
 	static IPFromName(host) {
@@ -2094,7 +2106,7 @@ class SIPStack {
 		if (parent_msg)
 			callid = parent_msg.Headers["call-id"];
 		else
-			callid = this.RandomString(32) + "@" + localhost;
+			callid = this.RandomString(32) + "@" + localId;
 
 		var server = "";
 		var server_port = 0;
@@ -2261,7 +2273,7 @@ class SIPStack {
 		if (parent_msg)
 			callid = parent_msg.Headers["call-id"];
 		else
-			callid = this.RandomString(32) + "@" + localhost;
+			callid = this.RandomString(32) + "@" + localId;
 
 		//msg.Headers["From"] = parent_msg.Headers["from"];
 		//msg.Headers["To"] = parent_msg.Headers["to"];
@@ -2497,7 +2509,10 @@ class SIPStack {
 										session.RemoveChild(child_session);
 								}
 							} else {
+								var ref_use_socket = use_socket;
+								use_socket = session.tcp_socket;
 								this.ResponseUDP(msg.ServerCode, session.msg, session.msg.Headers["from"], "", "", 70, null, "", session.ip, session.port);
+								use_socket = ref_use_socket;
 							}
 						}
 					};
@@ -2720,7 +2735,7 @@ class SIPStack {
 			var branch = this.ParseBranch(msg);
 			if (parent_session) {
 				if ((check_branch) && (branch)) {
-					if ((parent_session.callStatus >= 200) && (parent_session.callStatus < 300)) {
+					if ((parent_session.callStatus >= 180) && (parent_session.callStatus < 300)) {
 						is_reinvite = true;
 						parent_session.Branch = branch;
 						parent_session.UpdateMedia(msg, ip, port);
@@ -2922,7 +2937,7 @@ class SIPStack {
 		msg.Destination = sipproto + "${target_user}@${full_server}";
 
 		var branch = "z9hG4bK" + this.RandomString(14);
-		var callid = this.RandomString(32) + "@" + localhost;
+		var callid = this.RandomString(32) + "@" + localId;
 
 		msg.Headers["via"] = "SIP/2.0/${Transport} " + this.full_host + ";rport;branch=" + branch;
 		msg.Headers["max-forwards"] = max_forwards;
@@ -3078,7 +3093,7 @@ class SIPStack {
 		msg.Destination = sipproto + "${target_user}@${full_server}";
 
 		var branch = "z9hG4bK" + this.RandomString(14);
-		var callid = this.RandomString(32) + "@" + localhost;
+		var callid = this.RandomString(32) + "@" + localId;
 
 		msg.Headers["via"] = "SIP/2.0/${Transport} " + this.full_host + ";rport;branch=" + branch;
 		msg.Headers["max-forwards"] = max_forwards;
@@ -3780,10 +3795,13 @@ class SIPStack {
 										if (this.OnProxyAnswered)
 											this.OnProxyAnswered(sess);
 									} else {
+										var ref_use_socket = use_socket;
+										use_socket = sess.Parent.tcp_socket;
 										if (non_routable)
 											this.ResponseUDP(msg.ServerCode, sess.Parent.msg, sess.Parent.msg.Headers["from"], "", "", 70, null, "", sess.Parent.ip, sess.Parent.port);
 										else
 											this.ResponseUDP(msg.ServerCode, sess.Parent.msg, sess.Parent.msg.Headers["from"]);
+										use_socket = ref_use_socket;
 									}
 								}
 							}
