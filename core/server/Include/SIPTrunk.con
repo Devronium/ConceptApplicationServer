@@ -1520,6 +1520,12 @@ class SIPStack {
 		this.localId = GetHostName() + "-e164";
 	}
 
+	getTransport() {
+		if (use_socket)
+			return Transport;
+		return "UDP";
+	}
+
 	static IPFromName(host) {
 		var arr = GetHostByName(host);
 		var local_ip = "";
@@ -1812,7 +1818,7 @@ class SIPStack {
 		if (!callid)
 			callid = /* this.RandomString(32) */sha256(username + "|" + server) + "@" + localhost;
 
-		register.Headers["Via"] = "SIP/2.0/${Transport} " + full_host + ";rport;branch=" + branch;
+		register.Headers["Via"] = "SIP/2.0/${getTransport()} " + full_host + ";rport;branch=" + branch;
 		var from = username + " <" + sipproto + username + "@" + server + ">";
 		register.Headers["From"] = from + ";tag=" + this.RandomString(20);
 		register.Headers["To"] = from;
@@ -2125,7 +2131,7 @@ class SIPStack {
 				if ((msg.Method == "BYE") || (msg.Method == "NOTIFY") || ((parent_msg.ServerCode >= 200) && (parent_msg.ServerCode < 300))) {
 					var branch = "z9hG4bK" + this.RandomString(14);
 					msg.Branch = branch;
-					msg.Headers["Via"] = "SIP/2.0/${Transport} " + full_host + ";rport;branch=" + branch;
+					msg.Headers["Via"] = "SIP/2.0/${getTransport()} " + full_host + ";rport;branch=" + branch;
 				} else
 					msg.Headers["Via"] = parent_msg.Headers["via"];
 				msg.Headers["Max-Forwards"] = max_forwards;
@@ -2134,7 +2140,7 @@ class SIPStack {
 			} else {
 				// =============== to check this ===================//
 				branch = "z9hG4bK" + this.RandomString(14);
-				msg.Headers["Via"] = "SIP/2.0/${Transport} " + full_host + ";rport;branch=" + branch;
+				msg.Headers["Via"] = "SIP/2.0/${getTransport()} " + full_host + ";rport;branch=" + branch;
 				// =================================================//
 				// msg.Headers["Via"] = parent_msg.Headers["via"];
 
@@ -2145,7 +2151,7 @@ class SIPStack {
 			}
 		} else {
 			branch = "z9hG4bK" + this.RandomString(14);
-			msg.Headers["Via"] = "SIP/2.0/${Transport} " + full_server + ";rport;branch=" + branch;
+			msg.Headers["Via"] = "SIP/2.0/${getTransport()} " + full_server + ";rport;branch=" + branch;
 			msg.Headers["Max-Forwards"] = max_forwards;
 			msg.Headers["From"] = from;//username + " <" + sipproto + username + "@" + server + ">";
 			msg.Headers["To"] = destination;
@@ -2297,7 +2303,7 @@ class SIPStack {
 		if (parent_msg)
 			msg.Headers["Via"] = parent_msg.Headers["via"];
 		else
-			msg.Headers["Via"] = "SIP/2.0/${Transport} " + full_server + ";rport;branch=" + branch;
+			msg.Headers["Via"] = "SIP/2.0/${getTransport()} " + full_server + ";rport;branch=" + branch;
 		msg.Headers["Max-Forwards"] = max_forwards;
 
 		msg.Headers["Call-ID"] = callid;	
@@ -2939,7 +2945,7 @@ class SIPStack {
 		var branch = "z9hG4bK" + this.RandomString(14);
 		var callid = this.RandomString(32) + "@" + localId;
 
-		msg.Headers["via"] = "SIP/2.0/${Transport} " + this.full_host + ";rport;branch=" + branch;
+		msg.Headers["via"] = "SIP/2.0/${getTransport()} " + this.full_host + ";rport;branch=" + branch;
 		msg.Headers["max-forwards"] = max_forwards;
 
 		msg.Headers["from"] = sipproto + username + "@" + this.localhost + ";tag="+this.RandomString(20);
@@ -3095,7 +3101,7 @@ class SIPStack {
 		var branch = "z9hG4bK" + this.RandomString(14);
 		var callid = this.RandomString(32) + "@" + localId;
 
-		msg.Headers["via"] = "SIP/2.0/${Transport} " + this.full_host + ";rport;branch=" + branch;
+		msg.Headers["via"] = "SIP/2.0/${getTransport()} " + this.full_host + ";rport;branch=" + branch;
 		msg.Headers["max-forwards"] = max_forwards;
 
 		var tag = this.RandomString(20);
@@ -3203,7 +3209,7 @@ class SIPStack {
 		if (!branch)
 		    branch = "z9hG4bK" + this.RandomString(14);
 
-		msg.Headers["via"] = "SIP/2.0/${Transport} " + this.full_host + ";rport;branch=" + branch;
+		msg.Headers["via"] = "SIP/2.0/${getTransport()} " + this.full_host + ";rport;branch=" + branch;
 		msg.Headers["max-forwards"] = max_forwards;
 
 
@@ -3335,8 +3341,11 @@ class SIPStack {
 		var username = res["username"];
 		var uri = res["uri"];
 
-		if (typeof password == "delegate")
+		if (typeof password == "delegate") {
 			password = password(username);
+			if (typeof password == "numeric")
+				return password;
+		}
 
 		if ((res["nonce"]) && (res["realm"]) && (res["response"]) && (username) && (uri)) {
 			var alg = res["algorithm"];

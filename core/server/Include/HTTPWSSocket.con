@@ -10,10 +10,12 @@ class HTTPWSSocket {
 	var[] buffers;
 	var[] out_buffers;
 	var[] ws_sockets;
+	var[] socket_data;
 	var next_check;
 	var WSPathKey = "/";
 	var tls = false;
 	var[] tls_sockets;
+	var write_retry_request;
 
 	var OnData;
 	var OnRequestValidation;
@@ -21,10 +23,43 @@ class HTTPWSSocket {
 	HTTPWSSocket(socket) {
 		this.socket = socket;
 		SocketSetBlocking(socket.Socket, false);
-		if (classof socket == "TLSESocket")
+		if (classof socket == "TLSESocket") {
 			tls = true;
+			socket.OnWriteRetry = this.OnWriteRetry;
+		}
 		poll = new Poll();
 		poll.add(socket.Socket);
+	}
+
+	setSocketData(socket, data) {
+		socket_data["" + socket] = data;
+	}
+
+	socketData(socket) {
+		var k = "" + socket;
+		if (IsSet(socket_data, k))
+			return socket_data[k];
+	}
+
+	OnWriteRetry(socket) {
+		write_retry_request = true;
+
+		return true;
+	}
+
+	checkWriteRetry() {
+		if (!write_retry_request)
+			return;
+
+		write_retry_request = false;
+
+		var tls = tls_sockets;
+		for (var i = 0; i < length tls; i ++) {
+			var socket = tls[i];
+			if (socket)
+				socket.WritePending();
+		}
+
 	}
 
 	check(max_timeout = 40000, tls_handshake_timeout = 4000) {
@@ -41,6 +76,7 @@ class HTTPWSSocket {
 				deleteArrayElement(buffers, k);
 				deleteArrayElement(out_buffers, k);
 				deleteArrayElement(ws_sockets, k);
+				deleteArrayElement(socket_data, k);
 				if (tls)
 					deleteArrayElement(tls_sockets, k);
 				console.log(LOG_THIS, "removed socket $socket for inactivity");
@@ -74,10 +110,12 @@ class HTTPWSSocket {
 	close(socket) {
 		var key = "" + socket;
 		poll.remove(socket);
+		SocketClose(socket, true);
 		deleteArrayElement(timestamp, key);
 		deleteArrayElement(buffers, key);
 		deleteArrayElement(out_buffers, key);
 		deleteArrayElement(ws_sockets, key);
+		deleteArrayElement(socket_data, key);
 		if (tls)
 			deleteArrayElement(tls_sockets, key);
 	}
@@ -140,6 +178,7 @@ class HTTPWSSocket {
 				}
 			}	
 		}
+		this.checkWriteRetry();
 	}
 
 	write(socket, data, type = WS_TEXT_FRAME) {
@@ -219,6 +258,7 @@ class HTTPWSSocket {
 					if (!tls_socket)
 						continue;
 
+					tls_socket.OnWriteRetry = OnWriteRetry;
 					tls_socket.PrepareAcceptTLS();
 					client = tls_socket.Socket;
 
@@ -365,7 +405,7 @@ class HTTPWSSocket {
 								if ((headers[":method"] == "GET") && (("" + headers["upgrade"]) == "websocket") && (("" + headers[":path"]) == WSPathKey)) {
 									var ws_key = headers["sec-websocket-key"];
 									if (ws_key) {
-										if ((this.OnRequestValidation) && (!this.OnRequestValidation(headers))) {
+										if ((this.OnRequestValidation) && (!this.OnRequestValidation(socket, headers))) {
 											this.response(socket, "HTTP/1.1 401 Unauthorized\r\nConnection: close\r\nContent-Length: 16\r\n\r\n401 Unauthorized");
 											this.close(socket);
 											continue;

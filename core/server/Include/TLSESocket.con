@@ -21,6 +21,7 @@ class TLSESocket extends TCPSocket {
 	public var RequestCertificate = false;
 	public var Timeout = -1;
 	public var OnAfterAccept;
+	public var OnWriteRetry;
 	protected var _certdata = "";
 
 	public TLSESocket(number sock=-1, ref_tls=null, ipv6=false) {
@@ -422,6 +423,8 @@ class TLSESocket extends TCPSocket {
 					var err = SocketErrno();
 					if ((err != 11) && (err != 35) && (err != 10035))
 						throw exc;
+					if ((OnWriteRetry) && (OnWriteRetry(this) == true))
+						return true;
 					if (err_timestamp) {
 						if (microseconds() - err_timestamp > 3000000)
 							throw "WritePending: timed out";
