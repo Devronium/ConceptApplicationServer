@@ -26,6 +26,257 @@ define SIP_TRANSPORT_UDP	0
 define SIP_TRANSPORT_TCP	1
 define SIP_TRANSPORT_TLS	2
 
+include Worker.con
+include Poll.con
+
+define RTP_WORKER_ADD		1
+define RTP_WORKER_UPDATE	2
+define RTP_WORKER_CLOSE		3
+
+class RTPWorkerMessage {
+	var data;
+	var msg;
+
+	RTPWorkerMessage(data, msg) {
+		this.data = data;
+		this.msg = msg;
+	}
+}
+
+class RTPSession {
+	var CallID;
+
+	var ssrc_id;
+
+	var sequence_number;
+	var rtp_port;
+	var rtp;
+	var srtp;
+
+	var remote_port = -1;
+	var remote_host = "";
+	var nat_remote_port = -1;
+	var nat_remote_host = "";
+	var remote_ssrc_id;
+	var remote_ssrc_fail;
+
+	var timestamp;
+	var remote_type = -1;
+
+	var last_sequence_number = -1;
+	var last_timestamp;
+
+	var rtc_channel;
+
+	var NATMode;
+
+	var proxy_id;
+
+	SimpleRTP(var res, var payload, profile = 48) {
+		if (profile == 48) {
+			profile = remote_type;
+			if (profile < 0)
+				profile = 8;
+			if (profile == 0)
+				payload = alaw2ulaw(payload);
+		}
+		
+		timestamp += length payload;
+		res = RTPHeader(0x80, profile, sequence_number, timestamp, ssrc_id);
+		if (rtc_channel)
+			res = rtc_channel.buildPacket(res, payload);
+		else
+		if (srtp)
+			res += srtp.Encrypt(res, payload);
+		else
+			res += payload;
+		sequence_number++;
+
+		return res;
+	}
+
+	ParseRTP(var data, var type = null, check_ssrc = true) {
+		type = -1;
+		if (length data > 12) {
+			RTPHeaderParse(data, null, var profile, var sequence_number, null, var ssrc_id);
+			type = profile & 0x7F;
+			if ((type >= 72) && (type <= 76))
+				return "";
+
+			if (check_ssrc) {
+				if (!remote_ssrc_id)
+					remote_ssrc_id = ssrc_id;
+
+				if (ssrc_id != remote_ssrc_id) {
+					remote_ssrc_fail ++;
+					if ((remote_ssrc_fail >= 4) && (microseconds() - last_timestamp >= 100000))
+						remote_ssrc_id = ssrc_id;
+					return "";
+				} else
+					remote_ssrc_fail = 0;
+			}
+
+			if ((last_sequence_number != -1) && (sequence_number <= last_sequence_number)) {
+				var delta = sequence_number - last_sequence_number;
+				if (delta < 0)
+					delta *= -1;
+				if (delta < 20)
+					return "";
+			}
+
+			last_timestamp = microseconds();
+
+			last_sequence_number = sequence_number;
+			var payload = SubStr(data, 12);
+			if (srtp)
+				payload = srtp.Decrypt(SubStr(data, 0, 12), payload);
+
+			return payload;
+		}
+		return "";
+	}
+
+	CheckMedia(var type = null) {
+		if ((rtp) && (rtp.GetHasData())) {
+			var maxReadBuffer = 1024;
+			if (rtc_channel) {
+				var packet_remote_ip;
+				var packet_remote_port;
+				rtc_channel.consume(rtp.Read(packet_remote_ip, packet_remote_port, maxReadBuffer), packet_remote_ip, packet_remote_port);
+				remote_port = rtc_channel.ICEport;
+				remote_host = rtc_channel.ICEip;
+				var packet;
+				do {
+					packet = rtc_channel.getWriteMessage();
+					if (packet)
+						rtp.Write(packet, packet_remote_ip, packet_remote_port);
+				} while (packet);
+				return ParseRTP(rtc_channel.getReadMessage(), type, false);
+			}
+			if (nat_remote_host)
+				return ParseRTP(rtp.Read(null, null, maxReadBuffer), type);
+			return ParseRTP(rtp.Read(nat_remote_host, nat_remote_port, maxReadBuffer), type);
+		}
+
+		return "";
+	}
+
+	write(var d_buf) {
+		SimpleRTP(var rtp_payload, d_buf);
+		rtp.Write(rtp_payload, remote_host, remote_port);
+		if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
+			rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
+	}
+
+	iterate(rtp_sessions, call_id_to_socket) {
+		var d_buf = CheckMedia(var type);
+		if ((d_buf) && (proxy_id)) {
+			var key = call_id_to_socket[proxy_id];
+			if (key) {
+				var rtp_session = rtp_sessions[key];
+				if (rtp_session)
+					rtp_session.write(d_buf);
+			}
+		}
+	}
+
+	close() {
+		if (rtp) {
+			rtp.Close();
+			rtp = null;
+		}
+		if (rtc_channel) {
+			rtc_channel.close();
+			rtc_channel = null;
+		}
+	}
+}
+
+class RTPWorker {
+	RTPWorker(n) {
+		var poll = new Poll();
+
+		var has_semaphore = false;
+		var semaphore_socket = GetWorkerInputSemaphore();
+		if (semaphore_socket > 0) {
+			poll.add(semaphore_socket);
+			has_semaphore = true;
+		}
+
+		var[] rtp_sessions;
+		var[] call_id_to_socket;
+		while (true) {
+			var sockets;
+			if (has_semaphore)
+				sockets = poll.wait(1000);
+			else
+				sockets = poll.wait(25);
+			for (var i = 0; i < length sockets; i ++) {
+				var sock = sockets[i];
+				if (sock != semaphore_socket) {
+					var key = "" + sock;
+					if (IsSet(rtp_sessions, key)) {
+						var rtp_session = rtp_sessions[key];
+						if (rtp_session) {
+							try {
+								rtp_session.iterate(rtp_sessions, call_id_to_socket);
+							} catch (var exc) {
+								// nothing
+							}
+						}
+					}
+				}
+			}
+			var data;
+			if ((Worker::PendingAll(data)) && (data)) {
+				for (i = 0; i < length data; i ++) {
+					var msg = UnBinarizeObject(data[i]);
+					switch (msg.msg) {
+						case RTP_WORKER_ADD:
+							rtp_sessions["" + msg.data.rtp.Socket] = msg.data;
+							poll.add(msg.data.rtp.Socket);
+							call_id_to_socket["" + msg.data.CallID] = "" + msg.data.rtp.Socket;
+							break;
+						case RTP_WORKER_UPDATE:
+							var socket_key = "" + msg.data.CallID;
+							key = call_id_to_socket[socket_key];
+							if (key) {
+								rtp_session = rtp_sessions[key];
+								if (rtp_session) {
+									rtp_session.remote_port = msg.data.remote_port;
+									rtp_session.remote_host = msg.data.remote_host;
+									rtp_session.remote_ssrc_id = msg.data.remote_ssrc_id;
+									rtp_session.remote_ssrc_fail = 0;
+								}
+							}
+							break;
+						case RTP_WORKER_CLOSE:
+							socket_key = "" + msg.data;
+							key = call_id_to_socket[socket_key];
+							deleteArrayElement(call_id_to_socket, socket_key);
+							if (!key)
+								continue;
+							rtp_session = rtp_sessions[key];
+							try {
+								poll.remove(value key);
+								if (rtp_session) {
+									deleteArrayElement(rtp_sessions, key);
+									rtp_session.close();
+								}
+							} catch (exc) {
+							}
+							break;
+					}
+				}
+			}
+		}
+	}
+
+	static post(worker, data, msg) {
+		worker.AddObject(new RTPWorkerMessage(data, msg));
+	}
+}
+
 class SRTPContext {
 	var srtp_in;
 	var srtp_out;
@@ -183,6 +434,8 @@ class SIPSession {
 
 	var receivedRTPPackets;
 	var sentRTPPackets;
+
+	var delegatedWorker;
 
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
@@ -471,6 +724,7 @@ class SIPSession {
 				rtc_channel.close();
 				rtc_channel = null;
 			}
+			this.closeWorkerRTP();
 			if (delete_session) {
 				if (this.s.OnEnd)
 					this.s.OnEnd(this, msg2, "");
@@ -492,6 +746,7 @@ class SIPSession {
 				rtc_channel.close();
 				rtc_channel = null;
 			}
+			this.closeWorkerRTP();
 			if (delete_session) {
 				if (this.s.OnEnd)
 					this.s.OnEnd(this, msg2, "");
@@ -526,6 +781,7 @@ class SIPSession {
 				rtc_channel.close();
 				rtc_channel = null;
 			}
+			this.closeWorkerRTP();
 			if (delete_session) {
 				if (this.s.OnEnd)
 					this.s.OnEnd(this, msg2, "");
@@ -839,6 +1095,7 @@ class SIPSession {
 			rtc_channel.close();
 			rtc_channel = null;
 		}
+		this.closeWorkerRTP();
 		for (var i = 0; i < length Children; i++) {
 			var sess = Children[i];
 			if (sess) {
@@ -1033,6 +1290,88 @@ class SIPSession {
 			if (Parent)
 				Parent.MaxJitter = max;
 		}
+	}
+
+	switchToRTPWorker(worker) {
+		if ((!worker) || (this.delegatedWorker))
+			return;
+
+		this.delegatedWorker = worker;
+
+		var rtp_object = new RTPSession();
+		rtp_object.CallID = this.CallID;
+		rtp_object.ssrc_id = this.ssrc_id;
+
+		rtp_object.sequence_number = this.sequence_number;
+		rtp_object.rtp_port = this.rtp_port;
+		rtp_object.rtp = this.rtp;
+		rtp_object.srtp = this.srtp;
+
+		rtp_object.remote_port = this.remote_port;
+		rtp_object.remote_host = this.remote_host;
+		rtp_object.nat_remote_port = this.nat_remote_port;
+		rtp_object.nat_remote_host = this.nat_remote_host;
+		rtp_object.remote_ssrc_id = this.remote_ssrc_id;
+		rtp_object.remote_ssrc_fail = this.remote_ssrc_fail;
+
+		rtp_object.timestamp = this.timestamp;
+		rtp_object.remote_type = this.remote_type;
+
+		rtp_object.last_sequence_number = this.last_sequence_number;
+		rtp_object.last_timestamp = this.last_timestamp;
+
+		rtp_object.srtp = this.srtp;
+		rtp_object.rtc_channel = this.rtc_channel;
+
+		if (this.Parent) {
+			rtp_object.proxy_id = this.Parent.CallID;
+		} else
+		if (this.Children) {
+			var child_session = this.Children[0];
+			if (child_session)
+				rtp_object.proxy_id = child_session.CallID;
+		}
+
+		rtp_object.NATMode = this.NATMode;
+
+		// ignore audio timeout events
+		this.last_timestamp = 0;
+
+		RTPWorker.post(delegatedWorker, rtp_object, RTP_WORKER_ADD);
+
+		// ensure no constructor cleaning
+		if (this.rtp) {
+			this.rtp.Socket = -1;
+			delete this.rtp;
+		}
+		if (this.srtp) {
+			this.srtp.srtp_in = null;
+			this.srtp.srtp_out = null;
+			delete this.srtp;
+		}
+		if (this.rtc_channel) {
+			// handle is private
+			SetMember(this.rtc_channel, "handle", null);
+			delete this.rtc_channel;
+		}
+	}
+
+	parallelize() {
+		// paralellization only for proxy calls for now
+		if ((!this.s.workers) || (this.ProxyCall != 200) || (!this.Parent))
+			return;
+
+		var worker = this.s.workers[crc32(this.CallID) % (length this.s.workers)];
+
+		this.Parent.switchToRTPWorker(worker);
+		this.switchToRTPWorker(worker);
+	}
+
+	closeWorkerRTP() {
+		if (!delegatedWorker)
+			return;
+		RTPWorker.post(delegatedWorker, this.CallID, RTP_WORKER_CLOSE);
+		delegatedWorker = null;
 	}
 
 	_iterateReinvite() {
@@ -1478,6 +1817,8 @@ class SIPStack {
 	var NoBuffering = false;
 
 	var localId;
+
+	var[] workers;
 
 	SIPStack(localhost, bind_port = 5060, type = SIP_TRANSPORT_UDP, public_key = "", private_key = "", force_tls_version = 0) {
 		this.localhost = localhost;
@@ -3530,6 +3871,11 @@ class SIPStack {
 		use_socket = null;
 	}
 
+	enableWorkers(worker_count = 4) {
+		while (length workers < worker_count)
+			workers[length workers] = new Worker("RTPWorker");
+	}
+
 	protected _msgIterate(msg, ip, port, var ops) {
 		if (msg) {
 			if (this.OnFilter) {
@@ -3787,6 +4133,7 @@ class SIPStack {
 					break;
 				default:
 					var parent = null;
+					var parallelize = false;
 					if (msg.FromServer) {
 						var ctype = msg.Headers["content-type"];
 						sess = null;
@@ -3802,7 +4149,7 @@ class SIPStack {
 										sess.ProxyCall = msg.ServerCode;
 //
 										if (this.OnProxyAnswered)
-											this.OnProxyAnswered(sess);
+											parallelize = this.OnProxyAnswered(sess);
 									} else {
 										var ref_use_socket = use_socket;
 										use_socket = sess.Parent.tcp_socket;
@@ -3824,6 +4171,9 @@ class SIPStack {
 
 						if ((sess) && (msg.ServerCode > 0))
 							sess.UpdateCode(msg.ServerCode);
+
+						if (parallelize)
+							sess.parallelize();
 
 						if (msg.ServerCode == 180) {
 							if ((sess) && (!sess.bye_msg)) {

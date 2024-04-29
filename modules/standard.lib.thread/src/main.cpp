@@ -229,13 +229,6 @@ public:
             res = pthread_cond_wait(&cond, &mutex);
             pthread_mutex_unlock(&mutex);
         }
-// #ifdef EVENT_FD
-//         if (socket_semaphore > 0) {
-//             // reset the socket semaphore flag
-//             eventfd_t val = 0;
-//             eventfd_read(socket_semaphore, &val)
-//         }
-// #endif
         return res;
 #endif
     }
@@ -257,10 +250,23 @@ public:
         pthread_cond_signal(&cond);
         pthread_mutex_unlock(&mutex);
 #endif
+    }
+
+    void notifySemaphore() {
 #ifdef EVENT_FD
         if (socket_semaphore > 0)
             eventfd_write(socket_semaphore, 1);
 #endif
+    }
+
+    void resetSemaphore() {
+#ifdef EVENT_FD
+       if (socket_semaphore > 0) {
+           // reset the socket semaphore flag
+           eventfd_t val = 0;
+           eventfd_read(socket_semaphore, &val);
+       }
+ #endif
     }
 
     ~CondWait() {
@@ -534,6 +540,7 @@ public:
         if (input_cond_wait)
 #endif
             input_cond.notify();
+        input_cond.notifySemaphore();
         QUEUE_UNLOCK(input_lock);
         return size;
     }
@@ -559,6 +566,7 @@ public:
         if (input_cond_wait)
 #endif
             input_cond.notify();
+        input_cond.notifySemaphore();
         return size;
     }
 
@@ -578,10 +586,10 @@ public:
         // If no threads are waiting, the event object's state remains signaled.
         if ((size == 1) && (output_cond_wait))
 #else
-        // The pthread_cond_signal() and pthread_cond_broadcast() functions have no effect if there are no threads currently blocked on cond. 
         if (output_cond_wait)
 #endif
             output_cond.notify();
+        output_cond.notifySemaphore();
         QUEUE_UNLOCK(output_lock);
         return size;
     }
@@ -601,10 +609,10 @@ public:
         // If no threads are waiting, the event object's state remains signaled.
         if ((size == 1) && (output_cond_wait))
 #else
-        // The pthread_cond_signal() and pthread_cond_broadcast() functions have no effect if there are no threads currently blocked on cond. 
         if (output_cond_wait)
 #endif
             output_cond.notify();
+        output_cond.notifySemaphore();
         return size;
     }
 
@@ -641,6 +649,7 @@ public:
                 delete temp;
             }
             input_data.pop();
+            input_cond.resetSemaphore();
         }
         if (locking)
             input_cond_wait = 1;
@@ -666,6 +675,7 @@ public:
                 delete temp;
             }
             output_data.pop();
+            output_cond.resetSemaphore();
         }
         if (locking)
             output_cond_wait = 1;
@@ -697,6 +707,7 @@ public:
                     delete temp;
                 }
                 output_data.pop();
+                output_cond.resetSemaphore();
                 if ((max_elements > 0) && (idx >= max_elements))
                     break;
                 pending--;
@@ -730,6 +741,7 @@ public:
                     delete temp;
                 }
                 input_data.pop();
+                input_cond.resetSemaphore();
                 if ((max_elements > 0) && (idx >= max_elements))
                     break;
                 pending--;

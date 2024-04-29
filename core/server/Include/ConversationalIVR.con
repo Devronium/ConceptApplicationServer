@@ -93,6 +93,15 @@ class IVRClientData {
 				this.redirect = key;
 				this.ivr_branch = null;
 			}
+
+			var text = ivr_tree;
+			if (typeof text == "array")
+				text = text[0];
+
+			text = trim(text);
+			if ((typeof text == "string") && (text) && (text[0] != '$'))
+				this.debug_text = "[" + LeftOf(text, "|", text) + "]";
+
 		}
 		session.sip.setMaxJitter(4);
 		// session.sip.NATMode = true;
@@ -1392,7 +1401,7 @@ class OpenAIWorker {
 
 class RecordingWorker {
 	mp3(buffers) {
-		var encoder = new MP3Encoder(["channels" => 1, "bitrate" => 16, "samplerate" => 8000]);
+		var encoder = new MP3Encoder(["channels" => 1, "bitrate" => 32, "samplerate" => 8000]);
 		for (var i = 0; i < length buffers; i ++)
 			buffers[i] = alaw2pcm(buffers[i]);
 		encoder.encode(Mix(buffers));
@@ -1602,11 +1611,14 @@ class ConversationalIVR {
 	var OnWriteRecording;
 	var OnRegistered;
 	var OnRegisterAlias;
+	var OnRegisterViaWSS;
 
 	var OnAlert;
 
 	var OnCheckDestination;
 	var OnRouteRequest;
+
+	var OnAffinity;
 
 	var defaultVoice = "tts_models/en/vctk/vits";
 	var[] sipUsers;
@@ -1634,18 +1646,24 @@ class ConversationalIVR {
 	protected var _sip_username = "";
 	OnRegister(msg, auth, extra_headers) {
 		this._sip_username = "";
-		console.trace(LOG_THIS, "REGISTER ${msg.ip}:${msg.port}");
+		console.trace(LOG_THIS, "REGISTER ${ivr.stack.Transport} ${msg.ip}:${msg.port}");
 		if (auth) {
 			var code = ivr.stack.CheckAuth(auth, function(username) {
+				var username_orig = username;
 				if (this.OnRegisterAlias)
 					username = this.OnRegisterAlias(username);
 				if (!username)
-					return "";
+					return 401;
 				if (IsSet(this.sipUsers, username)) {
 					_sip_username = username;
+					if ((this.OnRegisterViaWSS) && (ivr.stack.use_socket)) {
+						var code = this.OnRegisterViaWSS(username, username_orig);
+						if (code)
+							return code;
+					}
 					return this.sipUsers[username];
 				}
-				return "";
+				return 401;
 			});
 			if ((code != 200) && (this.OnFirewall))
 				this.OnFirewall(msg);
@@ -1988,6 +2006,20 @@ class ConversationalIVR {
 		return true;
 	}
 
+	parseFrom(from) {
+		from = this.ivr.ParseFrom2(from);
+		if (this.ivr.OnFormatFrom)
+			from = this.ivr.OnFormatFrom(from);
+		return from;
+	}
+
+	parseTo(to) {
+		to = this.ivr.ParseFrom2(to);
+		if (this.ivr.OnFormatTo)
+			to = this.ivr.OnFormatFrom(to);
+		return to;
+	}
+
 	diversion(msg) {
 		if (msg) {
 			var diversion = msg.Headers["diversion"];
@@ -2061,6 +2093,9 @@ class ConversationalIVR {
 			console.warn(LOG_THIS, "invalid trunk $to");
 			return null;
 		}
+
+		if ((sip_message) && (this.OnAffinity) && (!this.OnAffinity(to, from)))
+			return -1;
 
 		var ivr_msg = trim(ivr_tree[0]);
 		if ((ivr_msg) && (ivr_msg[0] == "\$")) {
@@ -2582,7 +2617,7 @@ class ConversationalIVR {
 				} else {
 					// async call
 					var action_lo = ToLower(action);
-					if ((Pos(action_lo, "mailto:") == 1) || (Pos(action_lo, "sms:") == 1) || (Pos(action_lo, "http:") == 1) || (Pos(action_lo, "https:") == 1) || (Pos(action_lo, "set:") == 1)) {
+					if ((Pos(action_lo, "mailto:") == 1) || (Pos(action_lo, "sms:") == 1)  || (Pos(action_lo, "wa:") == 1) || (Pos(action_lo, "http:") == 1) || (Pos(action_lo, "https:") == 1) || (Pos(action_lo, "set:") == 1)) {
 						session.EndOnIVRFinished = true;
 						session.Close();
 					} else {
@@ -3627,8 +3662,8 @@ class ConversationalIVR {
 		var clean = false;
 		var ref_session = session.UserData;
 		if (!ref_session) {
-			var from = ivr.ParseFrom2(session.msg.Headers["from"]);
-			var to = ivr.ParseFrom2(session.msg.Headers["to"]);
+			var from = this.parseFrom(session.msg.Headers["from"]);
+			var to = this.parseTo(session.msg.Headers["to"]);
 			ref_session = new DATASession(null, session, from, to);
 			clean = true;
 		}
@@ -3663,8 +3698,8 @@ class ConversationalIVR {
 		var clean = false;
 		var ref_session = session.UserData;
 		if (!ref_session) {
-			var from = ivr.ParseFrom2(session.msg.Headers["from"]);
-			var to = ivr.ParseFrom2(session.msg.Headers["to"]);
+			var from = this.parseFrom(session.msg.Headers["from"]);
+			var to = this.parseTo(session.msg.Headers["to"]);
 			ref_session = new DATASession(null, session, from, to);
 			clean = true;
 		}
@@ -4101,18 +4136,24 @@ class ConversationalIVR {
 			this.ensureWords(from_parsed, voice, used_words);
 		}
 
-		if ((cache) && (from) && (who) && (tree)) {
-			var cache_arr = this.ivr_cache[from];
+		if ((cache) && (from_parsed) && (who) && (tree)) {
+			var cache_arr = this.ivr_cache[from_parsed];
 			if (!cache_arr) {
 				cache_arr = new [];
-				this.ivr_cache[from] = cache_arr;
+				this.ivr_cache[from_parsed] = cache_arr;
 			}
-			cache_arr[LeftOf(who, "@", who)] = tree;
+			var who_format = LeftOf(who, "@", who);
+			if (ivr.OnFormatTo)
+				who_format = ivr.OnFormatTo(who_format);
+			if (typeof tree == "array")
+				cache_arr[who_format] = tree;
+			else
+				cache_arr[who_format] = ["" => tree];
 
 			if (length cache_arr >= SETTINGS_MAX_CALLCACHE)
 				deleteArrayElement(cache_arr, 0);
 
-			console.log(LOG_THIS, "cached call from $from to $who");
+			console.log(LOG_THIS, "cached call from $from_parsed to $who_format");
 		}
 
 		if ((!texts) || (length texts == 0))
@@ -4296,6 +4337,7 @@ class ConversationalIVR {
 		var sessions = this.ivr.stack.Sessions;
 		for (var i = 0; i < length sessions; i ++) {
 			var session = sessions[i];
+
 			if ((session) && (session.UserData)) {
 				if ((!account) || (((session.is_invite) && (session.UserData.From == account)) || ((!session.is_invite) && (session.UserData.To == account)))) {
 					var duration = 0;
@@ -4316,8 +4358,8 @@ class ConversationalIVR {
 				}
 			} else
 			if (session) {
-				var from = this.ivr.ParseFrom2(session.msg.Headers["from"]);
-				var to = this.ivr.ParseFrom2(session.msg.Headers["to"]);
+				var from = this.parseFrom(session.msg.Headers["from"]);
+				var to = this.parseTo(session.msg.Headers["to"]);
 
 				if ((!account) || (((session.is_invite) && (from == account)) || ((!session.is_invite) && (to == account)))) {
 					if (session.callStatus == 200) {
@@ -4348,7 +4390,7 @@ class ConversationalIVR {
 					sess_ids ++;
 			} else
 			if (session) {
-				if ((!account) || (((session.is_invite) && (this.ivr.ParseFrom2(session.msg.Headers["from"]) == account)) || ((!session.is_invite) && (this.ivr.ParseFrom2(session.msg.Headers["to"]) == account))))
+				if ((!account) || (((session.is_invite) && (this.parseFrom(session.msg.Headers["from"]) == account)) || ((!session.is_invite) && (this.parseTo(session.msg.Headers["to"]) == account))))
 					sess_ids ++;
 			}
 		}
@@ -4383,27 +4425,6 @@ class ConversationalIVR {
 			return;
 
 		deleteArrayElement(ivr_queues_not_answered, to);
-
-		/*
-		ivr_queues_not_answered[to] = null;
-		ivr_queues[identity]["placeholders"] ++;
-
-		if (ivr_queues[identity]["placeholders"] < SETTINGS_MAX_DEQUEUE / 10)
-			return;
-
-		var arr2 = new [];
-		var keys = GetKeys(ivr_queues_not_answered);
-		for (var i = 0; i < length ivr_queues_not_answered; i ++) {
-			var e = ivr_queues_not_answered[i];
-			if (e) {
-				var k = keys[i];
-				if (k)
-					arr2[k] = e;
-			}
-		}
-		ivr_queues[identity]["not_answered"] = arr2;
-		ivr_queues[identity]["placeholders"] = 0;
-		*/
 	}
 
 	protected _dequeueAnswer(session) {
@@ -4496,10 +4517,18 @@ class ConversationalIVR {
 				if (tree[0] == "{")
 					tree = JSONDeserialize(tree) ?? tree;
 
+				var destination = trim(StrSplit(obj["who"], ",")[0]);
+
 				if (!route)
 					route = ivr_queues[identity]["route"];
 
-				if (this.call(trim(StrSplit(obj["who"], ",")[0]) + "@" + route, identity, tree, SETTINGS_MAX_DURATION, false, obj["as"] ?? "")) {
+				var formated_identity = identity;
+				if ((!route) && (this.OnRouteRequest)) {
+					destination = this.OnRouteRequest(null, destination + "@default", null, formated_identity);
+				} else
+					destination += "@" + route;
+
+				if (this.call(destination, formated_identity, tree, SETTINGS_MAX_DURATION, false, obj["as"] ?? "")) {
 					active_calls ++;
 					this._updateNa(identity, obj["who"], tree);
 					return true;
@@ -4547,8 +4576,8 @@ class ConversationalIVR {
 			return null;
 		}
 
-		var identity = this.ivr.ParseFrom(session.msg.Headers["from"]);
-		var to = this.ivr.ParseFrom(session.msg.Headers["to"]);
+		var identity = this.parseFrom(session.msg.Headers["from"]);
+		var to = this.parseFrom(session.msg.Headers["to"]);
 		if (!identity)
 			return null;
 
@@ -4556,7 +4585,7 @@ class ConversationalIVR {
 	}
 
 	queue(identity, route, max_calls, stop = false) {
-		if ((!route) || (max_calls <= 0)) {
+		if (/* (!route) || */ (max_calls <= 0)) {
 			console.warn(LOG_THIS, "no route");
 			return false;
 		}
