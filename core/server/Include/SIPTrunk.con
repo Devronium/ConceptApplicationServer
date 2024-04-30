@@ -193,6 +193,16 @@ class RTPSession {
 }
 
 class RTPWorker {
+	syncData(rtp_sessions) {
+		var[] sync_data;
+		for (var i = 0; i < length rtp_sessions; i ++) {
+			var rtp_session = rtp_sessions[i];
+			if (rtp_session)
+				sync_data[rtp_session.CallID] = rtp_session.last_timestamp;
+		}
+		return sync_data;
+	}
+
 	RTPWorker(n) {
 		var poll = new Poll();
 
@@ -205,6 +215,7 @@ class RTPWorker {
 
 		var[] rtp_sessions;
 		var[] call_id_to_socket;
+		var next_sync = microseconds() + 1000000;
 		while (true) {
 			var sockets;
 			if (has_semaphore)
@@ -268,6 +279,12 @@ class RTPWorker {
 							break;
 					}
 				}
+			}
+			if (next_sync <= microseconds()) {
+				var sync_data = syncData(rtp_sessions);
+				if (sync_data)
+					Worker::ResultObject(sync_data);
+				next_sync = microseconds() + 1000000;
 			}
 		}
 	}
@@ -1334,9 +1351,6 @@ class SIPSession {
 
 		rtp_object.NATMode = this.NATMode;
 
-		// ignore audio timeout events
-		this.last_timestamp = 0;
-
 		RTPWorker.post(delegatedWorker, rtp_object, RTP_WORKER_ADD);
 
 		// ensure no constructor cleaning
@@ -1358,7 +1372,8 @@ class SIPSession {
 
 	parallelize() {
 		// paralellization only for proxy calls for now
-		if ((!this.s.workers) || (this.ProxyCall != 200) || (!this.Parent))
+		if ((!this.s.workers) || (this.ProxyCall != 200) || (!this.Parent) || 
+			(this.Record) || (this.RecordRedirect) || (this.Parent.Record) || (this.Parent.RecordRedirect))
 			return;
 
 		var worker = this.s.workers[crc32(this.CallID) % (length this.s.workers)];
@@ -1819,6 +1834,7 @@ class SIPStack {
 	var localId;
 
 	var[] workers;
+	var[] workers_socket;
 
 	SIPStack(localhost, bind_port = 5060, type = SIP_TRANSPORT_UDP, public_key = "", private_key = "", force_tls_version = 0) {
 		this.localhost = localhost;
@@ -3818,6 +3834,28 @@ class SIPStack {
 		return false;
 	}
 
+	_iterateWorkers() {
+		if ((workers_socket) && (!SocketPoll(workers_socket)))
+			return;
+
+		for (var i = 0; i < length workers; i ++) {
+			var worker = workers[i];
+			if ((worker.GetResult(var data)) && (data)) {
+				var arr = UnBinarizeObject(data);
+				var keys = GetKeys(arr);
+				for (var j = 0; j < length keys; j ++) {
+					var call_id = keys[j];
+					if (call_id) {
+						var session = this.GetSessionById(call_id);
+						if (session)
+							session.last_timestamp = arr[j];
+					}
+				}
+			}
+		}
+	}
+
+
 	Iterate() {
 		var sessions = this.Sessions;
 		var ops = 0;
@@ -3837,6 +3875,9 @@ class SIPStack {
 			msg = this.PeekMessage(ip, port);
 		if (msg)
 			this._msgIterate(msg, ip, port, ops);
+
+		if (workers)
+			this._iterateWorkers();
 
 		return ops;
 	}
@@ -3872,8 +3913,13 @@ class SIPStack {
 	}
 
 	enableWorkers(worker_count = 4) {
-		while (length workers < worker_count)
-			workers[length workers] = new Worker("RTPWorker");
+		while (length workers < worker_count) {
+			var worker = new Worker("RTPWorker");
+			workers[length workers] = worker;
+			var semaphore = GetWorkerOutputSemaphore(worker._workerobj);
+			if (semaphore > 0)
+				workers_socket[length workers_socket] = semaphore;
+		}
 	}
 
 	protected _msgIterate(msg, ip, port, var ops) {
@@ -4149,7 +4195,8 @@ class SIPStack {
 										sess.ProxyCall = msg.ServerCode;
 //
 										if (this.OnProxyAnswered)
-											parallelize = this.OnProxyAnswered(sess);
+											this.OnProxyAnswered(sess);
+										parallelize = true;
 									} else {
 										var ref_use_socket = use_socket;
 										use_socket = sess.Parent.tcp_socket;
