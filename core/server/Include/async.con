@@ -280,6 +280,9 @@ class _webrequest {
 	var template = "";
 	var lang = "";
 
+	protected var _buffer = "";
+	protected var _started = false;
+
 	protected var _onpost;
 	protected var _ondata;
 	protected var _ontimedout;
@@ -506,6 +509,12 @@ class _webrequest {
 
 	setondata(deleg) {
 		this.register();
+		if ((this._buffer) && (!this._ondata)) {
+			var data = _buffer;
+			deleg(data);
+			if (data)
+				deleg(data);
+		}
 		this._ondata = deleg;
 		return deleg;
 	}
@@ -551,9 +560,22 @@ class _webrequest {
 			data = "";
 			return data;
 		}
+
+		if (_buffer) {
+			data = _buffer + data;
+			_buffer = "";
+		}
+
 		var res = "";
-		var start_pos = Pos(data, "--" + boundary);
+		var start_pos = Pos(data, "--" + boundary);		
 		if (start_pos > 0) {
+			if ((!_started) && (Pos(data, "\r\n\r\n") <= 0) && (length data <= 1024)) {
+				// ensure enough buffering
+				_buffer = data;
+				data = "";
+				return res;
+			}
+			_started  = true;
 			if (start_pos > 1) {
 				res = SubStr(data, 0, start_pos - 3);
 				// "--" + crlf
@@ -583,7 +605,10 @@ class _webrequest {
 				return this.parseData(data, stream_ended);
 			}
 		} else {
-			res = data;
+			if (_started)
+				res = data;
+			else
+				_buffer += data;
 			data = "";
 		}
 		return res;
@@ -697,8 +722,12 @@ class web {
 			case "data":
 				if ((id) && (typeof id == "string") && (IsSet(requestdata, id))) {
 					obj = requestdata[id];
-					if ((obj) && (obj.ondata))
-						obj.ondata(data["data"]);
+					if (obj) {
+						if (obj.ondata)
+							obj.ondata(data["data"]);
+					} else {
+							obj._buffer = data["data"];
+					}
 				}
 				break;
 			case "drop":
