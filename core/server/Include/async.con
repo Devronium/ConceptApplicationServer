@@ -614,6 +614,42 @@ class _webrequest {
 		return res;
 	}	
 
+	parse(var data, max_buffer = 1000000) {
+		var content_length = this.headers["content-length"];
+		var boundary = this.boundary();
+		if (!boundary)
+			return [ ];
+
+		_buffer += data;
+
+		if ((length _buffer >= content_length) || (length _buffer >= max_buffer)) {
+			var arr = StrSplit(_buffer, "--" + boundary);
+			// ensure correct
+			var post_data = new [];
+			for (var i0 = 0; i0 < length arr; i0 ++) {
+				var arr_Data = arr[i0];
+				var content_start = Pos(arr_Data, "\r\n\r\n");
+				var info = new [];
+				if (content_start > 0) {
+					var info_arr = StrSplit(SubStr(arr_Data, 0, content_start - 1), "\r\n");
+					for (var i = 0; i < length info_arr; i ++) {
+						var arr_str = StrSplit(info_arr[i], ";");
+						for (var j = 0; j < length arr; j ++) {
+							var e = trim(arr_str[j]);
+							if (e)
+								info[length info] = e;
+						}
+					}
+					post_data[length post_data] = ["info" => info, "data" => SubStr(arr_Data, content_start + 3)];
+				}
+			}
+			if ((arr) && (arr[length arr - 1] == "--"))				
+				deleteArrayElement(arr, length arr - 1);
+			return post_data;
+		}
+		return null;
+	}
+
 	finalize() {
 		this.sync();
 		web.requests--;
