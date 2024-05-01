@@ -725,7 +725,7 @@ class web {
 					if (obj) {
 						if (obj.ondata)
 							obj.ondata(data["data"]);
-					} else {
+						else
 							obj._buffer = data["data"];
 					}
 				}
