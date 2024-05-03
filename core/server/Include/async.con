@@ -634,7 +634,7 @@ class _webrequest {
 					var info_arr = StrSplit(SubStr(arr_Data, 0, content_start - 1), "\r\n");
 					for (var i = 0; i < length info_arr; i ++) {
 						var arr_str = StrSplit(info_arr[i], ";");
-						for (var j = 0; j < length arr; j ++) {
+						for (var j = 0; j < length arr_str; j ++) {
 							var e = trim(arr_str[j]);
 							if (e)
 								info[length info] = e;

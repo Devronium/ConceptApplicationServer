@@ -63,12 +63,12 @@ class Worker {
 		return -1;
 	}
 
-	AddObject(obj, priority = 0, key = 0) {
+	AddObject(obj, priority = 0, key = 0, size_hint = 0) {
 		if (_workerobj) {
 			if (priority < 0)
 				priority = 0;
 
-			return AddWorkerData(_workerobj, BinarizeObject(obj), priority, key, true);
+			return AddWorkerData(_workerobj, BinarizeObject(obj, false, size_hint), priority, key, true);
 		}
 		return -1;
 	}

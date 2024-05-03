@@ -1854,6 +1854,9 @@ int bin_write(RefContainer *rc, char *data, int d_size, int write_increment) {
         return 0;
 
     if (rc->offset + d_size > rc->size) {
+        // no write if preallocated buffer
+        if (rc->is_buffer == 4)
+            return -1;
         int blocks = 1;
         if (rc->increment) {
             int current_blocks = rc->size / write_increment;
@@ -2014,7 +2017,7 @@ uint64_t bin_read_size(RefContainer *rc) {
 }
 
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BinarizeObject, 1, 2)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BinarizeObject, 1, 3)
     char *szvar;
     void *var = LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[0] - 1];
 
@@ -2022,6 +2025,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BinarizeObject, 1, 2)
     if (PARAMETERS_COUNT > 1) {
         T_NUMBER(BinarizeObject, 1)
         no_defaults = PARAM_INT(1);
+    }
+    int size_hint_buffer = 0;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(BinarizeObject, 2)
+        size_hint_buffer = PARAM_INT(2);
     }
 
     // need type
@@ -2042,6 +2050,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BinarizeObject, 1, 2)
     rc->increment      = 0;
     rc->no_defaults    = no_defaults;
 
+    if (size_hint_buffer > 0) {
+        rc->is_buffer = 4;
+        rc->size = size_hint_buffer;
+        CORE_NEW(size_hint_buffer + 1, rc->buf);
+    }
+
     bin_write_char(rc, TYPE);
     if (TYPE == VARIABLE_CLASS)
         Serialize(rc, szvar, 0);
@@ -2049,11 +2063,20 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BinarizeObject, 1, 2)
         SerializeArray(rc, var, szvar, NULL, 0);
 
     if ((rc->buf) && (rc->offset)) {
-        RETURN_BUFFER(rc->buf, rc->offset);
+        if (rc->is_buffer == 4) {
+            if (rc->offset <= rc->size)
+                rc->buf[rc->offset] = 0;
+            SetVariable(RESULT, -1, rc->buf, rc->offset);
+        } else {
+            RETURN_BUFFER(rc->buf, rc->offset);
+        }
     } else {
         RETURN_STRING("");
+        if (rc->is_buffer == 4) {
+            CORE_DELETE(rc->buf);
+        }
     }
-    if (rc->buf)
+    if ((rc->buf) && (rc->is_buffer != 4))
         free(rc->buf);
     // delete rc;
 END_IMPL
