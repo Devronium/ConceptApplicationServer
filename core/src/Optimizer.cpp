@@ -266,6 +266,9 @@ protected:
     INTEGER asg_var_len;
     unsigned char *temp_vars;
     INTEGER temp_var_len;
+
+    unsigned char *used_count;
+    INTEGER used_count_len;
 public:
     TempVariableManager(DoubleList *vlist) : pool1(vlist), pool2(vlist) {
         left_vars = NULL;
@@ -275,6 +278,35 @@ public:
         temp_vars = NULL;
         temp_var_len = 0;
         level_manager = NULL;
+        used_count = NULL;
+        used_count_len = 0;
+    }
+
+    void notify_usage(int var_id) {
+        if (var_id <= 0)
+            return;
+
+        if (var_id > used_count_len) {
+            int old_var_len = used_count_len;
+            used_count_len = ((var_id + 1) / 32 + 1) * 32;
+            used_count = (unsigned char *)realloc(used_count, sizeof(unsigned char) * used_count_len);
+
+            if (!used_count)
+                return;
+
+            for (int i = old_var_len; i < used_count_len; i++)
+                used_count[i] = 0;
+        }
+
+        if ((used_count) && (used_count[var_id - 1] < 10))
+            used_count[var_id - 1] ++;
+    }
+
+    int reused(int var_id) {
+        if ((!used_count) || (var_id < 0) || (var_id > used_count_len))
+            return 0;
+
+        return (int)used_count[var_id - 1];
     }
 
     void notify_assign(int var_id, int ignore_first_n_vars, int max_variables) {
@@ -467,6 +499,8 @@ public:
             free(asg_vars);
         if (temp_vars)
             free(temp_vars);
+        if (used_count)
+            free(used_count);
     }
 
     void Reset() {
@@ -486,6 +520,8 @@ public:
         return var_id;
     }
 };
+
+void Optimizer_GenerateIntermediateCode(struct Optimizer* self, PIFAlizator* P, TempVariableManager* TVM);
 
 static PIFAlizator *PIFOwner = NULL;
 
@@ -1449,6 +1485,7 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
                     }
                     if (not_assignment) {
                         if (TVM->is_accesible(Left->ID, Right->ID)) {
+                            TVM->notify_usage(tmp_index);
                             // already accessed
                             AnalizerElement *newAE = new AnalizerElement;
                             newAE->ID               = tmp_index;
@@ -2606,6 +2643,7 @@ int Optimizer_Optimize(struct Optimizer *self, PIFAlizator *P) {
 
     TVM.pop_level();
 
+    Optimizer_GenerateIntermediateCode(self, P, &TVM);
     // broken by latest optimizations !!!
     // moved optimization into OptimizeExpression
     // Optimizer_OptimizePass2(helper);
@@ -2700,7 +2738,7 @@ void delete_Optimizer(struct Optimizer *self) {
     free(self);
 }
 
-void Optimizer_GenerateIntermediateCode(struct Optimizer *self, PIFAlizator *P) {
+void Optimizer_GenerateIntermediateCode(struct Optimizer *self, PIFAlizator *P, TempVariableManager *TVM) {
     OptimizerHelper *helper = Optimizer_GetHelper(P);
     self->codeCount  = helper->OptimizedPIF->Count();
     self->dataCount  = helper->VDList->Count();
@@ -2755,6 +2793,10 @@ void Optimizer_GenerateIntermediateCode(struct Optimizer *self, PIFAlizator *P) 
     }
     helper->OptimizedPIF->Clear();
     // end optimization
+    char *data_flags = (char* )malloc((self->dataCount + 1) * sizeof(char));
+    if (data_flags)
+        memset(data_flags, 0, (self->dataCount + 1) * sizeof(char));
+
     for (INTEGER j = 0; j < self->dataCount; j++) {
         VariableDESCRIPTOR        *VD  = (VariableDESCRIPTOR *)helper->VDList->Item(j);
         RuntimeVariableDESCRIPTOR *VD2 = &self->DATA [j];
@@ -2781,7 +2823,10 @@ void Optimizer_GenerateIntermediateCode(struct Optimizer *self, PIFAlizator *P) 
         if (LocalParaCount) {
             self->PARAMS [k].PARAM_INDEX = (INTEGER *)DELTA_REF(&self->PARAMS [k], new INTEGER [LocalParaCount]);
             for (INTEGER l = 0; l < LocalParaCount; l++) {
-                DELTA_UNREF(&self->PARAMS [k], self->PARAMS [k].PARAM_INDEX) [l] = (INTEGER)(uintptr_t)LocalList->Item(l);
+                INTEGER ref = (INTEGER)(uintptr_t)LocalList->Item(l);
+                DELTA_UNREF(&self->PARAMS [k], self->PARAMS [k].PARAM_INDEX) [l] = ref;
+                if ((data_flags) && (ref > 0))
+                    data_flags[ref] = 1;
             }
         } else {
             self->PARAMS [k].PARAM_INDEX = 0;
@@ -2802,8 +2847,7 @@ void Optimizer_GenerateIntermediateCode(struct Optimizer *self, PIFAlizator *P) 
         } else
         if ((OE->Operator_ID == KEY_SEL) && (!OE->OperandReserved_ID) && (!OE->Operator_FLAGS)) {
             // no parameters
-            // OE->Result_ID
-            if (i < self->codeCount - 1) {
+            if ((data_flags) && (!data_flags[OE->Result_ID]) && (!TVM->reused(OE->Result_ID)) && (i < self->codeCount - 1)) {
                 RuntimeOptimizedElement *NEXT = &self->CODE[i + 1];
                 if (NEXT->OperandLeft_ID == OE->Result_ID) {
                     switch (NEXT->Operator_ID) {
@@ -2836,18 +2880,39 @@ void Optimizer_GenerateIntermediateCode(struct Optimizer *self, PIFAlizator *P) 
                 } else
                 if (NEXT->OperandRight_ID == OE->Result_ID) {
                     switch (NEXT->Operator_ID) {
-                        case KEY_DLL_CALL:
-                        case KEY_SEL:
-                        case KEY_NEW:
-                        case KEY_DELETE:
-                        case KEY_OPTIMIZED_GOTO:
-                        case KEY_OPTIMIZED_THROW:
-                        case KEY_OPTIMIZED_DEBUG_TRAP:
-                        case KEY_OPTIMIZED_END_CATCH:
-                        case KEY_OPTIMIZED_TRY_CATCH:
-                            break;
-                        default:
-                            // need to check if used in parameter lists
+                        case KEY_OPTIMIZED_IF:
+                        case KEY_OPTIMIZED_ECHO:
+                        case KEY_DIV:
+                        case KEY_REM:
+                        case KEY_MUL:
+                        case KEY_SUM:
+                        case KEY_DIF:
+                        case KEY_SHL:
+                        case KEY_SHR:
+                        case KEY_LES:
+                        case KEY_LEQ:
+                        case KEY_GRE:
+                        case KEY_GEQ:
+                        case KEY_EQU:
+                        case KEY_NEQ:
+                        case KEY_AND:
+                        case KEY_XOR:
+                        case KEY_OR:
+                        case KEY_BAN:
+                        case KEY_BOR:
+                        case KEY_CND_NULL:
+                        case KEY_ASG:
+                        case KEY_BY_REF:
+                        case KEY_ASU:
+                        case KEY_ADI:
+                        case KEY_ADV:
+                        case KEY_ARE:
+                        case KEY_AMU:
+                        case KEY_AAN:
+                        case KEY_AXO:
+                        case KEY_AOR:
+                        case KEY_ASL:
+                        case KEY_ASR:
                             OE->Operator_FLAGS = MAY_COPY_RESULT;
                     }
                 }
@@ -2864,6 +2929,7 @@ void Optimizer_GenerateIntermediateCode(struct Optimizer *self, PIFAlizator *P) 
             }
         }
     }
+    free(data_flags);
     helper->ParameterList->Clear();
     helper->PIFList->Clear();
 }

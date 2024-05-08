@@ -3682,7 +3682,6 @@ void PIFAlizator::OptimizeMember(ClassMember *CM) {
     helper->OptimizedPIF = new AnsiList();
 
     Optimizer_Optimize((struct Optimizer *)CM->OPTIMIZER, this);
-    Optimizer_GenerateIntermediateCode((struct Optimizer *)CM->OPTIMIZER, this);
 
     delete helper->ParameterList;
     helper->ParameterList = NULL;
@@ -3828,7 +3827,6 @@ void PIFAlizator::Optimize(int start, char use_compiled_code, char use_lock) {
                     helper->OptimizedPIF = new AnsiList();
 
                     Optimizer_Optimize((struct Optimizer *)CM->OPTIMIZER, this);
-                    Optimizer_GenerateIntermediateCode((struct Optimizer *)CM->OPTIMIZER, this);
 
                     delete helper->ParameterList;
                     helper->ParameterList = NULL;

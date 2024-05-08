@@ -212,6 +212,8 @@ void FREE_VARIABLE(VariableDATA *VARIABLE, SCStack *STACK_TRACE) {
 #endif
 
 void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE) {
+    if (SRC == DEST)
+        return;
     CLASS_CHECK(DEST, STACK_TRACE);
     DEST->TYPE = SRC->TYPE;
     DEST->IS_PROPERTY_RESULT = 0;
@@ -241,6 +243,8 @@ void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE) 
 }
 //---------------------------------------------------------
 void REPLACE_VARIABLE_AND_FREE_SRC(VariableDATA* DEST, VariableDATA* SRC, SCStack* STACK_TRACE) {
+    if (SRC == DEST)
+        return;
     CLASS_CHECK(DEST, STACK_TRACE);
     DEST->TYPE = SRC->TYPE;
     DEST->IS_PROPERTY_RESULT = 0;
@@ -3176,10 +3180,6 @@ int ConceptInterpreter_StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *GR
                                         }
                                         RESULT = CompiledClass_CreateVariable(CCTEMP, relocation - 1, pMEMBER_i);
                                     }
-                                    if ((!next_is_asg) && (OE->Operator_FLAGS == MAY_COPY_RESULT) && (LOCAL_CONTEXT[OE->Result_ID - 1]->LINKS == 1)) {
-                                        COPY_VARIABLE(LOCAL_CONTEXT[OE->Result_ID - 1], RESULT, STACK_TRACE);
-                                        continue;
-                                    }
                                     goto nothrow;
                                 }
                             }
@@ -5739,7 +5739,7 @@ sel_label:
                                     RESULT = CompiledClass_CreateVariable(CCTEMP, relocation - 1, pMEMBER_i);
                                     goto here;
                                 }
-                                if ((!next_is_asg) && (OE->Operator_FLAGS == MAY_COPY_RESULT) && (LOCAL_CONTEXT[OE->Result_ID - 1]->LINKS == 1)) {
+                                if ((!next_is_asg) && (OE->Operator_FLAGS == MAY_COPY_RESULT) && (LOCAL_CONTEXT[OE->Result_ID - 1]->LINKS == 1) && (RESULT->TYPE != VARIABLE_STRING)) {
                                     COPY_VARIABLE(LOCAL_CONTEXT[OE->Result_ID - 1], RESULT, STACK_TRACE);
                                     continue;
                                 }

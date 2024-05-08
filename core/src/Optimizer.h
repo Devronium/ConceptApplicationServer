@@ -78,6 +78,5 @@ void delete_Optimizer(struct Optimizer *self);
 int Optimizer_Serialize(struct Optimizer *self, PIFAlizator *PIFOwner, FILE *out, bool is_lib = false, int version = 2);
 int Optimizer_Unserialize(struct Optimizer *self, PIFAlizator *PIFOwner, concept_FILE *in, AnsiList *ModuleList, bool is_lib = false, int *ClassNames = 0, int *Relocation = 0, int version = 1);
 int Optimizer_ComputeSharedSize(concept_FILE *in, int version = 1);
-void Optimizer_GenerateIntermediateCode(struct Optimizer *self, PIFAlizator *P);
 
 #endif // __OPTIMIZER_H
