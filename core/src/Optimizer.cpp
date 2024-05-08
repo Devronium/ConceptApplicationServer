@@ -1111,44 +1111,44 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
 
     while (helper->PIF_POSITION < helper->PIFList->Count()) {
         AE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION++);
-        if (AE) {
+        if (!AE)
+            continue;
 #ifdef OPTIONAL_SEPARATOR
-            if (!helper->PIFOwner->STRICT_MODE) {
-                if ((!FLAGS) && (TYPE == TYPE_SEPARATOR) && (ID == KEY_SEP)) {
-                    if ((PREC_AE) && (AE->TYPE != TYPE_SEPARATOR)) {
-                        if ((LAST_LINE >= 0) && (LAST_LINE != AE->_DEBUG_INFO_LINE)) {
-                            // line changed
-                            if (PREC_AE->TYPE == TYPE_OPERATOR) {
-                                int loop_exit = 0;
-                                switch (GetOperatorType(PREC_AE->ID)) {
-                                    case OPERATOR_BINARY:
-                                        if (AE->TYPE == TYPE_OPERATOR) {
-                                            int type = GetOperatorType(AE->ID);
-                                            if (type != OPERATOR_UNARY) {
-                                                VALID_EXPR = 0;
-                                                loop_exit = 1;
-                                            }
+        if (!helper->PIFOwner->STRICT_MODE) {
+            if ((!FLAGS) && (TYPE == TYPE_SEPARATOR) && (ID == KEY_SEP)) {
+                if ((PREC_AE) && (AE->TYPE != TYPE_SEPARATOR)) {
+                    if ((LAST_LINE >= 0) && (LAST_LINE != AE->_DEBUG_INFO_LINE)) {
+                        // line changed
+                        if (PREC_AE->TYPE == TYPE_OPERATOR) {
+                            int loop_exit = 0;
+                            switch (GetOperatorType(PREC_AE->ID)) {
+                                case OPERATOR_BINARY:
+                                    if (AE->TYPE == TYPE_OPERATOR) {
+                                        int type = GetOperatorType(AE->ID);
+                                        if (type != OPERATOR_UNARY) {
+                                            VALID_EXPR = 0;
+                                            loop_exit = 1;
                                         }
-                                        break;
-                                    case OPERATOR_UNARY:
-                                    case OPERATOR_UNARY_LEFT:
-                                        loop_exit = 1;
-                                        break;
-                                    case OPERATOR_RESOLUTION:
-                                        break;
-                                }
-                                if (loop_exit)
+                                    }
                                     break;
-                            } else
-                            if (AE->TYPE != TYPE_OPERATOR)
+                                case OPERATOR_UNARY:
+                                case OPERATOR_UNARY_LEFT:
+                                    loop_exit = 1;
+                                    break;
+                                case OPERATOR_RESOLUTION:
+                                    break;
+                            }
+                            if (loop_exit)
                                 break;
-                        }
+                        } else
+                        if (AE->TYPE != TYPE_OPERATOR)
+                            break;
                     }
                 }
             }
-#endif
-            LAST_LINE = AE->_DEBUG_INFO_LINE;
         }
+#endif
+        LAST_LINE = AE->_DEBUG_INFO_LINE;
 
         if (is_array) {
             if (AE->TYPE == TYPE_OPERATOR) {
@@ -1559,8 +1559,8 @@ nooptimizations:
             } else {
                 MAKE_NULL(OE->OperandReserved);
             }
-        }
-        else if ((OP_TYPE == OPERATOR_UNARY) || (OP_TYPE == OPERATOR_UNARY_LEFT)) {
+        } else
+        if ((OP_TYPE == OPERATOR_UNARY) || (OP_TYPE == OPERATOR_UNARY_LEFT)) {
             AnalizerElement *Target = (AnalizerElement *)helper->PIFList->Item(FIRST_OPERATOR + (OP_TYPE == OPERATOR_UNARY ? 1 : -1));
             AnalizerElement *Parameter = (OP_TYPE == OPERATOR_UNARY) ? (AnalizerElement *)helper->PIFList->Item(FIRST_OPERATOR + 2) : 0;
 
@@ -1605,8 +1605,8 @@ nooptimizations:
             helper->PIFList->Insert(newAE, FIRST_OPERATOR - (OP_TYPE == OPERATOR_UNARY ? 0 : 1), DATA_ANALIZER_ELEMENT);
             helper->PIF_POSITION--;
 
-            LAST_OP = OE;
             LAST_OP_2 = LAST_OP;
+            LAST_OP = OE;
 
             if ((AE_ID == KEY_NEW) && (Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST)) {
                 Optimizer_CopyElementAS(Parameter, &OE->OperandReserved);
@@ -2526,7 +2526,8 @@ INTEGER Optimizer_OptimizeAny(struct Optimizer *self, struct OptimizerHelper *he
         } else {
             helper->PIFOwner->Warning(WRN10002, AE->_DEBUG_INFO_LINE, 10002, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME);
         }
-    } else if ((helper->PIFOwner->DebugOn) && (AE->_DEBUG_INFO_LINE != helper->LAST_DEBUG_TRAP)) {
+    } else
+    if ((helper->PIFOwner->DebugOn) && (AE->_DEBUG_INFO_LINE != helper->LAST_DEBUG_TRAP)) {
         helper->LAST_DEBUG_TRAP = AE->_DEBUG_INFO_LINE;
         OptimizedElement *OE = new OptimizedElement;
         OE->Operator._DEBUG_INFO_LINE = AE->_DEBUG_INFO_LINE;
@@ -2789,6 +2790,69 @@ void Optimizer_GenerateIntermediateCode(struct Optimizer *self, PIFAlizator *P) 
 
     for (INTEGER i = 0; i < self->codeCount; i++) {
         RuntimeOptimizedElement *OE = &self->CODE[i];
+        // optimize delete arr[key] (remove element from array)
+        if ((i) && (OE->Operator_ID == KEY_DELETE)) {
+            RuntimeOptimizedElement *PREV = &self->CODE[i - 1];
+            if ((PREV->Operator_ID == KEY_INDEX_OPEN) && (PREV->Result_ID == OE->OperandLeft_ID)) {
+                // origin array
+                OE->OperandRight_ID = PREV->OperandRight_ID;
+                OE->OperandReserved_ID = PREV->OperandLeft_ID;
+                OE->OperandReserved_TYPE = TYPE_VARIABLE;
+            }
+        } else
+        if ((OE->Operator_ID == KEY_SEL) && (!OE->OperandReserved_ID) && (!OE->Operator_FLAGS)) {
+            // no parameters
+            // OE->Result_ID
+            if (i < self->codeCount - 1) {
+                RuntimeOptimizedElement *NEXT = &self->CODE[i + 1];
+                if (NEXT->OperandLeft_ID == OE->Result_ID) {
+                    switch (NEXT->Operator_ID) {
+                        case KEY_SEL:
+                        case KEY_NOT:
+                        case KEY_SUM:
+                        case KEY_COM:
+                        case KEY_NEG:
+                        case KEY_POZ:
+                        case KEY_DIV:
+                        case KEY_REM:
+                        case KEY_MUL:
+                        case KEY_SHL:
+                        case KEY_SHR:
+                        case KEY_LES:
+                        case KEY_LEQ:
+                        case KEY_GRE:
+                        case KEY_GEQ:
+                        case KEY_EQU:
+                        case KEY_NEQ:
+                        case KEY_AND:
+                        case KEY_XOR:
+                        case KEY_OR:
+                        case KEY_BAN:
+                        case KEY_BOR:
+                        case KEY_CND_NULL:
+                            // need to check if used in parameter lists
+                            OE->Operator_FLAGS = MAY_COPY_RESULT;
+                    }
+                } else
+                if (NEXT->OperandRight_ID == OE->Result_ID) {
+                    switch (NEXT->Operator_ID) {
+                        case KEY_DLL_CALL:
+                        case KEY_SEL:
+                        case KEY_NEW:
+                        case KEY_DELETE:
+                        case KEY_OPTIMIZED_GOTO:
+                        case KEY_OPTIMIZED_THROW:
+                        case KEY_OPTIMIZED_DEBUG_TRAP:
+                        case KEY_OPTIMIZED_END_CATCH:
+                        case KEY_OPTIMIZED_TRY_CATCH:
+                            break;
+                        default:
+                            // need to check if used in parameter lists
+                            OE->Operator_FLAGS = MAY_COPY_RESULT;
+                    }
+                }
+            } 
+        }
         // optimize IF .. GOTO to GOTO
         if (((OE->Operator_ID == KEY_OPTIMIZED_IF) || (OE->Operator_ID == KEY_OPTIMIZED_GOTO)) && (OE->OperandReserved_ID < self->codeCount)) {
             RuntimeOptimizedElement *OE2 = &self->CODE[OE->OperandReserved_ID];

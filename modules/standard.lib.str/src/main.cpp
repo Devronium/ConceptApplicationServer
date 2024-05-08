@@ -291,11 +291,7 @@ CONCEPT_DLL_API CONCEPT_StrReplace CONCEPT_API_PARAMETERS {
     GET_CHECK_BUFFER(1, replace, len_rep, "StrReplace : parameter 2 should be a string (STATIC STRING)");
     GET_CHECK_BUFFER(2, with, len_with, "StrReplace : parameter 3 should be a string (STATIC STRING)");
 
-    AnsiString rep;
-    rep.LoadBuffer(replace, (size_t)len_rep);
     result.LoadBuffer(string, (size_t)len_st);
-    AnsiString with_st;
-    with_st.LoadBuffer(with, (size_t)len_with);
 
     int delta = 0;
     if (len_rep) {
@@ -322,11 +318,10 @@ CONCEPT_DLL_API CONCEPT_StrReplace CONCEPT_API_PARAMETERS {
                     tmp.LoadBuffer(szParam0, position);
 
                     if ((size_t)len_with)
-                        tmp += with_st;
+                        tmp.AddBuffer(with, (size_t)len_with);
 
-                    if (len_temp) {
+                    if (len_temp)
                         tmp.AddBuffer((char *)ptr + (long)len_rep, len_temp);
-                    }
 
                     result = tmp;
                 } else {
@@ -478,7 +473,6 @@ CONCEPT_DLL_API CONCEPT_String CONCEPT_API_PARAMETERS {
     PARAMETERS_CHECK(1, "String takes one parameter : string_buffer");
     LOCAL_INIT;
 
-    AnsiString result;
     char       *fill_string;
     NUMBER     len;
     GET_CHECK_BUFFER(0, fill_string, len, "String : parameter 1 should be a string (STATIC STRING)");
@@ -741,26 +735,6 @@ CONCEPT_DLL_API CONCEPT_ltrim CONCEPT_API_PARAMETERS {
 
     int len = strlen(bin);
     if (len) {
-        //char *buffer=new char[len+1];
-
-        /*char *buffer=0;
-           CORE_NEW(len+1, buffer);
-           buffer[len]=0;
-
-           char trimmed=0;
-           int pos=0;
-           for (int i=0;i<len;i++) {
-            if (!trimmed) {
-                char c=bin[i];
-                //if (bin[i]!=' ')
-                if ((c!=' ') && (c!='\t') && (c!='\n') && (c!='\r') && (c!='\0') && (c!='\x0B'))
-                   trimmed=1;
-            }
-            if (trimmed)
-                buffer[pos++]=bin[i];
-           }
-           buffer[pos]=0;
-           SetVariable(RESULT,-1,buffer,pos);*/
         int left = a_ltrim(bin, len);
         if (left < 0) {
             RETURN_STRING("");
@@ -783,23 +757,6 @@ CONCEPT_DLL_API CONCEPT_rtrim CONCEPT_API_PARAMETERS {
 
     int len = (INTEGER)nDummyLen;
     if (len) {
-        /*char *buffer=new char[len+1];
-           buffer[len]=0;
-
-           char trimmed=0;
-           int pos=len-1;
-           for (int i=len-1;i>=0;i--) {
-            if (!trimmed) {
-                char c=bin[i];
-                //if (bin[i]!=' ')
-                if ((c!=' ') && (c!='\t') && (c!='\n') && (c!='\r') && (c!='\0') && (c!='\x0B'))
-                   trimmed=1;
-            }
-            if (trimmed)
-                buffer[pos--]=bin[i];
-           }
-           RETURN_STRING(buffer+pos+1);
-           delete[] buffer;*/
         int right = a_rtrim(bin, len);
         if (right < 0) {
             RETURN_STRING("");
@@ -856,17 +813,16 @@ CONCEPT_DLL_API CONCEPT_Ext CONCEPT_API_PARAMETERS {
     GET_CHECK_BUFFER(0, bin, blen, "Ext : parameter 1 should be a string (STATIC STRING)");
 
     if (blen) {
-        AnsiString ext;
         int        has_ext = 0;
         for (int i = (int)blen - 1; i >= 0; i--) {
             if (bin[i] == '.') {
-                has_ext = 1;
+                if (i != blen - 1)
+                    has_ext = i + 1;
                 break;
             }
-            ext = AnsiString(bin[i]) + ext;
         }
         if (has_ext) {
-            RETURN_STRING(ext.c_str());
+            RETURN_BUFFER(bin + has_ext, blen - has_ext);
         } else {
             RETURN_STRING("");
         }
@@ -1141,16 +1097,15 @@ CONCEPT_DLL_API CONCEPT_StrNumberSplit CONCEPT_API_PARAMETERS {
 }
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API CONCEPT_StrFrom CONCEPT_API_PARAMETERS {
-    PARAMETERS_CHECK(2, "SubStr takes 2 parameters : string, start;");
+    PARAMETERS_CHECK(2, "StrFrom takes 2 parameters : string, start;");
     LOCAL_INIT;
 
-    AnsiString result;
     char       *fill_string;
     NUMBER     start;
     NUMBER     mfill_len;
 
-    GET_CHECK_BUFFER(0, fill_string, mfill_len, "SubStr : parameter 1 should be a string (STATIC STRING)");
-    GET_CHECK_NUMBER(1, start, "SubStr : parameter 2 should be a number (STATIC NUMBER)");
+    GET_CHECK_BUFFER(0, fill_string, mfill_len, "StrFrom : parameter 1 should be a string (STATIC STRING)");
+    GET_CHECK_NUMBER(1, start, "StrFrom : parameter 2 should be a number (STATIC NUMBER)");
 
     if (start < 0)
         start = 0;

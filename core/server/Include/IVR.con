@@ -554,27 +554,16 @@ class IVR {
 
 	Start(on_idle = null) {
 		while (true) {
-			var start = microseconds();
 			var ops = stack.Iterate();
-			var delta = (microseconds() - start) / 1000;
 			if (length stack.Sessions == 0) {
-				if (ops)
-					stack.needsIO(null, 5);
-				else
-					Sleep(5);
 				if (on_idle)
 					on_idle();
-			} else
-			if (!ops) {
-				// Sleep(1);
-				stack.needsIO(null, 2.4);
 			}
-			if ((delta > 10) && (Debug))
-				console.info(LOG_THIS, "DELTA: $delta");
 			if (this.LoopCallback) {
 				this.callbackOps = ops;
 				this.LoopCallback();
-			}
+			} else
+				stack.wait(-1);
 		}
 	}
 }

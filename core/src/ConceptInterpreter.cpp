@@ -2852,7 +2852,7 @@ void ConceptInterpreter_AnalizeInstructionPath(struct ConceptInterpreter *self, 
                             // recicling result ... it is set to zero
                             OPERAND_RIGHT
 
-                                icode = OE->OperandReserved_ID;
+                            icode = OE->OperandReserved_ID;
                             if ((icode < start) || (icode >= end)) {
                                 jump = sljit_emit_fcmp(compiler, SLJIT_NOT_EQUAL_F64,
                                                        SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA),
@@ -3167,8 +3167,19 @@ int ConceptInterpreter_StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *GR
                                     // not_executed = false;
                                     relocation = CCTEMP->_Class->RELOCATIONS2 [relocation - 1];
                                     RESULT = CCTEMP->_CONTEXT [relocation - 1];
-                                    if (!RESULT)
+                                    if (!RESULT) {
+                                        RESULT = LOCAL_CONTEXT[OE->Result_ID - 1];
+                                        if ((RESULT) && (RESULT->LINKS == 1)) {
+                                            CompiledClass_CreateVariable(CCTEMP, relocation - 1, pMEMBER_i, RESULT);
+                                            DECLARE_PATH(RESULT->TYPE);
+                                            continue;
+                                        }
                                         RESULT = CompiledClass_CreateVariable(CCTEMP, relocation - 1, pMEMBER_i);
+                                    }
+                                    if ((!next_is_asg) && (OE->Operator_FLAGS == MAY_COPY_RESULT) && (LOCAL_CONTEXT[OE->Result_ID - 1]->LINKS == 1)) {
+                                        COPY_VARIABLE(LOCAL_CONTEXT[OE->Result_ID - 1], RESULT, STACK_TRACE);
+                                        continue;
+                                    }
                                     goto nothrow;
                                 }
                             }
@@ -5267,6 +5278,15 @@ int ConceptInterpreter_EvalNumberExpression(struct ConceptInterpreter *self, PIF
     return 1;
 }
 
+void ConceptInterpreter_EvalDeleteExpression(VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE) {
+    if ((OE->OperandRight_ID > 0) && (OE->OperandReserved_ID > 0) && (LOCAL_CONTEXT[OE->OperandReserved_ID - 1]->CLASS_DATA)) {
+        if (LOCAL_CONTEXT[OE->OperandRight_ID - 1]->TYPE == VARIABLE_NUMBER)
+            Array_Delete((Array*)LOCAL_CONTEXT[OE->OperandReserved_ID - 1]->CLASS_DATA, (ARRAY_COUNT_TYPE)LOCAL_CONTEXT[OE->OperandRight_ID - 1]->NUMBER_DATA, NULL);
+        else
+        if (LOCAL_CONTEXT[OE->OperandRight_ID - 1]->TYPE == VARIABLE_STRING)
+            Array_Delete((Array*)LOCAL_CONTEXT[OE->OperandReserved_ID - 1]->CLASS_DATA, -1, CONCEPT_C_STRING(LOCAL_CONTEXT[OE->OperandRight_ID - 1]));
+    }
+}
 
 #ifdef SIMPLE_MULTI_THREADING
 int ConceptInterpreter_EvalSimpleExpression(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, char &IsWriteLocked) {
@@ -5342,6 +5362,7 @@ int ConceptInterpreter_EvalSimpleExpression(struct ConceptInterpreter *self, PIF
             return 1;
 
         case KEY_DELETE:
+            ConceptInterpreter_EvalDeleteExpression(LOCAL_CONTEXT, OE);
             //SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
             CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], STACK_TRACE);
             // LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA  = 0;
@@ -5709,8 +5730,18 @@ sel_label:
                                 relocation = CCTEMP->_Class->RELOCATIONS2 [relocation - 1];
                                 RESULT = CCTEMP->_CONTEXT [relocation - 1];
                                 if (!RESULT) {
+                                    RESULT = LOCAL_CONTEXT[OE->Result_ID - 1];
+                                    if ((RESULT) && (RESULT->LINKS == 1)) {
+                                        CompiledClass_CreateVariable(CCTEMP, relocation - 1, pMEMBER_i, RESULT);
+                                        DECLARE_PATH(RESULT->TYPE);
+                                        continue;
+                                    }
                                     RESULT = CompiledClass_CreateVariable(CCTEMP, relocation - 1, pMEMBER_i);
                                     goto here;
+                                }
+                                if ((!next_is_asg) && (OE->Operator_FLAGS == MAY_COPY_RESULT) && (LOCAL_CONTEXT[OE->Result_ID - 1]->LINKS == 1)) {
+                                    COPY_VARIABLE(LOCAL_CONTEXT[OE->Result_ID - 1], RESULT, STACK_TRACE);
+                                    continue;
                                 }
                                 goto nothrow;
                             }

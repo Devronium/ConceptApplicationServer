@@ -325,7 +325,7 @@
 #define TYPE_OPTIMIZED_KEYWORD     0x20
 #define TYPE_OPTIMIZED_JUMP_ADR    0x21
 
-#define MAY_LOOP                   0x7E
+#define MAY_COPY_RESULT            0x7E
 #define MAY_IGNORE_RESULT          0x7F
 
 

@@ -91,8 +91,6 @@ class RTPSession {
 		else
 			res += payload;
 		sequence_number++;
-
-		return res;
 	}
 
 	ParseRTP(var data, var type = null, check_ssrc = true) {
@@ -457,10 +455,10 @@ class SIPSession {
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
 		timestamp = RandomInteger(140, 140000) * 100;
+		this.s = s;
 		this.SetRTP(msg, rtp_port);
 		this.rtp_port = rtp_port;
 		this.chunk_size = chunk_size * 1000;
-		this.s = s;
 		this.tcp_socket = s.use_socket;
 		this.msg = msg;
 		this.MaxJitter = s.MaxJitter;
@@ -479,7 +477,15 @@ class SIPSession {
 	SetRTP(msg, rtp_port) {
 		Branch = msg.Branch;
 		rtp = new UDPSocket();
-		rtp.Bind(rtp_port);
+		try {
+			rtp.Bind(rtp_port);
+		} catch (var exc) {
+			echo "Error binding on port $rtp_port\n";
+			return;
+		}
+
+		this.s.poll.add(rtp.Socket);
+		this.s.rtp_to_session["" + rtp.Socket] = this;
 	}
 
 	ParseA(line) {
@@ -736,7 +742,7 @@ class SIPSession {
 		this.s.use_socket = ref_use_socket;
 		try {
 			if (rtp)
-				rtp.Close();
+				this.s._closeRTP(rtp);
 			if (rtc_channel) {
 				rtc_channel.close();
 				rtc_channel = null;
@@ -758,7 +764,7 @@ class SIPSession {
 		try {
 			this.s.use_socket = tcp_socket;
 			if (rtp)
-				rtp.Close();
+				this.s._closeRTP(rtp);
 			if (rtc_channel) {
 				rtc_channel.close();
 				rtc_channel = null;
@@ -793,7 +799,7 @@ class SIPSession {
 		this.s.use_socket = ref_use_socket;
 		try {
 			if (rtp)
-				rtp.Close();
+				this.s._closeRTP(rtp);
 			if (rtc_channel) {
 				rtc_channel.close();
 				rtc_channel = null;
@@ -920,7 +926,6 @@ class SIPSession {
 		if (Record)
 			RecordStream(ssrc_id, payload, "out-", profile);
 		sentRTPPackets ++;
-		return res;
 	}
 
 	ParseRTPDTMF(type, payload) {
@@ -1107,7 +1112,7 @@ class SIPSession {
 
 	finalize() {
 		if (rtp)
-			rtp.Close();
+			this.s._closeRTP(rtp);
 		if (rtc_channel) {
 			rtc_channel.close();
 			rtc_channel = null;
@@ -1355,8 +1360,12 @@ class SIPSession {
 
 		// ensure no constructor cleaning
 		if (this.rtp) {
+			this.s.poll.remove(rtp.Socket);
+			var key = "" + rtp.Socket;
 			this.rtp.Socket = -1;
 			delete this.rtp;
+
+			deleteArrayElement(this.s.rtp_to_session, key);
 		}
 		if (this.srtp) {
 			this.srtp.srtp_in = null;
@@ -1487,6 +1496,12 @@ class SIPSession {
 			rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
 	}
 
+	_iterateRead(var ops) {
+		var data = CheckMedia(var type);
+		if (data)
+			this._iterateData(data, type, ops);
+	}
+
 	Iterate() {
 		var exc;
 		var ops = 0;
@@ -1495,17 +1510,13 @@ class SIPSession {
 			if (write_server)
 				this._iterateReinvite();
 
-			var data = CheckMedia(var type);
-			if (data)
-				this._iterateData(data, type, ops);
-
 			if (started) {
 				if ((remote_host) && (remote_port > 0) && (rtp)) {
 					var delta = floor((microseconds() - packet_time) / chunk_size);
 					if (ivr) {
 						if (delta >= ivr_chunk) {
 							var f_size = chunk_size / 1000 * 8;
-							var d_ivr = SubStr(ivr, ivr_chunk * /*160*/ f_size, f_size);
+							var d_ivr = SubStr(ivr, ivr_chunk * f_size, f_size);
 							ivr_chunk = delta + 1;
 							if (d_ivr) {
 								this._iterateAudio(d_ivr);
@@ -1832,21 +1843,28 @@ class SIPStack {
 	var NoBuffering = false;
 
 	var localId;
+	var localKey;
 
 	var[] workers;
 	var[] workers_socket;
+
+	var poll;
+	var signaled;
+	var[] rtp_to_session;
 
 	SIPStack(localhost, bind_port = 5060, type = SIP_TRANSPORT_UDP, public_key = "", private_key = "", force_tls_version = 0) {
 		this.localhost = localhost;
 		this.local_port = bind_port;
 		this.localip = this.IPFromName(localhost);
 		this.realm = localhost;
+		this.poll = new Poll();
 		switch (type) {
 			case SIP_TRANSPORT_TCP:
 				tcpsocket = new TCPSocket();
 				tcpsocket.Listen(bind_port, 0xFFFF);
 				Transport = "TCP";
 				tcp = true;
+				poll.add(tcpsocket.Socket);
 				break;
 			case SIP_TRANSPORT_TLS:
 				// use sip: for TLS also
@@ -1857,10 +1875,12 @@ class SIPStack {
 					echo "Warning: Error loading TLS/SSL keys. TLS will not be supported.\n";
 				Transport = "TLS";
 				tcp = true;
+				poll.add(tcpsocket.Socket);
 				break;
 		}
 		udpclientsocket = new UDPSocket();
 		udpclientsocket.Bind(bind_port);
+		poll.add(udpclientsocket.Socket);
 
 		this.full_host = localhost;
 		if (local_port != 5060)
@@ -3153,6 +3173,10 @@ class SIPStack {
 				var sessions = Sessions;
 				var res = sessions[id];
 
+				// ensure circular reference delete
+				if (res)
+					this._closeRTP(res.rtp);
+
 				deleteArrayElement(sessions, id);
 				this.CleanSession(res, msg.ServerCode);
 				return res;
@@ -3205,6 +3229,8 @@ class SIPStack {
 
 	RemoveSessionByRef(session, code = 0) {
 		if ((session) && (IsSet(Sessions, session.CallID))) {
+			// ensure circular reference delete
+			this._closeRTP(session.rtp);
 			deleteArrayElement(Sessions, session.CallID);
 
 			CleanSession(session, code);
@@ -3685,7 +3711,13 @@ class SIPStack {
 	}
 
 	RequestAuth(msg, algorithm = "md5") {
+		if (!localKey)
+			localKey = md5(RandomString(32));
+		
 		var nonce = md5(RandomString(32));
+		if (!hmac_md5(localKey, nonce, var signature))
+			nonce += signature;
+
 		var extra_headers = new [];
 		extra_headers["WWW-Authenticate"] = "Digest realm=\"${this.realm}\", qop=\"auth\", nonce=\"$nonce\", algorithm=$algorithm";
 		return extra_headers;
@@ -3705,6 +3737,11 @@ class SIPStack {
 		}
 
 		if ((res["nonce"]) && (res["realm"]) && (res["response"]) && (username) && (uri)) {
+			// check signature
+			if ((!localKey) || (length nonce < 64) || (hmac_md5(localKey, SubStr(nonce, 0, length nonce - 32), var signature)) || (signature != SubStr(nonce, length nonce - 32, 32))) {
+				// invalid nonce
+				return 401;
+			}
 			var alg = res["algorithm"];
 			if (!alg) {
 				switch (length res["response"]) {
@@ -3855,8 +3892,52 @@ class SIPStack {
 		}
 	}
 
+	readSockets(sockets, var ops = null) {
+		var rtp_sockets = this.rtp_to_session;
+		var[] out_sockets;
+		for (var i = 0; i < length sockets; i ++) {
+			var socket = sockets[i];
+			var key = "" + socket;
+			if (IsSet(rtp_sockets, key)) {
+				var session = rtp_sockets[key];
+				if (session) {
+					try {
+						session._iterateRead(ops);
+					} catch (var exc) {
+					}
+				}
+			} else
+			if ((socket == udpclientsocket.Socket) || ((tcpsocket) && (socket == tcpsocket.Socket))) {
+				var msg;
+				use_socket = null;
+				if (tcp) {
+					msg = this.PeekMessageTCP(var ip, var port, use_socket);
+					if (!msg)
+						msg = this.PeekMessage(ip, port);
+				} else
+					msg = this.PeekMessage(ip, port);
+				if (msg)
+					this._msgIterate(msg, ip, port, ops);				
+			} else
+				out_sockets[key] = socket;
+		}
+		return out_sockets;
+	}
+
+	wait(timeout = 0, var ops = null) {
+		signaled = microseconds();
+		var sockets = this.poll.wait(timeout);
+		if (!sockets)
+			return;
+
+		return this.readSockets(sockets, ops);
+	}
 
 	Iterate() {
+		var now = microseconds();
+		if ((now - this.signaled) >= 1000)
+			this.wait(5);
+
 		var sessions = this.Sessions;
 		var ops = 0;
 		for (var i = 0; i < length sessions; i++) {
@@ -3865,22 +3946,12 @@ class SIPStack {
 				ops += session.Iterate();
 		}
 
-		var msg;
-		use_socket = null;
-		if (tcp) {
-			msg = this.PeekMessageTCP(var ip, var port, use_socket);
-			if (!msg)
-				msg = this.PeekMessage(ip, port);
-		} else
-			msg = this.PeekMessage(ip, port);
-		if (msg)
-			this._msgIterate(msg, ip, port, ops);
-
 		if (workers)
 			this._iterateWorkers();
 
 		return ops;
 	}
+
 
 	io(socket_emulation, var msg_buffer, ip, port, max_forwards = 70) {
 		use_socket = null;
@@ -3910,6 +3981,22 @@ class SIPStack {
 		}
 		Transport = transport;
 		use_socket = null;
+	}
+
+	_closeRTP(var rtp) {
+		if (rtp) {
+			var key = "" + rtp.Socket;
+			rtp_to_session[key] = null;
+
+			deleteArrayElement(rtp_to_session, key);
+
+			this.poll.remove(rtp.Socket);
+			try {
+				rtp.Close();
+			} catch (var exc) {
+			}
+			rtp = null;
+		}
 	}
 
 	enableWorkers(worker_count = 4) {
