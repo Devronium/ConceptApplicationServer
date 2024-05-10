@@ -43,7 +43,7 @@ class File {
 	public function Close() {
 		this.exit_status=0;
 		if (!hFile)
-			throw "Invalid file descriptor or no open file";
+			throw "File.Close: Invalid file descriptor or no open file";
 		if (is_pipe) {
 			var res=pclose(hFile);
 			this.exit_status=WEXITSTATUS(res);
@@ -61,39 +61,39 @@ class File {
 
 	public function SetContentBuffer(var string buffer) {
 		if (hFile)
-			throw "Can't set content buffer for an open file";
+			throw "File.SetContentBuffer: Can't set content buffer for an open file";
 		return WriteFile(buffer, this.name);
 	}
 
 	public function Seek(number offset, number origin=SEEK_SET) {
 		if (!hFile)
-			throw "Invalid file descriptor or no open file";
+			throw "File.Seek: Invalid file descriptor or no open file";
 		return (fseek(hFile, offset, origin)==0);
 	}
 
 	public function Flush() {
 		if (!hFile)
-			throw "Invalid file descriptor or no open file";
+			throw "File.Flush: Invalid file descriptor or no open file";
 		return (fflush(hFile)==0);
 	}
 
 	public function Tell() {
 		if (!hFile)
-			throw "Invalid file descriptor or no open file";
+			throw "File.Tell: Invalid file descriptor or no open file";
 
 		return ftell(hFile);
 	}
 
 	public function GetSize() {
 		if (!hFile)
-			throw "Invalid file descriptor or no open file";
+			throw "File.GetSize: Invalid file descriptor or no open file";
 
 		return fsize(hFile);		
 	}
 
 	public function GetString(string separator="", number max_size=0xFF) {
 		if (!hFile)
-			throw "Invalid file descriptor or no open file";
+			throw "File.GetString: Invalid file descriptor or no open file";
 
 		if (separator)
 			return fgetstring(hFile, separator, max_size);
@@ -103,7 +103,7 @@ class File {
 
 	public function Read(var buffer, number size) {
 		if (!hFile)
-			throw "Invalid file descriptor or no open file";
+			throw "File.Read: Invalid file descriptor or no open file";
 
 		buffer=&"";
 
@@ -117,13 +117,13 @@ class File {
 
 	public function GetChar() {
 		if (!hFile)
-			throw "Invalid file descriptor or no open file";
+			throw "File.GetChar: Invalid file descriptor or no open file";
 		return _fgetc(hFile);
 	}
 
 	public function Write(var string buffer, offset = 0) {
 		if (!hFile)
-			throw "Invalid file descriptor or no open file";
+			throw "File.Write: Invalid file descriptor or no open file";
 
 		if (offset > 0)
 			var size=fwrite(buffer, 1, length buffer, hFile, offset);
@@ -135,7 +135,7 @@ class File {
 
 	function GetEOF() {
 		if (!hFile)
-			throw "Invalid file descriptor or no open file";
+			throw "File.GetEOF: Invalid file descriptor or no open file";
 
 		return (feof(hFile)!=0);
 	}
@@ -157,21 +157,21 @@ class File {
 
 	public function Truncate(number pos) {
 		if (!hFile)
-			throw "Invalid file descriptor or no open file";
+			throw "File.Truncate: Invalid file descriptor or no open file";
 
 		return (ftruncate(hFile, pos)!=0);
 	}
 
 	public function Sync() {
 		if (!hFile)
-			throw "Invalid file descriptor or no open file";
+			throw "File.Sync: Invalid file descriptor or no open file";
 
 		return (fsync2(hFile)!=0);
 	}
 
 	public function DataSync() {
 		if (!hFile)
-			throw "Invalid file descriptor or no open file";
+			throw "File.DataSync: Invalid file descriptor or no open file";
 
 		return (fdatasync2(hFile)!=0);
 	}
