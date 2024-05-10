@@ -1,0 +1,123 @@
+include URL.con
+import standard.lib.json
+
+class GoogleAPI {
+	var client_id;
+	var client_secret;
+	var token = "";
+	var token_expires;
+
+	GoogleAPI(client_id = "", client_secret = "", token = "", token_expires = 3599) {
+		this.client_id = client_id;
+		this.client_secret = client_secret;
+		this.token = token;
+		if (token_expires)
+			this.token_expires = time() + token_expires;
+	}
+
+	getToken(code, redirect_uri) {
+		var url = new URL();
+		url.Get("https://oauth2.googleapis.com/token", ["code" => code, "client_id" => client_id, "client_secret" => client_secret, "redirect_uri" => redirect_uri, "grant_type" => "authorization_code"]);
+		if (url.Data) {
+			var obj = JSONDeserialize(url.Data);
+			if ((obj) && (obj["access_token"])) {
+				token = obj["access_token"];
+				token_expires = time() + obj["expires_in"];
+			}
+			return obj;
+		}
+		return [ ];
+	}
+
+	refreshToken(refresh_token) {
+		var url = new URL();
+		url.Get("https://oauth2.googleapis.com/token", ["client_id" => client_id, "client_secret" => client_secret, "refresh_token" => refresh_token, "grant_type" => "refresh_token"]);
+		if (url.Data) {
+			var obj = JSONDeserialize(url.Data);
+			if ((obj) && (obj["access_token"])) {
+				token = obj["access_token"];
+				token_expires = time() + obj["expires_in"];
+			}
+			return obj;
+		}
+		return [ ];
+	}
+
+	expired(max_before_seconds = 10) {
+		return ((time() + max_before_seconds) > token_expires);
+	}
+
+	api(api_url, post_data = null) {
+		var url = new URL();
+		if ((post_data) && (typeof post_data == "array"))
+			post_data = JSONSerialize(post_data, true);
+		url.Get(api_url, post_data, true, CURL_ROBOTID, false, ["Authorization: Bearer " + token]);
+		if (url.Data)
+			return JSONDeserialize(url.Data);
+		return [ ];
+	}
+}
+
+class GoogleCalendar {
+	var google;
+	var calendarId;
+
+	GoogleCalendar(google, calendarId = "primary") {
+		this.google = google;
+		this.calendarId = calendarId;
+	}
+
+	listEvents(next_days = 0, start_day = 0) {
+		var date;
+		if (start_day) {
+			date = new Date(Date.now() + start_day * 24 * 3600000);
+			date.setHours(0);
+			date.setMinutes(0);
+			date.setSeconds(0);
+			if (next_days > 0)
+				next_days += start_day;
+		} else
+			date = new Date();
+
+		var calendar_uri = "https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?timeMin=${date.toISOString()}";
+		if (next_days > 0) {
+			date = new Date(Date.now() + next_days * 24 * 3600000);
+			date.setHours(23);
+			date.setMinutes(59);
+			date.setSeconds(59);
+
+			calendar_uri += "&timeMax=" + date.toISOString();
+		}
+		
+		return this.google.api(calendar_uri);
+	}
+
+	listCalendars() {
+		return this.google.api("https://www.googleapis.com/calendar/v3/users/me/calendarList");
+	}
+
+	addEvent(start, end, title = "", description = "", location = "", colorId = "") {
+		var[] post_data;
+
+		post_data["start"] = ["dateTime" => start];
+		post_data["end"] = ["dateTime" => end];
+
+		if (description)
+			post_data["description"] = description;
+		if (location)
+			post_data["location"] = location;
+		if (title)
+			post_data["summary"] = title;
+		if (colorId)
+			post_data["colorId"] = colorId;
+
+		return this.google.api("https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events", post_data);
+	}
+
+	calendarColors(token) {
+		var obj = this.google.api("https://www.googleapis.com/calendar/v3/colors");
+		if (obj["calendar"])
+			return obj["calendar"];
+		return null;
+	}
+}
