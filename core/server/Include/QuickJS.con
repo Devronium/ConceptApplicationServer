@@ -1,0 +1,80 @@
+import standard.lang.quickjs
+
+class JS {
+	protected var context;
+
+	public var UserData;
+	public var error_delegate;
+	protected var binary_mode = false;
+
+	public property BinaryMode { get binary_mode, set SetBinaryMode }
+
+	JS() {
+		context = JSNewRuntime();
+	}
+
+	reset() {
+		this.done();
+		context = JSNewRuntime();
+		return true;
+	}
+
+	SetBinaryMode(mode = true) {
+		JSModeBinary(context, mode);
+		return mode;
+	}
+
+	variable(name, val) {
+		return JSVariable(context, name, val);
+	}
+
+	error(delegate error_handler) {
+		this.error_delegate = error_handler;
+	}
+
+	timeout(seconds) {
+		JSTimeout(context, seconds);
+	}
+
+	script(var code, code_name = "code.js") {
+		var rval = JSEvaluateScript(context, code, code_name, var err);
+		if (err)
+			throw err;
+		return rval;
+	}
+
+	call(string function_name, parameters = null) {
+		if (!parameters)
+			parameters = new [];
+		var rval = JSCall(context, function_name, parameters, var err);
+		if (err)
+			throw err;
+		return rval;
+	}
+
+	wrap(delegate, string js_name) {
+		JSWrap(context, delegate, js_name);
+	}
+
+	gc() {
+		JSGC(context);
+	}
+
+	done() {
+		if (context) {
+	  		JSDestroyRuntime(context);
+			context = null;
+		}
+	}
+
+	finalize() {
+		this.done();
+	}
+
+	static eval(string code) {
+		var ctx = JSNewRuntime();
+		var res = JSEvaluateScript(ctx, code);
+		JSDestroyRuntime(ctx);
+		return res;
+	}
+}
