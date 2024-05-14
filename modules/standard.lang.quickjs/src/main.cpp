@@ -212,7 +212,7 @@ JSValue RecursiveSet(JSContext *ctx, void *var, INVOKE_CALL Invoke, unsigned cha
                     for (int i = 0; i < members_count; i++) {
                             char *key = members[i];
                             void *elem_data =  variable_data[i];
-                            if ((key) && (elem_data))
+                            if ((key) && (elem_data) && (!flags[i]))
                                 JS_SetPropertyStr(ctx, obj, key, RecursiveSet(ctx, elem_data, Invoke, binary_mode, max_level - 1));
                     }
                 }
