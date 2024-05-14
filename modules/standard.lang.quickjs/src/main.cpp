@@ -52,15 +52,37 @@ void RecursiveValue(JSContext *ctx, JSValue val, void *RESULT, SYS_INT index, IN
         JS_ToFloat64(ctx, &v, val);
         Invoke(INVOKE_SET_VARIABLE, RESULT, (INTEGER)VARIABLE_NUMBER, (char*)"", (NUMBER)v);
     } else
-    if ((JS_IsFunction(ctx, val)) || (JS_IsString(val))) {
+    if (JS_IsString(val)) {
+        const char *str;
+        size_t len;
+
+        str = JS_ToCStringLen(ctx, &len, val);
+        if ((str) && (len > 0))
+            Invoke(INVOKE_SET_VARIABLE, RESULT, (INTEGER)VARIABLE_STRING, (char *)str, (NUMBER)len);
+        else
+            Invoke(INVOKE_SET_VARIABLE, RESULT, (INTEGER)VARIABLE_STRING, (char *)"", (NUMBER)0);
+        JS_FreeCString(ctx, str);
+    } else
+    if (JS_IsFunction(ctx, val)) {
+        CREATE_ARRAY(RESULT);
+
+        void* elem_data = NULL;
+        Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, "__proto__", &elem_data);
+        JSValue proto = JS_GetPrototype(ctx, val);
+
+        Invoke(INVOKE_SET_VARIABLE, elem_data, (INTEGER)VARIABLE_STRING, (char *)"[function]", (NUMBER)0);
+
+        Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, "toString()", &elem_data);
         const char *str;
         size_t len;
         str = JS_ToCStringLen(ctx, &len, val);
         if ((str) && (len > 0)) {
-            Invoke(INVOKE_SET_VARIABLE, RESULT, (INTEGER)VARIABLE_STRING, (char *)str, (NUMBER)len);
-            JS_FreeCString(ctx, str);
+            Invoke(INVOKE_SET_VARIABLE, elem_data, (INTEGER)VARIABLE_STRING, (char *)str, (NUMBER)len);
         } else
-            Invoke(INVOKE_SET_VARIABLE, RESULT, (INTEGER)VARIABLE_STRING, (char *)"", (NUMBER)0);
+            Invoke(INVOKE_SET_VARIABLE, elem_data, (INTEGER)VARIABLE_STRING, (char *)"", (NUMBER)0);
+        
+        JS_FreeCString(ctx, str);
+        JS_FreeValue(ctx, proto);
     } else
     if (JS_IsObject(val)) {
         CREATE_ARRAY(RESULT);
@@ -81,10 +103,26 @@ void RecursiveValue(JSContext *ctx, JSValue val, void *RESULT, SYS_INT index, IN
                 }
             }
         } else {
-            if (JS_GetOwnPropertyNames(ctx, &tab, &len, val, JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) >= 0) {
-                for (i = 0; i < len; i++) {
+            void* elem_data = NULL;
+
+            JSValue proto = JS_GetPrototype(ctx, val);
+
+            const char *str;
+            size_t len;
+            str = JS_ToCStringLen(ctx, &len, proto);
+
+            if ((str) && (len > 0) && (strcmp(str, "[object Object]"))) {
+                Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, "__proto__", &elem_data);
+                Invoke(INVOKE_SET_VARIABLE, elem_data, (INTEGER)VARIABLE_STRING, (char *)str,  (NUMBER)len);
+            }
+
+            JS_FreeCString(ctx, str);
+            JS_FreeValue(ctx, proto);
+            
+            uint32_t prop_len;
+            if (JS_GetOwnPropertyNames(ctx, &tab, &prop_len, val, JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) >= 0) {
+                for (i = 0; i < prop_len; i++) {
                     const char *member_name = JS_AtomToCString(ctx, tab[i].atom);
-                    // to do
                     JS_FreeCString(ctx, member_name);
 
                     if (member_name) {

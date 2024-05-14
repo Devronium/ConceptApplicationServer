@@ -7176,6 +7176,7 @@ int tls_parse_certificate(struct TLSContext *context, const unsigned char *buf, 
         // must be 0
         if (context_size)
             res += context_size;
+        size_of_all_certificates --;
     }
 #endif
 
@@ -11088,7 +11089,7 @@ int tls_unmake_ktls(struct TLSContext *context, int socket) {
         DEBUG_PRINT("ERROR IN getsockopt\n");
         return TLS_GENERIC_ERROR;
     }
-    memcpy(crypto_info.rec_seq, &context->local_sequence_number, TLS_CIPHER_AES_GCM_128_REC_SEQ_SIZE);
+    memcpy(&context->local_sequence_number, crypto_info.rec_seq, TLS_CIPHER_AES_GCM_128_REC_SEQ_SIZE);
     context->local_sequence_number = ntohll(context->local_sequence_number);
 #ifdef TLS_RX
     crypt_info_size = sizeof(crypto_info);
@@ -11096,7 +11097,7 @@ int tls_unmake_ktls(struct TLSContext *context, int socket) {
         DEBUG_PRINT("ERROR IN getsockopt\n");
         return TLS_GENERIC_ERROR;
     }
-    memcpy(crypto_info.rec_seq, &context->remote_sequence_number, TLS_CIPHER_AES_GCM_128_REC_SEQ_SIZE);
+    memcpy(&context->remote_sequence_number, crypto_info.rec_seq, TLS_CIPHER_AES_GCM_128_REC_SEQ_SIZE);
     context->remote_sequence_number = ntohll(context->remote_sequence_number);
 #endif
     return 0;
