@@ -69,13 +69,19 @@ class asyncRequest {
 		return multipart_data;
 	}
 
-	request(method = "GET", headers = null, data = "", connect_timeout_ms = 2000) {
+	request(method = "GET", headers = null, var data = "", connect_timeout_ms = 2000) {
 		if (classof socket == "TCPSocket") {
-			if (socket.Connect(url_data["host"], url_data["port"]) <= 0)
+			if (socket.Connect(url_data["host"], url_data["port"]) <= 0) {
+				this.socket.Close();
+				delete this.socket;
 				return null;
+			}
 		} else
-		if (socket.Connect(url_data["host"], url_data["port"], connect_timeout_ms) <= 0)
+		if (socket.Connect(url_data["host"], url_data["port"], connect_timeout_ms, null, TLS_V13, true) <= 0) {
+			this.socket.Close();
+			delete this.socket;
 			return null;
+		}
 
 		method = ToUpper(method);
 

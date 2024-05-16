@@ -9,6 +9,7 @@ class TCPSocket {
 	public property Error { get GetError }
 	public property Info { get GetInfo }
 	public property Ipv6 { get _ipv6 }
+	public var ConnectTimeout = 0;
 
 	public function TCPSocket(sock=-1, ipv6=false) {
 		if (sock==-1) {
@@ -32,8 +33,8 @@ class TCPSocket {
 		if (Socket<=0)
 			throw "Invalid socket (connect operation)";
 		if (_ipv6)
-			return !SocketConnect(Socket, host, port, true);
-		return !SocketConnect(Socket, host, port);
+			return !SocketConnect(Socket, host, port, true, ConnectTimeout);
+		return !SocketConnect(Socket, host, port, ConnectTimeout);
 	}
 	
 	public function Listen(port, max_connections=0x100, interface="") {

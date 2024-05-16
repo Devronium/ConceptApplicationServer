@@ -195,10 +195,10 @@ class TLSESocket extends TCPSocket {
 	}
 
 	override Connect;
-	public Connect(host, port, handshake_timeout_ms = 5000, alpn = null) {
+	public Connect(host, port, handshake_timeout_ms = 5000, alpn = null, version = TLS_V13, retry_downgrade = false) {
 		var res=TCPSocket::Connect(host, port);
 		if (res) {
-			tls=TLSEClient();
+			tls=TLSEClient(version);
 			if (!tls) {
 				this.Close();
 				throw "Error creating TLS/SSL context";
@@ -227,8 +227,14 @@ class TLSESocket extends TCPSocket {
 			if (OnVerify)
 				TLSESetVerify(tls, __Verify);
 			var established = this.__Handshake(this.Socket, tls, handshake_timeout_ms);
-			if (established != 1)
+			if (established != 1) {
 				this.Close();
+				// try downgrade
+				if ((retry_downgrade) && (version == TLS_V13)) {
+					this.TLSESocket(-1, null, this._ipv6);
+					return this.Connect(host, port, handshake_timeout_ms, alpn, TLS_V12, false);
+				}
+			}
 
 			return established;
 		}

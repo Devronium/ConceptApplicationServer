@@ -999,8 +999,113 @@ CONCEPT_DLL_API CONCEPT_SocketError CONCEPT_API_PARAMETERS {
     return 0;
 }
 //=====================================================================================//
+#ifdef _WIN32
+int connect_with_timeout(int sock, const struct sockaddr *addr, socklen_t addrlen, unsigned int timeout_ms) {
+    TIMEVAL Timeout;
+    Timeout.tv_sec = timeout_ms / 1000;
+    Timeout.tv_usec = timeout_ms % 1000;
+    struct sockaddr_in address;
+
+    unsigned long iMode = 1;
+    int iResult = ioctlsocket(sock, FIONBIO, &iMode);
+    if (iResult != NO_ERROR) 
+        return -1;
+	    
+    if (connect(sock, addr, addrlen) == false)
+        return -1;
+
+    iMode = 0;
+    iResult = ioctlsocket(sock, FIONBIO, &iMode);
+    if (iResult != NO_ERROR)
+        return -1;
+
+    fd_set Write, Err;
+    FD_ZERO(&Write);
+    FD_ZERO(&Err);
+    FD_SET(sock, &Write);
+    FD_SET(sock, &Err);
+
+    if (select(0, NULL, &Write, &Err, &Timeout) < 0)
+        return -1;
+
+    if (FD_ISSET(sock, &Write))
+        return 0;
+
+    WSASetLastError(WSAETIMEDOUT);
+
+    return -1;
+}
+#else
+int connect_with_timeout(int sockfd, const struct sockaddr *addr, socklen_t addrlen, unsigned int timeout_ms) {
+    int rc = 0;
+
+    int sockfd_flags_before;
+    if ((sockfd_flags_before = fcntl(sockfd,F_GETFL,0)<0))
+        return -1;
+    if (fcntl(sockfd,F_SETFL,sockfd_flags_before | O_NONBLOCK) < 0)
+        return -1;
+
+    do {
+        if (connect(sockfd, addr, addrlen)<0) {
+            if ((errno != EWOULDBLOCK) && (errno != EINPROGRESS)) {
+                rc = -1;
+            } else {
+                struct timespec now;
+                if (clock_gettime(CLOCK_MONOTONIC, &now) < 0) {
+                    rc=-1;
+                    break;
+                }
+
+                struct timespec deadline;
+                deadline.tv_sec = now.tv_sec;
+                deadline.tv_nsec = now.tv_nsec + timeout_ms * 1000000l;
+
+                do {
+                    if (clock_gettime(CLOCK_MONOTONIC, &now)<0) {
+                        rc=-1;
+                        break;
+                    }
+                    int ms_until_deadline = (int)(  (deadline.tv_sec  - now.tv_sec) * 1000l
+                                                  + (deadline.tv_nsec - now.tv_nsec) / 1000000l);
+                    if (ms_until_deadline < 0) {
+                        rc = 0;
+                        break;
+                    }
+
+                    struct pollfd pfds;
+                    pfds.fd = sockfd;
+                    pfds.events = POLLOUT;
+                    pfds.revents = 0;
+
+                    rc = poll(&pfds, 1, ms_until_deadline);
+                    if (rc > 0) {
+                        int error = 0;
+                        socklen_t len = sizeof(error);
+                        int retval = getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
+                        if (retval==0)
+                            errno = error;
+                        if (error!=0)
+                            rc=-1;
+                    }
+                }
+                while (rc==-1 && errno==EINTR);
+                if (rc==0) {
+                    errno = ETIMEDOUT;
+                    rc=-1;
+                }
+            }
+        }
+    } while (0);
+
+    if (fcntl(sockfd,F_SETFL,sockfd_flags_before) < 0)
+        return -1;
+
+    return rc;
+}
+#endif
+
 CONCEPT_DLL_API CONCEPT_SocketConnect CONCEPT_API_PARAMETERS {
-    PARAMETERS_CHECK_MIN_MAX(3, 4, "SocketConnect: SocketConnect(nSocket, szHostname, nPort, ipv6=false)");
+    PARAMETERS_CHECK_MIN_MAX(3, 5, "SocketConnect: SocketConnect(nSocket, szHostname, nPort, timeout=0)");
 
     LOCAL_INIT;
 
@@ -1013,12 +1118,13 @@ CONCEPT_DLL_API CONCEPT_SocketConnect CONCEPT_API_PARAMETERS {
     GET_CHECK_NUMBER(2, nPort, "SocketConnect: parameter 3 should be a number");
 
     int family = AF_INET;
+    unsigned int timeout = 0;
 
     if (PARAMETERS_COUNT > 3) {
-        NUMBER is_ipv6 = 0;
-        GET_CHECK_NUMBER(3, is_ipv6, "SocketCreate: parameter 4 should be a number");
-        if (is_ipv6)
-            family = AF_INET6;
+        NUMBER timeout_ref = 0;
+        GET_CHECK_NUMBER(3, timeout_ref, "SocketCreate: parameter 4 should be a number");
+        if (timeout_ref > 0)
+            timeout = (unsigned int)timeout_ref;
     }
 
     if (nPort >= 0) {
@@ -1042,7 +1148,11 @@ CONCEPT_DLL_API CONCEPT_SocketConnect CONCEPT_API_PARAMETERS {
                 if (/*(res->ai_family == AF_INET) || */ (res->ai_family == AF_INET6)) {
                     int error = getnameinfo(res->ai_addr, res->ai_addrlen, hostname, NI_MAXHOST, NULL, 0, 0);
                     if (!error) {
-                        int cres = connect((int)sock, res->ai_addr, res->ai_addrlen);
+                        int cres;
+                        if (timeout > 0)
+                            cres = connect_with_timeout((int)sock, res->ai_addr, res->ai_addrlen, timeout);
+                        else
+                            cres = connect((int)sock, res->ai_addr, res->ai_addrlen);
                         RETURN_NUMBER(cres);
                         if (!cres)
                             break;
@@ -1064,7 +1174,11 @@ CONCEPT_DLL_API CONCEPT_SocketConnect CONCEPT_API_PARAMETERS {
             sin.sin_addr.s_addr = ((struct in_addr *)(hp->h_addr))->s_addr;
             sin.sin_family      = family;
             sin.sin_port        = htons((int)nPort);
-            RETURN_NUMBER(connect((int)sock, (struct sockaddr *)&sin, sizeof(sin)));
+            if (timeout > 0) {
+                RETURN_NUMBER(connect_with_timeout((int)sock, (struct sockaddr *)&sin, sizeof(sin), timeout));
+            } else {
+                RETURN_NUMBER(connect((int)sock, (struct sockaddr *)&sin, sizeof(sin)));
+            }
         }
     } else {
 #ifdef _WIN32

@@ -11,7 +11,7 @@ class GoogleAPI {
 		this.client_id = client_id;
 		this.client_secret = client_secret;
 		this.token = token;
-		if (token_expires)
+		if ((token) && (token_expires))
 			this.token_expires = time() + token_expires;
 	}
 
@@ -51,7 +51,7 @@ class GoogleAPI {
 		var url = new URL();
 		if ((post_data) && (typeof post_data == "array"))
 			post_data = JSONSerialize(post_data, true);
-		url.Get(api_url, post_data, true, CURL_ROBOTID, false, ["Authorization: Bearer " + token]);
+		url.Get(api_url, post_data, true, CURL_ROBOTID, false, ["Authorization: Bearer " + token], [[CURLOPT_TIMEOUT, 4], [CURLOPT_CONNECTTIMEOUT, 4]]);
 		if (url.Data)
 			return JSONDeserialize(url.Data);
 		return [ ];

@@ -9,13 +9,13 @@ class JS {
 
 	public property BinaryMode { get binary_mode, set SetBinaryMode }
 
-	JS() {
-		context = JSNewRuntime();
+	JS(max_memory = 8048576) {
+		context = JSNewRuntime(max_memory);
 	}
 
-	reset() {
+	reset(max_memory = 8048576) {
 		this.done();
-		context = JSNewRuntime();
+		context = JSNewRuntime(max_memory);
 		return true;
 	}
 
@@ -37,9 +37,12 @@ class JS {
 	}
 
 	script(var code, code_name = "code.js") {
-		var rval = JSEvaluateScript(context, code, code_name, var err);
-		if (err)
+		var rval = JSEvaluateScript(context, code, code_name, var err, var stack);
+		if (err) {
+			if (stack)
+				err += "\n" + stack;
 			throw err;
+		}
 		return rval;
 	}
 
