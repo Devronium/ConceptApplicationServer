@@ -1046,9 +1046,10 @@ int connect_with_timeout(int sockfd, const struct sockaddr *addr, socklen_t addr
         return -1;
 
     do {
-        if (connect(sockfd, addr, addrlen)<0) {
+        if (connect(sockfd, addr, addrlen) < 0) {
             if ((errno != EWOULDBLOCK) && (errno != EINPROGRESS)) {
                 rc = -1;
+                break;
             } else {
                 struct timespec now;
                 if (clock_gettime(CLOCK_MONOTONIC, &now) < 0) {
@@ -1057,8 +1058,8 @@ int connect_with_timeout(int sockfd, const struct sockaddr *addr, socklen_t addr
                 }
 
                 struct timespec deadline;
-                deadline.tv_sec = now.tv_sec;
-                deadline.tv_nsec = now.tv_nsec + timeout_ms * 1000000l;
+                deadline.tv_sec = now.tv_sec + (timeout_ms / 1000);
+                deadline.tv_nsec = now.tv_nsec + (timeout_ms % 1000)* 1000000l;
 
                 do {
                     if (clock_gettime(CLOCK_MONOTONIC, &now)<0) {
@@ -1072,26 +1073,26 @@ int connect_with_timeout(int sockfd, const struct sockaddr *addr, socklen_t addr
                         break;
                     }
 
-                    struct pollfd pfds;
-                    pfds.fd = sockfd;
-                    pfds.events = POLLOUT;
-                    pfds.revents = 0;
+                    struct pollfd pfds[1];
+                    pfds[0].fd = sockfd;
+                    pfds[0].events = POLLOUT;
+                    pfds[0].revents = 0;
 
-                    rc = poll(&pfds, 1, ms_until_deadline);
+                    rc = poll(pfds, 1, ms_until_deadline);
                     if (rc > 0) {
                         int error = 0;
                         socklen_t len = sizeof(error);
                         int retval = getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
-                        if (retval==0)
+                        if (retval == 0)
                             errno = error;
-                        if (error!=0)
-                            rc=-1;
+                        if (error != 0)
+                            rc = -1;
                     }
-                }
-                while (rc==-1 && errno==EINTR);
-                if (rc==0) {
+                } while ((rc == -1) && (errno == EINTR));
+
+                if (rc == 0) {
                     errno = ETIMEDOUT;
-                    rc=-1;
+                    rc = -1;
                 }
             }
         }
@@ -1099,6 +1100,9 @@ int connect_with_timeout(int sockfd, const struct sockaddr *addr, socklen_t addr
 
     if (fcntl(sockfd,F_SETFL,sockfd_flags_before) < 0)
         return -1;
+
+    if (rc == 1)
+        return 0;
 
     return rc;
 }
