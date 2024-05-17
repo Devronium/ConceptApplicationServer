@@ -7,6 +7,59 @@ include TCPSocket.con
 include TLSESocket.con
 include Promise.con
 
+class asyncTLSESocket extends TLSESocket {
+	var ConnectCalled;
+
+	asyncTLSESocket() {
+		super();
+	}
+
+	public ConnectTLS(host, version = TLS_V13) {
+		tls=TLSEClient(version);
+		if (!tls) {
+			this.Close();
+			throw "Error creating TLS/SSL context";
+		}
+		if (_certdata) {
+			if (TLSELoadRootCA(tls, _certdata) <= 0) {
+				this.Close();
+				throw "Error loading CA data";
+			}
+
+			_certdata = "";
+		}
+		TLSESetSNI(tls, host);
+		if (!TLSEConnect(tls)) {
+			this.Close();
+			return -1;
+		}
+		if (OnVerify)
+			TLSESetVerify(tls, __Verify);
+
+		ConnectCalled = true;
+
+		return 0;
+	}
+
+	finalize() {
+		this.Close();
+	}
+}
+
+class asyncRequestData {
+	var method;
+	var headers;
+	var data;
+	var tls_version;
+
+	asyncRequestData(method, headers, var data, tls_version) {
+		this.method = method;
+		this.headers = headers;
+		this.data = data;
+		this.tls_version = tls_version;
+	}
+}
+
 class asyncRequest {
 	var url_data;
 	var socket;
@@ -20,6 +73,7 @@ class asyncRequest {
 	var _chunked = false;
 	var _promise;
 
+	protected var _requestData;
 	protected var _pending = "";
 
 	static parseURL(url) {
@@ -46,7 +100,7 @@ class asyncRequest {
 	asyncRequest(url) {
 		url_data = this.parseURL(url);
 		if (url_data["protocol"] == "https")
-			socket = new TLSESocket();
+			socket = new asyncTLSESocket();
 		else
 			socket = new TCPSocket();
 	}
@@ -69,19 +123,58 @@ class asyncRequest {
 		return multipart_data;
 	}
 
-	request(method = "GET", headers = null, var data = "", connect_timeout_ms = 2000) {
+	_checkSocketError() {
+		switch (SocketErrno()) {
+			case 0:
+			case 11:
+			case 35:
+			case 115:
+			case 10035:
+				return false;
+		}
+		return true;
+	}
+
+	request(method = "GET", headers = null, var data = "", deprected_connect_timeout_ms = 1000, tls_version = TLS_V13) {
+		SocketSetBlocking(socket.Socket, false);
 		if (classof socket == "TCPSocket") {
-			if (socket.Connect(url_data["host"], url_data["port"]) <= 0) {
+			if ((socket.Connect(url_data["host"], url_data["port"]) <= 0) && (_checkSocketError())) {
 				this.socket.Close();
 				delete this.socket;
 				return null;
 			}
 		} else
-		if (socket.Connect(url_data["host"], url_data["port"], connect_timeout_ms, null, TLS_V13, true) <= 0) {
+		if ((SocketConnect(this.socket.Socket, url_data["host"], url_data["port"])) && (_checkSocketError()))  {
 			this.socket.Close();
 			delete this.socket;
 			return null;
 		}
+		_requestData = new asyncRequestData(method, headers, data, tls_version);
+
+		start = microseconds();
+
+		_promise = new Promise();
+		return _promise;
+	}
+
+	protected _afterConnect() {
+		if (!_requestData)
+			return false;
+
+		SocketSetBlocking(socket.Socket, true);
+		var method = _requestData.method;
+		var headers = _requestData.headers;
+		var data = _requestData.data;
+		var tls_version = _requestData.tls_version;
+
+		if ((classof socket != "TCPSocket") && (!socket.ConnectCalled)) {
+			if (this.socket.ConnectTLS(url_data["host"], tls_version))
+				throw "error connecting";
+			this.socket.WritePending();
+			return true;
+		}
+		
+		delete _requestData;
 
 		method = ToUpper(method);
 
@@ -131,21 +224,21 @@ class asyncRequest {
 		if (written <= 0) {
 			socket.Close();
 			delete socket;
-			return null;
+			return false;
 		}
 
 		if (written < length request)
 			_pending = SubStr(request, written);
 
 		start = microseconds();
-		_promise = new Promise();
-		return _promise;
+
+		return true;
 	}
 
-	static fetch(url_string, method = "GET", headers = null, var data = "", connect_timeout_ms = 2000, timeout = 8000) {
+	static fetch(url_string, method = "GET", headers = null, var data = "", deprected_connect_timeout_ms = 1000, timeout = 8000) {
 		var url = new asyncRequest(url_string);
 		url.timeout = timeout;
-		if (url.request(method, headers, data, connect_timeout_ms))
+		if (url.request(method, headers, data))
 			return url;
 
 		return null;
@@ -205,6 +298,21 @@ class asyncRequest {
 			return true;
 
 		try {
+			if (this.timeout > 0) {
+				if (microseconds() - this.start >= this.timeout * 1000) {
+					this.timedOut = true;
+					if (this.data) {
+						this._unchunk();
+						this._promise.resolve(this);
+					} else {
+						this._promise.reject("timed out");
+					}
+					this.socket.Close();
+					delete this.socket;
+					return true;
+				}
+			}
+
 			if (this._pending) {
 				var written = this.socket.Write(this._pending);
 				if (written <= 0) {
@@ -218,8 +326,23 @@ class asyncRequest {
 					this._pending = "";
 			}
 
+			if (this._requestData) {
+				if ((classof this.socket != "TCPSocket") && (this.socket.ConnectCalled)) {
+					if (this.socket.HandshakeIterate())
+						return !this._afterConnect();
+					return false;
+				} else {
+					var out_sockets = null;
+					if (SocketPoll([this.socket.Socket], out_sockets, 0, true))
+						return !this._afterConnect();
 
-			if (this.socket.GetHasData(data_timeout)) {
+					if (SocketError(this.socket.Socket))
+						throw "socket error";
+
+					return false;
+				}
+			} else
+			if (this.socket.GetHasData(data_timeout))  {
 				var buf = this.socket.Read(0x10000);
 				if (buf) {
 					this.data += buf;
@@ -246,19 +369,6 @@ class asyncRequest {
 						this._promise.reject("no data");
 					}
 					
-					this.socket.Close();
-					delete this.socket;
-				}
-			} else
-			if (this.timeout > 0) {
-				if (microseconds() - this.start >= this.timeout * 1000) {
-					this.timedOut = true;
-					if (this.data) {
-						this._unchunk();
-						this._promise.resolve(this);
-					} else {
-						this._promise.reject("timed out");
-					}
 					this.socket.Close();
 					delete this.socket;
 				}
