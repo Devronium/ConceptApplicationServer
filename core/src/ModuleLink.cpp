@@ -193,6 +193,16 @@ INTEGER SetVariable_reachable(VariableDATA *VD, INTEGER TYPE, char *STRING_VALUE
         if (!(INTEGER)NUMBER_VALUE) {
             STRING_VALUE = 0;
         }
+    } else
+    if (TYPE == _LINK__STRING_DATA_NODELETE) {
+        TYPE        = VARIABLE_STRING;
+        if (VD->LINKS <= 1)
+            copy_buffer = 2;
+        else
+            copy_buffer = 1;
+        if (!(INTEGER)NUMBER_VALUE) {
+            STRING_VALUE = 0;
+        }
     }
     VD->TYPE = TYPE;
     if (VD->TYPE == VARIABLE_STRING) {
@@ -200,7 +210,11 @@ INTEGER SetVariable_reachable(VariableDATA *VD, INTEGER TYPE, char *STRING_VALUE
             CONCEPT_STRING_SET_CSTR(VD, STRING_VALUE);
         } else {
             if (copy_buffer) {
-                CONCEPT_STRING_LINK(VD, STRING_VALUE, (INTEGER)NUMBER_VALUE);
+                if (copy_buffer == 1) {
+                    CONCEPT_STRING_LINK(VD, STRING_VALUE, (INTEGER)NUMBER_VALUE);
+                } else {
+                    CONCEPT_STRING_LINK_NODELETE(VD, STRING_VALUE, (INTEGER)NUMBER_VALUE);
+                }
             } else {
                 CONCEPT_STRING_BUFFER(VD, STRING_VALUE, (INTEGER)NUMBER_VALUE);
             }
@@ -555,6 +569,9 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     else
                     if (target->TYPE == VARIABLE_ARRAY)
                         ((struct Array *)target->CLASS_DATA)->reachable = 0x1C;
+                    else
+                    if ((target->TYPE == VARIABLE_STRING) && (target->CLASS_DATA))
+                        plainstring_ownsubbuffer((struct plainstring *)target->CLASS_DATA);
                 } else {
                     result = INVALID_INVOKE_PARAMETER;
                 }

@@ -20,6 +20,7 @@ extern "C" {
 #define CONCEPT_STRING_ADD_DOUBLE(VARIABLE, d)  { if (VARIABLE->CLASS_DATA) { plainstring_add_double((struct plainstring *)VARIABLE->CLASS_DATA, d); } else { VARIABLE->CLASS_DATA = plainstring_new_double(d); } }
 #define CONCEPT_STRING_BUFFER(VARIABLE, b, l)   { if (!VARIABLE->CLASS_DATA) { VARIABLE->CLASS_DATA = plainstring_new(); } plainstring_loadbuffer((struct plainstring *)VARIABLE->CLASS_DATA, b, l); }
 #define CONCEPT_STRING_LINK(VARIABLE, b, l)     { if (!VARIABLE->CLASS_DATA) { VARIABLE->CLASS_DATA = plainstring_new(); } plainstring_linkbuffer((struct plainstring *)VARIABLE->CLASS_DATA, b, l); }
+#define CONCEPT_STRING_LINK_NODELETE(VARIABLE, b, l)     { if (!VARIABLE->CLASS_DATA) { VARIABLE->CLASS_DATA = plainstring_new(); } plainstring_linksubbuffer((struct plainstring *)VARIABLE->CLASS_DATA, b, l); }
 #define CONCEPT_STRING_FLOAT(VARIABLE)          plainstring_float((struct plainstring *)VARIABLE->CLASS_DATA)
 #define CONCEPT_STRING_INT(VARIABLE)            (VARIABLE->CLASS_DATA ? plainstring_int((struct plainstring *)VARIABLE->CLASS_DATA) : 0)
 #define CONCEPT_STRING_SET_CSTR(VARIABLE, cstr) { if (VARIABLE->CLASS_DATA) { plainstring_set((struct plainstring *)VARIABLE->CLASS_DATA, cstr); } else { VARIABLE->CLASS_DATA = plainstring_new_str(cstr); } }

@@ -81,11 +81,15 @@ double plainstring_float(const struct plainstring *this_string);
 int plainstring_loadfile(struct plainstring *this_string, const char *filename);
 int plainstring_savefile(const struct plainstring *this_string, const char *filename);
 
-void plainstring_loadbuffer(struct plainstring *this_string, const char *buffer, int size);
-void plainstring_addbuffer(struct plainstring *this_string, const char *buffer, int size);
-void plainstring_linkbuffer(struct plainstring *this_string, char *buffer, int size);
+void plainstring_loadbuffer(struct plainstring *this_string, const char *buffer, intptr_t size);
+void plainstring_addbuffer(struct plainstring *this_string, const char *buffer, intptr_t size);
+void plainstring_linkbuffer(struct plainstring *this_string, char *buffer, intptr_t size);
 
-void plainstring_increasebuffer(struct plainstring *this_string, int size);
+void plainstring_linksubbuffer(struct plainstring *this_string, char *buffer, intptr_t size);
+void plainstring_ownsubbuffer(struct plainstring *this_string);
+void plainstring_detachsubbuffer(struct plainstring *this_string);
+
+void plainstring_increasebuffer(struct plainstring *this_string, intptr_t size);
 void plainstring_sum_of_2(struct plainstring *this_string, const struct plainstring *s1, const struct plainstring *s2);
 void plainstring_asg(struct plainstring *this_string, const struct plainstring *s);
 void plainstring_replace_char_with_string(struct plainstring *this_string, const struct plainstring *s, intptr_t index);

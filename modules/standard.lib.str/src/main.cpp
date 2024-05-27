@@ -426,7 +426,7 @@ CONCEPT_DLL_API CONCEPT_RepeatString CONCEPT_API_PARAMETERS {
 }
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API CONCEPT_SubStr CONCEPT_API_PARAMETERS {
-    PARAMETERS_CHECK_MIN_MAX(2, 3, "SubStr takes 2 to 3 parameters : string, start[, length];");
+    PARAMETERS_CHECK_MIN_MAX(2, 4, "SubStr takes 2 to 4 parameters : string, start[, length][, experimental_link_buffer];");
     LOCAL_INIT;
 
     //AnsiString result;
@@ -434,12 +434,18 @@ CONCEPT_DLL_API CONCEPT_SubStr CONCEPT_API_PARAMETERS {
     NUMBER start;
     NUMBER len;
     NUMBER mfill_len;
+    NUMBER link_buffer;
     GET_CHECK_BUFFER(0, fill_string, mfill_len, "SubStr : parameter 1 should be a string (STATIC STRING)");
     GET_CHECK_NUMBER(1, start, "SubStr : parameter 2 should be a number (STATIC NUMBER)");
     if (PARAMETERS_COUNT > 2) {
         GET_CHECK_NUMBER(2, len, "SubStr : parameter 3 should be a number (STATIC NUMBER)");
     } else
         len = mfill_len;
+
+    if (PARAMETERS_COUNT > 3) {
+        GET_CHECK_NUMBER(3, link_buffer, "SubStr : parameter 4 should be a number (STATIC NUMBER)");
+    } else
+        link_buffer = 0;
 
     if (start < 0)
         start = 0;
@@ -463,6 +469,9 @@ CONCEPT_DLL_API CONCEPT_SubStr CONCEPT_API_PARAMETERS {
 
     if (end - start <= 0) {
         RETURN_STRING("");
+    } else
+    if ((int)link_buffer) {
+        SetVariable(RESULT, -2, result, end - start);
     } else {
         RETURN_BUFFER(result, end - start);
     }

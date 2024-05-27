@@ -130,7 +130,8 @@ void plainstring_char_plainstring(const struct plainstring *this_string, intptr_
         }
     }
     if (ps->DATA) {
-        PLAINSTRING_FREE(ps->DATA);
+        if (ps->DATA_SIZE >= 0)
+            PLAINSTRING_FREE(ps->DATA);
         ps->DATA = 0;
         ps->DATA_SIZE = 0;
         ps->LENGTH = 0;
@@ -326,6 +327,9 @@ void plainstring_set(struct plainstring *this_string, const char *value) {
 
     if (this_string->DATA == value)
         return;
+
+    plainstring_detachsubbuffer(this_string);
+
     if (this_string->DATA)
         this_string->DATA[0] = 0;
 
@@ -375,6 +379,8 @@ void plainstring_set_plainstring(struct plainstring *this_string, const struct p
     if (this_string->DATA == ps->DATA)
         return;
 
+    plainstring_detachsubbuffer(this_string);
+
     if (this_string->DATA) {
         if (this_string->DATA_SIZE - ps->LENGTH > BLOCK_SIZE) {
             PLAINSTRING_FREE(this_string->DATA);
@@ -403,6 +409,8 @@ void plainstring_add(struct plainstring *this_string, const char *value) {
     size_t len_value;
 
     if ((this_string->DATA) && (value)) {
+        plainstring_ownsubbuffer(this_string);
+
         len       = this_string->LENGTH;
         len_value = strlen(value);
         this_string->LENGTH   = len + len_value;
@@ -426,6 +434,7 @@ void plainstring_add(struct plainstring *this_string, const char *value) {
 }
 
 void plainstring_add_char(struct plainstring *this_string, char c) {
+    plainstring_ownsubbuffer(this_string);
     if (this_string->LENGTH + 2 < this_string->DATA_SIZE) {
         this_string->DATA[this_string->LENGTH++] = c;
         this_string->DATA[this_string->LENGTH]   = 0;
@@ -494,6 +503,8 @@ int plainstring_loadfile(struct plainstring *this_string, const char *filename) 
 
     in = fopen(filename, "rb");
     if (in) {
+        plainstring_detachsubbuffer(this_string);
+
         fseek(in, 0, SEEK_END);
         size = ftell(in);
         fseek(in, 0, SEEK_SET);
@@ -531,8 +542,10 @@ int plainstring_savefile(const struct plainstring *this_string, const char *file
     return ret;
 }
 
-void plainstring_loadbuffer(struct plainstring *this_string, const char *buffer, int size) {
+void plainstring_loadbuffer(struct plainstring *this_string, const char *buffer, intptr_t size) {
     void *PLAINSTRING_FREE_after = NULL;
+    plainstring_detachsubbuffer(this_string);
+
     if ((this_string->DATA) && (buffer == this_string->DATA))
         PLAINSTRING_FREE_after = this_string->DATA;
     else
@@ -558,13 +571,15 @@ void plainstring_loadbuffer(struct plainstring *this_string, const char *buffer,
     PLAINSTRING_FREE(PLAINSTRING_FREE_after);
 }
 
-void plainstring_addbuffer(struct plainstring *this_string, const char *buffer, int size) {
+void plainstring_addbuffer(struct plainstring *this_string, const char *buffer, intptr_t size) {
     size_t len;
 
     if ((!buffer) || (!size))
         return;
 
     if (this_string->DATA) {
+        plainstring_ownsubbuffer(this_string);
+
         len       = this_string->LENGTH;
         this_string->LENGTH   += size;
         if (this_string->DATA_SIZE < this_string->LENGTH + 1) {
@@ -589,7 +604,8 @@ void plainstring_addbuffer(struct plainstring *this_string, const char *buffer, 
     }
 }
 
-void plainstring_linkbuffer(struct plainstring *this_string, char *buffer, int size) {
+void plainstring_linkbuffer(struct plainstring *this_string, char *buffer, intptr_t size) {
+    plainstring_detachsubbuffer(this_string);
     PLAINSTRING_FREE(this_string->DATA);
     if (size < 0)
         size = 0;
@@ -602,13 +618,55 @@ void plainstring_linkbuffer(struct plainstring *this_string, char *buffer, int s
         this_string->DATA = 0;
 }
 
-void plainstring_increasebuffer(struct plainstring *this_string, int size) {
+void plainstring_linksubbuffer(struct plainstring *this_string, char *buffer, intptr_t size) {
+    plainstring_detachsubbuffer(this_string);
+    PLAINSTRING_FREE(this_string->DATA);
+    if (size < 0)
+        size = 0;
+
+    if (size) {
+        this_string->LENGTH = size;
+        this_string->DATA_SIZE = -1;
+        this_string->DATA = buffer;
+    } else {
+        this_string->DATA = 0;
+        this_string->DATA_SIZE = 0;
+        this_string->LENGTH = 0;
+    }
+}
+
+void plainstring_ownsubbuffer(struct plainstring *this_string) {
+    if (this_string->DATA_SIZE >= 0)
+        return;
+
+    char *buffer = this_string->DATA;
+    intptr_t size = this_string->LENGTH;
+
+    this_string->DATA = NULL;
+    this_string->LENGTH = 0;
+    this_string->DATA_SIZE = 0;
+
+    plainstring_loadbuffer(this_string, buffer, size);
+}
+
+void plainstring_detachsubbuffer(struct plainstring *this_string) {
+    if (this_string->DATA_SIZE >= 0)
+        return;
+
+    this_string->DATA = NULL;
+    this_string->LENGTH = 0;
+    this_string->DATA_SIZE = 0;
+}
+
+void plainstring_increasebuffer(struct plainstring *this_string, intptr_t size) {
     if (size <= 0)
         return;
 
     int new_len = this_string->LENGTH + size + 1;
 
     if (this_string->DATA_SIZE < new_len) {
+        plainstring_ownsubbuffer(this_string);
+
         int mod_size = new_len / BLOCK_SIZE;
 
         if ((mod_size >= 0x2000) && (this_string->DATA_SIZE > 0x20000))
@@ -638,6 +696,7 @@ void plainstring_sum_of_2(struct plainstring *this_string, const struct plainstr
 void plainstring_asg(struct plainstring *this_string, const struct plainstring *s) {
     if (!s)
         return;
+    plainstring_detachsubbuffer(this_string);
     int size = s->LENGTH;
 
     if ((size < this_string->LENGTH) || (!this_string->DATA)) {
@@ -663,6 +722,8 @@ void plainstring_asg(struct plainstring *this_string, const struct plainstring *
 void plainstring_replace_char_with_string(struct plainstring *this_string, const struct plainstring *s, intptr_t index) {
     if ((!this_string) || (!s) || (index < 0) || (index >= this_string->LENGTH))
         return;
+
+    plainstring_ownsubbuffer(this_string);
 
     int slen = s->LENGTH;
     if (slen == 1) {
@@ -745,5 +806,6 @@ void plainstring_delete(struct plainstring *this_string) {
 }
 
 void plainstring_deinit(struct plainstring *this_string) {
+    plainstring_detachsubbuffer(this_string);
     PLAINSTRING_FREE(this_string->DATA);
 }

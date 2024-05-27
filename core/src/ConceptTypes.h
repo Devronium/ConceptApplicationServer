@@ -176,6 +176,7 @@ typedef void (*DESTROY_PROTO_DATA)(void *data, void *handler);
 #define     VARIABLE_DELEGATE                 0x06
 #define     VARIABLE_INTEGER                  0x07
 #define     _LINK__STRING_DATA                -1
+#define     _LINK__STRING_DATA_NODELETE       -2
 
 #define     STATIC_CLASS_ARRAY                -1
 #define     STATIC_CLASS_DLL                  -2
