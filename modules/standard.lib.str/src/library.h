@@ -78,5 +78,6 @@ CONCEPT_FUNCTION(RightOf)
 CONCEPT_FUNCTION(EnsureBuffer)
 CONCEPT_FUNCTION(LevenshteinDistance)
 
+CONCEPT_FUNCTION(StrSlice)
 }
 #endif // __LIBRARY_H

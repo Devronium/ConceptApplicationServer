@@ -426,7 +426,7 @@ CONCEPT_DLL_API CONCEPT_RepeatString CONCEPT_API_PARAMETERS {
 }
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API CONCEPT_SubStr CONCEPT_API_PARAMETERS {
-    PARAMETERS_CHECK_MIN_MAX(2, 4, "SubStr takes 2 to 4 parameters : string, start[, length][, experimental_link_buffer];");
+    PARAMETERS_CHECK_MIN_MAX(2, 3, "SubStr takes 2 to 3 parameters : string, start[, length];");
     LOCAL_INIT;
 
     //AnsiString result;
@@ -434,18 +434,12 @@ CONCEPT_DLL_API CONCEPT_SubStr CONCEPT_API_PARAMETERS {
     NUMBER start;
     NUMBER len;
     NUMBER mfill_len;
-    NUMBER link_buffer;
     GET_CHECK_BUFFER(0, fill_string, mfill_len, "SubStr : parameter 1 should be a string (STATIC STRING)");
     GET_CHECK_NUMBER(1, start, "SubStr : parameter 2 should be a number (STATIC NUMBER)");
     if (PARAMETERS_COUNT > 2) {
         GET_CHECK_NUMBER(2, len, "SubStr : parameter 3 should be a number (STATIC NUMBER)");
     } else
         len = mfill_len;
-
-    if (PARAMETERS_COUNT > 3) {
-        GET_CHECK_NUMBER(3, link_buffer, "SubStr : parameter 4 should be a number (STATIC NUMBER)");
-    } else
-        link_buffer = 0;
 
     if (start < 0)
         start = 0;
@@ -469,9 +463,6 @@ CONCEPT_DLL_API CONCEPT_SubStr CONCEPT_API_PARAMETERS {
 
     if (end - start <= 0) {
         RETURN_STRING("");
-    } else
-    if ((int)link_buffer) {
-        SetVariable(RESULT, -2, result, end - start);
     } else {
         RETURN_BUFFER(result, end - start);
     }
@@ -17068,3 +17059,53 @@ CONCEPT_FUNCTION_IMPL(LevenshteinDistance, 2)
     RETURN_NUMBER(d[n - 1][m - 1]);
 END_IMPL
 //-------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(StrSlice, 3, 5)
+    T_STRING(StrSlice, 1);
+    T_NUMBER(StrSlice, 2);
+
+    int len;
+    int start = PARAM_INT(2);
+    int link_buffer = 0;
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(StrSlice, 3);
+        len = PARAM_INT(3);
+    } else {
+        len = PARAM_LEN(1);
+    }
+
+    if (PARAMETERS_COUNT > 4) {
+        T_NUMBER(StrSlice, 4);
+        link_buffer = PARAM_INT(4);
+    }
+
+    if (start < 0)
+        start = 0;
+
+    if (len < 0)
+        len = 0;
+
+    int end      = (int)start + (int)len;
+    int fill_len = (int)PARAM_LEN(1);
+
+    if (!fill_len) {
+        SET_STRING(0, "");
+        RETURN_NUMBER(0);
+        return 0;
+    }
+
+    if (end > fill_len)
+        end = fill_len;
+
+    char *result = PARAM(1) + (INTEGER)start;
+
+    if (end - start <= 0) {
+        SET_STRING(0, "");
+    } else
+    if ((int)link_buffer) {
+        SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[0] - 1], -2, result, end - start);
+    } else {
+        SET_BUFFER(0, result, end - start);
+    }
+    RETURN_NUMBER(0);
+END_IMPL
+//---------------------------------------------------------------------------
