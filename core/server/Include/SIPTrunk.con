@@ -125,7 +125,8 @@ class RTPSession {
 			last_timestamp = microseconds();
 
 			last_sequence_number = sequence_number;
-			var payload = SubStr(data, 12);
+			// var payload = SubStr(data, 12);
+			StrSlice(var payload, data, 12);
 			if (srtp)
 				payload = srtp.Decrypt(SubStr(data, 0, 12), payload);
 
@@ -488,7 +489,7 @@ class SIPSession {
 		this.s.rtp_to_session["" + rtp.Socket] = this;
 	}
 
-	ParseA(line) {
+	ParseA(var line) {
 		var arr = StrSplit(line, " ");
 		if (length arr > 2) {
 			var crypto = ToLower(SubStr(arr[0], 0, 6));
@@ -1040,7 +1041,8 @@ class SIPSession {
 			receivedRTPPackets ++;
 
 			last_sequence_number = sequence_number;
-			var payload = SubStr(data, 12);
+			// var payload = SubStr(data, 12);
+			StrSlice(var payload, data, 12);
 			if (srtp)
 				payload = srtp.Decrypt(SubStr(data, 0, 12), payload);
 
@@ -1475,7 +1477,8 @@ class SIPSession {
 	_iterateStarted(var ops) {
 		if ((packet_time >= microseconds()) && (rtp)) {
 			if ((remote_host) && (remote_port > 0)) {
-				buf = SubStr(this.s.emptyData, 0, chunk_size / 1000 * 8);
+				// buf = SubStr(this.s.emptyData, 0, chunk_size / 1000 * 8);
+				StrSlice(buf, this.s.emptyData, 0, chunk_size / 1000 * 8, true);
 				this.SimpleRTP(var rtp_payload, buf);
 				rtp.Write(rtp_payload, remote_host, remote_port);
 				if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
@@ -1516,7 +1519,7 @@ class SIPSession {
 					if (ivr) {
 						if (delta >= ivr_chunk) {
 							var f_size = chunk_size / 1000 * 8;
-							var d_ivr = SubStr(ivr, ivr_chunk * f_size, f_size);
+							StrSlice(var d_ivr, ivr, ivr_chunk * f_size, f_size, true);
 							ivr_chunk = delta + 1;
 							if (d_ivr) {
 								this._iterateAudio(d_ivr);
@@ -1534,9 +1537,9 @@ class SIPSession {
 						if (delta >= buf_chunk) {
 							buf_chunk = delta + 1;
 							f_size = chunk_size / 1000 * 8;
-							var d_buf = StrMove(buf, f_size);
+							StrMove(var d_buf, buf, f_size);
 							if (!d_buf)
-								d_buf = SubStr(this.s.emptyData, 0, f_size);
+								StrSlice(d_buf, this.s.emptyData, 0, f_size, true);
 							if (d_buf)
 								this._iterateAudio(d_buf);
 							ops++;
@@ -2079,7 +2082,7 @@ class SIPStack {
 		if (has_content) {
 			var pos = Pos(msg, "\r\n\r\n");
 			if (pos > 0)
-				message.PayloadBlob = SubStr(msg, pos + 3);
+				StrSlice(message.PayloadBlob, msg, pos + 3);
 			if (need_payload)
 				message.Payload = StrSplit(message.PayloadBlob, "\r\n");
 		}
@@ -2089,7 +2092,7 @@ class SIPStack {
 		return message;
 	}
 
-	ParseAuth(auth) {
+	ParseAuth(var auth) {
 		var len = length auth;
 		var in_quotes = false;
 
@@ -2475,10 +2478,10 @@ class SIPStack {
 		destination = ParseDestination(destination);
 		msg.Destination = destination;
 		if ((length destination > 2) && (destination[0] == "<") && (destination[length destination - 1] == ">"))
-			msg.Destination = SubStr(destination, 1, (length destination) - 2);
+			StrSlice(msg.Destination, destination, 1, (length destination) - 2);
 		else
 		if ((destination) && (destination[0] == "<"))
-			msg.Destination = SubStr(destination, 1);
+			StrSlice(msg.Destination, destination, 1);
 
 		msg.Method = ToUpper(method);
 		if (extra_headers)
@@ -3265,7 +3268,7 @@ class SIPStack {
 		return false;
 	}
 
-	ParseFullDestination(destination, var user, var server, var port) {
+	ParseFullDestination(var destination, var user, var server, var port) {
 		var arr = StrSplit(destination, "@");
 		if (length arr == 2) {
 			user = arr[0];

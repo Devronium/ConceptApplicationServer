@@ -16685,29 +16685,31 @@ CONCEPT_FUNCTION_IMPL(UTF8Map, 2)
     }
 END_IMPL
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(StrMove, 2)
-    T_STRING(StrMove, 0)
-    T_NUMBER(StrMove, 1)
+CONCEPT_FUNCTION_IMPL(StrMove, 3)
+    SET_STRING(0, "");
+    RETURN_NUMBER(0);
 
-    int from = PARAM_INT(1);
+    T_STRING(StrMove, 1)
+    T_NUMBER(StrMove, 2)
+
+    int from = PARAM_INT(2);
     if (from < 0)
         from = 0;
-    if (from > PARAM_LEN(0))
-        from = PARAM_LEN(0);
+    if (from > PARAM_LEN(1))
+        from = PARAM_LEN(1);
 
-    if (from == 0) {
-        RETURN_STRING("");
-    } else
-    if (from == PARAM_LEN(0)) {
-        RETURN_BUFFER(PARAM(0), PARAM_LEN(0));
-        SET_STRING(0, "");
-    } else {
-        RETURN_BUFFER(PARAM(0), from);
+    if (from != 0) {
+        if (from == PARAM_LEN(1)) {
+            SET_BUFFER(0, PARAM(1), PARAM_LEN(1));
+            SET_STRING(1, "");
+        } else {
+            SET_BUFFER(0, PARAM(1), from);
 
-        int len = PARAM_LEN(0) - from; 
-        memmove(PARAM(0), PARAM(0) + from, len);
+            int len = PARAM_LEN(1) - from; 
+            memmove(PARAM(1), PARAM(1) + from, len);
 
-        Invoke(INVOKE_RESIZE_STRING, PARAMETER(0), (intptr_t)len);
+            Invoke(INVOKE_RESIZE_STRING, PARAMETER(1), (intptr_t)len);
+        }
     }
 END_IMPL
 //---------------------------------------------------------------------------
@@ -17060,6 +17062,9 @@ CONCEPT_FUNCTION_IMPL(LevenshteinDistance, 2)
 END_IMPL
 //-------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(StrSlice, 3, 5)
+    // situations where src == destination
+    SET_STRING(0, "")
+
     T_STRING(StrSlice, 1);
     T_NUMBER(StrSlice, 2);
 
@@ -17088,7 +17093,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(StrSlice, 3, 5)
     int fill_len = (int)PARAM_LEN(1);
 
     if (!fill_len) {
-        SET_STRING(0, "");
         RETURN_NUMBER(0);
         return 0;
     }
