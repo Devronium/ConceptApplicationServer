@@ -22,7 +22,7 @@ CONCEPT_FUNCTION_IMPL(rootword, 2)
         RETURN_STRING("");
         return 0;
     }
-    if ((PARAM_LEN(1) <= 0) || (strcmp(PARAM(0), "ro"))) {
+    if ((PARAM_LEN(1) <= 0) || (strcmp(PARAM(1), "ro"))) {
         RETURN_STRING(PARAM(0));
         return 0;
     }
