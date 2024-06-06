@@ -26,7 +26,7 @@ CONCEPT_FUNCTION_IMPL(rootword, 2)
         RETURN_STRING(PARAM(0));
         return 0;
     }
-    char *str = rootWord(PARAM(0), PARAM_LEN(0));
+    const char *str = rootWord(PARAM(0), PARAM_LEN(0));
     if (str) {
         RETURN_STRING(str);
     } else {
