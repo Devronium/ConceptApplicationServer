@@ -32,7 +32,7 @@ CONCEPT_FUNCTION_IMPL(synonyms, 2)
         int index = 0;
         CREATE_ARRAY(RESULT);
         while ((str) && (str[index])) {
-            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(1), str[index], (INTEGER)VARIABLE_STRING, (char *)str[index], (NUMBER)0);
+            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, str[index], (INTEGER)VARIABLE_STRING, (char *)str[index], (NUMBER)0);
             index ++;
         }
     } else {
