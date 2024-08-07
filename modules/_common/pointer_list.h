@@ -24,8 +24,10 @@
 	#define POINTER_REUSE_INCREMENT	10
 #endif
 
+
+#define DEFINE_LIST(list)			struct pointer_list list
 #define MAP_POINTER(list, value, context)	pointerList_add(&list, value, context)
-#define GET_POINTER(list, value, context)	pointerList_get(&list, value, context)
+#define GET_POINTER(list, value, context)	pointerList_pointer(&list, value, context)
 #define FREE_POINTER(list, value, context)	pointerList_free(&list, value, context)
 #define INIT_LIST(list)				pointerList_init(&list)
 #define DEINIT_LIST(list)			pointerList_deinit(&list)
@@ -97,6 +99,8 @@ INT_POINTER_TYPE pointerList_add(struct pointer_list *ptr_list, const void *ptr,
 			ptr_list->reuse_ids_start = 0;
 		}
 		ptr_id = (ptr_list->index ++);
+		if (!ptr_list->index)
+			ptr_id = (ptr_list->index ++);
 	} else
 		ptr_id --;
 
@@ -130,22 +134,26 @@ INT_POINTER_TYPE pointerList_add(struct pointer_list *ptr_list, const void *ptr,
 		}
 	}
 
-	ptr_line->data_size += POINTER_DATA_INCREMENT;
+	int increment = 1;
+	if (ptr_line->data_size)
+		increment = POINTER_DATA_INCREMENT;
+
+	ptr_line->data_size += increment;
 	struct pointer_data *old_data = ptr_line->data;
 	ptr_line->data = (struct pointer_data *)realloc(ptr_line->data, ptr_line->data_size * sizeof(struct pointer_data));
 	if (!ptr_line->data) {
 		ptr_line->data = old_data;
-		ptr_line->data_size -= POINTER_DATA_INCREMENT;
+		ptr_line->data_size -= increment;
 		return 0;	
 	}
 
-	for (i = ptr_line->data_size - POINTER_DATA_INCREMENT + 1; i < ptr_line->data_size; i ++) {
+	for (i = ptr_line->data_size - increment + 1; i < ptr_line->data_size; i ++) {
 		ptr_line->data[i].id = 0;
 		ptr_line->data[i].ptr = (void *)0;
 		ptr_line->data[i].context = (void *)0;
 	}
 
-	i = ptr_line->data_size - POINTER_DATA_INCREMENT;
+	i = ptr_line->data_size - increment;
 	ptr_line->data[i].id = ptr_id;
 	ptr_line->data[i].ptr = ptr;
 	ptr_line->data[i].context = context;

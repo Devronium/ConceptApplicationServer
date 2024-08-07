@@ -1,5 +1,6 @@
 //------------ standard header -----------------------------------//
 #include "stdlibrary.h"
+#include "pointer_list.h"
 //------------ end of standard header ----------------------------//
 #include <stdlib.h>
 #include <string.h>
@@ -10,9 +11,11 @@
 //---------------------------------------------------------------------------
 static INVOKE_CALL  InvokePtr        = 0;
 
+DEFINE_LIST(quick_js);
+
 struct quickjs_wrapper_container {
-	JSRuntime *jsrt;
-	JSContext *jsctx;
+    JSRuntime *jsrt;
+    JSContext *jsctx;
 
     void **HANDLERS;
     unsigned short HLEN;
@@ -26,11 +29,14 @@ struct quickjs_wrapper_container {
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS{
     InvokePtr       = Invoke;
-	return 0;
+    INIT_LIST(quick_js);
+    return 0;
 }
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS{
-	return 0;
+    if (!HANDLER)
+        DEINIT_LIST(quick_js);
+    return 0;
 }
 //---------------------------------------------------------------------------
 int eval_execution_time(JSRuntime *rt, void *opaque) {
@@ -238,28 +244,28 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSNewRuntime, 0, 1)
         memory_limit = (size_t)PARAM_INT(0);
     }
 
-	struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container *)malloc(sizeof(struct quickjs_wrapper_container));
-	if (ref) {
-		memset(ref, 0, sizeof(struct quickjs_wrapper_container));
-		ref->jsrt = JS_NewRuntime();
-		if (ref->jsrt) {
-			ref->jsctx = JS_NewContext(ref->jsrt);
+    struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container *)malloc(sizeof(struct quickjs_wrapper_container));
+    if (ref) {
+        memset(ref, 0, sizeof(struct quickjs_wrapper_container));
+        ref->jsrt = JS_NewRuntime();
+        if (ref->jsrt) {
+            ref->jsctx = JS_NewContext(ref->jsrt);
             JS_SetContextOpaque(ref->jsctx, ref);
             ref->HANDLER = PARAMETERS->HANDLER;
             if (memory_limit > 0)
                 JS_SetMemoryLimit(ref->jsrt, memory_limit);
-		} else {
-			free(ref);
-			ref = NULL;
-		}
-	}
-	RETURN_NUMBER((SYS_INT)ref);
+        } else {
+            free(ref);
+            ref = NULL;
+        }
+    }
+    RETURN_NUMBER(MAP_POINTER(quick_js, ref, PARAMETERS->HANDLER));
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSDestroyRuntime, 1)
-	T_NUMBER(JSDestroyRuntime, 0)
-	struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container *)(SYS_INT)PARAM(0);
-	if (ref) {
+    T_NUMBER(JSDestroyRuntime, 0)
+    struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container *)FREE_POINTER(quick_js, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    if (ref) {
         if (ref->HANDLERS) {
             for (int i = 0; i < ref->HLEN; i++) {
                 void *deleg = ref->HANDLERS[i];
@@ -270,17 +276,17 @@ CONCEPT_FUNCTION_IMPL(JSDestroyRuntime, 1)
             free(ref->HANDLERS);
             ref->HANDLERS = NULL;
         }
-		if (ref->jsctx)
-			JS_FreeContext(ref->jsctx);
-		JS_FreeRuntime(ref->jsrt);
-		free(ref);
-	}
-	SET_NUMBER(0, 0);
+        if (ref->jsctx)
+            JS_FreeContext(ref->jsctx);
+        JS_FreeRuntime(ref->jsrt);
+        free(ref);
+    }
+    SET_NUMBER(0, 0);
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSEvaluateScript, 2, 5)
-	T_HANDLE(JSEvaluateScript, 0)
-	T_STRING(JSEvaluateScript, 1)
+    T_HANDLE(JSEvaluateScript, 0)
+    T_STRING(JSEvaluateScript, 1)
     const char *script_name = "<input>";
     if (PARAMETERS_COUNT > 2) {
         T_STRING(JSEvaluateScript, 2)
@@ -293,14 +299,16 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSEvaluateScript, 2, 5)
         SET_NUMBER(4, 0);
     }
 
-	struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container*)(SYS_INT)PARAM(0);
+    struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container*)GET_POINTER(quick_js, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    if (!ref)
+        return (void *)"JSEvaluateScript: invalid js handler";
 
     if (ref->timeout)
         ref->expires = clock() + ref->timeout * CLOCKS_PER_SEC / 1000;
     else
         ref->expires = 0;
 
-	JSValue result = JS_Eval(ref->jsctx, PARAM(1), PARAM_LEN(1), script_name, 0);
+    JSValue result = JS_Eval(ref->jsctx, PARAM(1), PARAM_LEN(1), script_name, 0);
     if (JS_IsException(result)) {
         if (PARAMETERS_COUNT > 3) {
             JSValue exception = JS_GetException(ref->jsctx);
@@ -324,7 +332,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSEvaluateScript, 2, 5)
         }
         RETURN_NUMBER(0);
     } else
-	    RecursiveValue(ref->jsctx, result, RESULT, -1, Invoke);
+        RecursiveValue(ref->jsctx, result, RESULT, -1, Invoke);
     JS_FreeValue(ref->jsctx, result);
 END_IMPL
 //---------------------------------------------------------------------------
@@ -383,11 +391,13 @@ JSValue concept_handler_func(JSContext *ctx, JSValueConst this_val, int argc, JS
 }
 
 CONCEPT_FUNCTION_IMPL(JSWrap, 3)
-	T_HANDLE(JSWrap, 0)
-	T_DELEGATE(JSWrap, 1)
+    T_HANDLE(JSWrap, 0)
+    T_DELEGATE(JSWrap, 1)
     T_STRING(JSWrap, 2)
 
-    struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container*)(SYS_INT)PARAM(0);
+    struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container*)GET_POINTER(quick_js, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    if (!ref)
+        return (void *)"JSWrap: invalid js handler";
 
     ref->HANDLERS = (void **)realloc(ref->HANDLERS, sizeof(void *) * (ref->HLEN + 1));
     short delegate_id = 0;
@@ -410,9 +420,11 @@ CONCEPT_FUNCTION_IMPL(JSWrap, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSGC, 0)
-	T_HANDLE(JSGC, 0)
+    T_HANDLE(JSGC, 0)
 
-    struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container*)(SYS_INT)PARAM(0);
+    struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container*)GET_POINTER(quick_js, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    if (!ref)
+        return (void *)"JSGC: invalid js handler";
 
     JS_RunGC(ref->jsrt);
 
@@ -427,7 +439,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSModeBinary, 1, 2)
         if (!PARAM_INT(1))
             binary_mode = 0;
     }
-    struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container *)(intptr_t)PARAM(0);
+    struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container*)GET_POINTER(quick_js, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    if (!ref)
+        return (void *)"JSModeBinary: invalid js handler";
     int old_binary_mode = ref->binary_mode;
     ref->binary_mode = binary_mode;
     RETURN_NUMBER(old_binary_mode);
@@ -437,7 +451,9 @@ CONCEPT_FUNCTION_IMPL(JSTimeout, 2)
     T_HANDLE(JSTimeout, 0)
     T_NUMBER(JSTimeout, 1)
 
-    struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container *)(intptr_t)PARAM(0);
+    struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container*)GET_POINTER(quick_js, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    if (!ref)
+        return (void *)"JSTimeout: invalid js handler";
     int timeout = PARAM_INT(1);
     if (timeout > 0) {
         ref->timeout = timeout;
@@ -458,7 +474,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSCall, 3, 4)
         SET_STRING(3, "");
     }
 
-    struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container *)(intptr_t)PARAM(0);
+    struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container*)GET_POINTER(quick_js, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    if (!ref)
+        return (void *)"JSCall: invalid js handler";
     if (ref->timeout)
         ref->expires = clock() + ref->timeout * CLOCKS_PER_SEC / 1000;
     else
@@ -507,7 +525,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSCall, 3, 4)
         }
         RETURN_NUMBER(0);
     } else
-	    RecursiveValue(ref->jsctx, result, RESULT, -1, Invoke);
+        RecursiveValue(ref->jsctx, result, RESULT, -1, Invoke);
 
     JS_FreeValue(ref->jsctx, result);
 END_IMPL
@@ -516,7 +534,9 @@ CONCEPT_FUNCTION_IMPL(JSVariable, 3)
     T_HANDLE(JSVariable, 0)
     T_STRING(JSVariable, 1)
 
-    struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container *)(intptr_t)PARAM(0);
+    struct quickjs_wrapper_container *ref = (struct quickjs_wrapper_container*)GET_POINTER(quick_js, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    if (!ref)
+        return (void *)"JSVariable: invalid js handler";
     const char *key = PARAM(1);
     if ((key) && (key[0])) {
         JSValue global_obj = JS_GetGlobalObject(ref->jsctx);
