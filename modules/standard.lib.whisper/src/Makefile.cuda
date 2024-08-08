@@ -1,0 +1,43 @@
+CC = gcc
+CPP = g++
+CUDA = nvcc
+RM = rm
+CFLAGS = -O3 -fPIC -march=native -DGGML_USE_CUBLAS
+CUDAFLAGS = -Xcompiler -fPIC -std=c++11 -O3 -use_fast_math --forward-unknown-to-host-compiler -arch=native -DGGML_CUDA_DMMV_X=32 -DGGML_CUDA_MMV_Y=1 -DK_QUANTS_PER_ITERATION=2 -DGGML_CUDA_PEER_MAX_BATCH_SIZE=128  -Iggml/include -Iggml/src -Iinclude -Isrc -Iexamples -D_XOPEN_SOURCE=600 -D_GNU_SOURCE -DNDEBUG -DGGML_USE_OPENMP -DGGML_USE_CUDA -I/usr/local/cuda/include -I/usr/local/cuda/targets/x86_64-linux/include  -Xcompiler "-std=c++11 -fPIC -O3 -Wall -Wextra -Wpedantic -Wcast-qual -Wno-unused-function -Wmissing-declarations -Wmissing-noreturn -pthread -fopenmp  -Wno-array-bounds -Wno-format-truncation -Wextra-semi -Wno-pedantic"
+DLL_EXT = so
+OUTPUT_NAME = standard.lib.whisper.${DLL_EXT}
+LIBS = -lcuda -lcublas -lculibos -lcudart -lcublasLt -lpthread -ldl -lrt -L/usr/local/cuda/lib64 -L/usr/lib64 -L/usr/local/cuda/targets/x86_64-linux/lib -L/usr/local/cuda/lib64/stubs -L/usr/lib/wsl/lib
+BUILDFLAGS=-shared -o ${OUTPUT_NAME}
+
+OBJS = ggml.o ggml-alloc.o ggml-backend.o ggml-quants.o ggml-cuda.o whisper.o stdlibrary.o main.o
+
+library: ${OBJS}
+        ${CPP} ${BUILDFLAGS} ${OBJS} ${LIBS}
+
+stdlibrary.o: stdlibrary.cpp stdlibrary.h
+        ${CPP} ${CFLAGS} -c stdlibrary.cpp
+
+ggml.o: ggml.c ggml.h
+        ${CC} ${CFLAGS} -c ggml.c
+
+ggml-alloc.o: ggml-alloc.c ggml-alloc.h
+        ${CC} ${CFLAGS} -c ggml-alloc.c
+
+ggml-backend.o: ggml-backend.c ggml-backend.h
+        ${CC} ${CFLAGS} -c ggml-backend.c
+
+ggml-quants.o: ggml-quants.c ggml-quants.h
+        ${CC} ${CFLAGS} -c ggml-quants.c
+
+ggml-cuda.o:
+        ${CUDA} ${CUDAFLAGS} -c ggml-cuda.cu
+
+whisper.o: whisper.cpp whisper.h
+        ${CPP} ${CFLAGS} -c whisper.cpp
+
+main.o: main.cpp
+        ${CPP} ${CFLAGS} -c main.cpp
+
+clean:
+        $(RM) ${OUTPUT_NAME} ${OBJS}
+        @echo "all cleaned up!"

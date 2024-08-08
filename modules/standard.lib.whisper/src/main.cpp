@@ -1,5 +1,6 @@
 //------------ standard header -----------------------------------//
 #include "stdlibrary.h"
+#include "pointer_list.h"
 //------------ end of standard header ----------------------------//
 #include "library.h"
 #include <stddef.h>
@@ -10,6 +11,8 @@
 
 #include <string>
 #include <vector>
+
+DEFINE_LIST(whisper);
 
 struct whisper_params {
     int32_t n_threads    = 1;
@@ -57,10 +60,13 @@ static void src_short_to_float_array (const short *in, float *out, int len) {
 }
 //=====================================================================================//
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
+    INIT_LIST(whisper);
     return 0;
 }
 //=====================================================================================//
 CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
+    if (!HANDLER)
+        DEINIT_LIST(whisper);
     return 0;
 }
 //=====================================================================================//
@@ -109,7 +115,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 6)
 
     if (PARAMETERS_COUNT > 5) {
         T_NUMBER(WhisperCreate, 5)
-        owner_ctx = (struct stt_context *)(SYS_INT)PARAM(5);
+        owner_ctx = (struct stt_context *)GET_POINTER(whisper, (SYS_INT)PARAM(5), PARAMETERS->HANDLER);
     }
 
 
@@ -120,7 +126,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 6)
         ctx = owner_ctx->ctx;
     
     if (!ctx) {
-        ctx = whisper_init_from_file(PARAM(0));
+        struct whisper_context_params whisper_params = whisper_context_default_params();
+#ifdef GGML_USE_CUDA
+        params.use_gpu = true;
+#endif
+        ctx = whisper_init_from_file_with_params(PARAM(0), whisper_params);
         if (!ctx) {
             RETURN_NUMBER(0);
             return 0;
@@ -188,7 +198,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 6)
     };
     whisper_ctx->wparams.encoder_begin_callback_user_data = whisper_ctx;
 
-    RETURN_NUMBER((SYS_INT)whisper_ctx);
+    RETURN_NUMBER(MAP_POINTER(whisper, whisper_ctx, PARAMETERS->HANDLER));
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(WhisperSampleRate, 0)
@@ -199,7 +209,7 @@ CONCEPT_FUNCTION_IMPL(WhisperDecode, 2)
     T_HANDLE(WhisperDecode, 0)
     T_STRING(WhisperDecode, 1)
 
-    struct stt_context *ctx = (struct stt_context *)(SYS_INT)PARAM(0);
+    struct stt_context *ctx = (struct stt_context *)GET_POINTER(whisper, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
     if (!ctx) {
         RETURN_STRING("");
         return 0;
@@ -248,101 +258,10 @@ CONCEPT_FUNCTION_IMPL(WhisperDecode, 2)
     RETURN_STRING(str.c_str());
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL(WhisperStateCreate, 1)
-    T_HANDLE(WhisperStateCreate, 0)
-
-    struct stt_context *ctx = (struct stt_context *)(SYS_INT)PARAM(0);
-    if (!ctx) {
-        RETURN_NUMBER(0);
-        return 0;
-    }
-
-    struct whisper_state *state = whisper_init_state(ctx->ctx);
-
-    RETURN_NUMBER((SYS_INT)state);
-END_IMPL
-//=====================================================================================//
-CONCEPT_FUNCTION_IMPL(WhisperStateFeed, 3)
-    T_HANDLE(WhisperStateFeed, 0)
-    T_HANDLE(WhisperStateFeed, 1)
-    T_STRING(WhisperStateFeed, 2)
-
-    struct stt_context *ctx = (struct stt_context *)(SYS_INT)PARAM(0);
-    struct whisper_state *state = (struct whisper_state *)(SYS_INT)PARAM(1);
-    if ((!state) || (!ctx)) {
-        RETURN_NUMBER(-1);
-        return 0;
-    }
-
-    short *buf = (short *)PARAM(2);
-
-    int len = PARAM_LEN(2)/ 2;
-    if (!len) {
-        RETURN_NUMBER(0);
-        return 0;
-    }
-
-    float *input = (float *)malloc((len + 1) * sizeof(float));
-    src_short_to_float_array((short *)buf, input, len);
-
-    whisper_full_params wparams = ctx->wparams;
-
-    wparams.offset_ms = 0;
-    wparams.duration_ms = 0;
-
-    struct stt_context ref_ctx = *ctx;
-
-    wparams.new_segment_callback_user_data = &ref_ctx;
-    wparams.encoder_begin_callback_user_data = &ref_ctx;
-
-    int err = whisper_full_with_state(ctx->ctx, state, wparams, input, len);
-
-    free(input);
-
-    RETURN_NUMBER(err);
-END_IMPL
-//=====================================================================================//
-CONCEPT_FUNCTION_IMPL(WhisperStateGetText, 1)
-    T_HANDLE(WhisperStateGetText, 0)
-
-    struct whisper_state *state = (struct whisper_state *)(SYS_INT)PARAM(0);
-    if (!state) {
-        RETURN_STRING("");
-        return 0;
-    }
-
-    std::string str;
-    const int n_segments = whisper_full_n_segments_from_state(state);
-    for (int i = 0; i < n_segments; ++i) {
-        const char * text = whisper_full_get_segment_text_from_state(state, i);
-        if (str.length())
-            str += "\n";
-        str += text;
-    }
-
-    RETURN_STRING(str.c_str());
-END_IMPL
-//=====================================================================================//
-CONCEPT_FUNCTION_IMPL(WhisperStateFree, 1)
-    T_NUMBER(WhisperStateFree, 0)
-
-    struct whisper_state *state = (struct whisper_state *)(SYS_INT)PARAM(0);
-    if (!state) {
-        RETURN_NUMBER(0);
-        return 0;
-    }
-
-    SET_NUMBER(0, 0);
-
-    whisper_free_state(state);
-
-    RETURN_NUMBER(0);
-END_IMPL
-//=====================================================================================//
 CONCEPT_FUNCTION_IMPL(WhisperFree, 1)
     T_HANDLE(WhisperFree, 0)
 
-    struct stt_context *ctx = (struct stt_context *)(SYS_INT)PARAM(0);
+    struct stt_context *ctx = (struct stt_context *)FREE_POINTER(whisper, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
     if (ctx) {
         free((void *)ctx->wparams.language);
         if (ctx->main_context)
