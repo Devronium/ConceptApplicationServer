@@ -12,32 +12,32 @@ BUILDFLAGS=-shared -o ${OUTPUT_NAME}
 OBJS = ggml.o ggml-alloc.o ggml-backend.o ggml-quants.o ggml-cuda.o whisper.o stdlibrary.o main.o
 
 library: ${OBJS}
-        ${CPP} ${BUILDFLAGS} ${OBJS} ${LIBS}
+	${CPP} ${BUILDFLAGS} ${OBJS} ${LIBS}
 
 stdlibrary.o: stdlibrary.cpp stdlibrary.h
-        ${CPP} ${CFLAGS} -c stdlibrary.cpp
+	${CPP} ${CFLAGS} -c stdlibrary.cpp
 
 ggml.o: ggml.c ggml.h
-        ${CC} ${CFLAGS} -c ggml.c
+	${CC} ${CFLAGS} -c ggml.c
 
 ggml-alloc.o: ggml-alloc.c ggml-alloc.h
-        ${CC} ${CFLAGS} -c ggml-alloc.c
+	${CC} ${CFLAGS} -c ggml-alloc.c
 
 ggml-backend.o: ggml-backend.c ggml-backend.h
-        ${CC} ${CFLAGS} -c ggml-backend.c
+	${CC} ${CFLAGS} -c ggml-backend.c
 
 ggml-quants.o: ggml-quants.c ggml-quants.h
-        ${CC} ${CFLAGS} -c ggml-quants.c
+	${CC} ${CFLAGS} -c ggml-quants.c
 
 ggml-cuda.o:
-        ${CUDA} ${CUDAFLAGS} -c ggml-cuda.cu
+	${CUDA} ${CUDAFLAGS} -c ggml-cuda.cu
 
 whisper.o: whisper.cpp whisper.h
-        ${CPP} ${CFLAGS} -c whisper.cpp
+	${CPP} ${CFLAGS} -c whisper.cpp
 
 main.o: main.cpp
-        ${CPP} ${CFLAGS} -c main.cpp
+	${CPP} ${CFLAGS} -c main.cpp
 
 clean:
-        $(RM) ${OUTPUT_NAME} ${OBJS}
-        @echo "all cleaned up!"
+	$(RM) ${OUTPUT_NAME} ${OBJS}
+	@echo "all cleaned up!"
