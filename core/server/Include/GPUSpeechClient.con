@@ -88,6 +88,7 @@ class RemoteGPUClient {
 class RemoteGPUStream {
 	protected var audio_buffer = "";
 	protected var last_vad_ms = 0;
+	protected var pause_until = 0;
 
 	public var BufferTimeout = 8000;
 	public var MinBufferSize = 2000;
@@ -120,6 +121,12 @@ class RemoteGPUStream {
 
 	feed(var full_buffer, before_decode_callback = null, before_decode_callback_data = null) {
 		audio_buffer += full_buffer;
+
+		if (pause_until) {
+			if (pause_until > Date.now())
+				return;
+			pause_until = 0;
+		}
 
 		var buf_size_ms = length audio_buffer / (modelSampleRate * 2) * 1000;
 		if ((audio_buffer) && ((buf_size_ms - last_vad_ms) >= MinBufferSize)) {
@@ -163,6 +170,13 @@ class RemoteGPUStream {
 		}
 	}
 
+	pause(ms) {
+		if (ms > 0)
+			pause_until = Date.now() + ms;
+		else
+			pause_until = 0;
+	}
+
 	decode() {
 		return decodedText;
 	}
@@ -172,6 +186,7 @@ class RemoteGPUStream {
 		audio_buffer = "";
 		decodedText = "";
 		last_vad_ms = 0;
+		pause_until = 0;
 		return text;
 	}
 
@@ -180,6 +195,7 @@ class RemoteGPUStream {
 	}
 
 	close() {
+		pause_until = 0;
 		audio_buffer = "";
 		last_vad_ms = 0;
 		decodedText = "";
