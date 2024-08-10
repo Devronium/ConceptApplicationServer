@@ -22,7 +22,7 @@ struct whisper_params {
     int32_t max_context  = -1;
     int32_t max_len      =  0;
     int32_t best_of      =  5;
-    int32_t beam_size    = -1;
+    int32_t beam_size    =  5;
 
     float word_thold    =  0.01f;
     float entropy_thold =  2.40f;

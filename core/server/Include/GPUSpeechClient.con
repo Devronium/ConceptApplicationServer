@@ -1,6 +1,3 @@
-import standard.lib.str
-import standard.lib.vad
-
 import standard.lang.serialize
 import standard.lib.str
 import standard.lib.cripto
@@ -9,12 +6,11 @@ import standard.lib.vad
 include TCPSocket.con
 
 class RemoteGPUClient {
-	static stt(host, port, hmac_key, var buffer, codec = 8, lang = "", sample_rate = 8000, timeout = 1000, max_size = 48000) {
+	static stt(host, port, hmac_key, var buffer, codec = 8, lang = "", sample_rate = 8000, voice_ms = -1, timeout = 1000, max_size = 48000) {
 		try {
 			var client = new TCPSocket();
 			client.SetOption(SOL_SOCKET, SO_RCVTIMEO, timeout);
 			client.SetOption(SOL_SOCKET, SO_RCVTIMEO, 10000);
-
 			client.ConnectTimeout = timeout * 2;
 
 			if (!client.Connect(host, port)) {
@@ -31,6 +27,8 @@ class RemoteGPUClient {
 			obj["codec"] = codec;
 			obj["buffer"] = buffer;
 			obj["sampleRate"] = sample_rate;
+			if (voice_ms >= 0)
+				obj["voice"] = voice_ms;
 			obj["timestamp"] = Date.now();
 			hmac_sha256(hmac_key, obj["buffer"] + obj["lang"] + obj["timestamp"], obj["auth"]);
 
@@ -88,7 +86,8 @@ class RemoteGPUClient {
 class RemoteGPUStream {
 	protected var audio_buffer = "";
 	protected var last_vad_ms = 0;
-	protected var pause_until = 0;
+	protected var vadInterval = 0;
+	var pause_until = 0;
 
 	public var BufferTimeout = 8000;
 	public var MinBufferSize = 2000;
@@ -118,7 +117,6 @@ class RemoteGPUStream {
 		this.codec = codec;
 	}
 
-
 	feed(var full_buffer, before_decode_callback = null, before_decode_callback_data = null) {
 		audio_buffer += full_buffer;
 
@@ -129,32 +127,45 @@ class RemoteGPUStream {
 		}
 
 		var buf_size_ms = length audio_buffer / (modelSampleRate * 2) * 1000;
-		if ((audio_buffer) && ((buf_size_ms - last_vad_ms) >= MinBufferSize)) {
+		if (!vadInterval)
+			vadInterval = MinBufferSize;
+		if ((audio_buffer) && ((buf_size_ms - last_vad_ms) >= vadInterval)) {
 			var no_voice = 0;
 
 			var vad = fvad_new();
+			fvad_set_mode(vad, 0);
 			fvad_set_sample_rate(vad, modelSampleRate);
 
 			var voice_frames = 0;
 			var max_voice_frames = 0;
+			var voice_ms = 0;
+			var voice_started = false;
+			var max_no_voice = 0;
 			for (var i = 0; i < length audio_buffer; i += _frame_size) {
 				if (fvad_process(vad, SubStr(audio_buffer, i, _frame_size))) {
 					voice_frames ++;
+					if (no_voice > max_no_voice)
+						max_no_voice = no_voice;
 					no_voice = 0;
+					voice_ms += _frame_size_ms;
 					if (voice_frames > max_voice_frames)
 						max_voice_frames = voice_frames;
+					voice_started = 1;
 				} else {
-					no_voice ++;
+					if (voice_started)
+						no_voice ++;
 					voice_frames = 0;
 				}
 			}
-
 			fvad_free(vad);
+
+			if ((no_voice > 25) && (no_voice < 50) && (max_no_voice > 50) && (max_voice_frames >= 50))
+				no_voice = 50;
 
 			if (((no_voice >= 50) || (buf_size_ms > BufferTimeout)) && (max_voice_frames >= 10)) {
 				if (before_decode_callback)
 					before_decode_callback(before_decode_callback_data);
-				var text = RemoteGPUClient::stt(this.host, this.port, this.key, audio_buffer, this.codec, this.lang, this.modelSampleRate);
+				var text = RemoteGPUClient::stt(this.host, this.port, this.key, audio_buffer, this.codec, this.lang, this.modelSampleRate, voice_ms);
 				if (!text)
 					text = "_____";
 				if (text) {
@@ -165,8 +176,11 @@ class RemoteGPUStream {
 
 				audio_buffer = "";
 				last_vad_ms = 0;
-			} else
+				vadInterval = MinBufferSize;
+			} else {
 				last_vad_ms = buf_size_ms;
+				vadInterval = 500;
+			}
 		}
 	}
 
@@ -187,6 +201,7 @@ class RemoteGPUStream {
 		decodedText = "";
 		last_vad_ms = 0;
 		pause_until = 0;
+		vadInterval = 0;
 		return text;
 	}
 
