@@ -15,6 +15,7 @@
 #include <algorithm>
 
 DEFINE_LIST(llama_list);
+DEFINE_LIST(llama_model_list);
 
 struct chunk {
     INTEGER key;
@@ -36,6 +37,7 @@ struct llama_container {
 //=====================================================================================//
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     INIT_LIST(llama_list);
+    INIT_LIST(llama_model_list);
     llama_backend_init();
     return 0;
 }
@@ -43,26 +45,51 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
 CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
     if (!HANDLER) {
         DEINIT_LIST(llama_list);
+        DEINIT_LIST(llama_model_list);
         llama_backend_free();
     }
     return 0;
 }
 //=====================================================================================//
+CONCEPT_FUNCTION_IMPL(llama_load_model_from_file, 1)
+    T_STRING(llama_load_model_from_file, 0)
+
+    llama_model *model = llama_load_model_from_file(PARAM(0), llama_model_default_params());
+    if (model) {
+        RETURN_NUMBER(MAP_POINTER(llama_model_list, model, PARAMETERS->HANDLER));
+    } else {
+        RETURN_NUMBER(0);
+    }
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL(llama_free_model, 1)
+    T_HANDLE(llama_free_model, 0)
+
+    llama_model *model = (llama_model *)FREE_POINTER(llama_model_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    if (model)
+        llama_free_model(model);
+
+    SET_NUMBER(0, 0); 
+
+    RETURN_NUMBER(0);
+END_IMPL
+//=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 2)
     // model file
-    T_STRING(llama_new, 0)
+    T_HANDLE(llama_new, 0)
 
     struct llama_context_params params = llama_context_default_params();
     params.n_ubatch = params.n_batch;
-    params.embeddings = true;
-    params.pooling_type = LLAMA_POOLING_TYPE_MEAN;
+    params.embeddings = false;
 
     if (PARAMETERS_COUNT > 1) {
         T_NUMBER(llama_new, 1)
         params.pooling_type = (enum llama_pooling_type)PARAM_INT(1);
+        if (params.pooling_type)
+            params.embeddings = true;
     }
 
-    llama_model *model = llama_load_model_from_file(PARAM(0), llama_model_default_params());
+    llama_model *model = (llama_model *)GET_POINTER(llama_model_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
     if (!model) {
         RETURN_NUMBER(0)
         return 0;
@@ -70,7 +97,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 2)
 
     llama_context *ctx = llama_new_context_with_model(model, params);
     if (!ctx) {
-        llama_free_model(model);
         RETURN_NUMBER(0)
         return 0;
     }
@@ -78,7 +104,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 2)
     struct llama_container *context = new llama_container;
     if (!context) {
         llama_free(ctx);
-        llama_free_model(model);
         RETURN_NUMBER(0)
         return 0;
     }
@@ -220,6 +245,22 @@ static void batch_decode(llama_context * ctx, llama_batch & batch, float * outpu
         float * out = output + batch.seq_id[i][0] * n_embd;
         llama_embd_normalize(embd, out, n_embd);
     }
+}
+
+std::string llama_token_to_piece(const struct llama_context * ctx, llama_token token, bool special = true) {
+    std::string piece;
+    piece.resize(piece.capacity());  // using string internal cache, 15 bytes + '\n'
+    const int n_chars = llama_token_to_piece(llama_get_model(ctx), token, &piece[0], piece.size(), 0, special);
+    if (n_chars < 0) {
+        piece.resize(-n_chars);
+        int check = llama_token_to_piece(llama_get_model(ctx), token, &piece[0], piece.size(), 0, special);
+        GGML_ASSERT(check == -n_chars);
+    }
+    else {
+        piece.resize(n_chars);
+    }
+
+    return piece;
 }
 
 CONCEPT_FUNCTION_IMPL(llama_load, 2)
@@ -436,6 +477,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
 
     const auto t_main_start = ggml_time_us();
 
+    std::string data;
     while (n_cur <= n_predict) {
         // sample the next token
         {
@@ -458,6 +500,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
             if (llama_token_is_eog(ctx->model, new_token_id) || n_cur == n_predict)
                 break;
 
+            data += llama_token_to_piece(ctx->ctx, new_token_id).c_str();
+
             // prepare the next batch
             llama_batch_clear(batch);
 
@@ -476,6 +520,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
             return 0;
         }
     }
+    RETURN_STRING(data.c_str());
 
     llama_batch_free(batch);
 END_IMPL
@@ -486,7 +531,6 @@ CONCEPT_FUNCTION_IMPL(llama_free, 1)
     struct llama_container *ctx = (struct llama_container *)FREE_POINTER(llama_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
     if (ctx) {
         llama_free(ctx->ctx);
-        llama_free_model(ctx->model);
         delete ctx;
     }
     SET_NUMBER(0, 0); 
