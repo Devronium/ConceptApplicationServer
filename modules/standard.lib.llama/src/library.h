@@ -10,6 +10,7 @@ extern "C" {
     CONCEPT_FUNCTION(llama_new)
     CONCEPT_FUNCTION(llama_load)
     CONCEPT_FUNCTION(llama_query)
+    CONCEPT_FUNCTION(llama_prompt)
     CONCEPT_FUNCTION(llama_free)
 }
 #endif // __LIBRARY_H

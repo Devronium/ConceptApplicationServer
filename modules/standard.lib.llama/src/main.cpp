@@ -48,13 +48,19 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
     return 0;
 }
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL(llama_new, 1)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 2)
     // model file
     T_STRING(llama_new, 0)
 
     struct llama_context_params params = llama_context_default_params();
     params.n_ubatch = params.n_batch;
     params.embeddings = true;
+    params.pooling_type = LLAMA_POOLING_TYPE_MEAN;
+
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(llama_new, 1)
+        params.pooling_type = (enum llama_pooling_type)PARAM_INT(1);
+    }
 
     llama_model *model = llama_load_model_from_file(PARAM(0), llama_model_default_params());
     if (!model) {
@@ -242,7 +248,7 @@ CONCEPT_FUNCTION_IMPL(llama_load, 2)
         return 0;
     }
 
-    INTEGER len = Invoke(INVOKE_GET_ARRAY_COUNT, PARAM(1));
+    INTEGER len = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(1));
 
     if (len > 0) {
         char    *str = 0;
@@ -329,6 +335,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_query, 2, 4)
     T_HANDLE(llama_query, 0)
     T_STRING(llama_query, 1)
 
+    CREATE_ARRAY(RESULT);
+
     int top_k = 3;
     if (PARAMETERS_COUNT > 2) {
         T_NUMBER(llama_query, 2)
@@ -341,10 +349,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_query, 2, 4)
     }
 
     struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
-    if ((!ctx) || (!ctx->ctx) || (PARAM_LEN(1) <= 0)) {
-        RETURN_STRING("");
+    if ((!ctx) || (!ctx->ctx) || (PARAM_LEN(1) <= 0))
         return 0;
-    }
 
     std::vector<int32_t> query_tokens = llama_tokenize_helper(llama_get_model(ctx->ctx), PARAM(1), true, false);
 
@@ -361,7 +367,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_query, 2, 4)
 
     llama_batch_clear(query_batch);
 
-    CREATE_ARRAY(RESULT);
     // compute cosine similarities
     {
         std::vector<std::pair<int, float>> similarities;
@@ -379,11 +384,100 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_query, 2, 4)
             Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)i, (INTEGER)VARIABLE_STRING, (char *)ctx->chunks[similarities[i].first].textdata.c_str(), (NUMBER)ctx->chunks[similarities[i].first].textdata.length());
             if (PARAMETERS_COUNT > 3) {
                 Invoke(INVOKE_SET_ARRAY_ELEMENT, PARAMETER(3), (INTEGER)i, (INTEGER)VARIABLE_NUMBER, (char*)"", (NUMBER)similarities[i].second);
-                CREATE_ARRAY(PARAMETER(3));
             }
         }
     }
     llama_batch_free(query_batch);
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
+    T_HANDLE(llama_query, 0)
+    T_STRING(llama_query, 1)
+
+    struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    if ((!ctx) || (!ctx->ctx) || (PARAM_LEN(1) <= 0)) {
+        RETURN_STRING("");
+        return 0;
+    }
+
+    int n_predict = 32;
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(llama_query, 2);
+        n_predict = PARAM_INT(2);
+    }
+
+    std::vector<int32_t> tokens_list = llama_tokenize_helper(llama_get_model(ctx->ctx), PARAM(1), true, false);
+
+    const int n_ctx    = llama_n_ctx(ctx->ctx);
+    const int n_kv_req = tokens_list.size() + (n_predict - tokens_list.size());
+
+    // make sure the KV cache is big enough to hold all the prompt and generated tokens
+    if (n_kv_req > n_ctx) {
+        RETURN_STRING("");
+        return 0;
+    }
+
+    llama_batch batch = llama_batch_init(512, 0, 1);
+
+    for (size_t i = 0; i < tokens_list.size(); i++) {
+        llama_batch_add(batch, tokens_list[i], i, { 0 }, false);
+    }
+
+    batch.logits[batch.n_tokens - 1] = true;
+
+    if (llama_decode(ctx->ctx, batch) != 0) {
+        llama_batch_free(batch);
+        RETURN_STRING("");
+        return 0;
+    }
+
+    int n_cur    = batch.n_tokens;
+    int n_decode = 0;
+
+    const auto t_main_start = ggml_time_us();
+
+    while (n_cur <= n_predict) {
+        // sample the next token
+        {
+            auto   n_vocab = llama_n_vocab(ctx->model);
+            auto * logits  = llama_get_logits_ith(ctx->ctx, batch.n_tokens - 1);
+
+            std::vector<llama_token_data> candidates;
+            candidates.reserve(n_vocab);
+
+            for (llama_token token_id = 0; token_id < n_vocab; token_id++) {
+                candidates.emplace_back(llama_token_data{ token_id, logits[token_id], 0.0f });
+            }
+
+            llama_token_data_array candidates_p = { candidates.data(), candidates.size(), false };
+
+            // sample the most likely token
+            const llama_token new_token_id = llama_sample_token_greedy(ctx->ctx, &candidates_p);
+
+            // is it an end of generation?
+            if (llama_token_is_eog(ctx->model, new_token_id) || n_cur == n_predict)
+                break;
+
+            // prepare the next batch
+            llama_batch_clear(batch);
+
+            // push this new token for next evaluation
+            llama_batch_add(batch, new_token_id, n_cur, { 0 }, true);
+
+            n_decode += 1;
+        }
+
+        n_cur += 1;
+
+        // evaluate the current batch with the transformer model
+        if (llama_decode(ctx->ctx, batch)) {
+            llama_batch_free(batch);
+            RETURN_STRING("");
+            return 0;
+        }
+    }
+
+    llama_batch_free(batch);
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(llama_free, 1)
