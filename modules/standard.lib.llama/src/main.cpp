@@ -372,7 +372,7 @@ CONCEPT_FUNCTION_IMPL(llama_load, 2)
     RETURN_NUMBER(ctx->chunks.size());
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_query, 2, 4)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_query, 2, 5)
     T_HANDLE(llama_query, 0)
     T_STRING(llama_query, 1)
 
@@ -387,6 +387,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_query, 2, 4)
     }
     if (PARAMETERS_COUNT > 3) {
         CREATE_ARRAY(PARAMETER(3));
+    }
+    if (PARAMETERS_COUNT > 4) {
+        CREATE_ARRAY(PARAMETER(4));
     }
 
     struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
@@ -425,6 +428,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_query, 2, 4)
             Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)i, (INTEGER)VARIABLE_STRING, (char *)ctx->chunks[similarities[i].first].textdata.c_str(), (NUMBER)ctx->chunks[similarities[i].first].textdata.length());
             if (PARAMETERS_COUNT > 3) {
                 Invoke(INVOKE_SET_ARRAY_ELEMENT, PARAMETER(3), (INTEGER)i, (INTEGER)VARIABLE_NUMBER, (char*)"", (NUMBER)similarities[i].second);
+            }
+            if (PARAMETERS_COUNT > 4) {
+                Invoke(INVOKE_SET_ARRAY_ELEMENT, PARAMETER(4), (INTEGER)i, (INTEGER)VARIABLE_NUMBER, (char*)"", (NUMBER)ctx->chunks[similarities[i].first].key);
             }
         }
     }
