@@ -21,7 +21,7 @@ extern "C" {
 
     CONCEPT_FUNCTION(rwkv_tokenizer_load)
     CONCEPT_FUNCTION(rwkv_tokenizer_initial_context)
-    CONCEPT_FUNCTION(rwkv_tokenizer_run)
+    CONCEPT_FUNCTION(rwkv_run)
     CONCEPT_FUNCTION(rwkv_tokenizer_free)
 }
 #endif // __LIBRARY_H

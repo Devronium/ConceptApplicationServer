@@ -2,7 +2,7 @@
 #include "stdlibrary.h"
 //------------ end of standard header ----------------------------//
 #include "library.h"
-#include "rwkv.h"
+#include <rwkv.h>
 #include "tokenizer.h"
 #include "typical.h"
 #include "simple_tokenizer.h"
