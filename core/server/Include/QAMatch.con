@@ -1,0 +1,311 @@
+import standard.lib.rootword
+import standard.lib.wordinfo
+import standard.lib.synonym
+import standard.lib.str
+import standard.lang.serialize
+
+class QAMatch {
+	static getTypes(word, str) {
+		var arr = StrSplit(str, ",");
+		var[] types;
+		// substantiv propriu
+		if ((!arr) && (length word > 2))
+			types["name"] = true;
+		for (var i = 0; i < length arr; i ++) {
+			var type = arr[i];
+			switch (arr[i]) {
+				case "sn":
+				case "sm":
+				case "sf":
+					types["s"] = true;
+					break;
+				default:
+					types[type] = true;
+					break;
+			}
+		}
+		if (IsSet(types, "s"))
+			deleteArrayElement(types, "vb");
+		return types;
+	}
+
+	static info(word, lang = "ro") {
+		var root = rootword(word, lang);
+		return QAMatch::getTypes(root, wordInfo(root, lang));
+	}
+
+	static addProperty(lang, type_count, pre, subject, root, list_name, orig_word = "", link = null) {
+		var obj = pre[subject];
+		if (typeof obj != "array") {
+			obj = new [];
+			pre[subject] = obj;
+		}
+		var properties = obj[list_name];
+		if (!properties) {
+			properties = new [];
+			obj[list_name] = properties;
+		}
+		if (typeof link == "array") {
+			properties[root] = link;
+		} else {
+			var old_val = properties[root];
+			properties[root] = orig_word ?? root;
+			if ((!old_val) && (type_count == 1)) {
+				var list = synonyms(root, lang);
+				if (list)
+					properties["\$" + root] = GetKeys(list);
+			}
+		}
+	}
+
+	static extract(phrase, lang = "ro", var tree = null) {
+		var orig_phrase = phrase;
+
+		phrase = StrReplace(phrase, ".", " <sep> ");
+		phrase = StrReplace(phrase, ",", " ");
+		phrase = StrReplace(phrase, ";", " <sep> ");
+		phrase = StrReplace(phrase, "?", " <sep> ");
+		phrase = StrReplace(phrase, "!", " <sep> ");
+		phrase = StrReplace(phrase, "-", " ");
+
+		phrase = UTF8ToLower(phrase);
+
+		var arr = StrSplit(phrase, " ");
+		var rephrase = "";
+
+		var[] pre;
+
+		var last_sub = "";
+		var last_vb = "";
+		var[] unk_subj;
+
+		var prep_index = -1;
+		var last_sub_index = -1;
+		
+		var[] adverbs;
+
+		var unclassified = "";
+
+		for (var i = 0; i < length arr; i ++) {
+			var word = trim(arr[i]);
+			if (word == "<sep>") {
+				last_sub = "";
+				last_vb = "";
+				last_sub_index = -1;
+				prep_index = -1;
+				continue;
+			}
+			var data = QAMatch::info(word, lang);
+			var type_count = length data;
+
+			var root = rootword(word, lang);
+			if (data["adv"]) {
+				QAMatch::addProperty(lang, type_count, adverbs, "!", root, "properties", word);
+				if (unclassified)
+					unclassified += " ";
+				unclassified += root;
+				continue;
+			}
+
+			if ((data["conj"]) || (data["interj"]) || (data["prep"]) || (data["art"]) || (data["adjdem"])) {
+				prep_index = i;
+				continue;
+			}
+
+			if (data["adj"]) {
+				if (last_sub)
+					QAMatch::addProperty(lang, type_count, pre, last_sub, root, "attributes", word);
+				else
+					QAMatch::addProperty(lang, type_count, unk_subj, last_sub, root, "attributes", word);
+				if (rephrase)
+					rephrase += " ";
+				rephrase += root;
+			} else
+			if (data["vb"]) {
+				last_vb = root;
+				if (rephrase)
+					rephrase += " ";
+				rephrase += root;
+				if (last_sub)
+					QAMatch::addProperty(lang, type_count, pre, last_sub, root, "actions", word);
+				else
+					QAMatch::addProperty(lang, type_count, unk_subj, last_sub, root, "actions", word);
+			} else
+			if ((data["s"]) || (data["name"])) {
+				var type;
+				if (data["s"])
+					type = "object";
+				else
+					type = "name";
+				if (unk_subj) {
+					pre[root] = unk_subj[""];
+					unk_subj = new [];
+					pre[root]["type"] = type;
+				} else
+					pre[root] = ["type" => type];
+
+				if ((last_sub) && ((prep_index == i - 1) || (last_sub_index == i - 1))) {
+					QAMatch::addProperty(lang, type_count, pre, last_sub, root, "complement", "", pre[root]);
+				}
+
+				last_sub_index = i;
+				last_sub = root;
+
+				last_vb = "";
+				if (rephrase)
+					rephrase += " ";
+				
+				rephrase += root;
+			} 
+		}
+		if ((!pre) && (unk_subj))
+			pre["!"] = unk_subj[""];
+		if ((!pre) && (adverbs)) {
+			pre = adverbs;
+			if (!rephrase)
+				rephrase = unclassified;
+		}
+		tree = pre;
+		if (tree)
+			tree["#"] = orig_phrase;
+		return rephrase;
+	}
+
+	static loadVector(data, lang = "ro") {
+		var[] vector;
+		if ((!data) && (typeof data != "array"))
+			return vector;
+
+		for (var i = 0; i < length data; i ++) {
+			var e = data[i];
+			if ((e) && (length e >= 2) && (Pos(e, "\$") <= 0) && (Pos(e, "+") <= 0) && (Pos(e, "|") <= 0) && (Pos(e, "~") <= 0)) {
+				QAMatch::extract(e, lang, var tree);
+				if (tree)
+					vector[length vector] = tree;
+			}
+		}
+
+		return vector;
+	}
+
+	static compareListLeftToRight(list1, list2) {
+		if ((!list1) && (!list2))
+			return 1;
+		if ((!list1) || (!list2))
+			return 1;
+
+		var keys = GetKeys(list1);
+		var match = 0;
+		var not_match = 0;
+		for (var i = 0; i < length keys; i ++) {
+			var k = keys[i];
+			if ((k) && (k[0] != '$') && (k != "#")) {
+				if (IsSet(list2, k)) {
+					match ++;
+				} else {
+					var synonim = "\$" + k;
+					if (IsSet(list1, synonim)) {
+						var arr = list1[synonim];
+						for (var j = 0; j < length arr; j ++) {
+							if (IsSet(list2, arr[j])) {
+								match ++;
+								break;
+							}
+						}
+					}
+					not_match ++;
+				}
+			}
+		}
+		if (!match)
+			return 0;
+
+		return match / (match + not_match);
+	}
+
+	static compare(tree1, tree2) {
+		if ((!tree1) && (!tree2))
+			return 1;
+
+		if ((tree1) && (!tree2))
+			return 0;
+
+		if ((!tree1) && (tree2))
+			return 0;
+
+		var keys1 = GetKeys(tree1);
+		var keys2 = GetKeys(tree2);
+
+		var match = 0;
+		var not_match = 0;
+		var micro_penalty = 0;
+
+		for (var i = 0; i < length keys1; i ++) {
+			var k = keys1[i];
+			if ((k) && (k != "#")) {
+				if (IsSet(tree2, k)) {
+					match ++;
+
+					var e1 = tree1[k];
+					var e2 = tree2[k];
+					if ((e1) && (e2)) {
+						var attenuation = 1;
+						var list_match = QAMatch::compareListLeftToRight(e1["attributes"], e2["attributes"]) * attenuation;
+						match += list_match;
+						not_match += attenuation - list_match;
+
+						if (e1["complement"]) {
+							list_match = QAMatch::compareListLeftToRight(e1["complement"], tree2) * attenuation;
+							if (list_match) {
+								match += list_match;
+								not_match += attenuation - list_match;
+							} else {
+								micro_penalty += 0.01;
+							}
+						}
+						if (e2["complement"]) {
+							list_match = QAMatch::compareListLeftToRight(e2["complement"], tree1) * attenuation;
+							if (list_match) {
+								match += list_match;
+								not_match += attenuation - list_match;
+							}
+						}
+
+					}
+				} else {
+					not_match ++;
+				}
+			}
+		}
+
+		if (!match)
+			return 0;
+
+		micro_penalty += Math.abs(length keys2 - length keys1) * 0.01;
+
+		return match / (match + not_match + micro_penalty);
+	}
+
+	static best(tree, vector, var best_match) {
+		best_match = 0;
+
+		if (!vector)
+			return 0;
+		if (!tree)
+			return 0;
+
+		var best_match_text = "";
+		for (var i = 0; i < length vector; i ++) {
+			var tree2 = vector[i];
+			if (tree2) {
+				var match = QAMatch::compare(tree, tree2);
+				if (match > best_match) {
+					best_match = match;
+					best_match_text = tree2["#"] ?? "";
+				}
+			}
+		}
+
+		return best_match_text;
+	}
+}

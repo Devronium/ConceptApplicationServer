@@ -1,0 +1,347 @@
+import standard.lib.str
+import standard.lib.stemmer
+import standard.lang.serialize
+
+include DirectoryList.con
+
+define INVERTED_INDEX_EN_STOP_WORDS	["a":true,"about":true,"above":true,"after":true,"again":true,"against":true,"all":true,"am":true,"an":true,"and":true,"any":true,"are":true,"aren't":true,"as":true,"at":true,"be":true,"because":true,"been":true,"before":true,"being":true,"below":true,"between":true,"both":true,"but":true,"by":true,"can't":true,"cannot":true,"could":true,"couldn't":true,"did":true,"didn't":true,"do":true,"does":true,"doesn't":true,"doing":true,"don't":true,"down":true,"during":true,"each":true,"few":true,"for":true,"from":true,"further":true,"had":true,"hadn't":true,"has":true,"hasn't":true,"have":true,"haven't":true,"having":true,"he":true,"he'd":true,"he'll":true,"he's":true,"her":true,"here":true,"here's":true,"hers":true,"herself":true,"him":true,"himself":true,"his":true,"how":true,"how's":true,"i":true,"i'd":true,"i'll":true,"i'm":true,"i've":true,"if":true,"in":true,"into":true,"is":true,"isn't":true,"it":true,"it's":true,"its":true,"itself":true,"let's":true,"me":true,"more":true,"most":true,"mustn't":true,"my":true,"myself":true,"no":true,"nor":true,"not":true,"of":true,"off":true,"on":true,"once":true,"only":true,"or":true,"other":true,"ought":true,"our":true,"ours":true,"ourselves":true,"out":true,"over":true,"own":true,"same":true,"shan't":true,"she":true,"she'd":true,"she'll":true,"she's":true,"should":true,"shouldn't":true,"so":true,"some":true,"such":true,"than":true,"that":true,"that's":true,"the":true,"their":true,"theirs":true,"them":true,"themselves":true,"then":true,"there":true,"there's":true,"these":true,"they":true,"they'd":true,"they'll":true,"they're":true,"they've":true,"this":true,"those":true,"through":true,"to":true,"too":true,"under":true,"until":true,"up":true,"very":true,"was":true,"wasn't":true,"we":true,"we'd":true,"we'll":true,"we're":true,"we've":true,"were":true,"weren't":true,"what":true,"what's":true,"when":true,"when's":true,"where":true,"where's":true,"which":true,"while":true,"who":true,"who's":true,"whom":true,"why":true,"why's":true,"with":true,"won't":true,"would":true,"wouldn't":true,"you":true,"you'd":true,"you'll":true,"you're":true,"you've":true,"your":true,"yours":true,"yourself":true,"yourselves":true]
+
+define INVERTED_INDEX_RO_STOP_WORDS	["impotriva":true,"intrucat":true,"intrucit":true,"multumesc":true,"altcineva":true,"datorita":true,"dinaintea":true,"inaintea":true,"nicaieri":true,"sinteti":true,"aceasta":true,"acestia":true,"asemenea":true,"deoarece":true,"inainte":true,"incotro":true,"noastra":true,"oricand":true,"oricind":true,"patrulea":true,"putina":true,"sunteti":true,"voastra":true,"﻿acea":true,"aceasta":true,"acestea":true,"acesti":true,"altceva":true,"asadar":true,"astazi":true,"astia":true,"curand":true,"curind":true,"departe":true,"fiecare":true,"gratie":true,"incat":true,"incit":true,"langa":true,"linga":true,"noastre":true,"nostri":true,"oricare":true,"oricat":true,"oricine":true,"oricit":true,"oriunde":true,"putina":true,"sintem":true,"totusi":true,"treilea":true,"voastre":true,"vostri":true,"acelea":true,"acesta":true,"aceste":true,"astea":true,"asupra":true,"aveti":true,"carei":true,"caror":true,"carui":true,"cati":true,"catre":true,"catva":true,"cineva":true,"citi":true,"citva":true,"contra":true,"dintr-":true,"dintre":true,"doilea":true,"fara":true,"frumos":true,"halba":true,"intre":true,"maine":true,"miine":true,"multa":true,"multi":true,"nevoie":true,"nimeni":true,"nimeri":true,"niste":true,"nostru":true,"oricum":true,"pana":true,"pentru":true,"pina":true,"primul":true,"putin":true,"sapte":true,"suntem":true,"toata":true,"undeva":true,"uneori":true,"vostru":true,"aceea":true,"aceia":true,"acela":true,"acele":true,"acest":true,"acolo":true,"acord":true,"aiba":true,"alea":true,"asta":true,"astea":true,"bucur":true,"buna":true,"caci":true,"cand":true,"cate":true,"chiar":true,"cinci":true,"cind":true,"cite":true,"cumva":true,"daca":true,"data":true,"desi":true,"doua":true,"drept":true,"dupa":true,"esti":true,"fiti":true,"iti":true,"mereu":true,"nimic":true,"noroc":true,"noua":true,"orice":true,"patra":true,"patru":true,"peste":true,"poate":true,"prima":true,"sase":true,"sint":true,"spate":true,"stiu":true,"suta":true,"toate":true,"toti":true,"treia":true,"uneia":true,"unele":true,"unora":true,"unuia":true,"voua":true,"vreme":true,"vreun":true,"acei":true,"acel":true,"acum":true,"aici":true,"ala":true,"alea":true,"asta":true,"ati":true,"avea":true,"avem":true,"bine":true,"care":true,"cat":true,"caut":true,"ceva":true,"cine":true,"cit":true,"deci":true,"deja":true,"eram":true,"este":true,"face":true,"fata":true,"ieri":true,"imi":true,"in ":true,"mele":true,"mine":true,"mult":true,"nici":true,"prea":true,"prin":true,"sai":true,"sale":true,"sau":true,"spre":true,"sunt":true,"tai":true,"tale":true,"tau":true,"tie":true,"timp":true,"tine":true,"trei":true,"unde":true,"unei":true,"unii":true,"unor":true,"unui":true,"unul":true,"vreo":true,"zece":true,"zero":true,"zice":true,"aia":true,"ale":true,"are":true,"as":true,"azi":true,"ca":true,"cel":true,"cum":true,"da":true,"dar":true,"dau":true,"din":true,"doi":true,"ele":true,"fie":true,"fii":true,"fim":true,"fiu":true,"iar":true,"ii":true,"il":true,"lor":true,"lui":true,"ma":true,"mai":true,"mea":true,"mei":true,"meu":true,"mie":true,"noi":true,"opt":true,"o":true,"ori":true,"pic":true,"pot":true,"rog":true,"sa":true,"sau":true,"si":true,"sub":true,"ti":true,"tot":true,"una":true,"unu":true,"va":true,"voi":true,"ai":true,"al":true,"am":true,"ar":true,"au":true,"ca":true,"ce":true,"cu":true,"da":true,"de":true,"ea":true,"ei":true,"el":true,"eu":true,"fi":true,"la":true,"le":true,"li":true,"mi":true,"ne":true,"nu":true,"pe":true,"sa":true,"se":true,"ta":true,"te":true,"tu":true,"un":true,"vi":true,"zi":true]
+
+class InvertedIndex {
+	var[] documents;
+	var[] indexes;
+	var[] extra_data;
+	var[] words_frequency;
+
+	var[] stop_words;
+
+
+	InvertedIndex() {
+		stop_words["en"] = INVERTED_INDEX_EN_STOP_WORDS;
+		stop_words["ro"] = INVERTED_INDEX_RO_STOP_WORDS;
+	}
+
+	extractWords2(var document, lang = "en", var word_count = 0) {
+		var data = UTF8Map(UTF8ToLower(document), UTF8PROC_DECOMPOSE | UTF8PROC_STRIPMARK);
+		var expr = /\w+/;
+		var[] words;
+
+		word_count = 0;
+
+		var ignore_words;
+		if (IsSet(stop_words, lang))
+			ignore_words = stop_words[lang];
+
+		while (data) {
+			var word = expr.exec(data);
+			if (!word)
+				break;
+
+			var pos = Pos(data, word);
+			if (pos <= 0)
+				break;
+
+			data = SubStr(data, pos + length word);
+
+			if ((ignore_words) && (IsSet(ignore_words, word)))
+				continue;
+
+			word = stem(word, lang);
+			words[word] ++;
+			word_count ++;
+		}
+		return words;
+	}
+
+	// faster
+	extractWords(var document, lang = "en", var word_count = 0) {
+		var[] words;
+
+		var ignore_words;
+		if (IsSet(stop_words, lang))
+			ignore_words = stop_words[lang];
+
+		var data = UTF8Map(UTF8ToLower(document), UTF8PROC_DECOMPOSE | UTF8PROC_STRIPMARK);
+
+		var all_words = extractWords(data);
+		var stemmer = stemmer_new(lang);
+		for (var i = 0; i < length all_words; i ++) {
+			var word = all_words[i];
+			if (!word)
+				continue;
+
+			if ((ignore_words) && (IsSet(ignore_words, word)))
+				continue;
+
+			word = stemmer_stem(stemmer, word);
+			words[word] ++;
+			word_count ++;
+		}
+		stemmer_delete(stemmer);
+		return words;
+	}
+
+	extractQueryWords(var document, lang = "en") {
+		var[] words;
+
+		var ignore_words;
+		if (IsSet(stop_words, lang))
+			ignore_words = stop_words[lang];
+
+		var data = UTF8Map(UTF8ToLower(document), UTF8PROC_DECOMPOSE | UTF8PROC_STRIPMARK);
+
+		var all_words = extractWords(data, " !?,.;:@#\$\%&*()={}[]|\\/<>\"'@`^\t\r\n\b");
+		var stemmer = stemmer_new(lang);
+		for (var i = 0; i < length all_words; i ++) {
+			var word = all_words[i];
+			if (!word)
+				continue;
+
+			var prefix = word[0];
+			if ((prefix == "+") || (prefix == "-"))
+				word = SubStr(word, 1);
+			else
+				prefix = "*";
+
+			if ((ignore_words) && (IsSet(ignore_words, word)))
+				continue;
+
+			word = stemmer_stem(stemmer, word);
+			words[word] = prefix;
+		}
+		stemmer_delete(stemmer);
+		return words;
+	}
+
+	loadDocument(key, var document, doc_info = "", lang = "en") {
+		var words = this.extractWords(document, lang, var word_count);
+		if ((!words) || (!word_count))
+			return 0;
+
+		var keys = GetKeys(words);
+		for (var i = 0; i < length words; i ++) {
+			var word = keys[i];
+			if (word) {
+				var arr = indexes[word];
+				if (!arr) {
+					arr = new [];
+					indexes[word] = arr;
+				}
+				// frequency
+				arr[key] = words[i] / word_count;
+			}
+		}
+		documents[key] = words;
+		if (doc_info)
+			extra_data[key] = doc_info;
+		else
+		if (IsSet(extra_data, key))
+			deleteArrayElement(extra_data, key);
+
+		return length words;
+	}
+
+	generateKey(n, prefix = 10000) {
+		n *= prefix;
+		var key = "" + n;
+		var prefix_len = length ("" + prefix);
+		while (length key < prefix_len)
+			key = "0" + key;
+		return key;
+	}
+
+	checkQuery(doc, strict_words, exclude_words) {
+		if (!doc)
+			return true;
+
+		var document = documents[doc];
+		if (!document)
+			return true;
+
+		if (strict_words) {
+			for (var i = 0; i < length strict_words; i ++) {
+				if (!IsSet(document, strict_words[i]))
+					return true;
+			}
+		}
+
+		if (exclude_words) {
+			for (i = 0; i < length exclude_words; i ++) {
+				if (IsSet(document, exclude_words[i]))
+					return true;
+			}
+		}
+
+		return false;
+	}
+
+	search(var str, lang = "en", max_documents = 0) {
+		var words = this.extractQueryWords(str, lang);
+		if (!words)
+			return [ ];
+
+		if (!words_frequency)
+			this.compute();
+
+		var[] query_arr;
+		var keys = GetKeys(words);
+
+		var[] strict_words;
+		var[] exclude_words;
+
+		for (var i = 0; i < length words; i ++) {
+			var k = keys[i];
+
+			if ((!k) || (!IsSet(words_frequency, k)))
+				continue;
+			switch (words[i]) {
+				case "+":
+					if (length words > 1)
+						strict_words[length strict_words] = k;
+					break;
+				case "-":
+					exclude_words[length exclude_words] = k;
+					continue;
+			}
+
+			var coef = "" + (100000000000 - Math.floor(words_frequency[k] * 10000000000));
+			while (length coef < 10)
+				coef = "0" + coef;
+
+			var suffix = "" + i;
+			while (length suffix < 4)
+				suffix = "0" + suffix;
+			coef += "." + suffix;
+			
+			query_arr[coef] = keys[i];
+		}
+
+		query_arr = KeySorted(query_arr);
+		var[] q_documents;
+		var[] q_documents_count;
+		for (i = 0; i < length query_arr; i ++) {
+			var word = query_arr[i];
+			var word_documents = indexes[word];
+
+			var doc_keys = GetKeys(word_documents);
+			for (var j = 0; j < length word_documents; j ++) {
+				var doc = doc_keys[j];
+				if (doc) {
+					if ((strict_words) || (exclude_words)) {
+						if (checkQuery(doc, strict_words, exclude_words))
+							continue;
+					}
+
+					q_documents[doc] += word_documents[j];
+					q_documents_count[doc] ++;
+				}
+
+				if ((max_documents > 0) && (length q_documents >= max_documents))
+					break;
+			}
+
+			if ((max_documents > 0) && (length q_documents >= max_documents))
+				break;
+		}
+	
+
+		var[] data;
+		doc_keys = GetKeys(q_documents);
+		for (i = 0; i < length q_documents; i ++) {
+			coef = "" + (Math.floor((3 - q_documents_count[i] / length query_arr) * 100000000000) - Math.floor(q_documents[i] * 10000000000));
+			while (length coef < 10)
+				coef = "0" + coef;
+			suffix = "" + i;
+			while (length suffix < 4)
+				suffix = "0" + suffix;
+			coef += "." + suffix;
+
+			data[coef] = doc_keys[i];
+		}
+		return KeySorted(data);
+	}
+
+	loadDirectory(path, lang = "en", max_documents = 0, add_filename = false) {
+		var arr = DirectoryList::ListByExt(path, ["txt"]);
+		var words = 0;
+		var index = 0;
+		if (max_documents > 0) {
+			index = length arr - max_documents;
+			if (index < 0)
+				index = 0;
+		}
+		for (var i = index; i < length arr; i ++) {
+			if (IsSet(documents, arr[i]))
+				continue;
+
+			var data = "";
+			if (add_filename) {
+				data = (StrSplit(arr[i], ".")[0]) ?? "";
+				if (data)
+					data += "\n";
+			}
+			data += ReadFile(path + "/" + arr[i]);
+
+			words += this.loadDocument(arr[i], data, "", lang);
+		}
+		return words;
+	}
+
+	compute() {
+		var keys = GetKeys(indexes);
+		words_frequency = new [];
+		var total_words = length documents;
+		if (total_words) {
+			for (var i = 0; i < length indexes; i ++) {
+				var word = keys[i];
+				words_frequency[word] = - log((length indexes[i]) / total_words);
+			}
+		}
+	}
+
+	info(key) {
+		if (IsSet(extra_data, key))
+			return extra_data[key];
+
+		return null;
+	}
+
+	details(document, query_data, lang = "en", start_tag = "<b>", end_tag = "</b>") {
+		if (!query_data)
+			return document;
+
+		var data = UTF8Map(UTF8ToLower(document), UTF8PROC_DECOMPOSE | UTF8PROC_STRIPMARK);
+		if (typeof query_data == "string")
+			query_data = this.extractWords(query_data);
+
+		var expr = /\w+/;
+
+		var offset = 0;
+		while (data) {
+			var word = expr.exec(data);
+			if (!word)
+				break;
+
+			var pos = Pos(data, word);
+			if (pos <= 0)
+				break;
+
+			var stemmed_word = stem(word, lang);
+			if (IsSet(query_data, stemmed_word)) {
+				var idx = UTF8Offset(document, offset + pos - 1);
+				document = SubStr(document, 0, idx) + start_tag + SubStr(document, idx);
+				offset += length start_tag;
+
+				idx = UTF8Offset(document, offset + pos - 1 + length word);
+				document = SubStr(document, 0, idx) + end_tag + SubStr(document, idx);
+				offset += length end_tag;
+			}
+
+			data = SubStr(data, pos + length word);
+
+			offset += pos + length word;
+		}
+		return document;
+	}
+}

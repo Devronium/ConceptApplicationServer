@@ -133,7 +133,7 @@ class RemoteGPUStream {
 			var no_voice = 0;
 
 			var vad = fvad_new();
-			fvad_set_mode(vad, 0);
+			fvad_set_mode(vad, 2);
 			fvad_set_sample_rate(vad, modelSampleRate);
 
 			var voice_frames = 0;
@@ -159,15 +159,15 @@ class RemoteGPUStream {
 			}
 			fvad_free(vad);
 
-			if ((no_voice > 25) && (no_voice < 50) && (max_no_voice > 50) && (max_voice_frames >= 50))
+			if ((no_voice > 25) && (no_voice < 50) && (max_no_voice > 50) && (max_voice_frames >= 50) && (max_voice_frames < 100))
 				no_voice = 50;
 
 			if (((no_voice >= 50) || (buf_size_ms > BufferTimeout)) && (max_voice_frames >= 10)) {
 				if (before_decode_callback)
 					before_decode_callback(before_decode_callback_data);
 				var text = RemoteGPUClient::stt(this.host, this.port, this.key, audio_buffer, this.codec, this.lang, this.modelSampleRate, voice_ms);
-				if (!text)
-					text = "_____";
+				// if (!text)
+				// 	text = "_____";
 				if (text) {
 					if (decodedText)
 						decodedText += " ";
