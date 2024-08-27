@@ -205,7 +205,7 @@ CONCEPT_FUNCTION_IMPL(WhisperSampleRate, 0)
     RETURN_NUMBER(WHISPER_SAMPLE_RATE);
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL(WhisperDecode, 2)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperDecode, 2, 3)
     T_HANDLE(WhisperDecode, 0)
     T_STRING(WhisperDecode, 1)
 
@@ -215,6 +215,8 @@ CONCEPT_FUNCTION_IMPL(WhisperDecode, 2)
         return 0;
     }
 
+    const char *lang = NULL;
+
     short *buf = (short *)PARAM(1);
 
     int len = PARAM_LEN(1)/ 2;
@@ -223,10 +225,20 @@ CONCEPT_FUNCTION_IMPL(WhisperDecode, 2)
         return 0;
     }
 
+    if (PARAMETERS_COUNT > 2) {
+        T_STRING(WhisperDecode, 2)
+        lang = PARAM(2);
+        if ((lang) || (lang[0]) || (whisper_lang_id(lang) == -1))
+            lang = NULL;
+    }
+
     float *input = (float *)malloc((len + 1) * sizeof(float));
     src_short_to_float_array((short *)buf, input, len);
 
     whisper_full_params wparams = ctx->wparams;
+
+    if (lang)
+        wparams.language = lang;
 
     wparams.offset_ms = 0;
     wparams.duration_ms = len / (WHISPER_SAMPLE_RATE / 1000);

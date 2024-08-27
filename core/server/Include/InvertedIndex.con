@@ -89,20 +89,35 @@ class InvertedIndex {
 		if (IsSet(stop_words, lang))
 			ignore_words = stop_words[lang];
 
-		var data = UTF8Map(UTF8ToLower(document), UTF8PROC_DECOMPOSE | UTF8PROC_STRIPMARK);
+		var data = trim(UTF8Map(UTF8ToLower(document), UTF8PROC_DECOMPOSE | UTF8PROC_STRIPMARK));
 
-		var all_words = extractWords(data, " !?,.;:@#\$\%&*()={}[]|\\/<>\"'@`^\t\r\n\b");
+		var quote = false;
+		if ((length data > 2) && (data[0] == "\"") && (data[length data - 1] == "\"")) {
+			data = SubStr(data, 1, length data - 2);
+			quote = true;
+		}
+
+		var all_words;
+		if (quote)
+			all_words = extractWords(data);
+		else
+			all_words = extractWords(data, " !?,.;:@#\$\%&*()={}[]|\\/<>\"'@`^\t\r\n\b");
 		var stemmer = stemmer_new(lang);
+		var prefix;
 		for (var i = 0; i < length all_words; i ++) {
 			var word = all_words[i];
 			if (!word)
 				continue;
 
-			var prefix = word[0];
-			if ((prefix == "+") || (prefix == "-"))
-				word = SubStr(word, 1);
-			else
-				prefix = "*";
+			if (quote) {
+				prefix = "+";
+			} else {
+				prefix = word[0];
+				if ((prefix == "+") || (prefix == "-"))
+					word = SubStr(word, 1);
+				else
+					prefix = "*";
+			}
 
 			if ((ignore_words) && (IsSet(ignore_words, word)))
 				continue;
@@ -189,7 +204,6 @@ class InvertedIndex {
 
 		var[] strict_words;
 		var[] exclude_words;
-
 		for (var i = 0; i < length words; i ++) {
 			var k = keys[i];
 
@@ -237,12 +251,12 @@ class InvertedIndex {
 					q_documents_count[doc] ++;
 				}
 
-				if ((max_documents > 0) && (length q_documents >= max_documents))
-					break;
+				// if ((max_documents > 0) && (length q_documents >= max_documents))
+				// 	break;
 			}
 
-			if ((max_documents > 0) && (length q_documents >= max_documents))
-				break;
+			// if ((max_documents > 0) && (length q_documents >= max_documents))
+			// 	break;
 		}
 	
 
@@ -259,7 +273,16 @@ class InvertedIndex {
 
 			data[coef] = doc_keys[i];
 		}
-		return KeySorted(data);
+		var arr = KeySorted(data);
+
+		if ((max_documents > 0) && (length arr > max_documents)) {
+			var new_arr = new [];
+			for (i = 0; i < max_documents; i ++)
+				new_arr[i] = arr[i];
+			return new_arr;
+		}
+
+		return arr;
 	}
 
 	loadDirectory(path, lang = "en", max_documents = 0, add_filename = false) {
@@ -343,5 +366,21 @@ class InvertedIndex {
 			offset += pos + length word;
 		}
 		return document;
+	}
+
+	top(limit = 1.7, max_len = 100) {
+		var[] arr;
+		var keys = GetKeys(words_frequency);
+		for (var i = 0; i < length words_frequency; i ++) {
+			if (words_frequency[i] <= limit) {
+				var k = keys[i];
+				if (length k >= 3) {
+					arr[length arr] = k;
+					if ((max_len > 0) && (length arr >= max_len))
+						break;
+				}
+			}
+		}
+		return arr;
 	}
 }
