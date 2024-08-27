@@ -12,7 +12,8 @@ AC_PROG_CXX
 AC_PROG_CC
 
 # Checks for libraries.
-# FIXME: Replace `main' with a function in `-lfann':
+pkg_modules="librwkv >= 1.0.0"
+PKG_CHECK_MODULES(RWKV, [$pkg_modules])
 
 # Checks for header files.
 AC_HEADER_STDC

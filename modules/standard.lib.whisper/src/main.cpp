@@ -228,7 +228,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperDecode, 2, 3)
     if (PARAMETERS_COUNT > 2) {
         T_STRING(WhisperDecode, 2)
         lang = PARAM(2);
-        if ((lang) || (lang[0]) || (whisper_lang_id(lang) == -1))
+        if ((!lang) || (!lang[0]) || (whisper_lang_id(lang) == -1))
             lang = NULL;
     }
 

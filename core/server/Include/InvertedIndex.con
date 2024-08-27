@@ -368,6 +368,37 @@ class InvertedIndex {
 		return document;
 	}
 
+	deleteDocument(key, commit = true) {
+		if ((!key) || (!IsSet(documents, key)))
+			return false;
+
+		var words = documents[key];
+
+		deleteArrayElement(documents, key);
+		deleteArrayElement(extra_data, key);
+
+		var keys = GetKeys(words);
+		for (var i = 0; i < length words; i ++) {
+			var word = keys[i];
+			if (IsSet(indexes, word)) {
+				var arr = indexes[word];
+				if (arr) {
+					if (length arr == 1)
+						deleteArrayElement(indexes, word);
+					else
+						deleteArrayElement(arr, key);
+				}
+			}
+		}
+
+		if (commit)
+			this.compute();
+		else
+		if (words_frequency)
+			words_frequency = [ ];
+		return true;
+	}
+
 	top(limit = 1.7, max_len = 100) {
 		var[] arr;
 		var keys = GetKeys(words_frequency);
