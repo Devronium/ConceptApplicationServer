@@ -310,7 +310,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(rwkv_run, 3, 11)
 	if ((!tokenizer) || (tokenizer->use_simple_tokenizer)) {
 		int size = 0;
 		uint32_t *sequence = encode_sequence(PARAM(2), &size);
-		error = (int) rwkv_eval_sequence(ctx, sequence, size, state, state, logits);
+		error = (int) rwkv_eval_sequence_in_chunks(ctx, sequence, size, 16, state, state, logits);
 		free(sequence);
 	} else {
 		std::vector<long long> initial = tokenizer->tokenizer.value().encode(PARAM(2));
