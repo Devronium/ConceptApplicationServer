@@ -2466,6 +2466,9 @@ class SIPStack {
 		session.auth = 2;
 		session.write_timestamp = microseconds();
 		session.write_server = [registration.server, registration.server_port];
+
+		session.msg.Headers["cseq"] = "" + (value session.msg.Headers["cseq"] + 1) + " " + session.msg.Method;
+
 		if (this.DoWrite(use_socket ?? udpclientsocket, session.msg.ToString(this), registration.server, registration.server_port) <= 0)
 			return null;
 

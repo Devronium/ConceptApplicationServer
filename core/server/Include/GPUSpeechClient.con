@@ -6,12 +6,12 @@ import standard.lib.vad
 include TCPSocket.con
 
 class RemoteGPUClient {
-	static stt(host, port, hmac_key, var buffer, codec = 8, lang = "", sample_rate = 8000, voice_ms = -1, timeout = 1000, max_size = 48000) {
+	static stt(host, port, hmac_key, var buffer, codec = 8, lang = "", sample_rate = 8000, voice_ms = -1, timeout = 4000, max_size = 48000) {
 		try {
 			var client = new TCPSocket();
 			client.SetOption(SOL_SOCKET, SO_RCVTIMEO, timeout);
-			client.SetOption(SOL_SOCKET, SO_RCVTIMEO, 10000);
-			client.ConnectTimeout = timeout * 2;
+			client.SetOption(SOL_SOCKET, SO_SNDTIMEO, timeout);
+			client.ConnectTimeout = timeout * 2 + 1000;
 
 			if (!client.Connect(host, port)) {
 				console.warn(LOG_THIS, "error connecting to $host:$port");

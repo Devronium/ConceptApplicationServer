@@ -81,7 +81,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(rwkv_init_from_file, 2, 3)
 	T_STRING(rwkv_init_from_file, 0)
 	T_NUMBER(rwkv_init_from_file, 1)
-	int gpu_layers = 0;
+	int gpu_layers = 128;
 	if (PARAMETERS_COUNT > 2) {
 		T_NUMBER(rwkv_init_from_file, 2)
 		gpu_layers = PARAM_INT(2);
