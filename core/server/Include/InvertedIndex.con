@@ -10,12 +10,17 @@ define INVERTED_INDEX_RO_STOP_WORDS	["impotriva":true,"intrucat":true,"intrucit"
 
 class InvertedIndex {
 	var[] documents;
+	var[] documents_length;
 	var[] indexes;
 	var[] extra_data;
 	var[] words_frequency;
 
 	var[] stop_words;
 
+	var avgdl;
+	var avgdl_sum;
+
+	var useBM25 = true;
 
 	InvertedIndex() {
 		stop_words["en"] = INVERTED_INDEX_EN_STOP_WORDS;
@@ -135,6 +140,7 @@ class InvertedIndex {
 			return 0;
 
 		var keys = GetKeys(words);
+		var document_length = 0;
 		for (var i = 0; i < length words; i ++) {
 			var word = keys[i];
 			if (word) {
@@ -145,14 +151,19 @@ class InvertedIndex {
 				}
 				// frequency
 				arr[key] = words[i] / word_count;
+				document_length += words[i];
 			}
 		}
 		documents[key] = words;
+		documents_length[key] = document_length;
 		if (doc_info)
 			extra_data[key] = doc_info;
 		else
 		if (IsSet(extra_data, key))
 			deleteArrayElement(extra_data, key);
+
+		avgdl_sum += document_length;
+		avgdl = avgdl_sum / length documents;
 
 		return length words;
 	}
@@ -191,7 +202,7 @@ class InvertedIndex {
 		return false;
 	}
 
-	search(var str, lang = "en", max_documents = 0) {
+	search(var str, lang = "en", max_documents = 0, k1 = 1.2, b = 0.75) {
 		var words = this.extractQueryWords(str, lang);
 		if (!words)
 			return [ ];
@@ -207,8 +218,9 @@ class InvertedIndex {
 		for (var i = 0; i < length words; i ++) {
 			var k = keys[i];
 
-			if ((!k) || (!IsSet(words_frequency, k)))
+			if ((!k) || (!IsSet(indexes, k)))
 				continue;
+
 			switch (words[i]) {
 				case "+":
 					if (length words > 1)
@@ -219,23 +231,32 @@ class InvertedIndex {
 					continue;
 			}
 
-			var coef = "" + (100000000000 - Math.floor(words_frequency[k] * 10000000000));
-			while (length coef < 10)
-				coef = "0" + coef;
+			if (useBM25) {
+				query_arr[length query_arr] = k;
+			} else {
+				var coef = "" + (100000000000 - Math.floor(words_frequency[k] * 10000000000));
+				while (length coef < 10)
+					coef = "0" + coef;
 
-			var suffix = "" + i;
-			while (length suffix < 4)
-				suffix = "0" + suffix;
-			coef += "." + suffix;
+				var suffix = "" + i;
+				while (length suffix < 4)
+					suffix = "0" + suffix;
+				coef += "." + suffix;
 			
-			query_arr[coef] = keys[i];
+				query_arr[coef] = k;
+			}
 		}
 
-		query_arr = KeySorted(query_arr);
+		if (!useBM25)
+			query_arr = KeySorted(query_arr);
 		var[] q_documents;
 		var[] q_documents_count;
+		var max_coef = 0;
+		var min_coef = 0;
 		for (i = 0; i < length query_arr; i ++) {
 			var word = query_arr[i];
+			if (!IsSet(indexes, word))
+				continue;
 			var word_documents = indexes[word];
 
 			var doc_keys = GetKeys(word_documents);
@@ -247,7 +268,28 @@ class InvertedIndex {
 							continue;
 					}
 
-					q_documents[doc] += word_documents[j];
+					if (useBM25) {
+						var document = documents[doc];
+						var document_length = documents_length[doc];
+
+						var f_qi_D = 0;
+
+						if (IsSet(document, word))
+							f_qi_D = document[word];
+
+						var idf = log((length documents - (length word_documents) + 0.5) / (length word_documents + 0.5) + 1);
+
+						var qi = idf * (f_qi_D * (k1 + 1)) / (f_qi_D + k1 * (1 - b + b * (document_length) / avgdl));
+						q_documents[doc] += qi;
+
+						qi = q_documents[doc];
+
+						if (qi > max_coef)
+							max_coef = qi;
+						if (qi < min_coef)
+							min_coef = qi;
+					} else
+						q_documents[doc] += word_documents[j];
 					q_documents_count[doc] ++;
 				}
 
@@ -262,8 +304,17 @@ class InvertedIndex {
 
 		var[] data;
 		doc_keys = GetKeys(q_documents);
+		if (min_coef < 0)
+			max_coef -= min_coef;
+
 		for (i = 0; i < length q_documents; i ++) {
-			coef = "" + (Math.floor((3 - q_documents_count[i] / length query_arr) * 100000000000) - Math.floor(q_documents[i] * 10000000000));
+			word = doc_keys[i];
+
+			if (useBM25)
+				coef = "" + Math.floor((max_coef - q_documents[i]) * 10000000000);
+			else
+				coef = "" + (Math.floor((3 - q_documents_count[i] / length query_arr) * 100000000000) - Math.floor(q_documents[i] * 10000000000));
+
 			while (length coef < 10)
 				coef = "0" + coef;
 			suffix = "" + i;
@@ -312,12 +363,17 @@ class InvertedIndex {
 	}
 
 	compute() {
+		if (useBM25)
+			return;
+
 		var keys = GetKeys(indexes);
 		words_frequency = new [];
 		var total_words = length documents;
+
 		if (total_words) {
 			for (var i = 0; i < length indexes; i ++) {
 				var word = keys[i];
+
 				words_frequency[word] = - log((length indexes[i]) / total_words);
 			}
 		}
@@ -373,8 +429,10 @@ class InvertedIndex {
 			return false;
 
 		var words = documents[key];
+		var document_length = documents_length[key];
 
 		deleteArrayElement(documents, key);
+		deleteArrayElement(documents_length, key);
 		deleteArrayElement(extra_data, key);
 
 		var keys = GetKeys(words);
@@ -389,6 +447,13 @@ class InvertedIndex {
 						deleteArrayElement(arr, key);
 				}
 			}
+		}
+		avgdl_sum -= document_length;
+		if ((avgdl_sum <= 0) || (length documents == 0)) {
+			avgdl_sum = 0;
+			avgdl = 0;
+		} else {
+			avgdl = avgdl_sum / length documents;
 		}
 
 		if (commit)
