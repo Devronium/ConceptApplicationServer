@@ -22,6 +22,8 @@ class InvertedIndex {
 
 	var useBM25 = true;
 
+	var useStemmer;
+
 	InvertedIndex() {
 		stop_words["en"] = INVERTED_INDEX_EN_STOP_WORDS;
 		stop_words["ro"] = INVERTED_INDEX_RO_STOP_WORDS;
@@ -52,7 +54,10 @@ class InvertedIndex {
 			if ((ignore_words) && (IsSet(ignore_words, word)))
 				continue;
 
-			word = stem(word, lang);
+			if (useStemmer)
+				word = useStemmer(word, lang);
+			else
+				word = stem(word, lang);
 			words[word] ++;
 			word_count ++;
 		}
@@ -70,7 +75,9 @@ class InvertedIndex {
 		var data = UTF8Map(UTF8ToLower(document), UTF8PROC_DECOMPOSE | UTF8PROC_STRIPMARK);
 
 		var all_words = extractWords(data);
-		var stemmer = stemmer_new(lang);
+		var stemmer;
+		if (!useStemmer)
+			stemmer = stemmer_new(lang);
 		for (var i = 0; i < length all_words; i ++) {
 			var word = all_words[i];
 			if (!word)
@@ -79,11 +86,15 @@ class InvertedIndex {
 			if ((ignore_words) && (IsSet(ignore_words, word)))
 				continue;
 
-			word = stemmer_stem(stemmer, word);
+			if (useStemmer)
+				word = useStemmer(word, lang);
+			else
+				word = stemmer_stem(stemmer, word);
 			words[word] ++;
 			word_count ++;
 		}
-		stemmer_delete(stemmer);
+		if (stemmer)
+			stemmer_delete(stemmer);
 		return words;
 	}
 
@@ -107,7 +118,9 @@ class InvertedIndex {
 			all_words = extractWords(data);
 		else
 			all_words = extractWords(data, " !?,.;:@#\$\%&*()={}[]|\\/<>\"'@`^\t\r\n\b");
-		var stemmer = stemmer_new(lang);
+		var stemmer;
+		if (!useStemmer)
+			stemmer = stemmer_new(lang);
 		var prefix;
 		for (var i = 0; i < length all_words; i ++) {
 			var word = all_words[i];
@@ -127,10 +140,14 @@ class InvertedIndex {
 			if ((ignore_words) && (IsSet(ignore_words, word)))
 				continue;
 
-			word = stemmer_stem(stemmer, word);
+			if (useStemmer)
+				word = useStemmer(word, lang);
+			else
+				word = stemmer_stem(stemmer, word);
 			words[word] = prefix;
 		}
-		stemmer_delete(stemmer);
+		if (stemmer)
+			stemmer_delete(stemmer);
 		return words;
 	}
 
@@ -406,7 +423,11 @@ class InvertedIndex {
 			if (pos <= 0)
 				break;
 
-			var stemmed_word = stem(word, lang);
+			var stemmed_word;
+			if (useStemmer)
+				stemmed_word = useStemmer(word, lang);
+			else
+				stemmed_word = stem(word, lang);
 			if (IsSet(query_data, stemmed_word)) {
 				var idx = UTF8Offset(document, offset + pos - 1);
 				document = SubStr(document, 0, idx) + start_tag + SubStr(document, idx);

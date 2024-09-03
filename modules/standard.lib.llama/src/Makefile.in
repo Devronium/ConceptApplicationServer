@@ -99,14 +99,9 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(libexecdir)"
 PROGRAMS = $(libexec_PROGRAMS)
-am_standard_lib_llama_so_OBJECTS = ggml.$(OBJEXT) ggml-alloc.$(OBJEXT) \
-	ggml-backend.$(OBJEXT) ggml-quants.$(OBJEXT) \
-	ggml-aarch64.$(OBJEXT) llama-grammar.$(OBJEXT) \
-	llama-sampling.$(OBJEXT) llama-vocab.$(OBJEXT) llama.$(OBJEXT) \
-	unicode.$(OBJEXT) unicode-data.$(OBJEXT) stdlibrary.$(OBJEXT) \
-	main.$(OBJEXT)
+am_standard_lib_llama_so_OBJECTS = stdlibrary.$(OBJEXT) main.$(OBJEXT)
 standard_lib_llama_so_OBJECTS = $(am_standard_lib_llama_so_OBJECTS)
-standard_lib_llama_so_LDADD = $(LDADD)
+standard_lib_llama_so_DEPENDENCIES =
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -122,30 +117,8 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/ggml-aarch64.Po \
-	./$(DEPDIR)/ggml-alloc.Po ./$(DEPDIR)/ggml-backend.Po \
-	./$(DEPDIR)/ggml-quants.Po ./$(DEPDIR)/ggml.Po \
-	./$(DEPDIR)/llama-grammar.Po ./$(DEPDIR)/llama-sampling.Po \
-	./$(DEPDIR)/llama-vocab.Po ./$(DEPDIR)/llama.Po \
-	./$(DEPDIR)/main.Po ./$(DEPDIR)/stdlibrary.Po \
-	./$(DEPDIR)/unicode-data.Po ./$(DEPDIR)/unicode.Po
+am__depfiles_remade = ./$(DEPDIR)/main.Po ./$(DEPDIR)/stdlibrary.Po
 am__mv = mv -f
-AM_V_lt = $(am__v_lt_@AM_V@)
-am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
-am__v_lt_0 = --silent
-am__v_lt_1 = 
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-AM_V_CC = $(am__v_CC_@AM_V@)
-am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 = 
-CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-AM_V_CCLD = $(am__v_CCLD_@AM_V@)
-am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 = 
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 AM_V_CXX = $(am__v_CXX_@AM_V@)
@@ -159,6 +132,18 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+AM_V_CC = $(am__v_CC_@AM_V@)
+am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
+am__v_CC_0 = @echo "  CC      " $@;
+am__v_CC_1 = 
+CCLD = $(CC)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CCLD = $(am__v_CCLD_@AM_V@)
+am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
+am__v_CCLD_0 = @echo "  CCLD    " $@;
+am__v_CCLD_1 = 
 SOURCES = $(standard_lib_llama_so_SOURCES)
 DIST_SOURCES = $(standard_lib_llama_so_SOURCES)
 am__can_run_installinfo = \
@@ -284,14 +269,15 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # what flags you want to pass to the C compiler & linker
-AM_CFLAGS = -O3 -fPIC -march=haswell -Iggml/include -Iggml/src
-AM_CXXFLAGS = -O3 -fPIC -march=haswell -Iggml/include -Iggml/src
+AM_CFLAGS = -O3 @LLAMA_CFLAGS@ -fPIC -march=haswell
+AM_CXXFLAGS = -O3 @LLAMA_CFLAGS@ -fPIC -march=haswell
 AM_LDFLAGS = -shared -lpthread
-standard_lib_llama_so_SOURCES = ggml/src/ggml.c ggml/src/ggml-alloc.c ggml/src/ggml-backend.c ggml/src/ggml-quants.c ggml/src/ggml-aarch64.c llama-grammar.cpp llama-grammar.h llama-impl.h llama-sampling.cpp llama-sampling.h llama-vocab.cpp llama-vocab.h llama.cpp llama.h unicode.cpp unicode.h unicode-data.cpp unicode-data.h stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h
+standard_lib_llama_so_LDADD = -lpthread @LLAMA_LIBS@
+standard_lib_llama_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .cpp .o .obj
+.SUFFIXES: .cpp .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -374,109 +360,14 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ggml-aarch64.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ggml-alloc.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ggml-backend.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ggml-quants.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ggml.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/llama-grammar.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/llama-sampling.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/llama-vocab.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/llama.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stdlibrary.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unicode-data.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unicode.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
 	@echo '# dummy' >$@-t && $(am__mv) $@-t $@
 
 am--depfiles: $(am__depfiles_remade)
-
-.c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
-
-.c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-ggml.o: ggml/src/ggml.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ggml.o -MD -MP -MF $(DEPDIR)/ggml.Tpo -c -o ggml.o `test -f 'ggml/src/ggml.c' || echo '$(srcdir)/'`ggml/src/ggml.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ggml.Tpo $(DEPDIR)/ggml.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ggml/src/ggml.c' object='ggml.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ggml.o `test -f 'ggml/src/ggml.c' || echo '$(srcdir)/'`ggml/src/ggml.c
-
-ggml.obj: ggml/src/ggml.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ggml.obj -MD -MP -MF $(DEPDIR)/ggml.Tpo -c -o ggml.obj `if test -f 'ggml/src/ggml.c'; then $(CYGPATH_W) 'ggml/src/ggml.c'; else $(CYGPATH_W) '$(srcdir)/ggml/src/ggml.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ggml.Tpo $(DEPDIR)/ggml.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ggml/src/ggml.c' object='ggml.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ggml.obj `if test -f 'ggml/src/ggml.c'; then $(CYGPATH_W) 'ggml/src/ggml.c'; else $(CYGPATH_W) '$(srcdir)/ggml/src/ggml.c'; fi`
-
-ggml-alloc.o: ggml/src/ggml-alloc.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ggml-alloc.o -MD -MP -MF $(DEPDIR)/ggml-alloc.Tpo -c -o ggml-alloc.o `test -f 'ggml/src/ggml-alloc.c' || echo '$(srcdir)/'`ggml/src/ggml-alloc.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ggml-alloc.Tpo $(DEPDIR)/ggml-alloc.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ggml/src/ggml-alloc.c' object='ggml-alloc.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ggml-alloc.o `test -f 'ggml/src/ggml-alloc.c' || echo '$(srcdir)/'`ggml/src/ggml-alloc.c
-
-ggml-alloc.obj: ggml/src/ggml-alloc.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ggml-alloc.obj -MD -MP -MF $(DEPDIR)/ggml-alloc.Tpo -c -o ggml-alloc.obj `if test -f 'ggml/src/ggml-alloc.c'; then $(CYGPATH_W) 'ggml/src/ggml-alloc.c'; else $(CYGPATH_W) '$(srcdir)/ggml/src/ggml-alloc.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ggml-alloc.Tpo $(DEPDIR)/ggml-alloc.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ggml/src/ggml-alloc.c' object='ggml-alloc.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ggml-alloc.obj `if test -f 'ggml/src/ggml-alloc.c'; then $(CYGPATH_W) 'ggml/src/ggml-alloc.c'; else $(CYGPATH_W) '$(srcdir)/ggml/src/ggml-alloc.c'; fi`
-
-ggml-backend.o: ggml/src/ggml-backend.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ggml-backend.o -MD -MP -MF $(DEPDIR)/ggml-backend.Tpo -c -o ggml-backend.o `test -f 'ggml/src/ggml-backend.c' || echo '$(srcdir)/'`ggml/src/ggml-backend.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ggml-backend.Tpo $(DEPDIR)/ggml-backend.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ggml/src/ggml-backend.c' object='ggml-backend.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ggml-backend.o `test -f 'ggml/src/ggml-backend.c' || echo '$(srcdir)/'`ggml/src/ggml-backend.c
-
-ggml-backend.obj: ggml/src/ggml-backend.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ggml-backend.obj -MD -MP -MF $(DEPDIR)/ggml-backend.Tpo -c -o ggml-backend.obj `if test -f 'ggml/src/ggml-backend.c'; then $(CYGPATH_W) 'ggml/src/ggml-backend.c'; else $(CYGPATH_W) '$(srcdir)/ggml/src/ggml-backend.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ggml-backend.Tpo $(DEPDIR)/ggml-backend.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ggml/src/ggml-backend.c' object='ggml-backend.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ggml-backend.obj `if test -f 'ggml/src/ggml-backend.c'; then $(CYGPATH_W) 'ggml/src/ggml-backend.c'; else $(CYGPATH_W) '$(srcdir)/ggml/src/ggml-backend.c'; fi`
-
-ggml-quants.o: ggml/src/ggml-quants.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ggml-quants.o -MD -MP -MF $(DEPDIR)/ggml-quants.Tpo -c -o ggml-quants.o `test -f 'ggml/src/ggml-quants.c' || echo '$(srcdir)/'`ggml/src/ggml-quants.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ggml-quants.Tpo $(DEPDIR)/ggml-quants.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ggml/src/ggml-quants.c' object='ggml-quants.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ggml-quants.o `test -f 'ggml/src/ggml-quants.c' || echo '$(srcdir)/'`ggml/src/ggml-quants.c
-
-ggml-quants.obj: ggml/src/ggml-quants.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ggml-quants.obj -MD -MP -MF $(DEPDIR)/ggml-quants.Tpo -c -o ggml-quants.obj `if test -f 'ggml/src/ggml-quants.c'; then $(CYGPATH_W) 'ggml/src/ggml-quants.c'; else $(CYGPATH_W) '$(srcdir)/ggml/src/ggml-quants.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ggml-quants.Tpo $(DEPDIR)/ggml-quants.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ggml/src/ggml-quants.c' object='ggml-quants.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ggml-quants.obj `if test -f 'ggml/src/ggml-quants.c'; then $(CYGPATH_W) 'ggml/src/ggml-quants.c'; else $(CYGPATH_W) '$(srcdir)/ggml/src/ggml-quants.c'; fi`
-
-ggml-aarch64.o: ggml/src/ggml-aarch64.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ggml-aarch64.o -MD -MP -MF $(DEPDIR)/ggml-aarch64.Tpo -c -o ggml-aarch64.o `test -f 'ggml/src/ggml-aarch64.c' || echo '$(srcdir)/'`ggml/src/ggml-aarch64.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ggml-aarch64.Tpo $(DEPDIR)/ggml-aarch64.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ggml/src/ggml-aarch64.c' object='ggml-aarch64.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ggml-aarch64.o `test -f 'ggml/src/ggml-aarch64.c' || echo '$(srcdir)/'`ggml/src/ggml-aarch64.c
-
-ggml-aarch64.obj: ggml/src/ggml-aarch64.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ggml-aarch64.obj -MD -MP -MF $(DEPDIR)/ggml-aarch64.Tpo -c -o ggml-aarch64.obj `if test -f 'ggml/src/ggml-aarch64.c'; then $(CYGPATH_W) 'ggml/src/ggml-aarch64.c'; else $(CYGPATH_W) '$(srcdir)/ggml/src/ggml-aarch64.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ggml-aarch64.Tpo $(DEPDIR)/ggml-aarch64.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ggml/src/ggml-aarch64.c' object='ggml-aarch64.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ggml-aarch64.obj `if test -f 'ggml/src/ggml-aarch64.c'; then $(CYGPATH_W) 'ggml/src/ggml-aarch64.c'; else $(CYGPATH_W) '$(srcdir)/ggml/src/ggml-aarch64.c'; fi`
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -619,19 +510,8 @@ clean: clean-am
 clean-am: clean-generic clean-libexecPROGRAMS mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/ggml-aarch64.Po
-	-rm -f ./$(DEPDIR)/ggml-alloc.Po
-	-rm -f ./$(DEPDIR)/ggml-backend.Po
-	-rm -f ./$(DEPDIR)/ggml-quants.Po
-	-rm -f ./$(DEPDIR)/ggml.Po
-	-rm -f ./$(DEPDIR)/llama-grammar.Po
-	-rm -f ./$(DEPDIR)/llama-sampling.Po
-	-rm -f ./$(DEPDIR)/llama-vocab.Po
-	-rm -f ./$(DEPDIR)/llama.Po
-	-rm -f ./$(DEPDIR)/main.Po
+		-rm -f ./$(DEPDIR)/main.Po
 	-rm -f ./$(DEPDIR)/stdlibrary.Po
-	-rm -f ./$(DEPDIR)/unicode-data.Po
-	-rm -f ./$(DEPDIR)/unicode.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -677,19 +557,8 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/ggml-aarch64.Po
-	-rm -f ./$(DEPDIR)/ggml-alloc.Po
-	-rm -f ./$(DEPDIR)/ggml-backend.Po
-	-rm -f ./$(DEPDIR)/ggml-quants.Po
-	-rm -f ./$(DEPDIR)/ggml.Po
-	-rm -f ./$(DEPDIR)/llama-grammar.Po
-	-rm -f ./$(DEPDIR)/llama-sampling.Po
-	-rm -f ./$(DEPDIR)/llama-vocab.Po
-	-rm -f ./$(DEPDIR)/llama.Po
-	-rm -f ./$(DEPDIR)/main.Po
+		-rm -f ./$(DEPDIR)/main.Po
 	-rm -f ./$(DEPDIR)/stdlibrary.Po
-	-rm -f ./$(DEPDIR)/unicode-data.Po
-	-rm -f ./$(DEPDIR)/unicode.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

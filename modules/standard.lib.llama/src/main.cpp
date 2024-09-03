@@ -531,6 +531,54 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
     llama_batch_free(batch);
 END_IMPL
 //=====================================================================================//
+CONCEPT_FUNCTION_IMPL(llama_save_state, 1)
+    T_HANDLE(llama_save_state, 0)
+
+    struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    if ((!ctx) || (!ctx->ctx)) {
+        RETURN_STRING("");
+        return 0;
+    }
+
+    char *ptr = NULL;
+    size_t size = llama_state_get_size(ctx->ctx);
+    CORE_NEW(size + 1, ptr);
+
+    if (!ptr) {
+        RETURN_STRING("");
+        return 0;
+    }
+
+    const size_t written = llama_state_get_data(ctx->ctx, (uint8_t *)ptr, size);
+
+    if (!written) {
+        CORE_DELETE(ptr);
+
+        RETURN_STRING("");
+        return 0;
+    }
+
+    SetVariable(RESULT, -1, ptr, written);
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL(llama_load_state, 2)
+    T_HANDLE(llama_load_state, 0)
+    T_STRING(llama_load_state, 1)
+
+    struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    if ((!ctx) || (!ctx->ctx) || (PARAM_LEN(1) <= 0)) {
+        RETURN_NUMBER(0);
+        return 0;
+    }
+
+    if (llama_state_set_data(ctx->ctx, (const uint8_t *)PARAM(1), PARAM_LEN(1)) != PARAM_LEN(1)) {
+        RETURN_NUMBER(0);
+        return 0;
+    }
+
+    RETURN_NUMBER(1);
+END_IMPL
+//=====================================================================================//
 CONCEPT_FUNCTION_IMPL(llama_free, 1)
     T_HANDLE(llama_free, 0)
 

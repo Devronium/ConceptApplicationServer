@@ -14,33 +14,33 @@ class DocX {
 	}
 
 	static function Replace(filename, array what, string ipath="word/document.xml") {
-		var zip=zip_open(filename,ZIP_CHECKCONS, var err);
+		var zip = zip_open(filename, ZIP_CHECKCONS, var err);
 		if (!zip)
 			throw "Unzip failed with error code $err";
 
-		var idx=zip_name_locate(zip, ipath, 0);
-		var f=zip_fopen_index(zip, idx, 0);
-		var res=false;
+		var idx = zip_name_locate(zip, ipath, 0);
+		var f = zip_fopen_index(zip, idx, 0);
+		var res = false;
 		if (f) {
-			var data2="";
-			var amount=zip_fread(f, var buf, 8192*1024*2);
-			if (amount>0)
-				data2=buf;
+			var data2 = "";
+			var amount = zip_fread(f, var buf, 8192*1024*2);
+			if (amount > 0)
+				data2 = buf;
 			zip_fclose(f);
 			if (data2) {
-				var len=length what;
-				for (var i=0;i<len;i++) {
-					var arr=what[i];
+				var len = length what;
+				for (var i = 0; i < len; i ++) {
+					var arr = what[i];
 					if ((arr) && (arr[0])) {
-						if (length arr==3)
-							data2=StrReplace(data2, ""+arr[0], ""+arr[2]);
+						if (length arr == 3)
+							data2 = StrReplace(data2, ""+arr[0], ""+arr[2]);
 						else
-							data2=StrReplace(data2, ""+arr[0], DocX::XMLSafe(""+arr[1]));
+							data2 = StrReplace(data2, ""+arr[0], DocX::XMLSafe(""+arr[1]));
 					}
 				}
 
-				res=true;
-				var f2=zip_source_buffer(zip, data2);
+				res = true;
+				var f2 = zip_source_buffer(zip, data2);
 				zip_replace(zip, idx, f2);
 			}
 		}
@@ -51,25 +51,25 @@ class DocX {
 
 	static function GetText(filename, string xsl_data="", string ipath="word/document.xml") {
 		if (!xsl_data)
-			xsl_data=DOCX_TO_TXT;
+			xsl_data = DOCX_TO_TXT;
 
-		var zip=zip_open(filename,ZIP_CHECKCONS, var err);
+		var zip = zip_open(filename,ZIP_CHECKCONS, var err);
 		if (!zip)
 			throw "Unzip failed with error code $err";
 
-		var idx=zip_name_locate(zip, ipath, 0);
-		var f=zip_fopen_index(zip, idx, 0);
-		var res="";
+		var idx = zip_name_locate(zip, ipath, 0);
+		var f = zip_fopen_index(zip, idx, 0);
+		var res = "";
 
 		if (f) {
-			var data2="";
-			var amount=zip_fread(f, var buf, 8192*1024*2);
+			var data2 = "";
+			var amount = zip_fread(f, var buf, 8192*1024*2);
 			if (amount>0)
-				data2=buf;
+				data2 = buf;
 			zip_fclose(f);
 			if (data2) {
-				res=XSLTProcess(data2, xsl_data);
-				var xsl_err=XSLTError();
+				res = XSLTProcess(data2, xsl_data);
+				var xsl_err = XSLTError();
 				if (xsl_err) {
 					zip_close(zip);
 					throw xsl_err;
@@ -77,6 +77,23 @@ class DocX {
 			}
 		}
 		zip_close(zip);
+		return res;
+	}
+
+	static function text(var buffer, string xsl_data="", string ipath="word/document.xml") {
+		if (!xsl_data)
+			xsl_data = DOCX_TO_TXT;
+
+		var zip = unzip(buffer);
+		if ((!zip) || (!zip[ipath]))
+			return "";
+
+		var res = XSLTProcess(zip[ipath] ?? "", xsl_data);
+
+		var xsl_err = XSLTError();
+		if (xsl_err)
+			return "";
+
 		return res;
 	}
 }
