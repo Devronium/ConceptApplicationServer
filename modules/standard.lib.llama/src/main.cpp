@@ -51,10 +51,16 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
     return 0;
 }
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL(llama_load_model_from_file, 1)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_load_model_from_file, 1, 2)
     T_STRING(llama_load_model_from_file, 0)
 
-    llama_model *model = llama_load_model_from_file(PARAM(0), llama_model_default_params());
+    llama_model_params params = llama_model_default_params();
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(llama_load_model_from_file, 1)
+        params.n_gpu_layers = PARAM_INT(1);
+    }
+
+    llama_model *model = llama_load_model_from_file(PARAM(0), params);
     if (model) {
         RETURN_NUMBER(MAP_POINTER(llama_model_list, model, PARAMETERS->HANDLER));
     } else {
@@ -264,8 +270,8 @@ std::string llama_token_to_piece(const struct llama_context * ctx, llama_token t
 }
 
 CONCEPT_FUNCTION_IMPL(llama_load, 2)
-    T_HANDLE(llama_query, 0)
-    T_ARRAY(llama_query, 1)
+    T_HANDLE(llama_load, 0)
+    T_ARRAY(llama_load, 1)
 
     struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
     if ((!ctx) || (!ctx->ctx)) {
