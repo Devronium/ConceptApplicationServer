@@ -19,12 +19,13 @@ DEFINE_LIST(llama_model_list);
 
 struct chunk {
     INTEGER key;
-    // original text data
+
     std::string textdata = "";
-    // tokenized text data
+
     std::vector<llama_token> tokens;
-    // embedding
+
     std::vector<float> embedding;
+
 };
 
 struct llama_container {
@@ -409,7 +410,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_query, 2, 5)
     const uint64_t n_batch = ctx->params.n_batch;
 
     struct llama_batch query_batch = llama_batch_init(n_batch, 0, 1);
-
     batch_add_seq(query_batch, query_tokens, 0);
 
     std::vector<float> query_emb(n_embd, 0);
@@ -537,13 +537,47 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
     llama_batch_free(batch);
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL(llama_save_state, 1)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_save_state, 1, 2)
     T_HANDLE(llama_save_state, 0)
 
     struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
     if ((!ctx) || (!ctx->ctx)) {
         RETURN_STRING("");
         return 0;
+    }
+
+    if (PARAMETERS_COUNT > 1) {
+        CREATE_ARRAY(PARAMETER(1));
+
+        INTEGER len = ctx->chunks.size();
+        for (INTEGER i = 0; i < len; i ++) {
+            void *array_var = NULL;
+            Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(1), i, &array_var);
+            if (array_var) {
+                CREATE_ARRAY(array_var);
+
+                struct chunk e = ctx->chunks[i];
+
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, array_var, "key", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)e.key);
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, array_var, "textdata", (INTEGER)VARIABLE_STRING, (char *)e.textdata.c_str(), (NUMBER)e.textdata.size());
+
+                void *embedings = NULL;
+                Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, array_var, "embedding", &embedings);
+
+                CREATE_ARRAY(embedings);
+
+                for (INTEGER k = 0; k < e.embedding.size(); k ++)
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT, embedings, k, (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)e.embedding[k]);
+
+                void *tokens = NULL;
+                Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, array_var, "tokens", &tokens);
+
+                CREATE_ARRAY(tokens);
+
+                for (INTEGER k = 0; k < e.tokens.size(); k ++)
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT, tokens, k, (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)e.tokens[k]);
+            }
+        }
     }
 
     char *ptr = NULL;
@@ -567,19 +601,82 @@ CONCEPT_FUNCTION_IMPL(llama_save_state, 1)
     SetVariable(RESULT, -1, ptr, written);
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL(llama_load_state, 2)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_load_state, 2, 3)
     T_HANDLE(llama_load_state, 0)
     T_STRING(llama_load_state, 1)
 
     struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
-    if ((!ctx) || (!ctx->ctx) || (PARAM_LEN(1) <= 0)) {
+    if ((!ctx) || (!ctx->ctx)) {
         RETURN_NUMBER(0);
         return 0;
     }
 
-    if (llama_state_set_data(ctx->ctx, (const uint8_t *)PARAM(1), PARAM_LEN(1)) != PARAM_LEN(1)) {
-        RETURN_NUMBER(0);
-        return 0;
+    ctx->chunks.clear();
+    if (PARAMETERS_COUNT > 2) {
+        T_ARRAY(llama_load_state, 2);
+
+        INTEGER len = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(2));
+        if (len > 0)
+            ctx->chunks.resize(len);
+        for (INTEGER i = 0; i < len; i ++) {
+            void *array_var = NULL;
+            Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(2), i, &array_var);
+            if (array_var) {
+                struct chunk e;
+
+                char    *str = 0;
+                NUMBER  nDummy;
+                INTEGER type;
+
+                Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, array_var, "key", &type, &str, &nDummy);
+                if (type == VARIABLE_NUMBER)
+                    e.key = nDummy;
+                else
+                    e.key = 0;
+
+                Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, array_var, "textdata", &type, &str, &nDummy);
+                if (type == VARIABLE_STRING)
+                    e.textdata = str;
+
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, array_var, "key", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)e.key);
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, array_var, "textdata", (INTEGER)VARIABLE_STRING, (char *)e.textdata.c_str(), (NUMBER)e.textdata.size());
+
+                void *embedings = NULL;
+                Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, array_var, "embedding", &embedings);
+
+                if (embedings) {
+                    INTEGER len_k = Invoke(INVOKE_GET_ARRAY_COUNT, embedings);
+                    if (len_k >= 0)
+                        e.embedding.resize(len_k);
+                    for (INTEGER k = 0; k < len_k; k ++) {
+                        Invoke(INVOKE_GET_ARRAY_ELEMENT, embedings, k, &type, &str, &nDummy);
+                        if (type == VARIABLE_NUMBER)
+                            e.embedding[k] = nDummy;
+                    }
+                }
+
+                void *tokens = NULL;
+                Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, array_var, "tokens", &tokens);
+                if (tokens) {
+                    INTEGER len_k = Invoke(INVOKE_GET_ARRAY_COUNT, tokens);
+                    if (len_k >= 0)
+                        e.tokens.resize(len_k);
+                    for (INTEGER k = 0; k < len_k; k ++) {
+                        Invoke(INVOKE_GET_ARRAY_ELEMENT, tokens, k, &type, &str, &nDummy);
+                        if (type == VARIABLE_NUMBER)
+                            e.tokens[k] = nDummy;
+                    }
+                }
+                ctx->chunks[i] = e;
+            }
+        }
+    }
+
+    if (PARAM_LEN(1) > 0) {
+        if (llama_state_set_data(ctx->ctx, (const uint8_t *)PARAM(1), PARAM_LEN(1)) != PARAM_LEN(1)) {
+            RETURN_NUMBER(0);
+            return 0;
+        }
     }
 
     RETURN_NUMBER(1);
