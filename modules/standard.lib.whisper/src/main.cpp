@@ -76,13 +76,15 @@ void whisper_print_segment_callback(struct whisper_context * ctx, struct whisper
         whisper_ctx->running = 0;
 }
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 6)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 8)
     T_STRING(WhisperCreate, 0)
 
     int lang_id = -1;
     int threads = 0;
     int translate = 0;
     int running_flag = 1;
+    int gpu_device = 0;
+    const char *initial_prompt = NULL;
 
     const char *lang = "auto";
 
@@ -118,6 +120,15 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 6)
         owner_ctx = (struct stt_context *)GET_POINTER(whisper, (SYS_INT)PARAM(5), PARAMETERS->HANDLER);
     }
 
+    if (PARAMETERS_COUNT > 6) {
+        T_NUMBER(WhisperCreate, 6)
+        gpu_device = PARAM_INT(6);
+    }
+
+    if (PARAMETERS_COUNT > 7) {
+        T_STRING(WhisperCreate, 7)
+        initial_prompt = PARAM(7);
+    }
 
     struct whisper_context *ctx = NULL;
     int ctx_created = 0;
@@ -127,9 +138,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 6)
     
     if (!ctx) {
         struct whisper_context_params whisper_params = whisper_context_default_params();
-#ifdef GGML_USE_CUDA
-        params.use_gpu = true;
-#endif
+        if (gpu_device >= 0) {
+            whisper_params.use_gpu = true;
+            whisper_params.gpu_device = gpu_device;
+        }
         ctx = whisper_init_from_file_with_params(PARAM(0), whisper_params);
         if (!ctx) {
             RETURN_NUMBER(0);
@@ -173,6 +185,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 6)
     whisper_ctx->wparams.split_on_word    = params.split_on_word;
 
     whisper_ctx->wparams.speed_up         = params.speed_up;
+
+    whisper_ctx->wparams.initial_prompt   = initial_prompt ? strdup(initial_prompt) : NULL;
 
     whisper_ctx->wparams.prompt_tokens     = NULL;
     whisper_ctx->wparams.prompt_n_tokens   = 0;
@@ -276,6 +290,7 @@ CONCEPT_FUNCTION_IMPL(WhisperFree, 1)
     struct stt_context *ctx = (struct stt_context *)FREE_POINTER(whisper, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
     if (ctx) {
         free((void *)ctx->wparams.language);
+        free((void *)ctx->wparams.initial_prompt);
         if (ctx->main_context)
             whisper_free(ctx->ctx);
         free(ctx);

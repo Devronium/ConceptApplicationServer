@@ -1,0 +1,114 @@
+import standard.lib.llama
+import standard.lang.serialize
+import standard.lib.str
+
+class LLAMA {
+	var model;
+	var llama;
+	var[] doc_keys;
+
+	LLAMA(model_file, pooling = 1, gpu_offload = 32) {
+		model = llama_load_model_from_file(model_file, gpu_offload);
+		if (!model)
+			return;
+		llama = llama_new(model, pooling);
+	}
+
+	loaded() {
+		if (llama)
+			return true;
+		return false;
+	}
+
+	documents(arr) {
+		if (!arr)
+			return 0;
+
+		doc_keys = GetKeys(arr);
+
+		for (var i = 0; i < length arr; i ++)
+			arr[i] = UTF8Map(arr[i], UTF8PROC_STRIPNA);
+
+		return llama_load(llama, arr);
+	}
+
+	query(str, var index = null, top = 10, score_limit = 0) {
+		var arr = llama_query(llama, UTF8Map(str, UTF8PROC_STRIPNA), top, var score, var documents);
+		var[] data;
+		index = new [];
+		for (var i = 0; i < length arr; i ++) {
+			var rank = score[i];
+			if (rank >= score_limit) {
+				var k = arr[i];
+				data[k] = rank;
+
+				var doc = documents[i];
+				var doc_key = doc_keys[doc] ?? i;
+				
+				index[k] = doc_key;
+			}
+		}
+		return data;
+	}
+
+	prompt(str) {
+		if (!llama)
+			return "";
+		return llama_prompt(llama, str);
+	}
+
+	save(var embeddings = null) {
+		return llama_save_state(llama, embeddings);
+	}
+
+	load(var buffer, embeddings = null) {
+		if (embeddings)
+			return llama_load_state(llama, buffer, embeddings);
+
+		if (!buffer)
+			return 0;
+
+		return llama_load_state(llama, buffer);
+	}
+
+	saveEmbeddings(binarize = false) {
+		llama_save_state(llama, var embeddings);
+		if (binarize)
+			return BinarizeObject(embeddings);
+		return embeddings;
+	}
+
+	loadEmbeddings(var embeddings) {
+		if (typeof embeddings == "string")
+			return this.load("", UnBinarizeObject(embeddings));
+
+		return this.load("", embeddings);
+	}
+
+	static fromText(text, split_at = "\n\n", max_length = 512) {
+		var arr = StrSplit(StrReplace(StrReplace(text, "\r\n", "\n"), "\r", "\n"), split_at);
+		var[] data;
+		for (var i = 0; i < length arr; i ++) {
+			var e = arr[i];
+			if (e) {
+				if (length e > max_length)
+					e = SubStr(e, 0, max_length);
+
+				data["$i"] = e;
+			}
+		}
+		return data;
+	}
+
+	finalize() {
+		if (llama) {
+			llama_free(llama);
+			llama = null;
+		}
+
+		if (model) {
+			llama_free_model(model);
+			model = null;
+		}
+	}
+}

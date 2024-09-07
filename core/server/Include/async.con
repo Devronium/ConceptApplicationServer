@@ -280,7 +280,7 @@ class _webrequest {
 	var template = "";
 	var lang = "";
 
-	protected var _buffer = "";
+	var _buffer = "";
 	protected var _started = false;
 
 	protected var _onpost;
