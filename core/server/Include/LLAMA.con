@@ -8,7 +8,10 @@ class LLAMA {
 	var[] doc_keys;
 
 	LLAMA(model_file, pooling = 1, gpu_offload = 32, gpu = 0) {
-		model = llama_load_model_from_file(model_file, gpu_offload, gpu);
+		if (gpu)
+			model = llama_load_model_from_file(model_file, gpu_offload, gpu);
+		else
+			model = llama_load_model_from_file(model_file, gpu_offload);
 		if (!model)
 			return;
 		llama = llama_new(model, pooling);
