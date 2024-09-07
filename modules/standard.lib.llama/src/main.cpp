@@ -52,13 +52,18 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
     return 0;
 }
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_load_model_from_file, 1, 2)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_load_model_from_file, 1, 3)
     T_STRING(llama_load_model_from_file, 0)
 
     llama_model_params params = llama_model_default_params();
     if (PARAMETERS_COUNT > 1) {
         T_NUMBER(llama_load_model_from_file, 1)
         params.n_gpu_layers = PARAM_INT(1);
+    }
+
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(llama_load_model_from_file, 2)
+        params.main_gpu = PARAM_INT(2);
     }
 
     llama_model *model = llama_load_model_from_file(PARAM(0), params);
