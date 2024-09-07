@@ -84,7 +84,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 8)
     int translate = 0;
     int running_flag = 1;
     int gpu_device = 0;
-    const char *initial_prompt = NULL;
 
     const char *lang = "auto";
 
@@ -126,8 +125,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 8)
     }
 
     if (PARAMETERS_COUNT > 7) {
-        T_STRING(WhisperCreate, 7)
-        initial_prompt = PARAM(7);
+        T_ARRAY(WhisperCreate, 7)
     }
 
     struct whisper_context *ctx = NULL;
@@ -186,8 +184,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 8)
 
     whisper_ctx->wparams.speed_up         = params.speed_up;
 
-    whisper_ctx->wparams.initial_prompt   = initial_prompt ? strdup(initial_prompt) : NULL;
-
     whisper_ctx->wparams.prompt_tokens     = NULL;
     whisper_ctx->wparams.prompt_n_tokens   = 0;
 
@@ -202,6 +198,29 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 8)
     whisper_ctx->wparams.new_segment_callback_user_data = whisper_ctx;
 
     whisper_ctx->running = running_flag;
+
+    if (PARAMETERS_COUNT > 7) {
+        INTEGER type = 0;
+        char    *str = 0;
+        NUMBER  nr   = 0;
+
+        Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(7), "initial_prompt", &type, &str, &nr);
+        if ((type == VARIABLE_STRING) && (str) && (str[0]))
+            whisper_ctx->wparams.initial_prompt = strdup(str);
+
+#define SET_WHISPER_PARAMETER(name) if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, PARAMETER(7), -1, #name) == 1) { Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(7), #name, &type, &str, &nr); if (type == VARIABLE_NUMBER) whisper_ctx->wparams.name = nr; }
+
+        SET_WHISPER_PARAMETER(temperature);
+        SET_WHISPER_PARAMETER(max_initial_ts);
+        SET_WHISPER_PARAMETER(length_penalty);
+        SET_WHISPER_PARAMETER(temperature_inc);
+        SET_WHISPER_PARAMETER(entropy_thold);
+        SET_WHISPER_PARAMETER(logprob_thold);
+        SET_WHISPER_PARAMETER(no_speech_thold);
+        SET_WHISPER_PARAMETER(greedy.best_of);
+        SET_WHISPER_PARAMETER(beam_search.beam_size);
+        SET_WHISPER_PARAMETER(beam_search.patience);
+    }
 
     whisper_ctx->wparams.encoder_begin_callback = [](struct whisper_context * /*ctx*/, struct whisper_state * /*state*/, void * user_data) {
         struct stt_context *ctx = (struct stt_context *)user_data;
