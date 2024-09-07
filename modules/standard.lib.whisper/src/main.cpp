@@ -208,7 +208,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 8)
         if ((type == VARIABLE_STRING) && (str) && (str[0]))
             whisper_ctx->wparams.initial_prompt = strdup(str);
 
-#define SET_WHISPER_PARAMETER(name) if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, PARAMETER(7), -1, #name) == 1) { Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(7), #name, &type, &str, &nr); if (type == VARIABLE_NUMBER) whisper_ctx->wparams.name = nr; }
+#define SET_WHISPER_PARAMETER(name) if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, PARAMETER(7), (INTEGER)-1, #name) == 1) { type = 0; str = NULL, nr = 0; Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(7), #name, &type, &str, &nr); if (type == VARIABLE_NUMBER) whisper_ctx->wparams.name = nr; }
 
         SET_WHISPER_PARAMETER(temperature);
         SET_WHISPER_PARAMETER(max_initial_ts);
