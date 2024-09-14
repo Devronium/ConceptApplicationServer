@@ -19,13 +19,9 @@ DEFINE_LIST(llama_model_list);
 
 struct chunk {
     INTEGER key;
-
     std::string textdata = "";
-
     std::vector<llama_token> tokens;
-
     std::vector<float> embedding;
-
 };
 
 struct llama_container {
@@ -478,6 +474,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
     if (PARAMETERS_COUNT > 2) {
         T_ARRAY(llama_prompt, 2);
     }
+
+    llama_kv_cache_clear(ctx->ctx);
 
     uint8_t *ptr = NULL;
     size_t size = llama_state_get_size(ctx->ctx);
