@@ -86,7 +86,7 @@ CONCEPT_FUNCTION_IMPL(llama_free_model, 1)
     RETURN_NUMBER(0);
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 3)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 4)
     // model file
     T_HANDLE(llama_new, 0)
 
@@ -104,6 +104,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 3)
     if (PARAMETERS_COUNT > 2) {
         T_NUMBER(llama_new, 2)
         params.n_ctx = PARAM_INT(2);
+    }
+
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(llama_new, 3)
+        params.offload_kqv = (bool)PARAM_INT(3);
     }
 
     llama_model *model = (llama_model *)GET_POINTER(llama_model_list, (SYS_INT)PARAM(0), NULL);
