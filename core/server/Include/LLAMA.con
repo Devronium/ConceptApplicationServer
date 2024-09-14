@@ -6,12 +6,14 @@ class LLAMA {
 	var model;
 	var llama;
 	var[] doc_keys;
+	var[] parameters;
 
-	LLAMA(model_file, pooling = 1, gpu_offload = 32, gpu = 0) {
-		if (gpu)
-			model = llama_load_model_from_file(model_file, gpu_offload, gpu);
-		else
-			model = llama_load_model_from_file(model_file, gpu_offload);
+	LLAMA(model_file, pooling = 1, gpu_offload = 32, gpu = 0, n_ctx = 512) {
+		if ((model_file) && (typeof model_file == "numeric")) {
+			llama =  llama_new(model_file, pooling);
+		} else {
+			model = llama_load_model_from_file(model_file, gpu_offload, gpu, n_ctx);
+		}
 		if (!model)
 			return;
 		llama = llama_new(model, pooling);
@@ -57,7 +59,15 @@ class LLAMA {
 	prompt(str) {
 		if (!llama)
 			return "";
-		return llama_prompt(llama, str);
+
+		if (typeof parameters != "array")
+			parameters = new [];
+
+		return llama_prompt(llama, str, parameters);
+	}
+
+	run(str) {
+		return prompt(str);
 	}
 
 	save(var embeddings = null) {
@@ -88,14 +98,37 @@ class LLAMA {
 		return this.load("", embeddings);
 	}
 
-	static fromText(text, split_at = "\n\n", max_length = 512) {
-		var arr = StrSplit(StrReplace(StrReplace(text, "\r\n", "\n"), "\r", "\n"), split_at);
+	static fromText(text, split_at = null, max_length = 512) {
+		var str = StrReplace(StrReplace(text, "\r\n", "\n"), "\r", "\n");
+		var arr;
+		if (split_at)
+			arr = StrSplit(str, split_at);
+		else
+			arr = StrSplit(str, "\n\n");
 		var[] data;
 		for (var i = 0; i < length arr; i ++) {
 			var e = arr[i];
 			if (e) {
-				if (length e > max_length)
+				if (length e > max_length) {
+					if (split_at) {
+						var extra_arr = StrSplit(e, "\n");
+						if (length extra_arr == 1)
+							extra_arr = StrSplit(e, "\n");
+						if (length extra_arr > 1) {
+							for (var j = 0; j < length extra_arr; j ++) {
+								e = extra_arr[j];
+								if (length e > max_length)
+									e = SubStr(e, 0, max_length);
+								if (j)
+									data["$i/$j"] = e;
+								else
+									data["$i"] = e;
+							}
+							continue;
+						}
+					}
 					e = SubStr(e, 0, max_length);
+				}
 
 				data["$i"] = e;
 			}

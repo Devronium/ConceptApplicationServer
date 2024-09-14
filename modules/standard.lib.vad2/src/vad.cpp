@@ -388,7 +388,7 @@ public:
     VadIterator(const void *data, size_t len,
         int Sample_rate = 16000, int windows_frame_size = 32,
         float Threshold = 0.5, int min_silence_duration_ms = 0,
-        int speech_pad_ms = 64, int min_speech_duration_ms = 64,
+        int speech_pad_ms = 32, int min_speech_duration_ms = 32,
         float max_speech_duration_s = std::numeric_limits<float>::infinity()) : env(ORT_LOGGING_LEVEL_ERROR)
     {
         if ((!data) || (!len)) {

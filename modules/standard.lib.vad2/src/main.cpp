@@ -28,13 +28,33 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_new, 0, 2)
         model = PARAM(0);
         model_len = PARAM_LEN(0);
     }
-    int Sample_rate = 16000;
+    int sample_rate = 16000;
+    int windows_frame_size = 32;
+    float threshold = 0.5;
+    int min_silence_duration_ms = 0;
+    int speech_pad_ms = 32;
+    int min_speech_duration_ms = 32;
+    float max_speech_duration_s = std::numeric_limits<float>::infinity();
+
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(vad_new, 1);
-        Sample_rate = PARAM_INT(1);
+        T_ARRAY(vad_new, 1);
+
+        INTEGER type = 0;
+        char    *str = 0;
+        NUMBER  nr   = 0;
+
+#define SET_VAD_PARAMETER(name) if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, PARAMETER(1), (INTEGER)-1, #name) == 1) { type = 0; str = NULL, nr = 0; Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(1), #name, &type, &str, &nr); if (type == VARIABLE_NUMBER) name = nr; }
+        SET_VAD_PARAMETER(sample_rate);
+        SET_VAD_PARAMETER(windows_frame_size);
+        SET_VAD_PARAMETER(threshold);
+        SET_VAD_PARAMETER(min_silence_duration_ms);
+        SET_VAD_PARAMETER(speech_pad_ms);
+        SET_VAD_PARAMETER(min_speech_duration_ms);
+        SET_VAD_PARAMETER(max_speech_duration_s);
     }
+
     try {
-        VadIterator *vad = new VadIterator(model, model_len, Sample_rate);
+        VadIterator *vad = new VadIterator(model, model_len, sample_rate, windows_frame_size, threshold, min_silence_duration_ms, speech_pad_ms, min_speech_duration_ms, max_speech_duration_s);
         RETURN_NUMBER(MAP_POINTER(vad_list, vad, PARAMETERS->HANDLER));
     } catch (...) {
         RETURN_NUMBER(0);
@@ -79,8 +99,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_process, 2, 3)
                 if (var) {
                     CREATE_ARRAY(var);
 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, var, "start", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)stamps[i].start * 2);
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, var, "end", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)stamps[i].end * 2);
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, var, "start", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)(stamps[i].start * 2));
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, var, "end", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)(stamps[i].end * 2));
                 }
             }
         }

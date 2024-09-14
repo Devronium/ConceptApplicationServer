@@ -68,7 +68,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_load_model_from_file, 1, 3)
 
     llama_model *model = llama_load_model_from_file(PARAM(0), params);
     if (model) {
-        RETURN_NUMBER(MAP_POINTER(llama_model_list, model, PARAMETERS->HANDLER));
+        RETURN_NUMBER(MAP_POINTER(llama_model_list, model, NULL));
     } else {
         RETURN_NUMBER(0);
     }
@@ -77,7 +77,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(llama_free_model, 1)
     T_HANDLE(llama_free_model, 0)
 
-    llama_model *model = (llama_model *)FREE_POINTER(llama_model_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    llama_model *model = (llama_model *)FREE_POINTER(llama_model_list, (SYS_INT)PARAM(0), NULL);
     if (model)
         llama_free_model(model);
 
@@ -86,7 +86,7 @@ CONCEPT_FUNCTION_IMPL(llama_free_model, 1)
     RETURN_NUMBER(0);
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 2)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 3)
     // model file
     T_HANDLE(llama_new, 0)
 
@@ -101,7 +101,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 2)
             params.embeddings = true;
     }
 
-    llama_model *model = (llama_model *)GET_POINTER(llama_model_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(llama_new, 2)
+        params.n_ctx = PARAM_INT(2);
+    }
+
+    llama_model *model = (llama_model *)GET_POINTER(llama_model_list, (SYS_INT)PARAM(0), NULL);
     if (!model) {
         RETURN_NUMBER(0)
         return 0;
@@ -123,7 +128,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 2)
     context->ctx = ctx;
     context->params = params;
 
-    RETURN_NUMBER(MAP_POINTER(llama_list, context, PARAMETERS->HANDLER));
+    RETURN_NUMBER(MAP_POINTER(llama_list, context, NULL));
 END_IMPL
 //=====================================================================================//
 std::vector<llama_token> llama_tokenize_helper(
@@ -211,6 +216,9 @@ void llama_batch_add(
                           llama_pos   pos,
     const std::vector<llama_seq_id> & seq_ids,
                                bool   logits) {
+    // crashes when seq_id[batch.n_tokens] is null
+    if (!batch.seq_id[batch.n_tokens])
+        return;
     batch.token   [batch.n_tokens] = id;
     batch.pos     [batch.n_tokens] = pos;
     batch.n_seq_id[batch.n_tokens] = seq_ids.size();
@@ -279,7 +287,7 @@ CONCEPT_FUNCTION_IMPL(llama_load, 2)
     T_HANDLE(llama_load, 0)
     T_ARRAY(llama_load, 1)
 
-    struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), NULL);
     if ((!ctx) || (!ctx->ctx)) {
         RETURN_NUMBER(-1);
         return 0;
@@ -404,7 +412,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_query, 2, 5)
         CREATE_ARRAY(PARAMETER(4));
     }
 
-    struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), NULL);
     if ((!ctx) || (!ctx->ctx) || (PARAM_LEN(1) <= 0))
         return 0;
 
@@ -449,33 +457,47 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_query, 2, 5)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
-    T_HANDLE(llama_query, 0)
-    T_STRING(llama_query, 1)
+    T_HANDLE(llama_prompt, 0)
+    T_STRING(llama_prompt, 1)
 
-    struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), NULL);
     if ((!ctx) || (!ctx->ctx) || (PARAM_LEN(1) <= 0)) {
         RETURN_STRING("");
         return 0;
     }
 
-    int n_predict = 32;
+    int max_tokens = 32;
+    int max_cache = 0;
+
+    const char *stop_at = NULL;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(llama_query, 2);
-        n_predict = PARAM_INT(2);
+        T_ARRAY(llama_prompt, 2);
     }
 
-    std::vector<int32_t> tokens_list = llama_tokenize_helper(llama_get_model(ctx->ctx), PARAM(1), true, false);
+    uint8_t *ptr = NULL;
+    size_t size = llama_state_get_size(ctx->ctx);
+    ptr = (uint8_t *)malloc(size);
 
-    const int n_ctx    = llama_n_ctx(ctx->ctx);
-    const int n_kv_req = tokens_list.size() + (n_predict - tokens_list.size());
-
-    // make sure the KV cache is big enough to hold all the prompt and generated tokens
-    if (n_kv_req > n_ctx) {
+    if (!ptr) {
         RETURN_STRING("");
         return 0;
     }
 
-    llama_batch batch = llama_batch_init(512, 0, 1);
+    const size_t written = llama_state_get_data(ctx->ctx, (uint8_t *)ptr, size);
+
+    std::vector<int32_t> tokens_list = llama_tokenize_helper(llama_get_model(ctx->ctx), PARAM(1), true, false);
+
+    const int n_ctx    = llama_n_ctx(ctx->ctx);
+    const int n_kv_req = tokens_list.size() + (max_tokens - tokens_list.size());
+
+    // make sure the KV cache is big enough to hold all the prompt and generated tokens
+    if (n_kv_req > n_ctx) {
+        RETURN_STRING("");
+        free(ptr);
+        return 0;
+    }
+
+    llama_batch batch = llama_batch_init(tokens_list.size() + 1024, 0, 1);
 
     for (size_t i = 0; i < tokens_list.size(); i++) {
         llama_batch_add(batch, tokens_list[i], i, { 0 }, false);
@@ -486,38 +508,73 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
     if (llama_decode(ctx->ctx, batch) != 0) {
         llama_batch_free(batch);
         RETURN_STRING("");
+        free(ptr);
         return 0;
     }
 
     int n_cur    = batch.n_tokens;
     int n_decode = 0;
 
-    const auto t_main_start = ggml_time_us();
+    auto sparams = llama_sampler_chain_default_params();
+
+    sparams.no_perf = false;
+
+    llama_sampler * smpl = llama_sampler_chain_init(sparams);
+
+    int mirostat = 0;
+
+    if (PARAMETERS_COUNT > 2) {
+        INTEGER type = 0;
+        char    *str = 0;
+        NUMBER  nr   = 0;
+
+#define SET_LLAMA_PARAMETER(name) if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, PARAMETER(2), (INTEGER)-1, #name) == 1) { type = 0; str = NULL, nr = 0; Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(2), #name, &type, &str, &nr); if (type == VARIABLE_NUMBER) llama_sampler_chain_add(smpl, llama_sampler_init_##name(nr)); }
+#define SET_LLAMA_PARAMETER_2(name) if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, PARAMETER(2), (INTEGER)-1, #name) == 1) { type = 0; str = NULL, nr = 0; Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(2), #name, &type, &str, &nr); if (type == VARIABLE_NUMBER) llama_sampler_chain_add(smpl, llama_sampler_init_##name(nr, 1)); }
+#define SET_LLAMA_PARAMETER_3(name) if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, PARAMETER(2), (INTEGER)-1, #name) == 1) { type = 0; str = NULL, nr = 0; Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(2), #name, &type, &str, &nr); if (type == VARIABLE_NUMBER) name = nr; }
+#define SET_LLAMA_PARAMETER_4(name) if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, PARAMETER(2), (INTEGER)-1, #name) == 1) { type = 0; str = NULL, nr = 0; Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(2), #name, &type, &str, &nr); if (type == VARIABLE_STRING) name = str; }
+
+        SET_LLAMA_PARAMETER(top_k)
+        SET_LLAMA_PARAMETER(temp)
+
+        SET_LLAMA_PARAMETER_2(top_p)
+        SET_LLAMA_PARAMETER_2(min_p)
+        SET_LLAMA_PARAMETER_2(tail_free)
+        SET_LLAMA_PARAMETER_2(typical)
+
+        SET_LLAMA_PARAMETER_3(max_tokens)
+
+        SET_LLAMA_PARAMETER_3(mirostat)
+        SET_LLAMA_PARAMETER_3(max_cache)
+
+        SET_LLAMA_PARAMETER_4(stop_at)
+    }
+
+    if (mirostat == 1) {
+        llama_sampler_chain_add(smpl, llama_sampler_init_mirostat(llama_n_vocab(llama_get_model(ctx->ctx)), 0, 5.0, 0.1, 100));
+    } else
+    if (mirostat == 2) {
+        llama_sampler_chain_add(smpl, llama_sampler_init_mirostat_v2(0, 5.0, 0.1));
+    } else
+        llama_sampler_chain_add(smpl, llama_sampler_init_greedy());
 
     std::string data;
-    while (n_cur <= n_predict) {
+
+    max_tokens += n_cur;
+
+    int cache = llama_kv_cache_seq_pos_max(ctx->ctx, 0);
+    while (n_cur <= max_tokens) {
         // sample the next token
         {
-            auto   n_vocab = llama_n_vocab(ctx->model);
-            auto * logits  = llama_get_logits_ith(ctx->ctx, batch.n_tokens - 1);
-
-            std::vector<llama_token_data> candidates;
-            candidates.reserve(n_vocab);
-
-            for (llama_token token_id = 0; token_id < n_vocab; token_id++) {
-                candidates.emplace_back(llama_token_data{ token_id, logits[token_id], 0.0f });
-            }
-
-            llama_token_data_array candidates_p = { candidates.data(), candidates.size(), false };
-
             // sample the most likely token
-            const llama_token new_token_id = llama_sample_token_greedy(ctx->ctx, &candidates_p);
+            const llama_token new_token_id = llama_sampler_sample(smpl, ctx->ctx, batch.n_tokens - 1);
 
             // is it an end of generation?
-            if (llama_token_is_eog(ctx->model, new_token_id) || n_cur == n_predict)
+            if (llama_token_is_eog(ctx->model, new_token_id) || n_cur == max_tokens)
                 break;
 
             data += llama_token_to_piece(ctx->ctx, new_token_id).c_str();
+            if ((stop_at) && (stop_at[0]) && (data.find(stop_at) != std::string::npos))
+                break;
 
             // prepare the next batch
             llama_batch_clear(batch);
@@ -530,22 +587,41 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
 
         n_cur += 1;
 
+        if (max_cache) {
+            if (llama_get_kv_cache_used_cells(ctx->ctx) == max_cache - 1) {
+                int n_keep = cache;
+
+                int n_discard = max_cache;
+
+                llama_kv_cache_seq_rm(ctx->ctx, 0, n_keep, n_keep + n_discard);
+                llama_kv_cache_seq_add(ctx->ctx, 0, n_keep + n_discard, -1, - n_discard);
+                fprintf(stderr, "clearing cache\n");
+
+                max_cache = 0;
+            }
+        }
         // evaluate the current batch with the transformer model
-        if (llama_decode(ctx->ctx, batch)) {
-            llama_batch_free(batch);
-            RETURN_STRING("");
-            return 0;
+        int err = llama_decode(ctx->ctx, batch);
+        if (err) {
+            fprintf(stderr, "decode error %i\n", err);
+            break;
         }
     }
     RETURN_STRING(data.c_str());
 
+    llama_state_set_data(ctx->ctx, ptr, written);
+
+    free(ptr);
+
     llama_batch_free(batch);
+
+    llama_sampler_free(smpl);
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_save_state, 1, 2)
     T_HANDLE(llama_save_state, 0)
 
-    struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), NULL);
     if ((!ctx) || (!ctx->ctx)) {
         RETURN_STRING("");
         return 0;
@@ -610,7 +686,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_load_state, 2, 3)
     T_HANDLE(llama_load_state, 0)
     T_STRING(llama_load_state, 1)
 
-    struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), NULL);
     if ((!ctx) || (!ctx->ctx)) {
         RETURN_NUMBER(0);
         return 0;
@@ -690,7 +766,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(llama_free, 1)
     T_HANDLE(llama_free, 0)
 
-    struct llama_container *ctx = (struct llama_container *)FREE_POINTER(llama_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+    struct llama_container *ctx = (struct llama_container *)FREE_POINTER(llama_list, (SYS_INT)PARAM(0), NULL);
     if (ctx) {
         llama_free(ctx->ctx);
         delete ctx;
