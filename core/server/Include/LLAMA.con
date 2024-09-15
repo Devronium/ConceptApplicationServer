@@ -10,11 +10,11 @@ class LLAMA {
 
 	LLAMA(model_file, pooling = 1, gpu_offload = 32, gpu = 0, n_ctx = 512, offload_kqv = false) {
 		if ((model_file) && (typeof model_file == "numeric")) {
-			llama =  llama_new(model_file, pooling);
+			llama =  llama_new(model_file, pooling, n_ctx, offload_kqv);
 		} else {
 			model = llama_load_model_from_file(model_file, gpu_offload, gpu);
 		}
-		if (!model)
+		if ((!model) || (offload_kqv < 0))
 			return;
 		llama = llama_new(model, pooling, n_ctx, offload_kqv);
 	}
