@@ -129,10 +129,6 @@ class RemoteGPUStream {
 		this.codec = codec;
 	}
 
-	audioBufferMs() {
-		return length audio_buffer / (modelSampleRate * 2) * 1000;
-	}
-
 	feed(vad, var full_buffer, before_decode_callback = null, before_decode_callback_data = null, force_decode = false) {
 		audio_buffer += full_buffer;
 
@@ -195,15 +191,14 @@ class RemoteGPUStream {
 				if ((!text) && (error))
 				 	text = "($error)";
 
-				if (text) {
-					if (decodedText)
-						decodedText += " ";
-					decodedText += text;
+				if (decodedText)
+					decodedText += " ";
+				decodedText += text;
 
-					audio_buffer = "";
-					last_vad_ms = 0;
-					_timeout_count = 0;
-				}
+				audio_buffer = "";
+				last_vad_ms = 0;
+				_timeout_count = 0;
+
 				vadInterval = MinBufferSize;
 			} else {
 				vadInterval = 1000;
