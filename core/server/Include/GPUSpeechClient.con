@@ -11,7 +11,7 @@ class RemoteGPUClient {
 			var client = new TCPSocket();
 			client.SetOption(SOL_SOCKET, SO_RCVTIMEO, timeout);
 			client.SetOption(SOL_SOCKET, SO_SNDTIMEO, timeout);
-			client.ConnectTimeout = timeout * 2 + 1000;
+			client.ConnectTimeout = 1000;
 
 			error = "";
 
@@ -114,11 +114,17 @@ class RemoteGPUStream {
 	var codec = 8;
 	var lang = "";
 
+	var padding_buffer = "";
+
+	var alternateHost = "";
+	var alternatePort = 0;
+	var alternateKey = "";
+
 	var _handle = true;
 
 	var _timeout_count = 0;
 
-	RemoteGPUStream(host, port, key, lang, codec = 8, modelSampleRate = 16000) {
+	RemoteGPUStream(host, port, key, lang, codec = 8, modelSampleRate = 16000, use_padding = true) {
 		this.modelSampleRate = modelSampleRate;
 		_frame_size = _frame_size_ms * modelSampleRate / 1000 * 2;
 
@@ -127,6 +133,18 @@ class RemoteGPUStream {
 		this.port = port;
 		this.lang = lang;
 		this.codec = codec;
+
+		if (use_padding) {
+			var max_padding = modelSampleRate * 1.5;
+			if ((codec == 8) || (codec == 0)) {
+				while (length padding_buffer < max_padding)
+					padding_buffer += "\xD5";
+			} else {
+				max_padding *= 2;
+				while (length padding_buffer < max_padding)
+					padding_buffer += "\x00\x00";
+			}
+		}
 	}
 
 	feed(vad, var full_buffer, before_decode_callback = null, before_decode_callback_data = null, force_decode = false) {
@@ -154,27 +172,9 @@ class RemoteGPUStream {
 				var silence_ms = (length audio_buffer - info[length info - 1]["end"]) / (modelSampleRate * 2) * 1000;
 
 				if (!timeout) {
-					if (silence_ms < 2500)
+					if (silence_ms < 1746)
 						new_data = "";
 				}
-
-				/* if (new_data) {
-					var start = info[0]["start"];
-					var len = info[length info - 1]["end"] - start;
-					var len_ms = len / (modelSampleRate * 2) * 1000;
-
-					if (len_ms >= 2000) {
-						if (start > modelSampleRate * 2)
-							start -= modelSampleRate * 2;
-						else
-							start = 0;
-
-						if (len > 0) {
-							audio_buffer = SubStr(audio_buffer, start);
-							buf_size_ms = length audio_buffer / (modelSampleRate * 2) * 1000;
-						}
-					}
-				} */
 			} else
 			if ((!_timeout_count) && (buf_size_ms > (BufferTimeout / 2))) {
 				timeout = true;
@@ -186,11 +186,20 @@ class RemoteGPUStream {
 				if (before_decode_callback)
 					before_decode_callback(before_decode_callback_data);
 				var error = "";
-				var text = RemoteGPUClient::stt(this.host, this.port, this.key, audio_buffer, this.codec, this.lang, this.modelSampleRate, new_data_ms, 4000, 48000, error);
+
+				audio_buffer = audio_buffer + padding_buffer;
+
+				var text = RemoteGPUClient::stt(this.host, this.port, this.key, audio_buffer, this.codec, this.lang, this.modelSampleRate, /* new_data_ms */ 110, 4000, 48000, error);
+
+				if ((!text) && (error) && (this.alternateHost))
+					text = RemoteGPUClient::stt(alternateHost, this.alternatePort ?? this.port, this.alternateKey ?? this.key, audio_buffer, this.codec, this.lang, this.modelSampleRate, new_data_ms, 4000, 48000, error);
 
 				if ((!text) && (error))
 				 	text = "($error)";
-
+				text = trim(text);
+				if ((text) && (text[0] == "-"))
+					text = trim(SubStr(text, 1));
+					
 				if (decodedText)
 					decodedText += " ";
 				decodedText += text;

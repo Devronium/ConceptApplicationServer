@@ -220,6 +220,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WhisperCreate, 2, 8)
         SET_WHISPER_PARAMETER(greedy.best_of);
         SET_WHISPER_PARAMETER(beam_search.beam_size);
         SET_WHISPER_PARAMETER(beam_search.patience);
+
+        if (beam_search.beam_size > 1) {
+            whisper_ctx->wparams.strategy = WHISPER_SAMPLING_BEAM_SEARCH;
+        }
     }
 
     whisper_ctx->wparams.encoder_begin_callback = [](struct whisper_context * /*ctx*/, struct whisper_state * /*state*/, void * user_data) {

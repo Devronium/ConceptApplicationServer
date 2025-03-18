@@ -82,7 +82,7 @@ CONCEPT_FUNCTION_IMPL(llama_free_model, 1)
     RETURN_NUMBER(0);
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 4)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 5)
     // model file
     T_HANDLE(llama_new, 0)
 
@@ -105,6 +105,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 4)
     if (PARAMETERS_COUNT > 3) {
         T_NUMBER(llama_new, 3)
         params.offload_kqv = (bool)PARAM_INT(3);
+    }
+
+    if (PARAMETERS_COUNT > 4) {
+        T_NUMBER(llama_new, 4)
+        params.n_threads = PARAM_INT(4);
+        params.n_threads_batch = params.n_threads;
     }
 
     llama_model *model = (llama_model *)GET_POINTER(llama_model_list, (SYS_INT)PARAM(0), NULL);
@@ -243,7 +249,7 @@ static void batch_decode(llama_context * ctx, llama_batch & batch, float * outpu
     llama_kv_cache_clear(ctx);
 
     // run model
-    fprintf(stderr, "%s: n_tokens = %d, n_seq = %d\n", __func__, batch.n_tokens, n_seq);
+    // fprintf(stderr, "%s: n_tokens = %d, n_seq = %d\n", __func__, batch.n_tokens, n_seq);
     if (llama_decode(ctx, batch) < 0) {
         fprintf(stderr, "%s : failed to decode\n", __func__);
     }
@@ -311,6 +317,9 @@ CONCEPT_FUNCTION_IMPL(llama_load, 2)
     }
 
     INTEGER len = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(1));
+    size_t start = ctx->chunks.size();
+
+    std::vector<chunk> chunks;
 
     if (len > 0) {
         char    *str = 0;
@@ -322,9 +331,9 @@ CONCEPT_FUNCTION_IMPL(llama_load, 2)
                 int len = (int)nDummy;
                 if (len > 0) {
                     struct chunk current_chunk;
-                    current_chunk.key = i;
+                    current_chunk.key = start + i;
                     current_chunk.textdata = str;
-                    ctx->chunks.push_back(current_chunk);
+                    chunks.push_back(current_chunk);
                 }
             }
         }
@@ -333,7 +342,7 @@ CONCEPT_FUNCTION_IMPL(llama_load, 2)
     const uint64_t n_batch = ctx->params.n_batch;
 
     // tokenize the prompts and trim
-    for (auto & chunk : ctx->chunks) {
+    for (auto & chunk : chunks) {
         auto inp = ::llama_tokenize_helper(ctx->model, chunk.textdata, true, false);
         if (inp.size() > n_batch) {
             fprintf(stderr, "%s: error: chunk size (%lld) exceeds batch size (%lld), increase batch size and re-run\n", __func__, (long long int) inp.size(), (long long int) n_batch);
@@ -348,7 +357,7 @@ CONCEPT_FUNCTION_IMPL(llama_load, 2)
     }
 
     // initialize batch
-    const int n_chunks = ctx->chunks.size();
+    const int n_chunks = chunks.size();
     struct llama_batch batch = llama_batch_init(n_batch, 0, 1);
 
     // allocate output
@@ -361,7 +370,7 @@ CONCEPT_FUNCTION_IMPL(llama_load, 2)
     int s = 0; // number of prompts in current batch
     for (int k = 0; k < n_chunks; k++) {
         // clamp to n_batch tokens
-        auto & inp = ctx->chunks[k].tokens;
+        auto & inp = chunks[k].tokens;
 
         const uint64_t n_toks = inp.size();
 
@@ -385,11 +394,13 @@ CONCEPT_FUNCTION_IMPL(llama_load, 2)
 
     // save embeddings to chunks
     for (int i = 0; i < n_chunks; i++) {
-        ctx->chunks[i].embedding = std::vector<float>(emb + i * n_embd, emb + (i + 1) * n_embd);
+        chunks[i].embedding = std::vector<float>(emb + i * n_embd, emb + (i + 1) * n_embd);
         // clear tokens as they are no longer needed
-        ctx->chunks[i].tokens.clear();
+        chunks[i].tokens.clear();
     }
 
+    if (chunks.size())
+        ctx->chunks.insert(ctx->chunks.end(), chunks.begin(), chunks.end());
     RETURN_NUMBER(ctx->chunks.size());
 END_IMPL
 //=====================================================================================//
@@ -541,7 +552,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
 
         SET_LLAMA_PARAMETER_2(top_p)
         SET_LLAMA_PARAMETER_2(min_p)
-        SET_LLAMA_PARAMETER_2(tail_free)
         SET_LLAMA_PARAMETER_2(typical)
 
         SET_LLAMA_PARAMETER_3(max_tokens)

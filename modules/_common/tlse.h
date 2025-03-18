@@ -34,6 +34,9 @@
 #ifndef NO_TLS_ECDSA_SUPPORTED
 #define TLS_ECDSA_SUPPORTED
 #endif
+#ifndef NO_TLS_CURVE25519
+#define TLS_CURVE25519
+#endif
 // suport ecdsa client-side
 #define TLS_CLIENT_ECDSA
 // TLS renegotiation is disabled by default (secured or not)
@@ -122,10 +125,14 @@
 #define TLS_RSA_SIGN_RSA            0x01
 #define TLS_RSA_SIGN_MD5            0x04
 #define TLS_RSA_SIGN_SHA1           0x05
+#define TLS_RSA_SIGN_SHA224         0x0A
 #define TLS_RSA_SIGN_SHA256         0x0B
 #define TLS_RSA_SIGN_SHA384         0x0C
 #define TLS_RSA_SIGN_SHA512         0x0D
 #define TLS_ECDSA_SIGN_SHA256       0x0E
+#define TLS_ECDSA_SIGN_SHA224       0x0F
+#define TLS_ECDSA_SIGN_SHA384       0x10
+#define TLS_ECDSA_SIGN_SHA512       0x1A
 
 #define TLS_EC_PUBLIC_KEY           0x11
 #define TLS_EC_prime192v1           0x12
@@ -352,6 +359,7 @@ int tls_request_client_certificate(struct TLSContext *context);
 int tls_client_verified(struct TLSContext *context);
 const char *tls_sni(struct TLSContext *context);
 int tls_sni_set(struct TLSContext *context, const char *sni);
+int tls_sni_nset(struct TLSContext *context, const char *sni, unsigned int len);
 // set DTLS-SRTP mode for DTLS context
 int tls_srtp_set(struct TLSContext *context);
 int tls_srtp_key(struct TLSContext *context, unsigned char *buffer);
@@ -409,11 +417,14 @@ int tls_remote_error(struct TLSContext *context);
     #define SSL_VERIFY_FAIL_IF_NO_PEER_CERT 2
     #define SSL_VERIFY_CLIENT_ONCE  3
 
+    typedef int (*SOCKET_RECV_CALLBACK)(int socket, void *buffer, size_t length, int flags);
+    typedef int (*SOCKET_SEND_CALLBACK)(int socket, const void *buffer, size_t length, int flags);
+
     typedef struct {
         int fd;
         tls_validation_function certificate_verify;
-        void *recv;
-        void *send;
+        SOCKET_RECV_CALLBACK recv;
+        SOCKET_SEND_CALLBACK send;
         void *user_data;
     } SSLUserData;
 
@@ -445,7 +456,7 @@ int tls_remote_error(struct TLSContext *context);
     int SSL_write(struct TLSContext *context, const void *buf, unsigned int len);
     int SSL_read(struct TLSContext *context, void *buf, unsigned int len);
     int SSL_pending(struct TLSContext *context);
-    int SSL_set_io(struct TLSContext *context, void *recv, void *send);
+    int SSL_set_io(struct TLSContext *context, SOCKET_RECV_CALLBACK recv, SOCKET_SEND_CALLBACK send);
 #endif
 
 #ifdef TLS_SRTP
