@@ -1991,33 +1991,6 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
             STATAMENT_POS = helper->OptimizedPIF->Count();
             tempAE        = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
 
-#ifdef OPTIONAL_SEPARATOR
-            if ((tempAE) && (((tempAE->TYPE == TYPE) && (tempAE->ID == ID)) || ((!helper->PIFOwner->STRICT_MODE) && (tempAE->_DEBUG_INFO_LINE != AE->_DEBUG_INFO_LINE)))) {
-#else
-            if ((tempAE) && (tempAE->TYPE == TYPE) && (tempAE->ID == ID)) {
-#endif
-                VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
-                VD->USED   = 1;
-                VD->nValue = 0;
-                VD->BY_REF = 0;
-                VD->TYPE   = VARIABLE_NUMBER;
-                helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
-
-                AnalizerElement *newAE = new AnalizerElement;
-                newAE->ID               = helper->VDList->Count();
-                newAE->TYPE             = TYPE_VARIABLE;
-                newAE->_DEBUG_INFO_LINE = tempAE->_DEBUG_INFO_LINE;
-                newAE->_INFO_OPTIMIZED  = 1;
-                newAE->_HASH_DATA       = 0;
-
-                helper->PIFList->Delete(helper->PIF_POSITION);
-
-                helper->PIFList->Insert(newAE, helper->PIF_POSITION, DATA_ANALIZER_ELEMENT);
-                helper->PIF_POSITION++;
-            } else {
-                Optimizer_OptimizeExpression(self, helper, TVM, ID, TYPE);
-            }
-
             OE = new OptimizedElement;
             OE->Operator._DEBUG_INFO_LINE = Line;
             OE->Operator.TYPE = TYPE_OPTIMIZED_KEYWORD;
@@ -2026,7 +1999,18 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
             Optimizer_CopyElementAA(0, &OE->OperandLeft);
             //--------------------------------//
 
-            Optimizer_CopyElementAA((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1), &OE->OperandRight);
+#ifdef OPTIONAL_SEPARATOR
+            if ((tempAE) && (((tempAE->TYPE == TYPE) && (tempAE->ID == ID)) || ((!helper->PIFOwner->STRICT_MODE) && (tempAE->_DEBUG_INFO_LINE != AE->_DEBUG_INFO_LINE)))) {
+#else
+            if ((tempAE) && (tempAE->TYPE == TYPE) && (tempAE->ID == ID)) {
+#endif
+                Optimizer_CopyElementAA((AnalizerElement *)NULL, &OE->OperandRight);
+                helper->NO_WARNING_EMPTY = 1;
+            } else {
+                Optimizer_OptimizeExpression(self, helper, TVM, ID, TYPE);
+                Optimizer_CopyElementAA((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1), &OE->OperandRight);
+            }
+
             OE->Result_ID = 0;
             MAKE_NULL(OE->OperandReserved);
             helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);

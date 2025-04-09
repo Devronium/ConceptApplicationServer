@@ -2216,6 +2216,35 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             }
         }
 
+#ifdef LEGACY_BINARY_COMPATIBILITY
+        if ((TYPE == TYPE_SEPARATOR) && (_ID == KEY_SEP) && (PREC_TYPE == TYPE_KEYWORD) && (PREC_ID == KEY_RETURN)) {
+            // rewrite return; to return null;
+            // this avoids the creation of unnecessary variable containers
+
+            int null_value = (int)HashTable_find(&NumberConstantMap, "0");
+            if (null_value <= 0) {
+                VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
+                VD->value = "0";
+                VD->nValue = 0;
+                VD->USED   = 1;
+                VD->TYPE   = VARIABLE_NUMBER;
+                VD->BY_REF = 2;
+
+                VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+                null_value = VDList->Count();
+                HashTable_add(&NumberConstantMap, "0", null_value, -1);
+            }
+
+            AnalizerElement *AE  = new AnalizerElement;
+            AE->ID               = null_value;
+            AE->TYPE             = TYPE_VARIABLE;
+            AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
+            AE->_INFO_OPTIMIZED  = 0;
+            AE->_HASH_DATA       = 0;
+            PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
+        }
+#endif
+
         if ((TYPE != TYPE_KEYWORD) || (_ID != KEY_VAR)) {
             AnalizerElement *AE = new AnalizerElement;
             AE->ID               = _ID;

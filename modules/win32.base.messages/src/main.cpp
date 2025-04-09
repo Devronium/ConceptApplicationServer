@@ -4617,10 +4617,13 @@ AnsiString GenerateCode(int level, void *THIS_REF, void *THIS_VAR, void *pifHand
                         }
                     } else
                     if (OE->Operator_ID == KEY_OPTIMIZED_RETURN) {
-                        if (only_ui)
-                            used[OE->OperandRight_ID - 1] = -1;
-                        decl += "return v";
-                        decl += AnsiString((long)OE->OperandRight_ID - 1);
+                        if (OE->OperandRight_ID > 0) {
+                            if (only_ui)
+                                used[OE->OperandRight_ID - 1] = -1;
+                            decl += "return v";
+                            decl += AnsiString((long)OE->OperandRight_ID - 1);
+                        } else
+                            decl += "return";
                     } else
                     if (OE->Operator_ID == KEY_OPTIMIZED_ECHO) {
                         decl += "echo v";

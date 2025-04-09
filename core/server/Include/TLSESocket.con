@@ -125,7 +125,7 @@ class TLSESocket extends TCPSocket {
 		return established;
 	}
 
-	public HandshakeIterate() {
+	public HandshakeIterate(no_loop = false) {
 		if (Socket <= 0)
 			throw "Invalid TLS socket (HandshakeIterate)";
 		if (!tls)
@@ -136,7 +136,7 @@ class TLSESocket extends TCPSocket {
 		if (established < 0)
 			throw "Broken socket (Handshake)";
 
-		this.WritePending();
+		this.WritePending(no_loop);
 
 		if (SocketHasData(socket)) {
 			var res = SocketRead(socket, var buffer, 0xFFFF);
@@ -147,7 +147,7 @@ class TLSESocket extends TCPSocket {
 				res = TLSEConsume(child_tls, buffer);
 				if (res < 0)
 					throw "Broken socket (Handshake)";
-				this.WritePending();
+				this.WritePending(no_loop);
 			}
 			established = TLSEstablished(child_tls);
 		}
@@ -223,7 +223,7 @@ class TLSESocket extends TCPSocket {
 				this.Close();
 				return -1;
 			}
-			this.WritePending();
+			this.WritePending(false);
 			if (OnVerify)
 				TLSESetVerify(tls, __Verify);
 			var established = this.__Handshake(this.Socket, tls, handshake_timeout_ms);
@@ -266,7 +266,7 @@ class TLSESocket extends TCPSocket {
 			SocketClose(socket, true);
 			return null;
 		}
-		this.WritePending();
+		this.WritePending(true);
 		if (return_tls_socket)
 			return child_tls;
 		var context = new TLSESocket(socket, child_tls, _ipv6);
@@ -386,9 +386,9 @@ class TLSESocket extends TCPSocket {
 				written += res;
 				// limit buffer to 64k
 				if (written > 0xFFFF)
-					this.WritePending();
+					this.WritePending(true);
 			} while (written < length buffer);
-			this.WritePending();
+			this.WritePending(true);
 			return written;
 		}
 		return 0;
@@ -415,7 +415,7 @@ class TLSESocket extends TCPSocket {
 		return 0;
 	}
 
-	public WritePending() {
+	public WritePending(no_loop = true) {
 		if (!tls)
 			throw "Invalid TLS context (WritePending)";
 		var written = 0;
@@ -431,6 +431,8 @@ class TLSESocket extends TCPSocket {
 						throw exc;
 					if ((OnWriteRetry) && (OnWriteRetry(this) == true))
 						return true;
+					if (no_loop)
+						break;
 					if (err_timestamp) {
 						if (microseconds() - err_timestamp > 3000000)
 							throw "WritePending: timed out";
@@ -454,7 +456,7 @@ class TLSESocket extends TCPSocket {
 
 	public WriteIterate() {
 		if (!tls)
-			throw "Invalid TLS context (WritePending)";
+			throw "Invalid TLS context (WriteIterate)";
 
 		var buffer = TLSEPending(tls);
 		if (buffer) {
@@ -469,7 +471,7 @@ class TLSESocket extends TCPSocket {
 			if (res > 0)
 				TLSESent(tls, res);
 			if (res <= 0)
-				throw "Broken socket (WritePending)";
+				throw "Broken socket (WriteIterate)";
 
 			if (TLSEPending(tls))
 				return true;

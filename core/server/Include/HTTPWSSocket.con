@@ -294,7 +294,7 @@ class HTTPWSSocket {
 								this.close(socket);
 								continue;
 							}
-							tls_socket.HandshakeIterate();
+							tls_socket.HandshakeIterate(true);
 							if (!tls_socket.GetEstablished())
 								continue;
 

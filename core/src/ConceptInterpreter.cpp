@@ -100,7 +100,6 @@ POOLED_IMPLEMENTATION(ConceptInterpreter)
 #define CHECK_IF_STRING_INDEX_VAR(THISREF, VARIABLE)                                                                                \
     if ((asg_type != VARIABLE_STRING) && (VARIABLE->TYPE == VARIABLE_STRING) && (VARIABLE->CLASS_DATA) && (((struct plainstring *)VARIABLE->CLASS_DATA)->EXTRA_DATA)) {      \
         PIF->RunTimeError(1330, ERR1330, OE, THISREF->OWNER, STACK_TRACE);                                                          \
-        DECLARE_PATH(0x20);                                                                                                         \
         continue;                                                                                                                   \
     }
 //---------------------------------------------------------
@@ -1014,8 +1013,6 @@ struct ConceptInterpreter *new_ConceptInterpreter(Optimizer *O, INTEGER LocalCls
     return self;
 }
 
-#define DECLARE_PATH(TYPE)
-
 #ifdef USE_JIT_TRACE
  #define OFFSETOF(type, field)    ((uintptr_t)&(((type *)0)->field))
 
@@ -1378,8 +1375,11 @@ void ConceptInterpreter_AnalizeInstructionPath(struct ConceptInterpreter *self, 
         } else
         if (IS_KEYWORD(OE)) {
             switch (OE->Operator_ID) {
-                case KEY_OPTIMIZED_THROW:
                 case KEY_OPTIMIZED_RETURN:
+                    // nothing to do for empty return
+                    if (!OE->OperandRight_ID)
+                        break;
+                case KEY_OPTIMIZED_THROW:
                 case KEY_OPTIMIZED_ECHO:
                 case KEY_OPTIMIZED_IF:
                     if (usedflags[OE->OperandRight_ID - 1] != 3) {
@@ -3105,7 +3105,6 @@ int ConceptInterpreter_StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *GR
                                             }
                                         }
                                     }
-                                    DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                                     continue;
                                 }
                             } else {
@@ -3138,7 +3137,6 @@ int ConceptInterpreter_StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *GR
                         WRITE_LOCK
                         if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE != VARIABLE_CLASS) {
                             PIF->RunTimeError(240, ERR240, OE, THIS_REF->OWNER, STACK_TRACE);
-                            DECLARE_PATH(0x20);
                             continue;
                         }
                         RESET_PROPERTIES(TARGET_THREAD->PROPERTIES, OE->Result_ID);
@@ -3175,7 +3173,6 @@ int ConceptInterpreter_StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *GR
                                         RESULT = LOCAL_CONTEXT[OE->Result_ID - 1];
                                         if ((RESULT) && (RESULT->LINKS == 1)) {
                                             CompiledClass_CreateVariable(CCTEMP, relocation - 1, pMEMBER_i, RESULT);
-                                            DECLARE_PATH(RESULT->TYPE);
                                             continue;
                                         }
                                         RESULT = CompiledClass_CreateVariable(CCTEMP, relocation - 1, pMEMBER_i);
@@ -3195,7 +3192,6 @@ int ConceptInterpreter_StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *GR
                         WRITE_LOCK
 #endif
                         if (THROW_DATA) {
-                            DECLARE_PATH(LAST_THROW->TYPE);
                             if (ConceptInterpreter_Catch(THIS_REF, THROW_DATA, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
                                 WRITE_UNLOCK
                                 FREE_VARIABLE(THROW_DATA, STACK_TRACE);
@@ -3210,7 +3206,6 @@ int ConceptInterpreter_StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *GR
 nothrow:
                         //-------------------------------------------//
                         if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
-                            DECLARE_PATH(RESULT->TYPE);
                             continue;
                         }
                         if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
@@ -3232,7 +3227,6 @@ nothrow:
                                 RESULT->LINKS++;
                             }
                         }
-                        DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                         continue;
 
                     case KEY_NEW:
@@ -3248,7 +3242,6 @@ nothrow:
                             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_NUMBER;
                             LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = new_Array(PIF);
                             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
-                            DECLARE_PATH(VARIABLE_ARRAY);
                         } else {
                             CC = PIF->StaticClassList[OE->OperandLeft_ID - 1];
                             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_CLASS;
@@ -3264,9 +3257,6 @@ nothrow:
 
                             if (!instancePTR) {
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                            } else {
-                                DECLARE_PATH(VARIABLE_CLASS);
                             }
                         }
                         PROPERTY_CODE_VAR(THIS_REF, TARGET_THREAD->PROPERTIES, OE->Result_ID);
@@ -3285,7 +3275,6 @@ nothrow:
                             //-------------------------------------------//
                             if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_DELEGATE) {
                                 PIF->RunTimeError(970, ERR970, OE, THIS_REF->OWNER, STACK_TRACE);
-                                DECLARE_PATH(0x20);
                                 continue;
                             }
                             CCTEMP                     = (struct CompiledClass *)delegate_Class(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
@@ -3307,7 +3296,6 @@ nothrow:
                             CCTEMP->LINKS --;
                             if (THROW_DATA) {
                                 FREE_VARIABLE(lOwner, STACK_TRACE);
-                                DECLARE_PATH(LAST_THROW->TYPE);
                                 if (ConceptInterpreter_Catch(THIS_REF, THROW_DATA, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
                                     WRITE_UNLOCK
                                     FREE_VARIABLE(THROW_DATA, STACK_TRACE);
@@ -3327,7 +3315,6 @@ nothrow:
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                             }
                             if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
-                                DECLARE_PATH(RESULT->TYPE);
                                 continue;
                             }
                             if (RESULT) {
@@ -3335,7 +3322,6 @@ nothrow:
                                 LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
                                 RESULT->LINKS++;
                             }
-                            DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                             continue;
                         } else
                         if (OE->OperandLeft_ID == STATIC_CLASS_DLL) {
@@ -3366,7 +3352,6 @@ nothrow:
                             UNSTACK;
                             if (STATIC_ERROR) {
                                 if (PIF->USE_EXC) {
-                                    DECLARE_PATH(VARIABLE_STRING);
                                     if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {
                                         THROW_DATA = (VariableDATA *)VAR_ALLOC(PIF);
                                         THROW_DATA->CLASS_DATA         = 0;
@@ -3393,7 +3378,6 @@ nothrow:
                                         break;
                                     }
                                 } else {
-                                    DECLARE_PATH(0x20);
                                     PIF->RunTimeError(700, ERR700, OE, THIS_REF->OWNER, STACK_TRACE, STATIC_ERROR);
                                     RESET_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
@@ -3406,7 +3390,6 @@ nothrow:
                             WRITE_LOCK
                             //-------------------------------------------//
                             if (THROW_DATA) {
-                                DECLARE_PATH(LAST_THROW->TYPE);
                                 if (ConceptInterpreter_Catch(THIS_REF, THROW_DATA, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
                                     WRITE_UNLOCK
                                     FREE_VARIABLE(THROW_DATA, STACK_TRACE);
@@ -3431,7 +3414,6 @@ nothrow:
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                             }
                         }
-                        DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                         continue;
 
                     default:
@@ -3489,7 +3471,6 @@ nothrow:
                                         // LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = pushed_type;
                                         RETURN_DATA = Array_Get((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                                         if (!RETURN_DATA) {
-                                            DECLARE_PATH(0x20);
                                             PIF->RunTimeError(1110, ERR1110, OE, THIS_REF->OWNER, STACK_TRACE);
                                             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
                                             continue;
@@ -3499,11 +3480,9 @@ nothrow:
                                             LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
                                             RETURN_DATA->LINKS++;
                                         }
-                                        DECLARE_PATH(RETURN_DATA->TYPE);
                                         continue;
 
                                     default:
-                                        DECLARE_PATH(0x20);
                                         // LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = pushed_type;
                                         PIF->RunTimeError(900, ERR900, OE, THIS_REF->OWNER, STACK_TRACE);
                                         continue;
@@ -3582,7 +3561,6 @@ numbereval:
                 switch (OE_Operator_ID) {
                     case KEY_OPTIMIZED_IF:
 
-                        DECLARE_PATH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE);
                         switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                             case VARIABLE_NUMBER:
                                 if (!LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA) {
@@ -3632,7 +3610,6 @@ numbereval:
                         break;
 
                     case KEY_OPTIMIZED_GOTO:
-                        DECLARE_PATH(VARIABLE_NUMBER);
                         if ((OE->OperandReserved_ID < INSTRUCTION_POINTER) && (TARGET_THREAD != TARGET_THREAD->NEXT)) {
                             DO_EXECUTE  = 0;
                             PREC_THREAD = TARGET_THREAD;
@@ -3646,7 +3623,6 @@ numbereval:
                         continue;
 
                     case KEY_OPTIMIZED_ECHO:
-                        DECLARE_PATH(1);
                         if (PIF->out) {
                             WRITE_LOCK
                             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
@@ -3684,13 +3660,11 @@ numbereval:
                         continue;
 
                     case KEY_OPTIMIZED_RETURN:
-                        DECLARE_PATH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE);
                         WRITE_UNLOCK
                         INSTRUCTION_POINTER = TARGET_THREAD->INSTRUCTION_COUNT;
                         break;
 
                     case KEY_OPTIMIZED_THROW:
-                        DECLARE_PATH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE);
 
                         if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {
                             LOCAL_CONTEXT [OE->OperandRight_ID - 1]->LINKS++;
@@ -3717,14 +3691,12 @@ numbereval:
                         continue;
 
                     case KEY_OPTIMIZED_TRY_CATCH:
-                        DECLARE_PATH(1);
                         CATCH_INSTRUCTION_POINTER = OE->OperandReserved_ID;
                         CATCH_VARIABLE            = OE->Result_ID;
                         PREVIOUS_TRY = OE->OperandLeft_ID;
                         continue;
 
                     case KEY_OPTIMIZED_END_CATCH:
-                        DECLARE_PATH(1);
                         CATCH_INSTRUCTION_POINTER = 0;
                         CATCH_VARIABLE            = 0;
                         THROW_DATA = 0;
@@ -3734,7 +3706,6 @@ numbereval:
                         continue;
 
                     case KEY_OPTIMIZED_DEBUG_TRAP:
-                        DECLARE_PATH(1);
                         if (PIF->DEBUGGER_TRAP) {
                             WRITE_UNLOCK
                             if (PIF->DEBUGGER_TRAP(OPT->DATA, LOCAL_CONTEXT, OPT->dataCount, OE->Operator_DEBUG_INFO_LINE, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME.c_str(), (GET_VARIABLE_PROC)GetVariableByName, PIF->DEBUGGER_RESERVED, PIF, STACK_TRACE)) {
@@ -3812,7 +3783,6 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
 int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, OPERATOR_ID_TYPE OE_Operator_ID, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, INTEGER *IS_AWAIT) {
 #endif
     CompiledClass  *CCTEMP;
-    DECLARE_PATH(VARIABLE_NUMBER);
     struct Optimizer *OPT = (struct Optimizer *)self->OWNER->OPTIMIZER;
     INTEGER OPERATOR_ID;
     ParamList OPERATOR_PARAM;
@@ -3848,7 +3818,6 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
                 if (THROW_DATA)
                     return 0;
             }
-            DECLARE_PATH(VARIABLE_CLASS);
             return 1;
 
         case KEY_ASG:
@@ -3919,7 +3888,6 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
                         LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                 }
-                DECLARE_PATH(VARIABLE_NUMBER);
                 return 1;
             }
             OPERATOR_ID = DEF_EQU;
@@ -3941,7 +3909,6 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
                         LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                 }
-                DECLARE_PATH(VARIABLE_NUMBER);
                 return 1;
             }
             OPERATOR_ID = DEF_NEQ;
@@ -3986,7 +3953,6 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                         break;
                 }
-                DECLARE_PATH(VARIABLE_NUMBER);
                 return 1;
             }
 
@@ -4000,7 +3966,6 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
                 // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
                 LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                DECLARE_PATH(VARIABLE_NUMBER);
                 return 1;
             }
             OPERATOR_ID = DEF_BOR;
@@ -4054,7 +4019,6 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
                 // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                 LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                DECLARE_PATH(VARIABLE_NUMBER);
                 return 1;
             }
             OPERATOR_ID = DEF_NOT;
@@ -4076,7 +4040,6 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
 
         case KEY_CND_NULL:
             if ((LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_CLASS) && (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)) {
-                DECLARE_PATH(VARIABLE_CLASS);
                 return 1;
             }
             //---------------------------//
@@ -4085,7 +4048,6 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
             //---------------------------//
             LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
             ((struct CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-            DECLARE_PATH(VARIABLE_CLASS);
             return 1;
 
         case KEY_AWAIT:
@@ -4097,12 +4059,10 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
 
             LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
             ((struct CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-            DECLARE_PATH(VARIABLE_CLASS);
             return 1;
 
         default:
             OPERATOR_ID = 0;
-            DECLARE_PATH(0x20);
             PIF->RunTimeError(920, ERR920, OE, self->OWNER, STACK_TRACE);
             break;
     }
@@ -4111,7 +4071,6 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
     //////////////////////////////////////////////////////
     if (!OPERATOR_ID) {
-        DECLARE_PATH(0x20);
         return 1;
     }
     if (OE->OperandRight_ID) {
@@ -4127,8 +4086,6 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
     RESULT = CCTEMP->_Class->ExecuteMember(PIF, OPERATOR_ID, (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, OE, CCTEMP->_Class->CLSID == ClassID, &OPERATOR_PARAM, LOCAL_CONTEXT, 0, ClassID, self->LocalClassID, &THROW_DATA, STACK_TRACE);
     WRITE_LOCK
     if (THROW_DATA) {
-        DECLARE_PATH(VARIABLE_NUMBER);
-        DECLARE_PATH(LAST_THROW->TYPE);
         if (ConceptInterpreter_Catch(self, THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
             FAST_FREE(PIF, PROPERTIES);
             PROPERTIES = 0;
@@ -4139,7 +4096,6 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
     }
 
     if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
-        DECLARE_PATH(RESULT->TYPE);
         return 1;
     }
     if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
@@ -4161,7 +4117,6 @@ int ConceptInterpreter_EvalClassExpression(struct ConceptInterpreter *self, PIFA
         RESULT->LINKS++;
     } else {
         LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-        DECLARE_PATH(0x20);
     }
     return 1;
 }
@@ -4172,7 +4127,6 @@ int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFA
 int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY) {
 #endif
     CompiledClass  *CCTEMP;
-    DECLARE_PATH(VARIABLE_NUMBER);
     struct Optimizer *OPT = (struct Optimizer *)self->OWNER->OPTIMIZER;
     VariableDATA *RETURN_DATA;
 
@@ -4193,7 +4147,6 @@ int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFA
                 if (THROW_DATA)
                     return 0;
             }
-            DECLARE_PATH(VARIABLE_ARRAY);
             return 1;
 
         case KEY_SUM:
@@ -4209,7 +4162,6 @@ int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFA
                         LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
                         RETURN_DATA->LINKS++;
                     }
-                    DECLARE_PATH(RETURN_DATA->TYPE);
                     return 1;
 
                 case VARIABLE_ARRAY:
@@ -4221,7 +4173,6 @@ int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFA
                         LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
                         RETURN_DATA->LINKS++;
                     }
-                    DECLARE_PATH(RETURN_DATA->TYPE);
                     return 1;
             }
             break;
@@ -4238,7 +4189,6 @@ int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFA
                         LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
                         RETURN_DATA->LINKS++;
                     }
-                    DECLARE_PATH(RETURN_DATA->TYPE);
                     return 1;
 
                 case VARIABLE_ARRAY:
@@ -4248,10 +4198,8 @@ int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFA
                     if (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA) {
                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_ARRAY;
                         ((struct Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                        DECLARE_PATH(VARIABLE_ARRAY);
                     } else {
                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                        DECLARE_PATH(VARIABLE_NUMBER);
                     }
                     return 1;
             }
@@ -4262,7 +4210,6 @@ int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFA
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA);
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_EQU:
@@ -4274,7 +4221,6 @@ int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFA
                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
             }
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_NEQ:
@@ -4286,7 +4232,6 @@ int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFA
                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
             }
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_BAN:
@@ -4314,7 +4259,6 @@ int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFA
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
             }
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_BOR:
@@ -4342,7 +4286,6 @@ int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFA
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
             }
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_NOT:
@@ -4350,12 +4293,10 @@ int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFA
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) == 0;
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_CND_NULL:
             if ((LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_ARRAY) && (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) && (Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA))) {
-                DECLARE_PATH(VARIABLE_ARRAY);
                 return 1;
             }
             // ------------------- //
@@ -4366,40 +4307,34 @@ int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFA
                 LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
                 ((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->LINKS++;
                 LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_ARRAY;
-                DECLARE_PATH(VARIABLE_ARRAY);
                 return 1;
             }
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_NUMBER:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 case VARIABLE_STRING:
                     NEW_CONCEPT_STRING2(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
-                    DECLARE_PATH(VARIABLE_STRING);
                     break;
 
                 case VARIABLE_DELEGATE:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = copy_Delegate(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_DELEGATE;
-                    DECLARE_PATH(VARIABLE_DELEGATE);
                     break;
 
                 case VARIABLE_CLASS:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE;
                     ((struct CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                    DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                     break;
 
                 case VARIABLE_ARRAY:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
                     ((struct Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                    DECLARE_PATH(VARIABLE_ARRAY);
                     break;
             }
             return 1;
@@ -4407,12 +4342,10 @@ int ConceptInterpreter_EvalArrayExpression(struct ConceptInterpreter *self, PIFA
         case KEY_AWAIT:
             LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
             ((struct Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-            DECLARE_PATH(VARIABLE_ARRAY);
             return 1;
 
         default:
             //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-            DECLARE_PATH(0x20);
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
             PIF->RunTimeError(910, ERR910, OE, self->OWNER, STACK_TRACE);
@@ -4427,7 +4360,6 @@ int ConceptInterpreter_EvalDelegateExpression(struct ConceptInterpreter *self, P
 int ConceptInterpreter_EvalDelegateExpression(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY) {
 #endif
     CompiledClass  *CCTEMP;
-    DECLARE_PATH(VARIABLE_NUMBER);
     struct Optimizer *OPT = (struct Optimizer *)self->OWNER->OPTIMIZER;
 
     switch (OE->Operator_ID) {
@@ -4451,7 +4383,6 @@ int ConceptInterpreter_EvalDelegateExpression(struct ConceptInterpreter *self, P
                 PROPERTY_CODE(self, PROPERTIES)
                 //----------------//
             }
-            DECLARE_PATH(VARIABLE_DELEGATE);
             return 1;
 
         case KEY_EQU:
@@ -4463,7 +4394,6 @@ int ConceptInterpreter_EvalDelegateExpression(struct ConceptInterpreter *self, P
                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((delegate_Class(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) == delegate_Class(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)) && (delegate_Member(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) == delegate_Member(LOCAL_CONTEXT [OE->OperandRight_ID - 1])));
             }
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_NEQ:
@@ -4475,7 +4405,6 @@ int ConceptInterpreter_EvalDelegateExpression(struct ConceptInterpreter *self, P
                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((delegate_Class(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) != delegate_Class(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)) || (delegate_Member(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)!= delegate_Member(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)));
             }
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_BAN:
@@ -4503,7 +4432,6 @@ int ConceptInterpreter_EvalDelegateExpression(struct ConceptInterpreter *self, P
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
             }
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_BOR:
@@ -4519,7 +4447,6 @@ int ConceptInterpreter_EvalDelegateExpression(struct ConceptInterpreter *self, P
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
             }
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_NOT:
@@ -4527,12 +4454,10 @@ int ConceptInterpreter_EvalDelegateExpression(struct ConceptInterpreter *self, P
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_CND_NULL:
             if ((LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_DELEGATE) && (delegate_Class(LOCAL_CONTEXT [OE->Result_ID - 1]) == delegate_Class(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])) && (delegate_Member(LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA) == delegate_Member(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA))) {
-                DECLARE_PATH(VARIABLE_DELEGATE);
                 return 1;
             }
             //---------------------------//
@@ -4540,16 +4465,13 @@ int ConceptInterpreter_EvalDelegateExpression(struct ConceptInterpreter *self, P
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
             //---------------------------//
             LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA  = copy_Delegate(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA);
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_AWAIT:
-            DECLARE_PATH(VARIABLE_DELEGATE);
             LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA  = copy_Delegate(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA);
             return 1;
 
         default:
-            DECLARE_PATH(0x20);
             //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
@@ -4565,26 +4487,22 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
 int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY) {
 #endif
     CompiledClass *CCTEMP;
-    DECLARE_PATH(VARIABLE_NUMBER);
     struct Optimizer *OPT = (struct Optimizer *)self->OWNER->OPTIMIZER;
     switch (OE->Operator_ID) {
         // unary operators
         case KEY_NOT:
             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) == 0);
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_LENGTH:
             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_VALUE:
             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_EQU:
@@ -4592,17 +4510,14 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
                 case VARIABLE_STRING:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING_EQU(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 case VARIABLE_NUMBER:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING_EQU_FLOAT(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 default:
-                    DECLARE_PATH(0x20);
                     PIF->RunTimeError(650, ERR650, OE, self->OWNER, STACK_TRACE);
                     break;
             }
@@ -4613,17 +4528,14 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
                 case VARIABLE_STRING:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = !CONCEPT_STRING_EQU(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 case VARIABLE_NUMBER:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = !CONCEPT_STRING_EQU_FLOAT(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 default:
-                    DECLARE_PATH(0x20);
                     PIF->RunTimeError(650, ERR650, OE, self->OWNER, STACK_TRACE);
                     break;
             }
@@ -4637,7 +4549,6 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
                 PROPERTY_CODE(self, PROPERTIES)
                 //----------------//
             }
-            DECLARE_PATH(VARIABLE_STRING);
             return 1;
 
         case KEY_INC_LEFT:
@@ -4648,7 +4559,6 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
                 PROPERTY_CODE_LEFT(self, PROPERTIES)
                 //----------------//
             }
-            DECLARE_PATH(VARIABLE_STRING);
             return 1;
 
         // binary ...
@@ -4656,17 +4566,14 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_STRING:
                     NEW_CONCEPT_SUM(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
-                    DECLARE_PATH(VARIABLE_STRING);
                     break;
 
                 case VARIABLE_NUMBER:
                     NEW_CONCEPT_STRING2(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
                     CONCEPT_STRING_ADD_DOUBLE(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
-                    DECLARE_PATH(VARIABLE_STRING);
                     break;
 
                 default:
-                    DECLARE_PATH(0x20);
                     PIF->RunTimeError(650, ERR650, OE, self->OWNER, STACK_TRACE);
                     break;
             }
@@ -4677,17 +4584,14 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
                 case VARIABLE_STRING:
                     CONCEPT_STRING_COMPARE(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], greater, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 case VARIABLE_NUMBER:
                     CONCEPT_STRING_COMPARE_FLOAT(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], greater, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 default:
-                    DECLARE_PATH(0x20);
                     PIF->RunTimeError(650, ERR650, OE, self->OWNER, STACK_TRACE);
                     break;
             }
@@ -4698,17 +4602,14 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
                 case VARIABLE_STRING:
                     CONCEPT_STRING_COMPARE(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], less, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 case VARIABLE_NUMBER:
                     CONCEPT_STRING_COMPARE_FLOAT(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], less, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 default:
-                    DECLARE_PATH(0x20);
                     PIF->RunTimeError(650, ERR650, OE, self->OWNER, STACK_TRACE);
                     break;
             }
@@ -4719,17 +4620,14 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
                 case VARIABLE_STRING:
                     CONCEPT_STRING_COMPARE(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], greaterequal, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 case VARIABLE_NUMBER:
                     CONCEPT_STRING_COMPARE_FLOAT(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], greaterequal, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 default:
-                    DECLARE_PATH(0x20);
                     PIF->RunTimeError(650, ERR650, OE, self->OWNER, STACK_TRACE);
                     break;
             }
@@ -4740,17 +4638,14 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
                 case VARIABLE_STRING:
                     CONCEPT_STRING_COMPARE(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], lessequal, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 case VARIABLE_NUMBER:
                     CONCEPT_STRING_COMPARE_FLOAT(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], lessequal, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 default:
-                    DECLARE_PATH(0x20);
                     PIF->RunTimeError(650, ERR650, OE, self->OWNER, STACK_TRACE);
                     break;
             }
@@ -4779,11 +4674,9 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
                     //----------------------------------------------------------------------------------------//
                     UPDATE_STRING_VARIABLE_THAT_HAS_INDEX(self, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], PROPERTIES);
                     //----------------------------------------------------------------------------------------//
-                    DECLARE_PATH(VARIABLE_STRING);
                     break;
 
                 default:
-                    DECLARE_PATH(0x20);
                     PIF->RunTimeError(650, ERR650, OE, self->OWNER, STACK_TRACE);
                     return 1;
             }
@@ -4805,17 +4698,14 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
                             LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->LINKS++;
                         }
                     }
-                    DECLARE_PATH(VARIABLE_STRING);
                     break;
 
                 case VARIABLE_NUMBER:
                     CONCEPT_STRING_ADD_DOUBLE(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
                     NEW_CONCEPT_STRING2(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
-                    DECLARE_PATH(VARIABLE_STRING);
                     break;
 
                 default:
-                    DECLARE_PATH(0x20);
                     PIF->RunTimeError(650, ERR650, OE, self->OWNER, STACK_TRACE);
                     break;
             }
@@ -4829,17 +4719,14 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
                 case VARIABLE_NUMBER:
                     NEW_CONCEPT_STRING_INDEX(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandLeft_ID - 1], (D_LONG_TYPE)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
                     ((struct plainstring *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
-                    DECLARE_PATH(VARIABLE_STRING);
                     break;
 
                 case VARIABLE_STRING:
                     NEW_CONCEPT_STRING_INDEX(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandLeft_ID - 1], CONCEPT_STRING_INT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]));
                     ((struct plainstring *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
-                    DECLARE_PATH(VARIABLE_STRING);
                     break;
 
                 default:
-                    DECLARE_PATH(0x20);
                     PIF->RunTimeError(640, ERR640, OE, self->OWNER, STACK_TRACE);
                     break;
             }
@@ -4868,7 +4755,6 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
             }
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_BOR:
@@ -4895,7 +4781,6 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
             }
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_CND_NULL:
@@ -4906,40 +4791,34 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
             if (CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])) {
                 NEW_CONCEPT_STRING2(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
                 LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
-                DECLARE_PATH(VARIABLE_STRING);
                 return 1;
             }
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_NUMBER:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 case VARIABLE_STRING:
                     NEW_CONCEPT_STRING2(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
-                    DECLARE_PATH(VARIABLE_STRING);
                     break;
 
                 case VARIABLE_DELEGATE:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = copy_Delegate(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_DELEGATE;
-                    DECLARE_PATH(VARIABLE_DELEGATE);
                     break;
 
                 case VARIABLE_CLASS:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE;
                     ((struct CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                    DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                     break;
 
                 case VARIABLE_ARRAY:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
                     ((struct Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                    DECLARE_PATH(VARIABLE_ARRAY);
                     break;
             }
             return 1;
@@ -4949,7 +4828,6 @@ int ConceptInterpreter_EvalStringExpression(struct ConceptInterpreter *self, PIF
             return 1;
 
         default:
-            DECLARE_PATH(0x20);
             PIF->RunTimeError(650, ERR650, OE, self->OWNER, STACK_TRACE);
             break;
     }
@@ -4962,7 +4840,6 @@ int ConceptInterpreter_EvalNumberExpression(struct ConceptInterpreter *self, PIF
 int ConceptInterpreter_EvalNumberExpression(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY) {
 #endif
     CompiledClass  *CCTEMP;
-    DECLARE_PATH(VARIABLE_NUMBER);
     struct Optimizer *OPT = (struct Optimizer *)self->OWNER->OPTIMIZER;
     switch (OE->Operator_ID) {
         // assigment operators
@@ -5294,7 +5171,6 @@ int ConceptInterpreter_EvalSimpleExpression(struct ConceptInterpreter *self, PIF
 int ConceptInterpreter_EvalSimpleExpression(struct ConceptInterpreter *self, PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY) {
 #endif
     CompiledClass  *CCTEMP;
-    DECLARE_PATH(VARIABLE_NUMBER);
     struct Optimizer *OPT = (struct Optimizer *)self->OWNER->OPTIMIZER;
     switch (OE->Operator_ID) {
         case KEY_BY_REF:
@@ -5343,7 +5219,6 @@ int ConceptInterpreter_EvalSimpleExpression(struct ConceptInterpreter *self, PIF
                 default:
                     NEW_CONCEPT_STRING_CSTR(LOCAL_CONTEXT [OE->Result_ID - 1], "");
             }
-            DECLARE_PATH(VARIABLE_STRING);
             return 1;
 
         case KEY_CLASS_NAME:
@@ -5358,7 +5233,6 @@ int ConceptInterpreter_EvalSimpleExpression(struct ConceptInterpreter *self, PIF
                 CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
                 NEW_CONCEPT_STRING_CSTR(LOCAL_CONTEXT [OE->Result_ID - 1], CCTEMP->_Class->NAME.c_str());
             }
-            DECLARE_PATH(VARIABLE_STRING);
             return 1;
 
         case KEY_DELETE:
@@ -5368,7 +5242,6 @@ int ConceptInterpreter_EvalSimpleExpression(struct ConceptInterpreter *self, PIF
             // LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA  = 0;
             LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE        = VARIABLE_NUMBER;
             LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = 0;
-            DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
     }
     return 0;
@@ -5542,7 +5415,6 @@ tail_call:
             case KEY_OPTIMIZED_IF:
 if_label:
 
-                DECLARE_PATH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE);
                 switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                     case VARIABLE_NUMBER:
                         if (!LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA) {
@@ -5566,7 +5438,6 @@ if_label:
 
             case KEY_OPTIMIZED_GOTO:
 goto_label:
-                DECLARE_PATH(VARIABLE_NUMBER);
                 INSTRUCTION_POINTER = OE->OperandReserved_ID;
                 continue;
 
@@ -5615,7 +5486,6 @@ asg_label:
                                     return 0;
                                 }
                             }
-                            DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                             continue;
                         }
                     } else {
@@ -5649,7 +5519,6 @@ sel_label:
                 WRITE_LOCK
                 if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE != VARIABLE_CLASS) {
                     PIF->RunTimeError(240, ERR240, OE, self->OWNER, STACK_TRACE);
-                    DECLARE_PATH(0x20);
                     continue;
                 }
                 RESET_PROPERTIES(PROPERTIES, OE->Result_ID);
@@ -5733,7 +5602,6 @@ sel_label:
                                     RESULT = LOCAL_CONTEXT[OE->Result_ID - 1];
                                     if ((RESULT) && (RESULT->LINKS == 1)) {
                                         CompiledClass_CreateVariable(CCTEMP, relocation - 1, pMEMBER_i, RESULT);
-                                        DECLARE_PATH(RESULT->TYPE);
                                         continue;
                                     }
                                     RESULT = CompiledClass_CreateVariable(CCTEMP, relocation - 1, pMEMBER_i);
@@ -5759,7 +5627,6 @@ sel_label:
                 WRITE_LOCK
 #endif
                 if (THROW_DATA) {
-                    DECLARE_PATH(THROW_DATA->TYPE);
                     if (ConceptInterpreter_Catch(self, THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
                         FAST_FREE(PIF, PROPERTIES);
                         PROPERTIES = 0;
@@ -5771,7 +5638,6 @@ sel_label:
                 //-------------------------------------------//
 nothrow:
                 if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
-                    DECLARE_PATH(RESULT->TYPE);
                     continue;
                 }
                 if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
@@ -5794,7 +5660,6 @@ here:
                         RESULT->LINKS++;
                     }
                 }
-                DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                 continue;
 
             case KEY_NEW:
@@ -5811,7 +5676,6 @@ new_label:
                     RESULT->TYPE       = VARIABLE_NUMBER;
                     RESULT->CLASS_DATA = new_Array(PIF);
                     RESULT->TYPE       = VARIABLE_ARRAY;
-                    DECLARE_PATH(VARIABLE_ARRAY);
                 } else {
                     CC = PIF->StaticClassList[OE->OperandLeft_ID - 1];
                     RESULT->TYPE = VARIABLE_CLASS;
@@ -5827,9 +5691,6 @@ new_label:
 
                     if (!instancePTR) {
                         RESULT->TYPE = VARIABLE_NUMBER;
-                        DECLARE_PATH(VARIABLE_NUMBER);
-                    } else {
-                        DECLARE_PATH(VARIABLE_CLASS);
                     }
                 }
                 PROPERTY_CODE_VAR(self, PROPERTIES, OE->Result_ID);
@@ -5853,7 +5714,6 @@ call_label:
                         //-------------------------------------------//
                         if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_DELEGATE) {
                             PIF->RunTimeError(970, ERR970, OE, self->OWNER, STACK_TRACE);
-                            DECLARE_PATH(0x20);
                             continue;
                         }
                         CCTEMP                     = (struct CompiledClass *)delegate_Class(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
@@ -5874,7 +5734,6 @@ call_label:
                         WRITE_LOCK
                         CCTEMP->LINKS --;
                         if (THROW_DATA) {
-                            DECLARE_PATH(THROW_DATA->TYPE);
                             if (ConceptInterpreter_Catch(self, THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
                                 FAST_FREE(PIF, PROPERTIES);
                                 PROPERTIES = 0;
@@ -5897,7 +5756,6 @@ call_label:
                             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                         }
                         if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
-                            DECLARE_PATH(RESULT->TYPE);
                             continue;
                         }
                         if (RESULT) {
@@ -5905,7 +5763,6 @@ call_label:
                             LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
                             RESULT->LINKS++;
                         }
-                        DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                         continue;
                     } else
                     if (OE->OperandLeft_ID == STATIC_CLASS_DLL) {
@@ -5944,7 +5801,6 @@ call_label:
 
                                 CONCEPT_STRING_SET_CSTR(THROW_DATA, STATIC_ERROR);
 
-                                DECLARE_PATH(VARIABLE_STRING);
                                 if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {
                                     FREE_VARIABLE(LOCAL_CONTEXT [CATCH_VARIABLE - 1], STACK_TRACE);
                                     LOCAL_CONTEXT [CATCH_VARIABLE - 1] = THROW_DATA;
@@ -5961,7 +5817,6 @@ call_label:
                                     return 0;
                                 }
                             } else {
-                                DECLARE_PATH(0x20);
                                 PIF->RunTimeError(700, ERR700, OE, self->OWNER, STACK_TRACE, STATIC_ERROR);
                                 RESET_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
@@ -5974,7 +5829,6 @@ call_label:
                         WRITE_LOCK
                         //-------------------------------------------//
                         if (THROW_DATA) {
-                            DECLARE_PATH(THROW_DATA->TYPE);
                             if (ConceptInterpreter_Catch(self, THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
                                 FAST_FREE(PIF, PROPERTIES);
                                 PROPERTIES = 0;
@@ -6006,7 +5860,6 @@ call_label:
                             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                         }
                     }
-                    DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                     continue;
                 default:
 op:
@@ -6112,7 +5965,6 @@ index_label:
                                     // LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = pushed_type;
                                     RETURN_DATA = Array_Get((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                                     if (!RETURN_DATA) {
-                                        DECLARE_PATH(0x20);
                                         PIF->RunTimeError(1110, ERR1110, OE, self->OWNER, STACK_TRACE);
                                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
                                         continue;
@@ -6122,11 +5974,9 @@ index_label:
                                         LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
                                         RETURN_DATA->LINKS++;
                                     }
-                                    DECLARE_PATH(RETURN_DATA->TYPE);
                                     continue;
 
                                 default:
-                                    DECLARE_PATH(0x20);
                                     // LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = pushed_type;
                                     PIF->RunTimeError(900, ERR900, OE, self->OWNER, STACK_TRACE);
                                     continue;
@@ -6237,7 +6087,9 @@ return_label:
                     if (skip_return)
                         goto null_return;
 #endif
-                    DECLARE_PATH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE);
+                    if (!OE->OperandRight_ID)
+                        goto null_return;
+
                     if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->LINKS == 1) {
                         LOCAL_CONTEXT [OE->OperandRight_ID - 1]->LINKS = 2;
                         LOCAL_CONTEXT [OE->OperandRight_ID - 1]->IS_PROPERTY_RESULT = 0;
@@ -6288,7 +6140,6 @@ return_label:
 
                 case KEY_OPTIMIZED_ECHO:
 echo_label:
-                    DECLARE_PATH(1);
                     if (PIF->out) {
                         WRITE_LOCK
                         switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
@@ -6327,7 +6178,6 @@ echo_label:
 
                 case KEY_OPTIMIZED_THROW:
 throw_label:
-                    DECLARE_PATH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE);
                     LOCAL_CONTEXT [OE->OperandRight_ID - 1]->LINKS++;
                     THROW_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1];
 promise_rejected:
@@ -6356,7 +6206,6 @@ promise_rejected:
 
                 case KEY_OPTIMIZED_TRY_CATCH:
 try_catch_label:
-                    DECLARE_PATH(1);
                     CATCH_INSTRUCTION_POINTER = OE->OperandReserved_ID;
                     CATCH_VARIABLE            = OE->Result_ID;
                     PREVIOUS_TRY = OE->OperandLeft_ID;
@@ -6364,7 +6213,6 @@ try_catch_label:
 
                 case KEY_OPTIMIZED_END_CATCH:
 end_catch_label:
-                    DECLARE_PATH(1);
                     CATCH_INSTRUCTION_POINTER = 0;
                     CATCH_VARIABLE            = 0;
                     THROW_DATA = 0;
@@ -6375,7 +6223,6 @@ end_catch_label:
 
                 case KEY_OPTIMIZED_DEBUG_TRAP:
 trap_label:
-                    DECLARE_PATH(1);
                     if (PIF->DEBUGGER_TRAP) {
                         WRITE_UNLOCK
                         if (PIF->DEBUGGER_TRAP(OPT->DATA, LOCAL_CONTEXT, OPT->dataCount, OE->Operator_DEBUG_INFO_LINE, ((ClassCode *)(self->OWNER->Defined_In))->_DEBUG_INFO_FILENAME.c_str(), (GET_VARIABLE_PROC)GetVariableByName, PIF->DEBUGGER_RESERVED, PIF, STACK_TRACE)) {

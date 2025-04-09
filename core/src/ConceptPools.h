@@ -35,7 +35,7 @@ extern "C" {
  #define POOLED_IMPLEMENTATION(PCLS)
 #endif
 
-#define POOL_BLOCK_SIZE           127
+#define POOL_BLOCK_SIZE           32
 #define OBJECT_POOL_BLOCK_SIZE    124
 #define ARRAY_POOL_BLOCK_SIZE     124
 // 8k * sizeof(void *) buffer

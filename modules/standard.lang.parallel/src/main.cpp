@@ -826,7 +826,8 @@ AnsiString GenerateCode(void *DELEGATE, INVOKE_CALL Invoke, AnsiString& err, std
                         case KEY_OPTIMIZED_RETURN:
                         case KEY_OPTIMIZED_ECHO:
                         case KEY_OPTIMIZED_IF:
-                            used[OE->OperandRight_ID - 1]++;
+                            if (OE->OperandRight_ID > 0)
+                                used[OE->OperandRight_ID - 1]++;
                             break;
                     }
                 }
@@ -1055,7 +1056,7 @@ AnsiString GenerateCode(void *DELEGATE, INVOKE_CALL Invoke, AnsiString& err, std
                         }
                     } else
                     if (OE->Operator_ID == KEY_OPTIMIZED_RETURN) {
-                        if (is_kernel)
+                        if ((is_kernel) || (!OE->OperandRight_ID))
                             decl += "\treturn;";
                         else {
                             decl += "\treturn var";
