@@ -572,6 +572,14 @@ void PIFAlizator::addNonOptimizable(INTEGER ID) {
 }
 
 int PIFAlizator::isNonOptimizable(INTEGER ID) {
+    PIFAlizator *ctx = (PIFAlizator *)this->parentPIF;
+    while (ctx) {
+        if (ctx->isNonOptimizable(ID))
+            return 1;
+
+        ctx = (PIFAlizator *)ctx->parentPIF;
+    }
+
     if (!this->NonOptimizableIDS)
         return 0;
 

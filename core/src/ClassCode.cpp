@@ -1300,6 +1300,8 @@ int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassLi
                 Optimizer_Unserialize((struct Optimizer *)CM->OPTIMIZER, PIF, in, PIF->ModuleList, is_lib, ClassNames, Relocation, version);
             } else {
                 CM->OPTIMIZER = 0;
+                if ((is_lib) && (CM->IS_FUNCTION == 3))
+                    PIF->addNonOptimizable(index);
             }
         } else {
             int clsid;
