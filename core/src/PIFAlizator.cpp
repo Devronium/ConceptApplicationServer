@@ -21,7 +21,11 @@
 #endif
 #ifndef NO_BUILTIN_REGEX
 extern "C" {
- #include "builtin/regexp.h"
+#ifdef USE_LIBREGEXP
+    #include "builtin/libregexp.h"
+#else
+    #include "builtin/regexp.h"
+#endif
 }
 #endif
 #ifdef USE_SYSLOG
@@ -349,6 +353,9 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
 #ifdef CACHED_CLASSES
     HashTable_init(&this->CachedClasses);
 #endif
+#ifdef CACHED_LIST
+    this->NonOptimizableIDS = NULL;
+#endif
     if (sibling) {
         this->parentPIF = sibling;
         this->ClassList = sibling->ClassList;
@@ -552,6 +559,28 @@ int PIFAlizator::IsPromiseObject(const ClassCode *CC) {
     return 0;
 }
 
+void PIFAlizator::addNonOptimizable(INTEGER ID) {
+    if (this->isNonOptimizable(ID))
+        return;
+
+    if (!this->NonOptimizableIDS)
+        this->NonOptimizableIDS = kh_init(idhashtable);
+
+    int ret;
+    khiter_t k = kh_put(idhashtable, this->NonOptimizableIDS, ID, &ret);
+    kh_value(this->NonOptimizableIDS, k) = ID;
+}
+
+int PIFAlizator::isNonOptimizable(INTEGER ID) {
+    if (!this->NonOptimizableIDS)
+        return 0;
+
+    khiter_t k = kh_get(idhashtable, this->NonOptimizableIDS, ID);
+    if ((k != kh_end(this->NonOptimizableIDS)) && (kh_exist(this->NonOptimizableIDS, k)))
+        return 1;
+    return 0;
+}
+
 PIFAlizator::~PIFAlizator(void) {
 #ifdef CACHED_CLASSES
     HashTable_deinit(&this->CachedClasses);
@@ -676,6 +705,10 @@ PIFAlizator::~PIFAlizator(void) {
 #ifdef USE_MEMORY_SPACE
     FAST_MSPACE_DESTROY(this->memory);
 #endif
+    if (this->NonOptimizableIDS) {
+        kh_destroy(idhashtable, this->NonOptimizableIDS);
+        this->NonOptimizableIDS = NULL;
+    }
 }
 
 unsigned int PIFAlizator::LinkStatic(const char *funname) {
@@ -1703,12 +1736,33 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             AE->_HASH_DATA       = 0;
             PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
 
+#ifdef USE_LIBREGEXP
+            char err_msg[128];
+            err_msg[0] = 0;
+
+            int plen = 0;
+
+	        int re_flags = 0;
+
+	        if (P->regexp_flags & 1)
+		        re_flags |= LRE_FLAG_IGNORECASE;
+
+	        if (P->regexp_flags & 2)
+		        re_flags |= LRE_FLAG_MULTILINE;
+
+            uint8_t *bytecode = lre_compile(&plen, err_msg, sizeof(err_msg), expr, strlen(expr), re_flags, NULL);
+            if (err_msg[0])
+                Errors.Add(new AnsiException(ERR1340, on_line ? on_line : P->LastLine(), 1340, err_msg, FileName, CC->NAME), DATA_EXCEPTION);
+            if (bytecode)
+                lre_realloc(NULL, bytecode, 0);
+#else
             const char *errorp = NULL;
             Reprog *reg = JS_regcomp(expr, P->regexp_flags, &errorp);
             if (reg)
                 JS_regfree(reg);
             if (errorp)
                 Errors.Add(new AnsiException(ERR1340, on_line ? on_line : P->LastLine(), 1340, errorp, FileName, CC->NAME), DATA_EXCEPTION);
+#endif
             continue;
         }
 #endif
@@ -2444,6 +2498,7 @@ INTEGER PIFAlizator::BuildProperty(ClassCode *CC, AnsiParser *P, INTEGER on_line
         return 1;
     }
 
+    this->addNonOptimizable(ref_id);
     return 0;
 }
 

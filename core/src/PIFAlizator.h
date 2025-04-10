@@ -18,6 +18,8 @@
 
 #ifdef CACHED_LIST
     #include "HashTable.h"
+
+    KHASH_MAP_INIT_INT(idhashtable, INTEGER)
 #endif
 #include "MemoryTable.h"
 
@@ -233,6 +235,11 @@ typedef struct {
 class PIFAlizator {
 public:
     StaticList *GeneralMembers;
+#ifdef CACHED_LIST
+    khash_t (idhashtable) *NonOptimizableIDS;
+    void addNonOptimizable(INTEGER ID);
+    int isNonOptimizable(INTEGER ID);
+#endif
     int        pipe_read;
     int        pipe_write;
     int        apid;

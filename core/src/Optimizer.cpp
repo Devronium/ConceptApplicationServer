@@ -1438,6 +1438,10 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
                 tmp_index = TVM->GetVar2();
             } else
             if ((AE_ID == KEY_SEL) && (Left) && (Left->ID >= 1) && (Right) && (Right->ID > 0) && (Right->_INFO_OPTIMIZED == 2) && ((!Parameter) || (Parameter->TYPE != TYPE_PARAM_LIST))) {
+                // properties cannot be optimized (can change value between access points)
+                if (helper->PIFOwner->isNonOptimizable(Right->ID))
+                    goto nooptimizations;
+
                 tmp_index = TVM->cached_selector(Left->ID, Right->ID);
                 if (!tmp_index) {
                     VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;

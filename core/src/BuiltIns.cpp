@@ -56,7 +56,11 @@
 #endif
 
 extern "C" {
+#ifdef USE_LIBREGEXP
+    #include "builtin/libregexp.h"
+#else
     #include "builtin/regexp.h"
+#endif
 }
 
 // ==================================================== //
@@ -97,10 +101,134 @@ CONCEPT_FUNCTION_IMPL(MemoryInfo, 0)
     GetMemoryStatistics(PARAMETERS->PIF, RESULT->CLASS_DATA);
 END_IMPL
 
+#ifdef USE_LIBREGEXP
+struct regexp_container {
+    uint8_t *bytecode;
+    uint8_t **capture;
+    int64_t lastIndex;
+    int alloca_size;
+    unsigned char flags;
+    unsigned char utf8;
+    time_t timeout;
+};
+
+int lre_check_stack_overflow(void *opaque, size_t alloca_size) {
+	if (alloca_size > 1024 * 1024)
+		return 1;
+    struct regexp_container *reg = (struct regexp_container *)opaque;
+    if (reg) {
+        reg->alloca_size += alloca_size;
+	    if (reg->alloca_size > 1024 * 1024)
+		    return 1;
+    }
+	return 0;
+}
+
+int lre_check_timeout(void *opaque) {
+    struct regexp_container *reg = (struct regexp_container *)opaque;
+    if ((reg) && (reg->timeout)) {
+        if (reg->timeout > time(NULL))
+            return 1;
+    }
+	return 0;
+}
+
+void *lre_realloc(void *opaque, void *ptr, size_t size) {
+    if (!size) {
+        free(ptr);
+        return 0;
+    }
+	return realloc(ptr, size);
+}
+
+static int is_utf8(const char *string) {
+    if (!string)
+        return 0;
+
+    int utf8_chars = 0;
+    const unsigned char * bytes = (const unsigned char *)string;
+    while(*bytes) {
+        if ((// ASCII
+             // use bytes[0] <= 0x7F to allow ASCII control characters
+                bytes[0] == 0x09 ||
+                bytes[0] == 0x0A ||
+                bytes[0] == 0x0D ||
+                (0x20 <= bytes[0] && bytes[0] <= 0x7E)
+            )
+        ) {
+            bytes += 1;
+            continue;
+        }
+
+        if ((// non-overlong 2-byte
+                (0xC2 <= bytes[0] && bytes[0] <= 0xDF) &&
+                (0x80 <= bytes[1] && bytes[1] <= 0xBF)
+            )
+        ) {
+            bytes += 2;
+            utf8_chars ++;
+            continue;
+        }
+
+        if ((// excluding overlongs
+                bytes[0] == 0xE0 &&
+                (0xA0 <= bytes[1] && bytes[1] <= 0xBF) &&
+                (0x80 <= bytes[2] && bytes[2] <= 0xBF)
+            ) ||
+            (// straight 3-byte
+                ((0xE1 <= bytes[0] && bytes[0] <= 0xEC) ||
+                    bytes[0] == 0xEE ||
+                    bytes[0] == 0xEF) &&
+                (0x80 <= bytes[1] && bytes[1] <= 0xBF) &&
+                (0x80 <= bytes[2] && bytes[2] <= 0xBF)
+            ) ||
+            (// excluding surrogates
+                bytes[0] == 0xED &&
+                (0x80 <= bytes[1] && bytes[1] <= 0x9F) &&
+                (0x80 <= bytes[2] && bytes[2] <= 0xBF)
+            )
+        ) {
+            bytes += 3;
+            utf8_chars ++;
+            continue;
+        }
+
+        if ((// planes 1-3
+                bytes[0] == 0xF0 &&
+                (0x90 <= bytes[1] && bytes[1] <= 0xBF) &&
+                (0x80 <= bytes[2] && bytes[2] <= 0xBF) &&
+                (0x80 <= bytes[3] && bytes[3] <= 0xBF)
+            ) ||
+            (// planes 4-15
+                (0xF1 <= bytes[0] && bytes[0] <= 0xF3) &&
+                (0x80 <= bytes[1] && bytes[1] <= 0xBF) &&
+                (0x80 <= bytes[2] && bytes[2] <= 0xBF) &&
+                (0x80 <= bytes[3] && bytes[3] <= 0xBF)
+            ) ||
+            (// plane 16
+                bytes[0] == 0xF4 &&
+                (0x80 <= bytes[1] && bytes[1] <= 0x8F) &&
+                (0x80 <= bytes[2] && bytes[2] <= 0xBF) &&
+                (0x80 <= bytes[3] && bytes[3] <= 0xBF)
+            )
+        ) {
+            bytes += 4;
+            utf8_chars ++;
+            continue;
+        }
+
+        return 0;
+    }
+
+    return utf8_chars;
+}
+#endif
+
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RE_create, 2, 3)
     T_STRING(RE_create, 0)
     T_NUMBER(RE_create, 1)
 
+#ifndef USE_LIBREGEXP
     const char *errorp = NULL;
     Reprog *reg = JS_regcomp(PARAM(0), PARAM_INT(1), &errorp);
     if (PARAMETERS->COUNT > 2) {
@@ -110,6 +238,58 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RE_create, 2, 3)
             SET_STRING(2, "");
         }
     }
+#else
+    char err_msg[128];
+    int plen = 0;
+
+    err_msg[0] = 0;
+
+	int orig_flags = PARAM_INT(1);
+
+	int re_flags = 0;
+
+	if (orig_flags & 1)
+		re_flags |= LRE_FLAG_IGNORECASE;
+
+	if (orig_flags & 2)
+		re_flags |= LRE_FLAG_MULTILINE;
+
+    if ((PARAM_LEN(0) > 0) && (is_utf8(PARAM(0))))
+        re_flags |= LRE_FLAG_UNICODE;
+
+    uint8_t *bytecode = lre_compile(&plen, err_msg, sizeof(err_msg), PARAM(0), PARAM_LEN(0), re_flags, NULL);
+    if (PARAMETERS->COUNT > 2) {
+        if (!bytecode) {
+            SET_STRING(2, err_msg);
+        } else {
+            SET_STRING(2, "");
+        }
+    }
+
+    struct regexp_container *reg = NULL;
+    if (bytecode) {
+        reg = (struct regexp_container *)lre_realloc(NULL, NULL, sizeof(struct regexp_container));
+        if (reg) {
+            memset(reg, 0, sizeof(struct regexp_container));
+            reg->bytecode = bytecode;
+            reg->flags = orig_flags;
+            reg->utf8 = re_flags & LRE_FLAG_UNICODE;
+
+		    int capture_count = lre_get_capture_count(bytecode);
+		    if (capture_count > 0) {
+			    reg->capture = (uint8_t **)lre_realloc(NULL, NULL, sizeof(reg->capture[0]) * capture_count * 2);
+                if (!reg->capture) {
+                    lre_realloc(NULL, reg->bytecode, 0);
+                    lre_realloc(NULL, reg, 0);
+                    reg = NULL;
+                }
+            }
+        } else {
+            lre_realloc(NULL, bytecode, 0);
+        }
+    }
+
+#endif
     RETURN_NUMBER((SYS_INT)reg);
 END_IMPL
 
@@ -117,11 +297,13 @@ CONCEPT_FUNCTION_IMPL(RE_exec, 2)
     T_HANDLE(RE_exec, 0)
     T_STRING(RE_exec, 1)
 
+#ifndef USE_LIBREGEXP
     Reprog *reg = (Reprog *)(SYS_INT)PARAM(0);
     int offset = JS_reglastindex(reg);
     const char *_string = PARAM(1);
     if (offset >= 0) {
         if (offset >= PARAM_LEN(1)) {
+            JS_setreglastindex(reg, 0);
             RETURN_NUMBER(0);
             return 0;
         }
@@ -164,17 +346,54 @@ CONCEPT_FUNCTION_IMPL(RE_exec, 2)
                 JS_setreglastindex(reg, relative_offset);
             }
         } else {
+            JS_setreglastindex(reg, 0);
             RETURN_STRING("")
         }
     } else {
+        JS_setreglastindex(reg, 0);
         RETURN_NUMBER(0);
     }
+#else
+    int does_match = 0;
+    struct regexp_container *reg = (struct regexp_container *)(SYS_INT)PARAM(0);
+    if (reg->lastIndex < PARAM_LEN(1)) {
+        reg->timeout = time(NULL) + 10;
+        int ret = lre_exec(reg->capture, reg->bytecode, (uint8_t *)PARAM(1), reg->lastIndex, PARAM_LEN(1), 0, reg);
+        if (ret == 1) {
+            does_match = 1;
+
+            // check /g flag, if set, increment lastIndex
+            if (reg->capture) {
+		        int64_t start = (reg->capture[0] - (uint8_t *)PARAM(1));
+			    int64_t end = (reg->capture[1] - (uint8_t *)PARAM(1));
+
+                if (reg->flags & 8)
+                    reg->lastIndex = end;
+
+                if (start == end) {
+                    RETURN_STRING("");
+                } else {
+                    RETURN_BUFFER(PARAM(1) + start, (end - start));
+                }
+            } else {
+                RETURN_NUMBER(0);
+            }
+        } else {
+            if (reg->flags & 8)
+                reg->lastIndex = 0;
+            RETURN_NUMBER(0);
+        }
+    } else {
+        reg->lastIndex = 0;
+        RETURN_NUMBER(0);
+    }
+#endif
 END_IMPL
 
 CONCEPT_FUNCTION_IMPL(RE_test, 2) 
     T_HANDLE(RE_test, 0)
     T_STRING(RE_test, 1)
-
+#ifndef USE_LIBREGEXP
     Reprog *reg = (Reprog *)(SYS_INT)PARAM(0);
     Resub sub;
 
@@ -182,6 +401,7 @@ CONCEPT_FUNCTION_IMPL(RE_test, 2)
     const char *_string = PARAM(1);
     if (offset >= 0) {
         if (offset >= PARAM_LEN(1)) {
+            JS_setreglastindex(reg, 0);
             RETURN_NUMBER(0);
             return 0;
         }
@@ -189,7 +409,7 @@ CONCEPT_FUNCTION_IMPL(RE_test, 2)
     }
 
     int res = JS_regexec(reg, _string, &sub, 0);
-    if (offset >= 0) {
+    if ((!res) && (offset >= 0)) {
         const char *sp = sub.sub[0].sp;
         const char *ep = sub.sub[0].ep;
         if ((sp) && (ep) && (sp != ep)) {
@@ -197,27 +417,83 @@ CONCEPT_FUNCTION_IMPL(RE_test, 2)
             if (relative_offset < 0)
                 relative_offset = PARAM_LEN(1);
             JS_setreglastindex(reg, relative_offset);
-        }
-    }
+        } else
+            JS_setreglastindex(reg, 0);
+    } else
+        JS_setreglastindex(reg, 0);
+
     RETURN_NUMBER(!res);
+#else
+    int does_match = 0;
+    struct regexp_container *reg = (struct regexp_container *)(SYS_INT)PARAM(0);
+    if (reg->lastIndex < PARAM_LEN(1)) {
+        reg->timeout = time(NULL) + 10;
+        int ret = lre_exec(reg->capture, reg->bytecode, (uint8_t *)PARAM(1), reg->lastIndex, PARAM_LEN(1), 0, reg);
+        if (ret == 1) {
+            does_match = 1;
+
+            // check /g flag, if set, increment lastIndex
+            if ((reg->flags & 8) && (reg->capture)) {
+		        int64_t start = (reg->capture[0] - (uint8_t *)PARAM(1));
+			    int64_t end = (reg->capture[1] - (uint8_t *)PARAM(1));
+
+                reg->lastIndex = end;
+            }
+        } else {
+            if (reg->flags & 8)
+                reg->lastIndex = 0;
+        }
+    } else
+        reg->lastIndex = 0;
+    RETURN_NUMBER(does_match);
+#endif
 END_IMPL
 
-CONCEPT_FUNCTION_IMPL(RE_lastindex, 1)
-    T_HANDLE(RE_test, 0)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RE_lastindex, 1, 2)
+    T_HANDLE(RE_lastindex, 0)
+#ifndef USE_LIBREGEXP
     Reprog *reg = (Reprog *)(SYS_INT)PARAM(0);
     int lastIndex = JS_reglastindex(reg);
+#else
+    struct regexp_container *reg = (struct regexp_container *)(SYS_INT)PARAM(0);
+    int64_t lastIndex = reg->lastIndex;
+#endif
     if (lastIndex < 0)
         lastIndex = 0;
+
+    if (PARAMETERS->COUNT > 1) {
+        T_NUMBER(RE_lastindex, 1);
+#ifndef USE_LIBREGEXP
+        int setIndex = PARAM_INT(1);
+        if (setIndex >= 0)
+            JS_setreglastindex(reg, setIndex);
+#else
+        int setIndex = (int64_t)PARAM(1);
+        if (setIndex >= 0)
+            reg->lastIndex = setIndex;
+#endif            
+    }
+
     RETURN_NUMBER(lastIndex);
 END_IMPL
 
 CONCEPT_FUNCTION_IMPL(RE_done, 1)
     T_NUMBER(RE_done, 0)
+#ifndef USE_LIBREGEXP
     Reprog *reg = (Reprog *)(SYS_INT)PARAM(0);
     if (reg) {
         JS_regfree(reg);
         SET_NUMBER(0, 0);
     }
+#else
+    struct regexp_container *reg = (struct regexp_container *)(SYS_INT)PARAM(0);
+    if (reg) {
+        if (reg->bytecode)
+            lre_realloc(NULL, reg->bytecode, 0);
+        lre_realloc(NULL, reg, 0);
+        SET_NUMBER(0, 0);
+    }
+#endif
     RETURN_NUMBER(0);
 END_IMPL
 
@@ -697,7 +973,7 @@ int BUILTINOBJECTS(void *pif, const char *classname) {
     if ((!PIF) || (!classname) || (PIF->enable_private))
         return 0;
 
-    BUILTINCLASS("RegExp", "class RegExp{private var h;property lastIndex{get getLastIndex}RegExp(str,f=0,var e=null){this.h=RE_create(str,f,e);}test(str){return RE_test(this.h,str);}exec(str){return RE_exec(this.h,str);}getLastIndex(){return RE_lastindex(this.h);}finalize(){RE_done(this.h);}}");
+    BUILTINCLASS("RegExp", "class RegExp{private var h;property lastIndex{get getLastIndex, set setLastIndex}RegExp(str,f=0,var e=null){this.h=RE_create(str,f,e);}test(str){return RE_test(this.h,str);}exec(str){return RE_exec(this.h,str);}getLastIndex(){return RE_lastindex(this.h);}setLastIndex(index){RE_lastindex(this.h,index);return index;}finalize(){RE_done(this.h);}}");
     BUILTINCLASS("Math", "class Math{"
         DECLARE_WRAPPER(Math, abs)
         DECLARE_WRAPPER(Math, acos)
@@ -867,6 +1143,12 @@ int BUILTINOBJECTS(void *pif, const char *classname) {
                 "if (year < 0)"
                     "year = 0;"
                 "this.day = date;"
+            "}"
+
+            "setHours(number hours) {"
+                "if ((hours < 0) || (hours >= 24))"
+                    "hours = 0;"
+                "this.hours = hours;"
             "}"
 
             "setMinutes(number minutes, number sec = -1, number ms = -1) {"
