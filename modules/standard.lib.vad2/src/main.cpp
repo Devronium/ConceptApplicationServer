@@ -121,6 +121,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_process, 2, 3)
         }
 
         VadIterator *vad = (VadIterator *)GET_POINTER(vad_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+        if (!vad)
+            return (void *)"vad handle is not valid";
 
         try {
             vad->process(input_wav, output_wav);
