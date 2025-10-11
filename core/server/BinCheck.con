@@ -135,6 +135,39 @@ class Main {
 		return 0;
 	}
 
+	var fileindex = 0;
+	var tablename;
+	CopyData(filename, tablename) {
+		var bin = new BinFile(filename, "rb");
+		if (bin.Open()) {
+			this.tablename = tablename;
+			echo "Scanning from $filename...\n";
+			var[] data;
+			try {
+				bin.Scan(function(o, id, var data) {
+					if (o)
+						data[length data] = o;
+
+					if ((length data % 50000) == 0) {
+						echo "Writing ${length data} records into ${tablename}_file_${fileindex}.bin\n";
+						WriteFile(BinarizeObject(data), "${tablename}_file_${fileindex ++}.bin");
+						data = new [];
+					}
+				}, data);
+			} catch (var exc) {
+				echo "Broken file: $exc\n";
+				echo "Not all records were copied.\n";
+			}
+			echo "Writing ${length data} records into ${tablename}_file_${fileindex}.bin\n";
+			WriteFile(BinarizeObject(data), "${tablename}_file_${fileindex ++}.bin");
+
+			echo "done\n";
+			bin.Close();
+		} else
+			echo "Error opening $filename.\n";
+		return 0;
+	}
+
 	KeyVal(arr) {
 		var[] res;
 		if (arr) {
@@ -149,7 +182,7 @@ class Main {
 	Main() {
 		var arg = CLArg()[0];
 		if (!arg) {
-			echo "Usage: BinCheck.con filename [show|set|get|isolate|garbage|rawblock|store|delete] [parameters]\n";	
+			echo "Usage: BinCheck.con filename [show|set|get|isolate|garbage|rawblock|store|delete|copydata] [parameters]\n";	
 			return -1;
 		}
 		var showdata = false;
@@ -211,6 +244,14 @@ class Main {
 						return -3;
 					}
 					return Store(arg, str);
+					break;
+				case "copydata":
+					tablename = CLArg()[2];
+					if (!tablename) {
+						echo "Usage: BinCheck.con filename copydata dumpfile.bin\n";
+						return -3;
+					}
+					return CopyData(arg, tablename);
 					break;
 				default:
 					echo "Unknown command $command\n";

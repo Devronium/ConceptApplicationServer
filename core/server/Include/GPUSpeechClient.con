@@ -6,7 +6,7 @@ import standard.lib.vad2
 include TCPSocket.con
 
 class RemoteGPUClient {
-	static stt(host, port, hmac_key, var buffer, codec = 8, lang = "", sample_rate = 8000, voice_ms = -1, timeout = 4000, max_size = 48000, var error = "") {
+	static stt(host, port, hmac_key, var buffer, codec = 8, lang = "", sample_rate = 8000, voice_ms = -1, timeout = 4000, max_size = 48000, var error = "", var punctuation = "") {
 		try {
 			var client = new TCPSocket();
 			client.SetOption(SOL_SOCKET, SO_RCVTIMEO, timeout);
@@ -14,6 +14,7 @@ class RemoteGPUClient {
 			client.ConnectTimeout = 1000;
 
 			error = "";
+			punctuation = "";
 
 			if (!client.Connect(host, port)) {
 				console.warn(LOG_THIS, "error connecting to $host:$port");
@@ -80,6 +81,9 @@ class RemoteGPUClient {
 					throw "invalid buffer";
 
 				client.Close(true);
+
+				punctuation = obj["punctuation"] ?? "";
+
 				return (obj["text"] ?? "");
 			}
 			error = "buffer too big ($size)";
@@ -91,6 +95,124 @@ class RemoteGPUClient {
 		client.Close(true);
 		return "";
 	}
+}
+
+class RemoteAsyncGPUClient {
+	var client;
+	var start;
+	var obj;
+	var timeout;
+	var max_size;
+
+	static stt(host, port, hmac_key, var buffer, codec = 8, lang = "", sample_rate = 8000, voice_ms = -1, timeout = 4000, max_size = 48000, var error = "") {
+		try {
+			var client = new TCPSocket();
+			client.SetOption(SOL_SOCKET, SO_RCVTIMEO, timeout);
+			client.SetOption(SOL_SOCKET, SO_SNDTIMEO, timeout);
+			client.ConnectTimeout = 1000;
+
+			error = "";
+
+			if (!client.Connect(host, port)) {
+				console.warn(LOG_THIS, "error connecting to $host:$port");
+				error = "error connecting to service";
+				console.warn(LOG_THIS, error);
+				return null;
+			}
+
+			lang = ToLower(lang);
+			if (lang == "auto")
+				lang = "";
+
+			var[] obj;
+			obj["lang"] = lang;
+			obj["codec"] = codec;
+			obj["buffer"] = buffer;
+			obj["sampleRate"] = sample_rate;
+			if (voice_ms >= 0)
+				obj["voice"] = voice_ms;
+			obj["timestamp"] = Date.now();
+			hmac_sha256(hmac_key, obj["buffer"] + obj["lang"] + obj["timestamp"], obj["auth"]);
+
+			var buf = BinarizeObject(obj);
+			var socket_buffer = pack("U32", length buf) + buf;
+
+			var start = Date.now();
+			do {
+				var sent = client.Write(socket_buffer);
+				if (sent <= 0)
+					throw "error sending buffer";
+
+				if (sent < length socket_buffer)
+					socket_buffer = SubStr(socket_buffer, sent);
+				else
+					break;
+				if ((Date.now() - start)  > timeout) {
+					console.warn(LOG_THIS, "write timeout to $host:$port");
+					error = "write timeout";
+					client.Close(true);
+					return null;
+				}
+			} while (socket_buffer);
+
+			var gpu_client = new RemoteAsyncGPUClient();
+			gpu_client.client = client;
+			gpu_client.start = Date.now();
+			gpu_client.obj = obj;
+			gpu_client.timeout = timeout;
+			gpu_client.max_size = max_size;
+
+			return gpu_client;
+		} catch (var exc) {
+			error = exc;
+			console.warn(LOG_THIS, exc);
+		}
+		client.Close(true);
+		return null;
+	}
+
+
+	pending() {
+		return client.GetHasData();
+	}
+
+	read() {
+		if (!client)
+			throw "invalid gpu client";
+		
+		var client = this.client;
+		this.client = null;
+
+		var arr = unpack("U32", client.Read(4));
+		var size = arr[0];
+
+		client.SetOption(SOL_SOCKET, SO_RCVTIMEO, timeout);
+
+		if ((size > 0) && (size <= max_size)) {
+			start = Date.now();
+			var read_buffer = "";
+			while (length read_buffer < max_size) {
+				var data = client.Read(size - length read_buffer);
+				if (!data)
+					break;
+				read_buffer += data;
+				if ((Date.now() - start)  > timeout)
+					break;
+			}
+			if (!read_buffer)
+				throw "invalid buffer received";
+
+			obj = UnBinarizeObject(read_buffer);
+			if ((!obj) || (typeof obj != "array"))
+				throw "invalid buffer";
+
+			client.Close(true);
+			return (obj["text"] ?? "");
+		}
+		client.Close(true);
+		return "";
+	}
+
 }
 
 class RemoteGPUStream {
@@ -107,6 +229,7 @@ class RemoteGPUStream {
 	var _frame_size_ms = 20;
 
 	var decodedText = "";
+	var decodedPunctuation = "";
 
 	var host = "";
 	var port = 0;
@@ -186,13 +309,14 @@ class RemoteGPUStream {
 				if (before_decode_callback)
 					before_decode_callback(before_decode_callback_data);
 				var error = "";
+				var punctuation = "";
 
 				audio_buffer = audio_buffer + padding_buffer;
 
-				var text = RemoteGPUClient::stt(this.host, this.port, this.key, audio_buffer, this.codec, this.lang, this.modelSampleRate, /* new_data_ms */ 110, 4000, 48000, error);
+				var text = RemoteGPUClient::stt(this.host, this.port, this.key, audio_buffer, this.codec, this.lang, this.modelSampleRate, /* new_data_ms */ 110, 4000, 48000, error, punctuation);
 
 				if ((!text) && (error) && (this.alternateHost))
-					text = RemoteGPUClient::stt(alternateHost, this.alternatePort ?? this.port, this.alternateKey ?? this.key, audio_buffer, this.codec, this.lang, this.modelSampleRate, new_data_ms, 4000, 48000, error);
+					text = RemoteGPUClient::stt(alternateHost, this.alternatePort ?? this.port, this.alternateKey ?? this.key, audio_buffer, this.codec, this.lang, this.modelSampleRate, new_data_ms, 4000, 48000, error, punctuation);
 
 				if ((!text) && (error))
 				 	text = "($error)";
@@ -203,6 +327,9 @@ class RemoteGPUStream {
 				if (decodedText)
 					decodedText += " ";
 				decodedText += text;
+
+				if (punctuation)
+					decodedPunctuation = punctuation;
 
 				audio_buffer = "";
 				last_vad_ms = 0;
@@ -222,7 +349,8 @@ class RemoteGPUStream {
 			pause_until = 0;
 	}
 
-	decode() {
+	decode(var punctuation) {
+		punctuation = decodedPunctuation;
 		return decodedText;
 	}
 
@@ -231,6 +359,7 @@ class RemoteGPUStream {
 		_timeout_count = 0;
 		audio_buffer = "";
 		decodedText = "";
+		decodedPunctuation = "";
 		last_vad_ms = 0;
 		pause_until = 0;
 		vadInterval = 0;
@@ -247,5 +376,6 @@ class RemoteGPUStream {
 		audio_buffer = "";
 		last_vad_ms = 0;
 		decodedText = "";
+		decodedPunctuation = "";
 	}
 }

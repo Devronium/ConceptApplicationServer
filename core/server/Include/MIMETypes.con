@@ -724,6 +724,8 @@ class MIMETypes {
 				"yang" => "application/yang",
 				"yin" => "application/yin+xml",
 				"zip" => "application/zip",
+				"tar" => "application/tar",
+				"tgz" => "application/tar+gzip",
 				"adp" => "audio/adpcm",
 				"au" => "audio/basic",
 				"snd" => "audio/basic",

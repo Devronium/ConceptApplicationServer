@@ -62,7 +62,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_load_model_from_file, 1, 3)
         params.main_gpu = PARAM_INT(2);
     }
 
-    llama_model *model = llama_load_model_from_file(PARAM(0), params);
+    llama_model *model = llama_model_load_from_file(PARAM(0), params);
     if (model) {
         RETURN_NUMBER(MAP_POINTER(llama_model_list, model, NULL));
     } else {
@@ -75,7 +75,7 @@ CONCEPT_FUNCTION_IMPL(llama_free_model, 1)
 
     llama_model *model = (llama_model *)FREE_POINTER(llama_model_list, (SYS_INT)PARAM(0), NULL);
     if (model)
-        llama_free_model(model);
+        llama_model_free(model);
 
     SET_NUMBER(0, 0); 
 
@@ -119,7 +119,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 5)
         return 0;
     }
 
-    llama_context *ctx = llama_new_context_with_model(model, params);
+    llama_context *ctx = llama_init_from_model(model, params);
     if (!ctx) {
         RETURN_NUMBER(0)
         return 0;
@@ -146,10 +146,10 @@ std::vector<llama_token> llama_tokenize_helper(
     // upper limit for the number of tokens
     int n_tokens = text.length() + 2 * add_special;
     std::vector<llama_token> result(n_tokens);
-    n_tokens = llama_tokenize(model, text.data(), text.length(), result.data(), result.size(), add_special, parse_special);
+    n_tokens = llama_tokenize(llama_model_get_vocab(model), text.data(), text.length(), result.data(), result.size(), add_special, parse_special);
     if (n_tokens < 0) {
         result.resize(-n_tokens);
-        int check = llama_tokenize(model, text.data(), text.length(), result.data(), result.size(), add_special, parse_special);
+        int check = llama_tokenize(llama_model_get_vocab(model), text.data(), text.length(), result.data(), result.size(), add_special, parse_special);
         GGML_ASSERT(check == -n_tokens);
     } else {
         result.resize(n_tokens);
@@ -246,7 +246,7 @@ static void batch_add_seq(llama_batch & batch, const std::vector<int32_t> & toke
 
 static void batch_decode(llama_context * ctx, llama_batch & batch, float * output, int n_seq, int n_embd) {
     // clear previous kv_cache values (irrelevant for embeddings)
-    llama_kv_cache_clear(ctx);
+    llama_memory_clear(llama_get_memory(ctx), true);
 
     // run model
     // fprintf(stderr, "%s: n_tokens = %d, n_seq = %d\n", __func__, batch.n_tokens, n_seq);
@@ -277,10 +277,10 @@ static void batch_decode(llama_context * ctx, llama_batch & batch, float * outpu
 std::string llama_token_to_piece(const struct llama_context * ctx, llama_token token, bool special = true) {
     std::string piece;
     piece.resize(piece.capacity());  // using string internal cache, 15 bytes + '\n'
-    const int n_chars = llama_token_to_piece(llama_get_model(ctx), token, &piece[0], piece.size(), 0, special);
+    const int n_chars = llama_token_to_piece(llama_model_get_vocab(llama_get_model(ctx)), token, &piece[0], piece.size(), 0, special);
     if (n_chars < 0) {
         piece.resize(-n_chars);
-        int check = llama_token_to_piece(llama_get_model(ctx), token, &piece[0], piece.size(), 0, special);
+        int check = llama_token_to_piece(llama_model_get_vocab(llama_get_model(ctx)), token, &piece[0], piece.size(), 0, special);
         GGML_ASSERT(check == -n_chars);
     }
     else {
@@ -307,7 +307,7 @@ CONCEPT_FUNCTION_IMPL(llama_load, 2)
         return 0;
     }
 
-    const int n_ctx_train = llama_n_ctx_train(ctx->model);
+    const int n_ctx_train = llama_model_n_ctx_train(ctx->model);
     const int n_ctx = llama_n_ctx(ctx->ctx);
 
     if (n_ctx > n_ctx_train) {
@@ -350,8 +350,8 @@ CONCEPT_FUNCTION_IMPL(llama_load, 2)
             return 0;
         }
         // add eos if not present
-        if (llama_token_eos(ctx->model) >= 0 && (inp.empty() || inp.back() != llama_token_eos(ctx->model))) {
-            inp.push_back(llama_token_eos(ctx->model));
+        if (llama_vocab_eos(llama_model_get_vocab(ctx->model)) >= 0 && (inp.empty() || inp.back() != llama_vocab_eos(llama_model_get_vocab(ctx->model)))) {
+            inp.push_back(llama_vocab_eos(llama_model_get_vocab(ctx->model)));
         }
         chunk.tokens = inp;
     }
@@ -361,7 +361,7 @@ CONCEPT_FUNCTION_IMPL(llama_load, 2)
     struct llama_batch batch = llama_batch_init(n_batch, 0, 1);
 
     // allocate output
-    const int n_embd = llama_n_embd(ctx->model);
+    const int n_embd = llama_model_n_embd(ctx->model);
     std::vector<float> embeddings(n_chunks * n_embd, 0);
     float * emb = embeddings.data();
 
@@ -431,7 +431,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_query, 2, 5)
     std::vector<int32_t> query_tokens = llama_tokenize_helper(llama_get_model(ctx->ctx), PARAM(1), true, false);
 
     const int n_chunks = ctx->chunks.size();
-    const int n_embd = llama_n_embd(ctx->model);
+    const int n_embd = llama_model_n_embd(ctx->model);
     const uint64_t n_batch = ctx->params.n_batch;
 
     struct llama_batch query_batch = llama_batch_init(n_batch, 0, 1);
@@ -468,6 +468,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_query, 2, 5)
     llama_batch_free(query_batch);
 END_IMPL
 //=====================================================================================//
+/*
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
     T_HANDLE(llama_prompt, 0)
     T_STRING(llama_prompt, 1)
@@ -486,7 +487,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
         T_ARRAY(llama_prompt, 2);
     }
 
-    llama_kv_cache_clear(ctx->ctx);
+    llama_memory_clear(llama_get_memory(ctx->ctx), true);
 
     uint8_t *ptr = NULL;
     size_t size = llama_state_get_size(ctx->ctx);
@@ -563,7 +564,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
     }
 
     if (mirostat == 1) {
-        llama_sampler_chain_add(smpl, llama_sampler_init_mirostat(llama_n_vocab(llama_get_model(ctx->ctx)), 0, 5.0, 0.1, 100));
+        llama_sampler_chain_add(smpl, llama_sampler_init_mirostat(llama_vocab_n_tokens(llama_model_get_vocab(llama_get_model(ctx->ctx))), 0, 5.0, 0.1, 100));
     } else
     if (mirostat == 2) {
         llama_sampler_chain_add(smpl, llama_sampler_init_mirostat_v2(0, 5.0, 0.1));
@@ -574,7 +575,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
 
     max_tokens += n_cur;
 
-    int cache = llama_kv_cache_seq_pos_max(ctx->ctx, 0);
+    int cache = llama_memory_seq_pos_max(llama_get_memory(ctx->ctx), 0);
     while (n_cur <= max_tokens) {
         // sample the next token
         {
@@ -582,7 +583,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
             const llama_token new_token_id = llama_sampler_sample(smpl, ctx->ctx, batch.n_tokens - 1);
 
             // is it an end of generation?
-            if (llama_token_is_eog(ctx->model, new_token_id) || n_cur == max_tokens)
+            if (llama_vocab_is_eog(llama_model_get_vocab(ctx->model), new_token_id) || n_cur == max_tokens)
                 break;
 
             data += llama_token_to_piece(ctx->ctx, new_token_id).c_str();
@@ -601,13 +602,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
         n_cur += 1;
 
         if (max_cache) {
-            if (llama_get_kv_cache_used_cells(ctx->ctx) == max_cache - 1) {
+            if ((llama_memory_seq_pos_max(llama_get_memory(ctx->ctx), 0) - llama_memory_seq_pos_min(llama_get_memory(ctx->ctx), 0) + 1) == max_cache - 1) {
                 int n_keep = cache;
 
                 int n_discard = max_cache;
 
-                llama_kv_cache_seq_rm(ctx->ctx, 0, n_keep, n_keep + n_discard);
-                llama_kv_cache_seq_add(ctx->ctx, 0, n_keep + n_discard, -1, - n_discard);
+                llama_memory_seq_rm(llama_get_memory(ctx->ctx), 0, n_keep, n_keep + n_discard);
+                llama_memory_seq_add(llama_get_memory(ctx->ctx), 0, n_keep + n_discard, -1, - n_discard);
                 fprintf(stderr, "clearing cache\n");
 
                 max_cache = 0;
@@ -629,6 +630,281 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
     llama_batch_free(batch);
 
     llama_sampler_free(smpl);
+END_IMPL
+*/
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
+    T_HANDLE(llama_prompt, 0)
+
+
+    // T_STRING(llama_prompt, 1)
+    void *arr = NULL;
+    {
+        INTEGER    type     = 0;
+        char       *szValue = 0;
+        NUMBER     nValue   = 0;
+
+        Invoke(INVOKE_GET_VARIABLE, PARAMETER(1), &type, &szValue, &nValue);
+
+        if (type == VARIABLE_STRING) {
+            if ((int)nValue <= 0) {
+                RETURN_STRING("");
+                return 0;
+            }
+        } else
+        if (type == VARIABLE_ARRAY) {
+            arr = PARAMETER(1);
+        } else {
+            return (void *)"llama_prompt: parameter 1 should be a string or an key-value array";
+        }
+    }
+
+    struct llama_container *ctx = (struct llama_container *)GET_POINTER(llama_list, (SYS_INT)PARAM(0), NULL);
+    if ((!ctx) || (!ctx->ctx)) {
+        RETURN_STRING("");
+        return 0;
+    }
+
+    int max_tokens = 32;
+    int max_cache = 0;
+
+    const char *stop_at = NULL;
+    if (PARAMETERS_COUNT > 2) {
+        T_ARRAY(llama_prompt, 2);
+    }
+
+    uint8_t *ptr = NULL;
+    size_t size = llama_state_get_size(ctx->ctx);
+    ptr = (uint8_t *)malloc(size);
+
+    if (!ptr) {
+        RETURN_STRING("");
+        return 0;
+    }
+
+
+    auto sparams = llama_sampler_chain_default_params();
+
+    sparams.no_perf = false;
+
+    llama_sampler * smpl = llama_sampler_chain_init(sparams);
+
+    int mirostat = 0;
+
+    int n_predict = 32;
+
+    int keep_context = 0;
+
+    if (PARAMETERS_COUNT > 2) {
+        INTEGER type = 0;
+        char    *str = 0;
+        NUMBER  nr   = 0;
+
+#define SET_LLAMA_PARAMETER(name) if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, PARAMETER(2), (INTEGER)-1, #name) == 1) { type = 0; str = NULL, nr = 0; Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(2), #name, &type, &str, &nr); if (type == VARIABLE_NUMBER) llama_sampler_chain_add(smpl, llama_sampler_init_##name(nr)); }
+#define SET_LLAMA_PARAMETER_2(name) if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, PARAMETER(2), (INTEGER)-1, #name) == 1) { type = 0; str = NULL, nr = 0; Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(2), #name, &type, &str, &nr); if (type == VARIABLE_NUMBER) llama_sampler_chain_add(smpl, llama_sampler_init_##name(nr, 1)); }
+#define SET_LLAMA_PARAMETER_3(name) if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, PARAMETER(2), (INTEGER)-1, #name) == 1) { type = 0; str = NULL, nr = 0; Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(2), #name, &type, &str, &nr); if (type == VARIABLE_NUMBER) name = nr; }
+#define SET_LLAMA_PARAMETER_4(name) if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, PARAMETER(2), (INTEGER)-1, #name) == 1) { type = 0; str = NULL, nr = 0; Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(2), #name, &type, &str, &nr); if (type == VARIABLE_STRING) name = str; }
+
+        SET_LLAMA_PARAMETER(top_k)
+        SET_LLAMA_PARAMETER(temp)
+
+        SET_LLAMA_PARAMETER_2(top_p)
+        SET_LLAMA_PARAMETER_2(min_p)
+        SET_LLAMA_PARAMETER_2(typical)
+
+        SET_LLAMA_PARAMETER_3(max_tokens)
+
+        SET_LLAMA_PARAMETER_3(mirostat)
+        SET_LLAMA_PARAMETER_3(max_cache)
+
+        SET_LLAMA_PARAMETER_3(n_predict)
+
+        SET_LLAMA_PARAMETER_3(keep_context)
+
+        SET_LLAMA_PARAMETER_4(stop_at)
+    }
+
+    if (!keep_context)
+        llama_memory_clear(llama_get_memory(ctx->ctx), true);
+
+    const llama_vocab * vocab = llama_model_get_vocab(llama_get_model(ctx->ctx));
+
+    if (mirostat == 1) {
+        llama_sampler_chain_add(smpl, llama_sampler_init_mirostat(llama_vocab_n_tokens(vocab), 0, 5.0, 0.1, 100));
+    } else
+    if (mirostat == 2) {
+        llama_sampler_chain_add(smpl, llama_sampler_init_mirostat_v2(0, 5.0, 0.1));
+    } else
+        llama_sampler_chain_add(smpl, llama_sampler_init_greedy());
+
+    // tokenize the prompt
+
+    std::string prompt;
+    
+    if (arr) {
+        char *template_name = nullptr;
+
+        {
+            INTEGER type = 0;
+            char    *str = 0;
+            NUMBER  nr   = 0;
+            SET_LLAMA_PARAMETER_4(template_name)
+        }
+
+        // load default demplate
+        if ((template_name) && (!template_name[0]))
+            template_name = nullptr;
+
+        std::vector<llama_chat_message> messages;
+
+        int count = Invoke(INVOKE_GET_ARRAY_COUNT, arr);
+        int max_buffer = 8192;
+
+        std::string add_assistant;
+
+        for (INTEGER i = 0; i < count; i ++) {
+            void *newpData = 0;
+            char *key = 0;
+
+            Invoke(INVOKE_ARRAY_VARIABLE, arr, i, &newpData);
+            Invoke(INVOKE_GET_ARRAY_KEY, arr, i, &key);
+
+            if ((key) && (key[0]) && (newpData)) {
+                char               *szData;
+                INTEGER            type;
+                NUMBER             nData;
+
+                Invoke(INVOKE_GET_VARIABLE, newpData, &type, &szData, &nData);
+
+                if (type == VARIABLE_STRING) {
+                    if ((key) && (szData) && (!strcmp(key, "add_assistant"))) {
+                        add_assistant.assign(szData);
+                        continue;
+                    }
+                    if ((key) && (szData) && (!strcmp(key, "use_template"))) {
+                        template_name = szData;
+                        continue;
+                    }
+                    messages.push_back({key, szData});
+                    max_buffer += (int)nData + 1024;
+                }
+            }
+        }
+
+        const char *tmpl = llama_model_chat_template(llama_get_model(ctx->ctx), template_name);
+
+        if (!tmpl) {
+            fprintf(stderr, "%s: error: failed to load template \"%s\"\n", __func__, template_name);
+            RETURN_NUMBER(-7);
+            return 0;
+        }
+
+        char *buf = (char *)malloc(size);
+
+        if (!buf)
+            size = 0;
+
+        int new_len = llama_chat_apply_template(tmpl, messages.data(), messages.size(), true, buf, size);
+
+        if (new_len > 0)
+            prompt.assign(buf, new_len);
+
+        if (add_assistant.size() > 0)
+            prompt += add_assistant;
+
+        free(buf);
+    } else {
+        T_STRING(llama_prompt, 1)
+        prompt.assign(PARAM(1), (int)PARAM_LEN(1));
+    }
+
+    // find the number of tokens in the prompt
+    const int n_prompt = -llama_tokenize(vocab, prompt.c_str(), prompt.size(), NULL, 0, true, true);
+
+    // allocate space for the tokens and tokenize the prompt
+    std::vector<llama_token> prompt_tokens(n_prompt);
+    if (llama_tokenize(vocab, prompt.c_str(), prompt.size(), prompt_tokens.data(), prompt_tokens.size(), true, true) < 0) {
+        fprintf(stderr, "%s: error: failed to tokenize the prompt\n", __func__);
+        RETURN_NUMBER(-3);
+        return 0;
+    }
+
+    // prepare a batch for the prompt
+
+    llama_batch batch = llama_batch_get_one(prompt_tokens.data(), prompt_tokens.size());
+
+    if (llama_model_has_encoder(llama_get_model(ctx->ctx))) {
+        if (llama_encode(ctx->ctx, batch)) {
+            fprintf(stderr, "%s : failed to eval\n", __func__);
+            RETURN_NUMBER(-5);
+            return 0;
+        }
+
+        llama_token decoder_start_token_id = llama_model_decoder_start_token(llama_get_model(ctx->ctx));
+        if (decoder_start_token_id == LLAMA_TOKEN_NULL) {
+            decoder_start_token_id = llama_vocab_bos(vocab);
+        }
+
+        batch = llama_batch_get_one(&decoder_start_token_id, 1);
+    }
+
+    // main loop
+
+    int n_decode = 0;
+    llama_token new_token_id;
+
+    std::string data;
+
+    for (int n_pos = 0; n_pos + batch.n_tokens < n_prompt + n_predict; ) {
+        // evaluate the current batch with the transformer model
+        if (llama_decode(ctx->ctx, batch)) {
+            fprintf(stderr, "%s : failed to eval, return code %d\n", __func__, 1);
+            llama_sampler_free(smpl);
+            free(ptr);
+            RETURN_NUMBER(-1);
+            return 0;
+        }
+
+        n_pos += batch.n_tokens;
+
+        // sample the next token
+        {
+            new_token_id = llama_sampler_sample(smpl, ctx->ctx, -1);
+
+            // is it an end of generation?
+            if (llama_vocab_is_eog(vocab, new_token_id))
+                break;
+
+
+            char buf[128];
+            int n = llama_token_to_piece(vocab, new_token_id, buf, sizeof(buf), 0, true);
+            if (n < 0) {
+                fprintf(stderr, "%s: error: failed to convert token to piece\n", __func__);
+                llama_sampler_free(smpl);
+                free(ptr);
+                RETURN_NUMBER(-2);
+                return 0;
+            }
+            std::string s(buf, n);
+            data += s;
+
+            if ((stop_at) && (stop_at[0]) && (data.find(stop_at) != std::string::npos))
+                break;
+
+            // prepare the next batch with the sampled token
+            batch = llama_batch_get_one(&new_token_id, 1);
+
+            n_decode += 1;
+        }
+    }
+
+    RETURN_STRING(data.c_str());
+
+    llama_sampler_free(smpl);
+    free(ptr);
+
+    if (!keep_context)
+        llama_memory_clear(llama_get_memory(ctx->ctx), true);
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_save_state, 1, 2)
