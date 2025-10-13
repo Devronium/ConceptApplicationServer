@@ -453,6 +453,8 @@ class SIPSession {
 
 	var delegatedWorker;
 
+	var IVRMinBuffer = 0;
+
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
 		timestamp = RandomInteger(140, 140000) * 100;
@@ -1158,6 +1160,7 @@ class SIPSession {
 	LoadVoice(var voice) {
 		ivr = voice;
 		ivr_chunk = 0;
+		IVRMinBuffer = 0;
 		packet_time = microseconds();
 	}
 
@@ -1523,9 +1526,17 @@ class SIPSession {
 							ivr_chunk = delta + 1;
 							if (d_ivr) {
 								this._iterateAudio(d_ivr);
+								if (IVRMinBuffer) {
+									if (((length ivr) - ivr_chunk * f_size) <= IVRMinBuffer) {
+										IVRMinBuffer = 0;
+										if (s.OnIVRBufferNotify)
+											s.OnIVRBufferNotify(this);
+									}
+								}
 							} else {
 								ivr = "";
 								ivr_chunk = 0;
+								IVRMinBuffer = 0;
 								packet_time = microseconds();
 								if (s.OnIVRFinished)
 									s.OnIVRFinished(this);
@@ -1818,6 +1829,8 @@ class SIPStack {
 	var OnRedirectAnswered;
 	var OnReferNoAnswer;
 	var OnProxyAnswered;
+
+	var OnIVRBufferNotify;
 
 	var Transport = "UDP";
 	var sipproto = "sip:";
