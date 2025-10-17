@@ -733,7 +733,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
 
         SET_LLAMA_PARAMETER_4(stop_at)
 
-        SET_LLAMA_PARAMETER_2(timeout)
+        SET_LLAMA_PARAMETER_3(timeout)
     }
 
     if (!keep_context)
