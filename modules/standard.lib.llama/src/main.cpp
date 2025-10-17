@@ -634,11 +634,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
 END_IMPL
 */
 //=====================================================================================//
-long long milliseconds() {
+uint64_t milliseconds() {
     struct timeval tv;
 
     gettimeofday(&tv,NULL);
-    return (((long long)tv.tv_sec) * 1000) + (tv.tv_usec / 1000);
+    return (((uint64_t)tv.tv_sec) * 1000) + (tv.tv_usec / 1000);
 }
 
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
@@ -676,7 +676,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
     int max_tokens = 32;
     int max_cache = 0;
 
-    int timeout = 0;
+    uint64_t timeout = 0;
 
     const char *stop_at = NULL;
     if (PARAMETERS_COUNT > 2) {
@@ -909,8 +909,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
             if ((stop_at) && (stop_at[0]) && (data.find(stop_at) != std::string::npos))
                 break;
 
-            if ((timeout) && (milliseconds() >= timeout))
+            if ((timeout) && (timeout < milliseconds())) {
+                fprintf(stderr, "%s: warning: timedout\n", __func__);
                 break;
+            }
 
             // prepare the next batch with the sampled token
             batch = llama_batch_get_one(&new_token_id, 1);
