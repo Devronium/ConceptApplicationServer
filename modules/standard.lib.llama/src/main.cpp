@@ -13,6 +13,7 @@
 #include <string>
 #include <math.h>
 #include <algorithm>
+#include <sys/time.h>
 
 DEFINE_LIST(llama_list);
 DEFINE_LIST(llama_model_list);
@@ -633,6 +634,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
 END_IMPL
 */
 //=====================================================================================//
+long long milliseconds() {
+    struct timeval tv;
+
+    gettimeofday(&tv,NULL);
+    return (((long long)tv.tv_sec) * 1000) + (tv.tv_usec / 1000);
+}
+
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
     T_HANDLE(llama_prompt, 0)
 
@@ -667,6 +675,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
 
     int max_tokens = 32;
     int max_cache = 0;
+
+    int timeout = 0;
 
     const char *stop_at = NULL;
     if (PARAMETERS_COUNT > 2) {
@@ -722,6 +732,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
         SET_LLAMA_PARAMETER_3(keep_context)
 
         SET_LLAMA_PARAMETER_4(stop_at)
+
+        SET_LLAMA_PARAMETER_2(timeout)
     }
 
     if (!keep_context)
@@ -848,6 +860,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
         batch = llama_batch_get_one(&decoder_start_token_id, 1);
     }
 
+    if (timeout < 0)
+        timeout = 0;
+
+    if (timeout)
+        timeout += milliseconds();
+
     // main loop
 
     int n_decode = 0;
@@ -889,6 +907,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
             data += s;
 
             if ((stop_at) && (stop_at[0]) && (data.find(stop_at) != std::string::npos))
+                break;
+
+            if ((timeout) && (milliseconds() >= timeout))
                 break;
 
             // prepare the next batch with the sampled token
