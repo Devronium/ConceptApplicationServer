@@ -83,7 +83,7 @@ CONCEPT_FUNCTION_IMPL(llama_free_model, 1)
     RETURN_NUMBER(0);
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 5)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 6)
     // model file
     T_HANDLE(llama_new, 0)
 
@@ -112,6 +112,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 5)
         T_NUMBER(llama_new, 4)
         params.n_threads = PARAM_INT(4);
         params.n_threads_batch = params.n_threads;
+    }
+
+    params.flash_attn_type = LLAMA_FLASH_ATTN_TYPE_AUTO;
+    if (PARAMETERS_COUNT > 5) {
+        T_NUMBER(llama_new, 5)
+        params.flash_attn_type = (enum llama_flash_attn_type)PARAM_INT(5);
     }
 
     llama_model *model = (llama_model *)GET_POINTER(llama_model_list, (SYS_INT)PARAM(0), NULL);
