@@ -6,7 +6,7 @@ import standard.lib.vad2
 include TCPSocket.con
 
 class RemoteGPUClient {
-	static stt(host, port, hmac_key, var buffer, codec = 8, lang = "", sample_rate = 8000, voice_ms = -1, timeout = 4000, max_size = 48000, var error = "", var punctuation = "") {
+	static stt(host, port, hmac_key, var buffer, codec = 8, lang = "", sample_rate = 8000, voice_ms = -1, timeout = 4000, max_size = 48000, var error = "", var punctuation = "", callback = null) {
 		try {
 			var client = new TCPSocket();
 			client.SetOption(SOL_SOCKET, SO_RCVTIMEO, timeout);
@@ -58,36 +58,53 @@ class RemoteGPUClient {
 				}
 			} while (socket_buffer);
 
-			var arr = unpack("U32", client.Read(4));
-			var size = arr[0];
 
-			client.SetOption(SOL_SOCKET, SO_RCVTIMEO, timeout);
+			var timedout = false;
+			start = Date.now();
+			do {
+				var arr = unpack("U32", client.Read(4));
+				var size = arr[0];
 
-			if ((size > 0) && (size <= max_size)) {
-				start = Date.now();
-				var read_buffer = "";
-				while (length read_buffer < max_size) {
-					var data = client.Read(size - length read_buffer);
-					if (!data)
-						break;
-					read_buffer += data;
-					if ((Date.now() - start)  > timeout)
-						break;
+				client.SetOption(SOL_SOCKET, SO_RCVTIMEO, timeout);
+
+				if ((size > 0) && (size <= max_size)) {
+					var read_buffer = "";
+					while (length read_buffer < size) {
+						var data = client.Read(size - length read_buffer);
+						if (!data)
+							break;
+						read_buffer += data;
+						if ((Date.now() - start)  > timeout) {
+							timedout = true;
+							break;
+						}
+					}
+					if (!read_buffer)
+						throw "invalid buffer received";
+					obj = UnBinarizeObject(read_buffer);
+					if ((!obj) || (typeof obj != "array"))
+						throw "invalid buffer";
+
+					if ((callback) && (IsSet(obj, "generated"))) {
+						var str = obj["generated"];
+						if (str) {
+							callback(str);
+							if (!timedout)
+								continue;
+						}
+					}
+
+					client.Close(true);
+
+					punctuation = obj["punctuation"] ?? "";
+
+					return (obj["text"] ?? "");
+				} else {
+					error = "buffer too big ($size)";
+					console.warn(LOG_THIS, error);
+					break;
 				}
-				if (!read_buffer)
-					throw "invalid buffer received";
-				obj = UnBinarizeObject(read_buffer);
-				if ((!obj) || (typeof obj != "array"))
-					throw "invalid buffer";
-
-				client.Close(true);
-
-				punctuation = obj["punctuation"] ?? "";
-
-				return (obj["text"] ?? "");
-			}
-			error = "buffer too big ($size)";
-			console.warn(LOG_THIS, error);
+			} while ((callback) && (!timedout));
 		} catch (var exc) {
 			error = exc;
 			console.warn(LOG_THIS, exc);

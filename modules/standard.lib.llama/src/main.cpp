@@ -83,7 +83,7 @@ CONCEPT_FUNCTION_IMPL(llama_free_model, 1)
     RETURN_NUMBER(0);
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 6)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 7)
     // model file
     T_HANDLE(llama_new, 0)
 
@@ -110,14 +110,22 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_new, 1, 6)
 
     if (PARAMETERS_COUNT > 4) {
         T_NUMBER(llama_new, 4)
-        params.n_threads = PARAM_INT(4);
-        params.n_threads_batch = params.n_threads;
+        if (PARAM_INT(4) >= 0) {
+            params.n_threads = PARAM_INT(4);
+            params.n_threads_batch = params.n_threads;
+        }
     }
 
     params.flash_attn_type = LLAMA_FLASH_ATTN_TYPE_AUTO;
     if (PARAMETERS_COUNT > 5) {
         T_NUMBER(llama_new, 5)
         params.flash_attn_type = (enum llama_flash_attn_type)PARAM_INT(5);
+    }
+
+    if (PARAMETERS_COUNT > 6) {
+        T_NUMBER(llama_new, 6)
+        if (PARAM_INT(6) >= 0)
+            params.n_batch = PARAM_INT(6);
     }
 
     llama_model *model = (llama_model *)GET_POINTER(llama_model_list, (SYS_INT)PARAM(0), NULL);
@@ -709,6 +717,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
 
     int n_predict = 32;
 
+    void *token_generated_callback = NULL;
+
     int keep_context = 0;
 
     if (PARAMETERS_COUNT > 2) {
@@ -720,6 +730,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
 #define SET_LLAMA_PARAMETER_2(name) if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, PARAMETER(2), (INTEGER)-1, #name) == 1) { type = 0; str = NULL, nr = 0; Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(2), #name, &type, &str, &nr); if (type == VARIABLE_NUMBER) llama_sampler_chain_add(smpl, llama_sampler_init_##name(nr, 1)); }
 #define SET_LLAMA_PARAMETER_3(name) if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, PARAMETER(2), (INTEGER)-1, #name) == 1) { type = 0; str = NULL, nr = 0; Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(2), #name, &type, &str, &nr); if (type == VARIABLE_NUMBER) name = nr; }
 #define SET_LLAMA_PARAMETER_4(name) if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, PARAMETER(2), (INTEGER)-1, #name) == 1) { type = 0; str = NULL, nr = 0; Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, PARAMETER(2), #name, &type, &str, &nr); if (type == VARIABLE_STRING) name = str; }
+#define SET_LLAMA_PARAMETER_5(name) if (Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, PARAMETER(2), (INTEGER)-1, #name) == 1) { type = 0; str = NULL, nr = 0; Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, PARAMETER(2), #name, &name); Invoke(INVOKE_GET_VARIABLE, name, &type, &str, &nr); if (type != VARIABLE_DELEGATE) name = NULL; }
 
         SET_LLAMA_PARAMETER(top_k)
         SET_LLAMA_PARAMETER(temp)
@@ -740,6 +751,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
         SET_LLAMA_PARAMETER_4(stop_at)
 
         SET_LLAMA_PARAMETER_3(timeout)
+
+        SET_LLAMA_PARAMETER_5(token_generated_callback);
     }
 
     if (!keep_context)
@@ -911,6 +924,33 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(llama_prompt, 2, 3)
             }
             std::string s(buf, n);
             data += s;
+
+            if (token_generated_callback) {
+                void *RES = 0;
+                void *EXCEPTION = 0;
+
+                Invoke(INVOKE_CALL_DELEGATE, token_generated_callback, &RES, &EXCEPTION, (INTEGER)1, (INTEGER)VARIABLE_STRING, (char *)data.c_str(), (double)data.length());
+                if (EXCEPTION)
+                    Invoke(INVOKE_FREE_VARIABLE, EXCEPTION);
+
+                if (RES) {
+                    INTEGER    type     = 0;
+                    char       *szValue = 0;
+                    NUMBER     nValue   = 0;
+
+                    Invoke(INVOKE_GET_VARIABLE, PARAMETER(1), &type, &szValue, &nValue);
+
+                    Invoke(INVOKE_FREE_VARIABLE, RES);
+
+                    if (((type == VARIABLE_NUMBER) || (type == VARIABLE_STRING)) && ((int)nValue))
+                        break;
+                }
+
+                if ((EXCEPTION) || (RES)) {
+                    fprintf(stderr, "%s: warning: exception was thrown\n", __func__);
+                    break;
+                }
+            }
 
             if ((stop_at) && (stop_at[0]) && (data.find(stop_at) != std::string::npos))
                 break;

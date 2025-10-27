@@ -4,6 +4,10 @@
 #include "library.h"
 #include "pointer_list.h"
 
+#include <atomic>
+
+std::atomic_flag atomic_flag = ATOMIC_FLAG_INIT;
+
 #define USE_SILERO
 
 #ifdef USE_SILERO
@@ -37,7 +41,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_new, 0, 2)
         NUMBER vad_id = 0;
         GET_NUMBER(0, vad_id);
         if (TYPE == VARIABLE_NUMBER) {
+#ifdef USE_POINTERS
+            owner = (VadIterator *)(intptr_t)vad_id;
+#else
             owner = (VadIterator *)GET_POINTER(vad_list, (SYS_INT)vad_id, PARAMETERS->HANDLER);
+#endif
         } else {
             T_STRING(vad_new, 0);
             model = PARAM(0);
@@ -82,12 +90,18 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_new, 0, 2)
     }
 
 #ifdef USE_SILERO
+    while (atomic_flag.test_and_set(std::memory_order_acquire)) { };
     try {
         VadIterator *vad = new VadIterator(owner, model, model_len, sample_rate, windows_frame_size, threshold, min_silence_duration_ms, speech_pad_ms, min_speech_duration_ms, max_speech_duration_s);
+#ifdef USE_POINTERS
+        RETURN_NUMBER((NUMBER)(intptr_t)vad);
+#else
         RETURN_NUMBER(MAP_POINTER(vad_list, vad, PARAMETERS->HANDLER));
+#endif
     } catch (...) {
         RETURN_NUMBER(0);
     }
+    atomic_flag.clear(std::memory_order_release);
 #else
     ten_vad_handle_t vad = NULL;
     if (ten_vad_create(&vad, windows_frame_size, threshold)) {
@@ -120,10 +134,15 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_process, 2, 3)
             input_wav[idx ++] = static_cast<float>(sample) / 32768;
         }
 
+#ifdef USE_POINTERS
+        VadIterator *vad = (VadIterator *)(intptr_t)PARAM(0);
+#else
         VadIterator *vad = (VadIterator *)GET_POINTER(vad_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+#endif
         if (!vad)
             return (void *)"vad handle is not valid";
 
+        while (atomic_flag.test_and_set(std::memory_order_acquire)) { };
         try {
             vad->process(input_wav, output_wav);
         } catch (...) {
@@ -144,6 +163,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_process, 2, 3)
                 }
             }
         }
+        atomic_flag.clear(std::memory_order_release);
 
         len = output_wav.size();
         if (len > 0) {
@@ -240,10 +260,17 @@ CONCEPT_FUNCTION_IMPL(vad_free, 1)
     T_HANDLE(fad_free, 0);
 
 #ifdef USE_SILERO
-    VadIterator *vad = (VadIterator *)FREE_POINTER(vad_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+#ifdef USE_POINTERS
+    VadIterator *vad = (VadIterator *)(intptr_t)PARAM(0);
+#else
+    VadIterator *vad = (VadIterator*)(VadIterator *)FREE_POINTER(vad_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+#endif
 
-    if (vad)
+    if (vad) {
+        while (atomic_flag.test_and_set(std::memory_order_acquire)) { }
         delete vad;
+        atomic_flag.clear(std::memory_order_release);
+    }
 #else
     ten_vad_handle_t vad = (ten_vad_handle_t)FREE_POINTER(vad_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
     if (vad)
