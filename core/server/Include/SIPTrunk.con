@@ -1508,6 +1508,16 @@ class SIPSession {
 			this._iterateData(data, type, ops);
 	}
 
+	remainingIVRBuffer() {
+		if (!ivr)
+			return 0;
+		var f_size = chunk_size / 1000 * 8;
+		var buffer_size = ((length ivr) - ivr_chunk * f_size);
+		if (buffer_size < 0)
+			buffer_size = 0;
+		return buffer_size;
+	}
+
 	Iterate() {
 		var exc;
 		var ops = 0;

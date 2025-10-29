@@ -4,9 +4,10 @@
 #include "library.h"
 #include "pointer_list.h"
 
-#include <atomic>
+#include <stdio.h>
+#include "semhh.h"
 
-std::atomic_flag atomic_flag = ATOMIC_FLAG_INIT;
+static HHSEM sem;
 
 #define USE_SILERO
 
@@ -16,16 +17,22 @@ std::atomic_flag atomic_flag = ATOMIC_FLAG_INIT;
     #include "ten-vad/ten_vad.cc"
 #endif
 
+#define SEMAPHORE_LOCK()    semp(sem)
+#define SEMAPHORE_UNLOCK()  semv(sem)
+
 DEFINE_LIST(vad_list);
 //=====================================================================================//
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     INIT_LIST(vad_list);
+    seminit(sem, 1);
     return 0;
 }
 //=====================================================================================//
 CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
-    if (!HANDLER)
+    if (!HANDLER) {
         DEINIT_LIST(vad_list);
+        semdel(sem);
+    }
     return 0;
 }
 //=====================================================================================//
@@ -89,8 +96,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_new, 0, 2)
         SET_VAD_PARAMETER(max_speech_duration_s);
     }
 
+    SEMAPHORE_LOCK();
 #ifdef USE_SILERO
-    while (atomic_flag.test_and_set(std::memory_order_acquire)) { };
     try {
         VadIterator *vad = new VadIterator(owner, model, model_len, sample_rate, windows_frame_size, threshold, min_silence_duration_ms, speech_pad_ms, min_speech_duration_ms, max_speech_duration_s);
 #ifdef USE_POINTERS
@@ -101,7 +108,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_new, 0, 2)
     } catch (...) {
         RETURN_NUMBER(0);
     }
-    atomic_flag.clear(std::memory_order_release);
 #else
     ten_vad_handle_t vad = NULL;
     if (ten_vad_create(&vad, windows_frame_size, threshold)) {
@@ -110,6 +116,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_new, 0, 2)
         RETURN_NUMBER(MAP_POINTER(vad_list, vad, PARAMETERS->HANDLER));
     }
 #endif
+    SEMAPHORE_UNLOCK();
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_process, 2, 3)
@@ -134,15 +141,18 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_process, 2, 3)
             input_wav[idx ++] = static_cast<float>(sample) / 32768;
         }
 
+        SEMAPHORE_LOCK();
+
 #ifdef USE_POINTERS
         VadIterator *vad = (VadIterator *)(intptr_t)PARAM(0);
 #else
         VadIterator *vad = (VadIterator *)GET_POINTER(vad_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
 #endif
-        if (!vad)
+        if (!vad) {
+            SEMAPHORE_UNLOCK();
             return (void *)"vad handle is not valid";
+        }
 
-        while (atomic_flag.test_and_set(std::memory_order_acquire)) { };
         try {
             vad->process(input_wav, output_wav);
         } catch (...) {
@@ -163,7 +173,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_process, 2, 3)
                 }
             }
         }
-        atomic_flag.clear(std::memory_order_release);
+
+        SEMAPHORE_UNLOCK();
 
         len = output_wav.size();
         if (len > 0) {
@@ -179,6 +190,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_process, 2, 3)
             return 0;
         }
 #else
+        SEMAPHORE_LOCK();
+
         ten_vad_handle_t vad = (ten_vad_handle_t)GET_POINTER(vad_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
 
         int pcm_size = PARAM_LEN(1) / 2;
@@ -192,8 +205,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_process, 2, 3)
             int frame_num = ptr->stCfg.hopSz;
 
             char *buffer = (char *)malloc(PARAM_LEN(1) + 10);
-            if (!buffer)
+            if (!buffer) {
+                SEMAPHORE_UNLOCK();
                 return (void *)"vad_process: error allocationg memory";
+            }
 
             int start = 0;
 
@@ -233,6 +248,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_process, 2, 3)
                 frame += frame_num * 2;
                 pcm_size -= frame_num;
             }
+            SEMAPHORE_UNLOCK();
+
             if (start) {
                 if (PARAMETERS_COUNT > 2) {
                     Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(2), array_index, &var);
@@ -259,23 +276,21 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(vad_free, 1)
     T_HANDLE(fad_free, 0);
 
+    SEMAPHORE_LOCK();
 #ifdef USE_SILERO
 #ifdef USE_POINTERS
     VadIterator *vad = (VadIterator *)(intptr_t)PARAM(0);
 #else
     VadIterator *vad = (VadIterator*)(VadIterator *)FREE_POINTER(vad_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
 #endif
-
-    if (vad) {
-        while (atomic_flag.test_and_set(std::memory_order_acquire)) { }
+    if (vad)
         delete vad;
-        atomic_flag.clear(std::memory_order_release);
-    }
 #else
     ten_vad_handle_t vad = (ten_vad_handle_t)FREE_POINTER(vad_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
     if (vad)
         ten_vad_destroy(&vad);
 #endif
+    SEMAPHORE_UNLOCK();
 
     SET_NUMBER(0, 0);
 
