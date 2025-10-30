@@ -148,8 +148,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_process, 2, 3)
 #else
         VadIterator *vad = (VadIterator *)GET_POINTER(vad_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
 #endif
+        SEMAPHORE_UNLOCK();
+
         if (!vad) {
-            SEMAPHORE_UNLOCK();
             return (void *)"vad handle is not valid";
         }
 
@@ -174,8 +175,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_process, 2, 3)
             }
         }
 
-        SEMAPHORE_UNLOCK();
-
         len = output_wav.size();
         if (len > 0) {
             unsigned char *ptr = NULL;
@@ -194,6 +193,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_process, 2, 3)
 
         ten_vad_handle_t vad = (ten_vad_handle_t)GET_POINTER(vad_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
 
+        SEMAPHORE_UNLOCK();
+
         int pcm_size = PARAM_LEN(1) / 2;
 
         int buffer_len = 0;
@@ -206,7 +207,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_process, 2, 3)
 
             char *buffer = (char *)malloc(PARAM_LEN(1) + 10);
             if (!buffer) {
-                SEMAPHORE_UNLOCK();
                 return (void *)"vad_process: error allocationg memory";
             }
 
@@ -248,7 +248,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_process, 2, 3)
                 frame += frame_num * 2;
                 pcm_size -= frame_num;
             }
-            SEMAPHORE_UNLOCK();
 
             if (start) {
                 if (PARAMETERS_COUNT > 2) {
@@ -274,7 +273,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(vad_process, 2, 3)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(vad_free, 1)
-    T_HANDLE(fad_free, 0);
+    T_HANDLE(vad_free, 0);
 
     SEMAPHORE_LOCK();
 #ifdef USE_SILERO

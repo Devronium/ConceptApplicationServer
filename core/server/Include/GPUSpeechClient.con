@@ -306,7 +306,7 @@ class RemoteGPUStream {
 
 		var has_voice = false;
 
-		if ((audio_buffer) && (((buf_size_ms - last_vad_ms) >= vadInterval) || (timeout))) {
+		if ((length audio_buffer >= 4000) && (((buf_size_ms - last_vad_ms) >= vadInterval) || (timeout))) {
 			var new_data_ms = 0;
 			var new_data = vad_process(vad, audio_buffer, var info);
 			if ((new_data) && (info)) {
@@ -370,6 +370,10 @@ class RemoteGPUStream {
 			}
 		}
 		return has_voice;
+	}
+
+	bufferLength() {
+		return length audio_buffer;
 	}
 
 	pause(ms) {
