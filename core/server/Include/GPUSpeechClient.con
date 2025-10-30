@@ -376,6 +376,16 @@ class RemoteGPUStream {
 		return length audio_buffer;
 	}
 
+	limitBuffer(limit) {
+		if (limit >= length audio_buffer)
+			return;
+
+		last_vad_ms = length audio_buffer / (modelSampleRate * 2) * 1000;
+		vadInterval = 1000;
+		_timeout_count = 0;
+		audio_buffer = SubStr(audio_buffer, length audio_buffer - limit);
+	}
+
 	pause(ms) {
 		if (ms > 0)
 			pause_until = Date.now() + ms;
