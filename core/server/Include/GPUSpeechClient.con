@@ -88,9 +88,12 @@ class RemoteGPUClient {
 					if ((callback) && (IsSet(obj, "generated"))) {
 						var str = obj["generated"];
 						if (str) {
-							callback(str);
-							if (!timedout)
-								continue;
+							if (callback(str)) {
+								obj["text"] = str;
+							} else {
+								if (!timedout)
+									continue;
+							}
 						}
 					}
 
