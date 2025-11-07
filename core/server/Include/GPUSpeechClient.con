@@ -267,6 +267,8 @@ class RemoteGPUStream {
 
 	var _timeout_count = 0;
 
+	public var hasVoice = 0;
+
 	RemoteGPUStream(host, port, key, lang, codec = 8, modelSampleRate = 16000, use_padding = true) {
 		this.modelSampleRate = modelSampleRate;
 		_frame_size = _frame_size_ms * modelSampleRate / 1000 * 2;
@@ -321,6 +323,7 @@ class RemoteGPUStream {
 						new_data = "";
 				}
 				has_voice = new_data_ms;
+				hasVoice = has_voice;
 			} else
 			if ((!_timeout_count) && (buf_size_ms > (BufferTimeout / 2))) {
 				timeout = true;
@@ -410,6 +413,7 @@ class RemoteGPUStream {
 		last_vad_ms = 0;
 		pause_until = 0;
 		vadInterval = 0;
+		hasVoice = 0;
 		return text;
 	}
 
@@ -424,5 +428,6 @@ class RemoteGPUStream {
 		last_vad_ms = 0;
 		decodedText = "";
 		decodedPunctuation = "";
+		hasVoice = 0;
 	}
 }

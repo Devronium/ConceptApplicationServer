@@ -9,18 +9,21 @@ class LLAMA {
 	var[] parameters;
 
 	LLAMA(model_file, pooling = 1, gpu_offload = 32, gpu = 0, n_ctx = 512, offload_kqv = false, n_batch = -1) {
+		var use_model;
 		if ((model_file) && (typeof model_file == "numeric")) {
 			if (n_batch > 0) {
-				llama =  llama_new(model_file, pooling, n_ctx, offload_kqv, -1, -1, n_batch);
+				llama = llama_new(model_file, pooling, n_ctx, offload_kqv, -1, -1, n_batch);
 			} else {
-				llama =  llama_new(model_file, pooling, n_ctx, offload_kqv);
+				llama = llama_new(model_file, pooling, n_ctx, offload_kqv);
 			}
+			use_model = model_file;
 		} else {
 			model = llama_load_model_from_file(model_file, gpu_offload, gpu);
+			use_model = model;
 		}
-		if ((!model) || (offload_kqv < 0))
+		if ((!use_model) || (offload_kqv < 0))
 			return;
-		llama = llama_new(model, pooling, n_ctx, offload_kqv);
+		llama = llama_new(use_model, pooling, n_ctx, offload_kqv);
 	}
 
 	loaded() {
