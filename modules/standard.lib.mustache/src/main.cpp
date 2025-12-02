@@ -58,7 +58,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
     return 0;
 }
 //---------------------------------------------------------------------------
-char *resolve(mustache_closure *mustacheclosure, const char *name, void *DATA) {
+char *resolve(mustache_closure *mustacheclosure, const char *name, void *DATA, int level = -1) {
     INTEGER     type = 0;
     char        *str = 0;
     NUMBER      nr   = 0;
@@ -68,12 +68,27 @@ char *resolve(mustache_closure *mustacheclosure, const char *name, void *DATA) {
         return null_type;
     int invoke_err;
     if (name) {
-        invoke_err = mustacheclosure->Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, DATA, name, &type, &str, &nr);
+        int lookup = 0;
+        invoke_err = mustacheclosure->Invoke(INVOKE_ARRAY_ELEMENT_IS_SET, DATA, (INTEGER)-1, name);
+        if (invoke_err == 1)
+            invoke_err = mustacheclosure->Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, DATA, name, &type, &str, &nr);
+        else
+            invoke_err = -1;
+
         if (invoke_err) {
             void *var = NULL;
             invoke_err = mustacheclosure->Invoke(INVOKE_GET_CLASS_VARIABLE, DATA, name, &var);
             if ((IS_OK(invoke_err)) && (var)) {
                 invoke_err = mustacheclosure->Invoke(INVOKE_GET_VARIABLE, var, &type, &str, &nr);
+            }
+        }
+
+        if ((invoke_err) && (mustacheclosure->stack_level > 0)) {
+            if (level < 0)
+                level = mustacheclosure->stack_level;
+            if (level > 0) {
+                level --;
+                return resolve(mustacheclosure, name, mustacheclosure->stack[level].arrdata ? mustacheclosure->stack[level].arrdata : DATA = mustacheclosure->stack[level].DATA, level);
             }
         }
     } else {
