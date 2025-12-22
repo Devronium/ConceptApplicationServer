@@ -369,7 +369,9 @@ class _webrequest {
 		this.web.__buffer(["q" => id, "do" => "done"]);
 	}
 
-	print(data) {
+	print(data, set_content_length = false) {
+		if ((set_content_length) && (typeof data == "string"))
+			this.header("Content-Length", length data);
 		this.web.__buffer(["q" => id, "do" => "print", "data" => data]);
 	}
 
@@ -418,7 +420,7 @@ class _webrequest {
 		return ReadFile(fullpath);
 	}
 
-	put(array data) {
+	put(array data, set_content_length = true) {
 		if (template) {
 			var tpl = this.templateData(this.template);
 			if (tpl) {
@@ -430,50 +432,50 @@ class _webrequest {
 				if (err) {
 					switch (err) {
 						case MUSTACH_ERROR_SYSTEM:
-							this.print("MUSTACH_ERROR_SYSTEM in template");
+							this.print("MUSTACH_ERROR_SYSTEM in template", set_content_length);
 							break;
 						case MUSTACH_ERROR_UNEXPECTED_END:
-							this.print("MUSTACH_ERROR_UNEXPECTED_END in template");
+							this.print("MUSTACH_ERROR_UNEXPECTED_END in template", set_content_length);
 							break;
 						case MUSTACH_ERROR_EMPTY_TAG:
-							this.print("MUSTACH_ERROR_EMPTY_TAG in template");
+							this.print("MUSTACH_ERROR_EMPTY_TAG in template", set_content_length);
 							break;
 						case MUSTACH_ERROR_TAG_TOO_LONG:
-							this.print("MUSTACH_ERROR_TAG_TOO_LONG in template");
+							this.print("MUSTACH_ERROR_TAG_TOO_LONG in template", set_content_length);
 							break;
 						case MUSTACH_ERROR_BAD_SEPARATORS:
-							this.print("MUSTACH_ERROR_BAD_SEPARATORS in template");
+							this.print("MUSTACH_ERROR_BAD_SEPARATORS in template", set_content_length);
 							break;
 						case MUSTACH_ERROR_TOO_DEEP:
-							this.print("MUSTACH_ERROR_TOO_DEEP in template");
+							this.print("MUSTACH_ERROR_TOO_DEEP in template", set_content_length);
 							break;
 						case MUSTACH_ERROR_CLOSING:
-							this.print("MUSTACH_ERROR_CLOSING in template");
+							this.print("MUSTACH_ERROR_CLOSING in template", set_content_length);
 							break;
 						case MUSTACH_ERROR_BAD_UNESCAPE_TAG:
-							this.print("MUSTACH_ERROR_BAD_UNESCAPE_TAG in template");
+							this.print("MUSTACH_ERROR_BAD_UNESCAPE_TAG in template", set_content_length);
 							break;
 						case MUSTACH_ERROR_INVALID_ITF:
-							this.print("MUSTACH_ERROR_INVALID_ITF in template");
+							this.print("MUSTACH_ERROR_INVALID_ITF in template", set_content_length);
 							break;
 						case MUSTACH_ERROR_ITEM_NOT_FOUND:
-							this.print("MUSTACH_ERROR_ITEM_NOT_FOUND in template");
+							this.print("MUSTACH_ERROR_ITEM_NOT_FOUND in template", set_content_length);
 							break;
 						case MUSTACH_ERROR_PARTIAL_NOT_FOUND:
-							this.print("MUSTACH_ERROR_PARTIAL_NOT_FOUND in template");
+							this.print("MUSTACH_ERROR_PARTIAL_NOT_FOUND in template", set_content_length);
 							break;
 						case MUSTACH_ERROR_UNDEFINED_TAG:
-							this.print("MUSTACH_ERROR_UNDEFINED_TAG in template");
+							this.print("MUSTACH_ERROR_UNDEFINED_TAG in template", set_content_length);
 							break;
 						default:
-							this.print("UNKNOWN ERROR #$err in template");
+							this.print("UNKNOWN ERROR #$err in template", set_content_length);
 					}
 					return null;
 				}
 				data = str;
 			}
 		}
-		this.print(data);
+		this.print(data, set_content_length);
 		return this;
 	}
 

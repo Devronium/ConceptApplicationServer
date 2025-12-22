@@ -72,6 +72,7 @@ class asyncRequest {
 	var timedOut = false;
 	var _chunked = false;
 	var _promise;
+	var errInfo = "";
 
 	protected var _requestData;
 	protected var _pending = "";
@@ -306,17 +307,18 @@ class asyncRequest {
 						this._promise.resolve(this);
 					} else {
 						this._promise.reject("timed out");
+						this.errInfo = "timedout";
 					}
 					this.socket.Close();
 					delete this.socket;
 					return true;
 				}
 			}
-
 			if (this._pending) {
 				var written = this.socket.Write(this._pending);
 				if (written <= 0) {
 					this._promise.reject("error in socket write");
+					this.errInfo = "error in socket write";
 					this.socket.Close();
 					delete this.socket;
 				}
@@ -328,8 +330,14 @@ class asyncRequest {
 
 			if (this._requestData) {
 				if ((classof this.socket != "TCPSocket") && (this.socket.ConnectCalled)) {
-					if (this.socket.HandshakeIterate())
-						return !this._afterConnect();
+					var max_iterations = 4;
+					do {
+						// max 4 tls messages
+						if (this.socket.HandshakeIterateOnce())
+							return !this._afterConnect();
+						max_iterations --;
+					} while ((max_iterations) && (this.socket.GetHasData(0)));
+
 					return false;
 				} else {
 					var out_sockets = null;
@@ -367,6 +375,7 @@ class asyncRequest {
 						this._promise.resolve(this);
 					} else {
 						this._promise.reject("no data");
+						this.errInfo = "no data";
 					}
 					
 					this.socket.Close();
@@ -379,6 +388,7 @@ class asyncRequest {
 				this._promise.resolve(this);
 			} else {
 				this._promise.reject(exc);
+				this.errInfo = exc;
 			}
 			this.socket.Close();
 			delete this.socket;
@@ -395,5 +405,9 @@ class asyncRequest {
 				break;
 		}
 		return this;
+	}
+
+	asyncVerify(socket, certificate) {
+		return true;
 	}
 }

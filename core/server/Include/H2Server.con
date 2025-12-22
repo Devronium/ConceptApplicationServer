@@ -228,6 +228,21 @@ class H2Server {
 		}
 	}
 
+	protected __options_h2(h2, stream, code, text, method = "", filename = "") {
+		stream.Response(h2, [
+			":status" => "$code",
+			"server" => "cas",
+			"allow" => "GET, POST",
+			"access-control-allow-origin" => "*",
+			"access-control-allow-headers" => "*"
+		]);
+		stream.Write(h2, "", true);
+		if (this.LogHTTPErrors) {
+			var info = h2.Socket.Info;
+			console.warn(info[0], info[1], "$method $filename: $code $text");
+		}
+	}
+
 	protected __utc_string() {
 		var now = time();
 		if (now - utc_time >= 2) {
@@ -378,6 +393,9 @@ class H2Server {
 			case "GET":
 			case "POST":
 			case "PUT":
+				break;
+			case "OPTIONS":
+				__options_h2(h2, stream, 204, "No Content", method, path);
 				break;
 			default:
 				__error_h2(h2, stream, 405, "Method Not Allowed", method, path);

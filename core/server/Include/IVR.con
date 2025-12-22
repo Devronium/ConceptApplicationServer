@@ -201,6 +201,8 @@ class IVR {
 
 	var redirect;
 
+	var strictUserParse = false;
+
 	Get(key, format = "alaw", dir = "repository") {
 		var key2 = "$key.$format";
 		var data = cache.getValue(key2);
@@ -366,7 +368,7 @@ class IVR {
 			for (var i = 1; i < length address; i ++) {
 				var char = address[i];
 				if (char == "\"") {
-					if (!from) {
+					if ((!from) || (this.strictUserParse)) {
 						address = trim(SubStr(address, i + 1));
 						break;
 					}
@@ -416,7 +418,7 @@ class IVR {
 			session.UserData = new DATASession(this.Get, session, from, msg_to);
 			session.OnReferError = this.OnReferError;
 			if (session.Parent) {
-				var delta = session.Expire - time();
+				var delta = session.Parent.Expire - time();
 				if (delta > 0)
 					session.UserData.Expires = delta;
 			}
@@ -457,7 +459,7 @@ class IVR {
 			session.UserData = new DATASession(this.Get, session, from, msg_to);
 			session.OnReferError = this.OnReferError;
 			if (session.Parent) {
-				var delta = session.Expire - time();
+				var delta = session.Parent.Expire - time();
 				if (delta > 0)
 					session.UserData.Expires = delta;
 			}

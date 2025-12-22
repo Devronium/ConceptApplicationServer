@@ -23,7 +23,7 @@ class PDFText {
 	PDFText(x, y, text, fontsize, fontname, escape) {
 		this.x = x;
 		this.y = y;
-		this.size =fontsize;
+		this.size = fontsize;
 		this.font = fontname;
 		if (escape)
 			this.text = StrReplace(StrReplace(StrReplace(text, "\\", "\\\\"), ")", "\\)"), "(", "\\(");
@@ -126,6 +126,7 @@ class PDFPage {
 
 	public var Font = "Helvetica";
 	public var FontSize = 12;
+	public var LineHeight = 1;
 
 	public var MarginTop = 20;
 	public var MarginBottom = 20;
@@ -160,7 +161,7 @@ class PDFPage {
 				this.__Clone(header.Fonts, this.Fonts);
 
 				if (this.TextY > header.TextY)
-					this.TextY = header.TextY - header.FontSize;
+					this.TextY = header.TextY - header.FontSize * header.LineHeight;
 			}
 			var footer = Owner.Footer;
 			if (footer) {
@@ -194,6 +195,7 @@ class PDFPage {
 		var page = this.Owner.NewPage(Width, Height);
 		page.Font = Font;
 		page.FontSize = FontSize;
+		page.LineHeight = LineHeight;
 		page.MarginTop = MarginTop;
 		page.MarginBottom = MarginBottom;
 		page.MarginLeft = MarginLeft;
@@ -219,7 +221,7 @@ class PDFPage {
 				this.Print(TextX, TextY, line, FontSize, Font);
 			TextX = MarginLeft;
 			if (i < last_line) {
-				TextY -= FontSize;
+				TextY -= FontSize * LineHeight;
 				if (TextY < MarginBottom) {
 					var lines2 = new [];
 					for (var j = i + 1; j < length lines; j++)
@@ -236,7 +238,7 @@ class PDFPage {
 			if ((align) && (__lastwidth)) {
 				__lastwidth = 0;
 				TextX = MarginLeft;
-				TextY -= FontSize;
+				TextY -= FontSize * LineHeight;
 			} else
 				TextX = MarginLeft + __lastwidth;
 		}
@@ -255,9 +257,9 @@ class PDFPage {
 
 	Rule(dashed_param = "") {
 		this.EnsureInitialized();
-		TextY -= floor(FontSize/2);
+		TextY -= floor(FontSize * LineHeight/2);
 		this.Line(MarginLeft, TextY, Width - MarginRight, TextY, dashed_param);
-		TextY -= FontSize;
+		TextY -= FontSize * LineHeight;
 		TextX = MarginLeft;
 		return this;
 	}
@@ -404,7 +406,7 @@ class PDFPage {
 			//font_height_coef = 1/font_height_coef;
 
 		if (table_y < 0) {
-			table_y = TextY - border - FontSize/2;
+			table_y = TextY - border - FontSize * LineHeight / 2;
 			auto_pos = true;
 			max_row_size = Height - MarginTop - MarginBottom;
 			max_row_size *= 0.95;
@@ -418,7 +420,7 @@ class PDFPage {
 		var[] headers;
 		var table_width_no_padding;
 
-		var font_line_size = round(this.FontSize / font_height_coef, 3);
+		var font_line_size = round(this.FontSize * LineHeight / font_height_coef, 3);
 		for (var i = 0; i < length header; i++) {
 			var e = header[i];
 			if ((e) || (typeof e == "string")) {
@@ -464,7 +466,7 @@ class PDFPage {
 				var hdelta = 0;
 				var hdelta_ref;
 				var x = table_x;
-				pre_height = this.__ComputeRowHeight(pre_headers, table, var out_rows, padding, var header_spans, var header_styles) * FontSize * font_height_coef;
+				pre_height = this.__ComputeRowHeight(pre_headers, table, var out_rows, padding, var header_spans, var header_styles) * FontSize * LineHeight * font_height_coef;
 				var pre_index = 0;
 				for (i = 0; i < length out_rows; i++) {
 					var hcaption = out_rows[i];
@@ -515,7 +517,7 @@ class PDFPage {
 								}
 								this.Print(round(x + padding + hdelta, 3), round(y - padding - font_line_size, 3), hline, FontSize, Font);
 							}
-							y -= FontSize;
+							y -= FontSize * LineHeight;
 						}
 					}
 					x += hcolumn_width;
@@ -525,7 +527,7 @@ class PDFPage {
 			line_width = 0;
 			x = table_x;
 			padding += border/2;
-			header_height = this.__ComputeRowHeight(headers, table, out_rows, padding) * FontSize * font_height_coef;
+			header_height = this.__ComputeRowHeight(headers, table, out_rows, padding) * FontSize * LineHeight * font_height_coef;
 			filled = false;
 			for (i = 0; i < length columns; i++) {
 				y = table_y - padding - line_width;
@@ -566,7 +568,7 @@ class PDFPage {
 							}
 							this.Print(round(x + padding + delta, 3), round(y - font_line_size, 3), line, FontSize, Font);
 						}
-						y -= FontSize;
+						y -= FontSize * LineHeight;
 					}
 				}
 				x += column.computed_width;
@@ -585,7 +587,7 @@ class PDFPage {
 			x = table_x;
 			var row = data[i];
 			if (row) {
-				var row_height = this.__ComputeRowHeight(row, table, out_rows, padding, var spans, var styles) * FontSize * font_height_coef;
+				var row_height = this.__ComputeRowHeight(row, table, out_rows, padding, var spans, var styles) * FontSize * LineHeight * font_height_coef;
 				if ((auto_pos) && (row_y - row_height <= MarginBottom) && (row_height < max_row_size)) {
 					if (return_offset)
 						return i;
@@ -681,7 +683,7 @@ class PDFPage {
 									}
 									this.Print(round(x + padding + delta, 3), round(y - padding - font_line_size, 3), line, FontSize, Font);
 								}
-								y -= FontSize;
+								y -= FontSize * LineHeight;
 							}
 						}
 						if (has_style)
@@ -983,7 +985,7 @@ class PDFGenerator {
 					w_size = 0;
 					continue;
 				} else {
-					w_size += arr[ord(l)] * size;
+					w_size += (arr[ord(l)] ?? 0.6) * size;
 					if ((ceil(w_size) >= width) && (i)) {
 						if (!last_line) {
 							last_line = line;
