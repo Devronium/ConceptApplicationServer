@@ -455,6 +455,8 @@ class SIPSession {
 
 	var IVRMinBuffer = 0;
 
+	var uri_parameters;
+
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
 		timestamp = RandomInteger(140, 140000) * 100;
@@ -1878,6 +1880,8 @@ class SIPStack {
 	var signaled;
 	var[] rtp_to_session;
 
+	var[] ValidIPs;
+
 	SIPStack(localhost, bind_port = 5060, type = SIP_TRANSPORT_UDP, public_key = "", private_key = "", force_tls_version = 0) {
 		this.localhost = localhost;
 		this.local_port = bind_port;
@@ -2040,6 +2044,11 @@ class SIPStack {
 		}
 		if ((localip) && (ip == localip))
 			return true;
+
+		if (ValidIPs) {
+			if (IsSet(ValidIPs, ip))
+				return ValidIPs[ip];
+		}
 		return false;
 	}
 
@@ -2165,23 +2174,40 @@ class SIPStack {
 				alg = "md5";
 			else
 				alg = ToLower(alg);
+
+			var qop = "" + res["qop"];
+			var nonce2 = "";
+			var nc = "";
+			var extra = "";
+			if ((qop == "auth") || (qop == "auth-int")) {
+				nc = "00000001";
+				nonce2 = md5(this.RandomString(16));
+
+				extra = ", cnonce=\"$nonce2\", nc=\"$nc\", qop=\"$qop\"";
+				qop = "$nc:$nonce2:$qop:";
+			} else
+				qop = "";
+
 			switch (alg) {
 				case "sha1":
 					var ha1 = sha1(username + ":" + res["realm"] + ":" + password);
 					var ha2 = sha1(method + ":" + uri);
-					var response = sha1(ha1 +":" + res["nonce"] + ":" + ha2);
+					var response = sha1(ha1 +":" + res["nonce"] + ":" + qop + ha2);
 					break;
 				case "sha256":
 					ha1 = sha256(username + ":" + res["realm"] + ":" + password);
 					ha2 = sha256(method + ":" + uri);
-					response = sha256(ha1 +":" + res["nonce"] + ":" + ha2);
+					response = sha256(ha1 +":" + res["nonce"] + ":" + qop + ha2);
 					break;
 				default:
 					ha1 = md5(username + ":" + res["realm"] + ":" + password);
 					ha2 = md5(method + ":" + uri);
-					response = md5(ha1 +":" + res["nonce"] + ":" + ha2);
+					response = md5(ha1 +":" + res["nonce"] + ":" + qop + ha2);
 			}
-			return "Digest username=\"$username\", realm=\"${res['realm']}\", nonce=\"${res['nonce']}\", uri=\"$uri\", response=\"$response\"";
+			var opaque = res["opaque"];
+			if (opaque)
+				opaque = ", opaque=\"$opaque\"";
+			return "Digest username=\"$username\", realm=\"${res['realm']}\", nonce=\"${res['nonce']}\", uri=\"$uri\", response=\"$response\"$extra$opaque";
 		}
 		return "";
 	}
@@ -2454,7 +2480,7 @@ class SIPStack {
 	}
 
 	Invite401(session, msg) {
-		if (((msg.ServerCode != 401) && (msg.ServerCode != 407)) || (!session.is_invite) || (!session.msg) || (session.msg.Headers["Authorization"]) || (session.auth))
+		if (((msg.ServerCode != 401) && (msg.ServerCode != 407)) || (!session.is_invite) || (!session.msg) || ((IsSet(session.msg.Headers, "Authorization")) && (session.msg.Headers["Authorization"])) || (session.auth))
 			return false;
 
 		var auth;
@@ -2466,21 +2492,27 @@ class SIPStack {
 		if (!auth)
 			return false;
 
-		if (!this.ParseFullDestination(msg.Headers["to"], null, var server, null))
+		if (!this.ParseFullDestination(msg.Headers["to"], null, var server, var port))
 			return false;
 
 		if (!this.ParseFullDestination(msg.Headers["from"], var target_user, null, null))
 			return false;
 
-		var key = sha256(target_user + "|" + server) + "@" + localhost;
-		if (!IsSet(this.Registrations, key))
-			return false;
+		if ((session.uri_parameters) && (IsSet(session.uri_parameters, "user")) && (IsSet(session.uri_parameters, "password"))) {
+			var registration = new RegistrationData(session.uri_parameters["user"], session.uri_parameters["password"], server, port);
+		} else {
+			var key = sha256(target_user + "|" + server) + "@" + localhost;
+			if (!IsSet(this.Registrations, key))
+				return false;
 
-		var registration = this.Registrations[key];
-		if (!registration)
-			return false;
+			registration = this.Registrations[key];
+			if (!registration)
+				return false;
+
+		}
 
 		var authorization = this.WWWAuth(auth, registration.username, registration.password, "INVITE", registration.server, var nonce);
+
 		if (msg.ServerCode == 401)
 			session.msg.Headers["Authorization"] = authorization;
 		else
@@ -2882,7 +2914,7 @@ class SIPStack {
 							} else
 							if (msg.ServerCode >= 300) {
 								// is authorization
-								if ((this.Registrations) && (child_session.is_invite == true) && (child_session.auth == 2)) {
+								if (((this.Registrations) || (ValidIPs)) && (child_session.is_invite == true) && (child_session.auth == 2)) {
 
 									if ((msg.ServerCode == 401) && (msg.Headers["www-authenticate"]))
 										return true;
@@ -3307,7 +3339,10 @@ class SIPStack {
 		} else
 		if ((length arr == 1) && (destination[0] == "<")) {
 			user = "Anonymous";
-			this.ParseHost(SubStr(destination, 1), server, port);
+			if (Pos(destination, "<sip:") == 1)
+				this.ParseHost(SubStr(destination, 5), server, port);
+			else
+				this.ParseHost(SubStr(destination, 1), server, port);
 		}
 		return false;
 	}
@@ -3472,6 +3507,19 @@ class SIPStack {
 		var server_port = 0;
 		var full_server = "";
 
+		var uri_parameters;
+		var arr = StrSplit(destination, ";");
+		if (length arr > 1) {
+			uri_parameters = new [];
+			destination = arr[0];
+			for (var i = 1; i < length arr; i ++) {
+				var e = arr[i];
+				var name = LeftOf(e, "=");
+				if (name)
+					uri_parameters[name] = RightOf(e, "=");
+			}
+		}
+
 		var destination_parsed = ParseFullDestination(destination, var target_user, server, server_port);
 		if (!destination_parsed)
 			target_user = destination;
@@ -3517,7 +3565,13 @@ class SIPStack {
 		msg.Headers["max-forwards"] = max_forwards;
 
 		var tag = this.RandomString(20);
-		msg.Headers["from"] = "<" + sipproto + username + "@" + this.localhost + ">;tag=" + tag;
+		if ((uri_parameters) && (IsSet(uri_parameters, "user"))) {
+			if (IsSet(uri_parameters, "host"))
+				msg.Headers["from"] = "<" + sipproto + uri_parameters["user"] + "@" + uri_parameters["host"] + ">;tag=" + tag;
+			else
+				msg.Headers["from"] = "<" + sipproto + uri_parameters["user"] + "@" + full_server + ">;tag=" + tag;
+		} else
+			msg.Headers["from"] = "<" + sipproto + username + "@" + this.localhost + ">;tag=" + tag;
 		msg.Headers["to"] = "<" + sipproto + "${target_user}@${full_server}>";//"sip:${target_user}@${localhost}";//destination;
 		msg.Headers["contact"] = "<" + sipproto + username + "@" + this.full_host + ">";
 		msg.Headers["call-id"] = callid;
@@ -3575,6 +3629,10 @@ class SIPStack {
 
 				if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(this), server, server_port) <= 0)
 					return null;
+
+				if (uri_parameters)
+					sess.uri_parameters = uri_parameters;
+
 				return sess;
 			} catch (var exc) {
 				// nothing
@@ -4391,7 +4449,7 @@ class SIPStack {
 								sess = GetSession(msg);
 
 							if (sess) {
-								if ((!this.Registrations) || ((msg.ServerCode != 401) && (msg.ServerCode != 407)) || (!this.Invite401(sess, msg))) {
+								if (((!this.Registrations) && (!this.ValidIPs)) || ((msg.ServerCode != 401) && (msg.ServerCode != 407)) || (!this.Invite401(sess, msg))) {
 									parent = sess.Parent;
 									// sess.Bye();
 									if ((!parent) || (!this.OnReferNoAnswer) || (this.OnReferNoAnswer(parent))) {

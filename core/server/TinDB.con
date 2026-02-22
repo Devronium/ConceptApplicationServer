@@ -4095,6 +4095,7 @@ class QuerySyncWorker {
 			if (node) {
 				var socket = new TCPSocket();
 				try {
+					socket.ConnectTimeout = 10000;
 					if (socket.Connect(node.host, node.port)) {
 						if (TIN_CLUSTER_LOG)
 							console.info(LOG_THIS, "Connected to node ${node.host}:${node.port}");
@@ -4396,7 +4397,7 @@ class QuerySyncWorker {
 			console.debug(LOG_THIS, "Closing socket $ip:$port");
 		}
 		this.poll.remove(sock);
-		SocketClose(sock);
+		SocketClose(sock, true);
 		this.buffers = buf;
 		this.Neighbours = new_list;
 	}
@@ -4791,7 +4792,7 @@ class TinDB {
 				SocketSetOption(sock, SOL_SOCKET, SO_SNDTIMEO, 10000);
 				var addr = info["address"];
 				if ((addr) && ((addr == "127.0.0.1") || (addr == "::1"))) {
-					QueryWorkers[WorkerIndex++].AddData(BinarizeObject([sock]));
+					QueryWorkers[WorkerIndex++].AddObject([sock]);
 					if (WorkerIndex >= length QueryWorkers)
 						WorkerIndex = 0;
 				} else {

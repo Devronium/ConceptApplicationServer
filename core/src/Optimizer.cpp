@@ -679,7 +679,6 @@ void Optimizer_BuildParameterList(struct Optimizer *self, struct OptimizerHelper
     AnalizerElement *AE = 0;
     AnsiList *LocalParamList = new AnsiList(false);
 
-    helper->ParameterList->Add(LocalParamList, DATA_LIST);
     bool prec_is_comma      = false;
     bool parameter_expected = true;
     bool at_least_one       = false;
@@ -745,6 +744,40 @@ void Optimizer_BuildParameterList(struct Optimizer *self, struct OptimizerHelper
         at_least_one = true;
         last         = helper->PIF_POSITION - 1;
     }
+
+#ifndef DISABLE_PARAMLIST_REUSE
+    // inefficient way to search for similar list
+    INTEGER len = helper->ParameterList->Count();
+    INTEGER parameters_count = LocalParamList->Count();
+    for (INTEGER i = 0; i < len; i ++) {
+        AnsiList *parameters = (AnsiList *)helper->ParameterList->Item(i);
+        if (parameters->Count() == parameters_count) {
+            int same_parameters_list = 1;
+            for (INTEGER j = 0; j < parameters_count; j ++) {
+                if (parameters->Item(j) != LocalParamList->Item(j)) {
+                    same_parameters_list = 0;
+                    break;
+                }
+            }
+            if (same_parameters_list) {
+                delete LocalParamList;
+
+                // inserez lista de parametri ...
+                AnalizerElement *newAE = new AnalizerElement;
+                newAE->ID               = i + 1;
+                newAE->TYPE             = TYPE_PARAM_LIST;
+                newAE->_DEBUG_INFO_LINE = AE ? AE->_DEBUG_INFO_LINE             : 0;
+                newAE->_INFO_OPTIMIZED  = 1;
+                newAE->_HASH_DATA       = 0;
+                helper->PIFList->Insert(newAE, helper->PIF_POSITION++, DATA_ANALIZER_ELEMENT);
+                return;
+            }
+        }
+    }
+#endif
+
+    helper->ParameterList->Add(LocalParamList, DATA_LIST);
+
     // inserez lista de parametri ...
     AnalizerElement *newAE = new AnalizerElement;
     newAE->ID               = helper->ParameterList->Count();
