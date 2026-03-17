@@ -4540,10 +4540,10 @@ class SIPStack {
 				offset = 0;
 			switch (codec) {
 				case 8:
-					d_buf = SubStr(this.backgroundNoise_alaw, offset, f_size);
+					StrSlice(d_buf, this.backgroundNoise_alaw, offset, f_size, true);
 					return;
 				case 0:
-					d_buf = SubStr(this.backgroundNoise_ulaw, offset, f_size);
+					StrSlice(d_buf, this.backgroundNoise_ulaw, offset, f_size, true);
 					return;
 			}
 		}

@@ -196,10 +196,10 @@ INTEGER SetVariable_reachable(VariableDATA *VD, INTEGER TYPE, char *STRING_VALUE
     } else
     if (TYPE == _LINK__STRING_DATA_NODELETE) {
         TYPE        = VARIABLE_STRING;
-        if (VD->LINKS <= 1)
+        // if (VD->LINKS <= 1)
             copy_buffer = 2;
-        else
-            copy_buffer = 1;
+        // else
+        //   copy_buffer = 1;
         if (!(INTEGER)NUMBER_VALUE) {
             STRING_VALUE = 0;
         }
