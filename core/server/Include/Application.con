@@ -624,7 +624,7 @@ class CApplication {
 	public function Run(MAX_TIME=MAX_LOOP_TIME, do_init=true) {
 		var AppForm=this._ApplicationForm;
 		var deleg=this.ShellDebug;
-		var async=this.AsyncPropertyCallback;
+		var async1=this.AsyncPropertyCallback;
 		if (do_init)
 			SendMessage("Application",MSG_APPLICATION_RUN,""+AppForm.RID,0);
 
@@ -661,11 +661,11 @@ class CApplication {
 				if (deleg)
 					deleg(Sender, Target, Value);
 			} else
-			if ((ID==MSG_GET_PROPERTY) && (async)) {
+			if ((ID==MSG_GET_PROPERTY) && (async1)) {
 				tmpsender=value Sender;
 				tmptarget=value Target;
 				if ((tmpsender>0) && (tmptarget>0))
-					async(tmpsender,tmptarget,Value);
+					async1(tmpsender,tmptarget,Value);
 			} else
 			if (ID==MSG_CONFIRM_EVENT)
 				SendMessage("App",MSG_CONFIRM_EVENT,"0",Value);

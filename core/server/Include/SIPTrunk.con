@@ -1164,6 +1164,7 @@ class SIPSession {
 		ivr_chunk = 0;
 		IVRMinBuffer = 0;
 		packet_time = microseconds();
+		buf_chunk = 0;
 	}
 
 	AppendVoice(var voice) {
@@ -1174,11 +1175,14 @@ class SIPSession {
 
 	Clear() {
 		buf = "";
+		buf_chunk = 0;
 	}
 
 	ResetBuffers() {
 		buf = "";
 		ivr = "";
+		buf_chunk = 0;
+		ivr_chunk = 0;
 	}
 
 	AddChild(session) {
@@ -1562,7 +1566,8 @@ class SIPSession {
 							f_size = chunk_size / 1000 * 8;
 							StrMove(var d_buf, buf, f_size);
 							if (!d_buf)
-								StrSlice(d_buf, this.s.emptyData, 0, f_size, true);
+								this.s.backgroundNoiseChunk(d_buf, f_size, buf_chunk * f_size, remote_type);
+								// StrSlice(d_buf, this.s.emptyData, 0, f_size, true);
 							if (d_buf)
 								this._iterateAudio(d_buf);
 							ops++;
@@ -1881,6 +1886,9 @@ class SIPStack {
 	var[] rtp_to_session;
 
 	var[] ValidIPs;
+
+	var backgroundNoise_alaw = "";
+	var backgroundNoise_ulaw = "";
 
 	SIPStack(localhost, bind_port = 5060, type = SIP_TRANSPORT_UDP, public_key = "", private_key = "", force_tls_version = 0) {
 		this.localhost = localhost;
@@ -3515,8 +3523,11 @@ class SIPStack {
 			for (var i = 1; i < length arr; i ++) {
 				var e = arr[i];
 				var name = LeftOf(e, "=");
-				if (name)
+				if (name) {
 					uri_parameters[name] = RightOf(e, "=");
+					if (ToLower(name[0] + name[1]) == "x-")
+						msg.Headers[name] = RightOf(e, "=");
+				}
 			}
 		}
 
@@ -4508,5 +4519,34 @@ class SIPStack {
 			}
 		}
 		ops++;
+	}
+
+
+	loadBackgroundNoise(var data, codec = 8) {
+		if (codec == 8) {
+			backgroundNoise_alaw = data;
+			backgroundNoise_ulaw = alaw2ulaw(data);
+		} else
+		if (codec == 0) {
+			backgroundNoise_ulaw = data;
+			backgroundNoise_alaw = ulaw2alaw(data);
+		}
+	}
+
+	backgroundNoiseChunk(var d_buf, f_size = 160, offset = 0, codec = 8) {
+		if (backgroundNoise_alaw) {
+			offset %= length backgroundNoise_alaw;
+			if (offset + f_size > length backgroundNoise_alaw)
+				offset = 0;
+			switch (codec) {
+				case 8:
+					d_buf = SubStr(this.backgroundNoise_alaw, offset, f_size);
+					return;
+				case 0:
+					d_buf = SubStr(this.backgroundNoise_ulaw, offset, f_size);
+					return;
+			}
+		}
+		StrSlice(d_buf, this.emptyData, 0, f_size, true);
 	}
 }
