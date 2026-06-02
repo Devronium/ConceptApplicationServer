@@ -1,0 +1,104 @@
+import standard.lib.piper
+import standard.lib.str
+import standard.lang.serialize
+
+include DirectoryList.con
+
+define SUPERTONIC_TTS_MAX_CACHE	1024
+
+class SupertonicTTS {
+	protected var handle;
+	var[] stats;
+	var[] cache;
+	var cacheStart = 10;
+	var enableCache = false;
+
+	var[] styles;
+
+	SupertonicTTS(model_path, voice_styles_path) {
+		var voice_styles = DirectoryList::ListByExt(voice_styles_path, ["json"]);
+		var[] arr;
+		for (var i = 0; i < length voice_styles; i ++) {
+			var fname = voice_styles[i];
+
+			styles[fname] = length styles;
+
+			arr[length arr] = voice_styles_path + "/" + fname;
+		}
+
+		handle = SupertonicInit(model_path, arr);
+	}
+
+	static clearCache(var stats, var cache, level = 1) {
+		var keys = GetKeys(stats);
+		var new_stats = new [];
+		var new_cache = new [];
+		for (var i = 0; i < length keys; i ++) {
+			var k = keys[i];
+			var val = stats[i];
+			if (val > level) {
+				new_stats[k] = val;
+				if (cache[k])
+					new_cache[k] = cache[k];
+			}
+		}
+		stats = new_stats;
+		cache = new_cache;
+	}
+
+	TTS(str, style, lang = "en", total_steps = 7, speed = 1.05) {
+		if (!handle)
+			throw "SupertonicTTS: error loading model file";
+
+		if ((length str > 48) && (enableCache)) {
+			if (length this.stats > SUPERTONIC_TTS_MAX_CACHE) {
+				this.clearCache(this.stats, this.cache);
+				if (length this.stats > SUPERTONIC_TTS_MAX_CACHE) {
+					this.clearCache(this.stats, this.cache, 4);
+					if (length this.stats > SUPERTONIC_TTS_MAX_CACHE) {
+						this.stats = new [];
+						this.cache = new [];
+					}
+				}
+			}
+			var keys = PhraseSplit(str, 24);
+			var can_cache = 0;
+			for (var i = 0; i < length keys; i ++) {
+				var k = keys[i];
+				if (k) {
+					this.stats[k] ++;
+
+					if (this.stats[k] > cacheStart) {
+						can_cache ++;
+						if (!this.cache[k])
+							this.cache[k] = SupertonicTTS(handle, k, styles[style], lang, total_steps, speed);
+					}
+				}
+			}
+			if (can_cache) {
+				var tts_data = "";
+				for (i = 0; i < length keys; i ++) {
+					k = keys[i];
+					if (k) {
+						var data = "";
+						if (IsSet(this.cache, k))
+							data = this.cache[k];
+
+						if (!data)
+							data = SupertonicTTS(handle, k, styles[style], lang, total_steps, speed);
+
+						if (data)
+							tts_data += data;
+					}
+				}
+				if (tts_data)
+					return tts_data;
+			}
+		}
+		return SupertonicTTS(handle, str, styles[style], lang, total_steps, speed);
+	}
+
+	finalize() {
+		SupertonicDone(handle);
+	}
+}
