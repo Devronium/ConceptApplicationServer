@@ -10,5 +10,9 @@ extern "C" {
     CONCEPT_FUNCTION(PiperInit)
     CONCEPT_FUNCTION(PiperTTS)
     CONCEPT_FUNCTION(PiperDone)
+
+    CONCEPT_FUNCTION(SupertonicInit)
+    CONCEPT_FUNCTION(SupertonicTTS)
+    CONCEPT_FUNCTION(SupertonicDone)
 }
 #endif // __LIBRARY_H

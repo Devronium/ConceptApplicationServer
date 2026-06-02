@@ -8,4 +8,4 @@ standard_lib_piper_so_LDADD = -lpthread @ONNX_LIBS@ @ESPEAK_LIBS@
 # the previous manual Makefile
 libexecdir=@libexecdir@/concept
 libexec_PROGRAMS = standard.lib.piper.so
-standard_lib_piper_so_SOURCES = phonemize.cpp phoneme_ids.cpp tashkeel.cpp piper.cpp stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h
+standard_lib_piper_so_SOURCES = phonemize.cpp phoneme_ids.cpp tashkeel.cpp piper.cpp helper.cpp stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h

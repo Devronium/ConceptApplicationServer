@@ -1,5 +1,6 @@
 #ifndef __ANSI_TYPES_H
 #define __ANSI_TYPES_H
+
 #include <stdint.h>
 
 #define INTEGER          int
@@ -13,6 +14,7 @@ typedef void   VariableDATA;
 typedef struct {
     INTEGER *PARAM_INDEX;
     INTEGER COUNT;
+    void *HANDLER;
 } ParamList;
 
 typedef INTEGER (*EXTERNAL_CALL)(ParamList *PARAMETERS, VariableDATA **LOCAL_CONTEXT, VariableDATA *RESULT);

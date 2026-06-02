@@ -46,7 +46,9 @@ class ReportGenerator {
 			if ((typeof e2 == "array") && (!(GetKeys(e2)[0]))) {
 				if ((typeof e2[0] != "array") && (typeof e2[0] != "class"))
 					arr[prefix + k] = ReportGenerator::array_to_str(e2);
-			}
+			} else
+			if ((typeof e2 == "array") && (IsSet(e2, "?")))
+				arr[prefix + k] = e2["?"];
 		}
 
 		return arr;

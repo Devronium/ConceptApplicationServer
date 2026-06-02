@@ -2,21 +2,62 @@
 #include "stdlibrary.h"
 //------------ end of standard header ----------------------------//
 #include "library.h"
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
+#include "pointer_list.h"
+
 #include "piper.hpp"
 
 struct piper::PiperConfig piper_config;
 
+#ifndef PIPER_ONLY
+#include "helper.h"
+
+DEFINE_LIST(supertonic_list);
+
+class SupertonicConfig {
+public:
+	Ort::Env env;
+	Ort::MemoryInfo memory_info;
+	std::unique_ptr<TextToSpeech> text_to_speech;
+	Style style;
+
+	std::vector<std::string> pathToList(const char **paths) {
+		std::vector<std::string> vec;
+		while ((paths) && (*paths) && ((*paths)[0])) {
+			vec.push_back(*paths);
+			paths ++;
+		}
+
+		return vec;
+	}
+
+	SupertonicConfig(const char *onnx_dir, const char **voice_style_path):
+		env(ORT_LOGGING_LEVEL_WARNING, "Supertonic"),
+		memory_info(Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtArenaAllocator, OrtMemType::OrtMemTypeDefault)),
+		style(loadVoiceStyle(pathToList(voice_style_path), true)) {
+
+		text_to_speech = loadTextToSpeech(this->env, onnx_dir, false);
+	}
+
+	TextToSpeech::SynthesisResult tts(const char *text, const char *lang, int total_step = 7, float speed = 1.05f) {
+		return text_to_speech->call(this->memory_info, text ? text : "", lang ? lang : "na", style, total_step, speed);
+	}
+};
+#endif
 //=====================================================================================//
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     try {
         piper::initialize(piper_config);
     } catch (...) {
     }
+#ifndef PIPER_ONLY
+    INIT_LIST(supertonic_list);
+#endif
     return 0;
 }
 //=====================================================================================//
@@ -26,6 +67,9 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
             piper::terminate(piper_config);
         } catch (...) {
         }
+#ifndef PIPER_ONLY
+        DEINIT_LIST(supertonic_list);
+#endif
     }
     return 0;
 }
@@ -78,3 +122,106 @@ CONCEPT_FUNCTION_IMPL(PiperDone, 1)
     RETURN_NUMBER(0);
 END_IMPL
 //=====================================================================================//
+#ifndef PIPER_ONLY
+CONCEPT_FUNCTION_IMPL(SupertonicInit, 2)
+	T_STRING(SupertonicInit, 0)
+	T_STRING(SupertonicInit, 1)
+
+	const char *arr[2];
+	arr[0] = PARAM(1);
+	arr[1] = NULL;
+
+	SupertonicConfig *tts = NULL;
+	try {
+		tts = new SupertonicConfig(PARAM(0), arr);
+	} catch (...) {
+		if (tts)
+			delete tts;
+
+		RETURN_NUMBER(0);
+		return 0;
+	}
+
+	RETURN_NUMBER(MAP_POINTER(supertonic_list, tts, PARAMETERS->HANDLER));
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SupertonicTTS, 2, 5)
+	T_HANDLE(SupertonicTTS, 0)
+	T_STRING(SupertonicTTS, 1)
+
+	const char *lang = "en";
+	int total_step = 7;
+	float speed = 1.05f;
+
+	if (PARAMETERS_COUNT > 2) {
+		T_STRING(SupertonicTTS, 2)
+		if (PARAM_LEN(2) > 0)
+			lang = PARAM(2);
+	}
+
+	if (PARAMETERS_COUNT > 3) {
+		T_NUMBER(SupertonicTTS, 3)
+		total_step = PARAM_INT(3);
+		if ((total_step <= 0) || (total_step >= 20))
+			total_step = 7;
+	}
+
+	if (PARAMETERS_COUNT > 4) {
+		T_NUMBER(SupertonicTTS, 4)
+		if (speed > 0)
+			speed = PARAM(4);
+	}
+
+	SupertonicConfig *tts = (SupertonicConfig *)GET_POINTER(supertonic_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+
+	if (!tts) {
+		RETURN_NUMBER(0);
+		return 0;
+	}
+
+	TextToSpeech::SynthesisResult wav;
+
+	try {
+		wav = tts->tts(PARAM(1), lang, total_step, speed);
+	} catch (...) {
+		RETURN_NUMBER(0);
+		return 0;
+	}
+
+	int sample_rate = tts->text_to_speech->getSampleRate();
+
+	clearTensorBuffers(tts->text_to_speech.get());
+
+	char *output = NULL;
+	CORE_NEW(wav.wav.size() * 2 + 1, output);
+	output[wav.wav.size() * 2] = 0;
+
+	short *wav_data = (short *)output;
+
+	for (float sample : wav.wav) {
+		float clamped = std::max(-1.0f, std::min(1.0f, sample));
+		*wav_data = static_cast<int16_t>(clamped * 32767);
+
+		wav_data ++;
+	}
+
+	CREATE_ARRAY(RESULT);
+
+	void *data_var = NULL;
+        Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, "data", &data_var);
+	SetVariable(data_var, -1, output, wav.wav.size() * 2);
+
+	Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "sample_rate", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)sample_rate);
+ END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL(SupertonicDone, 1)
+	T_NUMBER(SupertonicDone, 0)
+
+	SupertonicConfig *tts = (SupertonicConfig *)FREE_POINTER(supertonic_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
+	if (tts)
+		delete tts;
+
+	SET_NUMBER(0, 0);
+END_IMPL
+//=====================================================================================//
+#endif

@@ -537,7 +537,8 @@ class BinIndex {
 					//	no_index_keys = GetKeys(no_index_query);
 					if (no_index_keys) {
 						qp.reversed = this.Unique;
-						qp.additional_filter = filter_func;
+						// may 29, 2026: commented next line (filter_func already called by Query)
+						// qp.additional_filter = filter_func;
 					}
 					//	no_index_keys = [no_index_keys, no_index_query];
 					// }
