@@ -1,6 +1,6 @@
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = -O3 -fPIC @ONNX_CFLAGS@ -march=haswell
-AM_CXXFLAGS = -O3 -fPIC @ONNX_CFLAGS@ -march=haswell
+AM_CXXFLAGS = -O3 -fPIC @ONNX_CFLAGS@ -march=haswell -std=c++17
 AM_LDFLAGS = -shared
 standard_lib_vad2_so_LDADD = -lpthread @ONNX_LIBS@
 

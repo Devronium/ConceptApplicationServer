@@ -24,28 +24,33 @@ public:
 	Ort::Env env;
 	Ort::MemoryInfo memory_info;
 	std::unique_ptr<TextToSpeech> text_to_speech;
-	Style style;
+	std::vector<Style> style;
 
-	std::vector<std::string> pathToList(const char **paths) {
-		std::vector<std::string> vec;
+	void loadStyles(char **paths) {
 		while ((paths) && (*paths) && ((*paths)[0])) {
+			std::vector<std::string> vec;
 			vec.push_back(*paths);
 			paths ++;
-		}
 
-		return vec;
+			style.push_back(loadVoiceStyle(vec, true));
+		}
 	}
 
-	SupertonicConfig(const char *onnx_dir, const char **voice_style_path):
+	SupertonicConfig(const char *onnx_dir, char **voice_style_path):
 		env(ORT_LOGGING_LEVEL_WARNING, "Supertonic"),
-		memory_info(Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtArenaAllocator, OrtMemType::OrtMemTypeDefault)),
-		style(loadVoiceStyle(pathToList(voice_style_path), true)) {
+		memory_info(Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtArenaAllocator, OrtMemType::OrtMemTypeDefault)) {
+
+		loadStyles(voice_style_path);
 
 		text_to_speech = loadTextToSpeech(this->env, onnx_dir, false);
 	}
 
-	TextToSpeech::SynthesisResult tts(const char *text, const char *lang, int total_step = 7, float speed = 1.05f) {
-		return text_to_speech->call(this->memory_info, text ? text : "", lang ? lang : "na", style, total_step, speed);
+	TextToSpeech::SynthesisResult tts(const char *text, const char *lang, int style_index = 0, int total_step = 7, float speed = 1.05f) {
+		if ((style_index >= 0) && (style_index < style.size()))
+			return text_to_speech->call(this->memory_info, text ? text : "", lang ? lang : "na", style[style_index], total_step, speed);
+
+		TextToSpeech::SynthesisResult null_style;
+		return null_style;
 	}
 };
 #endif
@@ -125,11 +130,9 @@ END_IMPL
 #ifndef PIPER_ONLY
 CONCEPT_FUNCTION_IMPL(SupertonicInit, 2)
 	T_STRING(SupertonicInit, 0)
-	T_STRING(SupertonicInit, 1)
+	T_ARRAY(SupertonicInit, 1)
 
-	const char *arr[2];
-	arr[0] = PARAM(1);
-	arr[1] = NULL;
+	char **arr = GetCharList(PARAMETER(1), Invoke);
 
 	SupertonicConfig *tts = NULL;
 	try {
@@ -137,39 +140,51 @@ CONCEPT_FUNCTION_IMPL(SupertonicInit, 2)
 	} catch (...) {
 		if (tts)
 			delete tts;
+		if (arr)
+			delete[] arr;
 
 		RETURN_NUMBER(0);
 		return 0;
 	}
 
+	if (arr)
+		delete[] arr;
+
 	RETURN_NUMBER(MAP_POINTER(supertonic_list, tts, PARAMETERS->HANDLER));
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SupertonicTTS, 2, 5)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SupertonicTTS, 2, 6)
 	T_HANDLE(SupertonicTTS, 0)
 	T_STRING(SupertonicTTS, 1)
 
+	int style = 0;
 	const char *lang = "en";
 	int total_step = 7;
 	float speed = 1.05f;
 
 	if (PARAMETERS_COUNT > 2) {
-		T_STRING(SupertonicTTS, 2)
-		if (PARAM_LEN(2) > 0)
-			lang = PARAM(2);
+		T_NUMBER(SupertonicTTS, 2)
+		if (PARAM(2) >= 0)
+			style = PARAM_INT(2);
 	}
 
 	if (PARAMETERS_COUNT > 3) {
-		T_NUMBER(SupertonicTTS, 3)
-		total_step = PARAM_INT(3);
-		if ((total_step <= 0) || (total_step >= 20))
-			total_step = 7;
+		T_STRING(SupertonicTTS, 3)
+		if (PARAM_LEN(3) > 0)
+			lang = PARAM(3);
 	}
 
 	if (PARAMETERS_COUNT > 4) {
 		T_NUMBER(SupertonicTTS, 4)
+		total_step = PARAM_INT(4);
+		if ((total_step <= 0) || (total_step >= 20))
+			total_step = 7;
+	}
+
+	if (PARAMETERS_COUNT > 5) {
+		T_NUMBER(SupertonicTTS, 5)
 		if (speed > 0)
-			speed = PARAM(4);
+			speed = PARAM(5);
 	}
 
 	SupertonicConfig *tts = (SupertonicConfig *)GET_POINTER(supertonic_list, (SYS_INT)PARAM(0), PARAMETERS->HANDLER);
@@ -182,7 +197,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SupertonicTTS, 2, 5)
 	TextToSpeech::SynthesisResult wav;
 
 	try {
-		wav = tts->tts(PARAM(1), lang, total_step, speed);
+		wav = tts->tts(PARAM(1), lang, style, total_step, speed);
 	} catch (...) {
 		RETURN_NUMBER(0);
 		return 0;
