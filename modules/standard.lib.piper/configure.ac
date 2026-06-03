@@ -11,7 +11,7 @@ AC_CONFIG_HEADER([config.h])
 AC_PROG_CXX
 AC_PROG_CC
 
-pkg_modules="libonnx1 >= 1.0"
+pkg_modules="libonnxruntime >= 1.25"
 PKG_CHECK_MODULES(ONNX, [$pkg_modules])
 
 pkg_modules="espeak-ng >= 1.1"

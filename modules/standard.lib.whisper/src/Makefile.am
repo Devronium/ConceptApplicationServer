@@ -1,5 +1,5 @@
 # what flags you want to pass to the C compiler & linker
-AM_CFLAGS = -O3 -fPIC -march=haswell
+AM_CFLAGS = -O3 -fPIC -march=haswell -D_GNU_SOURCE
 AM_CXXFLAGS = -O3 -fPIC -march=haswell
 AM_LDFLAGS = -shared -lpthread
 
