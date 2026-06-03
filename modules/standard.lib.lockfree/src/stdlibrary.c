@@ -1,4 +1,5 @@
 #include "stdlibrary.h"
+#include <stdlib.h>
 
 #ifdef _WIN32
 // DLL Entry Point ... nothing ...

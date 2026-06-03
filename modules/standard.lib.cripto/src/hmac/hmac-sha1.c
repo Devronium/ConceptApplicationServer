@@ -21,7 +21,7 @@
 
 #include "memxor.h"
 
-#include "../sha1/sha1.h"
+#include "sha1.h"
 
 #include <string.h>
 
@@ -31,8 +31,8 @@
 int
 hmac_sha1(const void *key, size_t keylen,
           const void *in, size_t inlen, void *resbuf) {
-    SHA1Context inner;
-    SHA1Context outer;
+    struct sha1_ctx inner;
+    struct sha1_ctx outer;
     char        optkeybuf[20];
     char        block[64];
     char        innerhash[20];
@@ -40,7 +40,7 @@ hmac_sha1(const void *key, size_t keylen,
     /* Reduce the key's size, so that it becomes <= 64 bytes large.  */
 
     if (keylen > 64) {
-        SHA1Context keyhash;
+        struct sha1_ctx keyhash;
 
         sha1_init_ctx(&keyhash);
         sha1_process_bytes(key, keylen, &keyhash);

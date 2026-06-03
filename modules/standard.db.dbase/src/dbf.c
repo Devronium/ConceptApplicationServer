@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include <math.h>
+#include <strings.h>
 #include "bool.h"
 #include "dbf.h"
 #include "ioapi/zlib.h"
