@@ -938,10 +938,10 @@ std::unique_ptr<TextToSpeech> loadTextToSpeech(
     
     // Keep the models and processor alive by storing them
     // (In production, you'd want better lifetime management)
-    static OnnxModels static_models;
-    static std::unique_ptr<UnicodeProcessor> static_text_processor;
-    static_models = std::move(models);
-    static_text_processor = std::move(text_processor);
+    // static OnnxModels static_models;
+    // static std::unique_ptr<UnicodeProcessor> static_text_processor;
+    tts->static_models = std::move(models);
+    tts->static_text_processor = std::move(text_processor);
     
     return tts;
 }

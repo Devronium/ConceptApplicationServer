@@ -74,10 +74,20 @@ private:
 /**
  * TextToSpeech class
  */
+struct OnnxModels {
+    std::unique_ptr<Ort::Session> dp;
+    std::unique_ptr<Ort::Session> text_enc;
+    std::unique_ptr<Ort::Session> vector_est;
+    std::unique_ptr<Ort::Session> vocoder;
+};
+
 class TextToSpeech {
 public:
     std::vector<std::vector<float>> g_tensor_buffers_float;
     std::vector<std::vector<int64_t>> g_tensor_buffers_int64;
+
+    OnnxModels static_models;
+    std::unique_ptr<UnicodeProcessor> static_text_processor;
 
     TextToSpeech(
         const Config& cfgs,
@@ -153,13 +163,6 @@ std::vector<std::vector<std::vector<float>>> getLatentMask(
 );
 
 // ONNX model loading
-struct OnnxModels {
-    std::unique_ptr<Ort::Session> dp;
-    std::unique_ptr<Ort::Session> text_enc;
-    std::unique_ptr<Ort::Session> vector_est;
-    std::unique_ptr<Ort::Session> vocoder;
-};
-
 std::unique_ptr<Ort::Session> loadOnnx(
     Ort::Env& env,
     const std::string& onnx_path,
