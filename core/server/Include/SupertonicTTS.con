@@ -21,7 +21,7 @@ class SupertonicTTS {
 		for (var i = 0; i < length voice_styles; i ++) {
 			var fname = voice_styles[i];
 
-			styles[fname] = length styles;
+			styles[fname] = i;
 
 			arr[length arr] = voice_styles_path + "/" + fname;
 		}
