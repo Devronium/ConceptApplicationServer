@@ -6,6 +6,7 @@ import standard.lib.thread
 import standard.C.casts
 import standard.C.time
 import standard.coding.base64
+import standard.arch.g729
 
 include DTMFDetector.con
 include Serializable.con
@@ -72,16 +73,25 @@ class RTPSession {
 
 	var proxy_id;
 
+	var encoder;
+	var decoder;
+
 	SimpleRTP(var res, var payload, profile = 48) {
+		timestamp += length payload;
+
 		if (profile == 48) {
 			profile = remote_type;
 			if (profile < 0)
 				profile = 8;
 			if (profile == 0)
 				payload = alaw2ulaw(payload);
+			if (profile == 18) {
+				if (!encoder)
+					encoder = g729_encoder_create();
+				payload = g729_encode(encoder, alaw2pcm(payload));
+			}
 		}
 		
-		timestamp += length payload;
 		res = RTPHeader(0x80, profile, sequence_number, timestamp, ssrc_id);
 		if (rtc_channel)
 			res = rtc_channel.buildPacket(res, payload);
@@ -129,6 +139,13 @@ class RTPSession {
 			StrSlice(var payload, data, 12);
 			if (srtp)
 				payload = srtp.Decrypt(SubStr(data, 0, 12), payload);
+
+			if (type == 18) {
+				if (!decoder)
+					decoder = g729_decoder_create();
+				type = 8;
+				return pcm2alaw(g729_decode(decoder, payload));
+			}
 
 			return payload;
 		}
@@ -187,6 +204,15 @@ class RTPSession {
 		if (rtc_channel) {
 			rtc_channel.close();
 			rtc_channel = null;
+		}
+
+		if (encoder) {
+			g729_encoder_destroy(encoder);
+			encoder = null;
+		}
+		if (decoder) {
+			g729_decoder_destroy(decoder);
+			decoder = null;
 		}
 	}
 }
@@ -457,6 +483,9 @@ class SIPSession {
 
 	var uri_parameters;
 
+	var encoder;
+	var decoder;
+
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
 		timestamp = RandomInteger(140, 140000) * 100;
@@ -551,7 +580,7 @@ class SIPSession {
 						remote_port = value arr[1];
 						for (var j = 3; j < length arr; j ++){
 							var codec = value arr[j];
-							if ((codec == 0) || (codec == 8))
+							if ((codec == 0) || (codec == 8) || (codec == 18))
 								remote_type = codec;
 							if (remote_type == 8)
 								break;
@@ -761,6 +790,14 @@ class SIPSession {
 		} catch (exc) {
 			// nothing
 		}
+		if (encoder) {
+			g729_encoder_destroy(encoder);
+			encoder = null;
+		}
+		if (decoder) {
+			g729_decoder_destroy(decoder);
+			decoder = null;
+		}
 		rtp = null;
 	}
 
@@ -782,6 +819,14 @@ class SIPSession {
 			}
 		} catch (exc) {
 			// nothing
+		}
+		if (encoder) {
+			g729_encoder_destroy(encoder);
+			encoder = null;
+		}
+		if (decoder) {
+			g729_decoder_destroy(decoder);
+			decoder = null;
 		}
 		rtp = null;
 	}
@@ -817,6 +862,14 @@ class SIPSession {
 			}
 		} catch (exc) {
 			// nothing
+		}
+		if (encoder) {
+			g729_encoder_destroy(encoder);
+			encoder = null;
+		}
+		if (decoder) {
+			g729_decoder_destroy(decoder);
+			decoder = null;
 		}
 		rtp = null;
 	}
@@ -910,15 +963,21 @@ class SIPSession {
 	}
 
 	SimpleRTP(var res, var payload, profile = 48) {
+		timestamp += length payload;
+
 		if (profile == 48) {
 			profile = remote_type;
 			if (profile < 0)
 				profile = 8;
 			if (profile == 0)
 				payload = alaw2ulaw(payload);
+			if (profile == 18) {
+				if (!encoder)
+					encoder = g729_encoder_create();
+				payload = g729_encode(encoder, alaw2pcm(payload));
+			}
 		}
 		
-		timestamp += length payload;
 		res = RTPHeader(0x80, profile, sequence_number, timestamp, ssrc_id); // pack("U8U8U16U32U32", 0x80, profile, sequence_number, timestamp, ssrc_id);
 		if (rtc_channel)
 			res = rtc_channel.buildPacket(res, payload);
@@ -1055,6 +1114,13 @@ class SIPSession {
 				return false;
 			}
 
+			if (type == 18) {
+				if (!decoder)
+					decoder = g729_decoder_create();
+				type = 8;
+				payload = pcm2alaw(g729_decode(decoder, payload));
+			}
+
 			if (Record)
 				RecordStream(ssrc_id, payload, "in-", type);
 
@@ -1092,13 +1158,22 @@ class SIPSession {
 			var codecs_str = "";
 			if (codec == 8) {
 				codecs_str += "a=rtpmap:8 PCMA/8000\r\n";
+				codec = "8";
 			} else
 			if (codec == 0) {
 				codecs_str += "a=rtpmap:0 PCMU/8000\r\n";
+				codec = "0";
+			} else
+			if ((codec == 18) || (remote_type == 18)) {
+				codecs_str += "a=rtpmap:18 G729/8000\r\n";
+				codecs_str += "a=fmtp:18 annexb=no\r\n";
+				codec = "18";
 			} else {
 				codecs_str += "a=rtpmap:8 PCMA/8000\r\n";
 				codecs_str += "a=rtpmap:0 PCMU/8000\r\n";
-				codec = "8 0";
+				codecs_str += "a=rtpmap:18 G729/8000\r\n";
+				codecs_str += "a=fmtp:18 annexb=no\r\n";
+				codec = "8 0 18";
 			}
 			if (this.s.OnDTMFRelay) {
 				if (!rtp_dtmf_type)
@@ -1131,6 +1206,14 @@ class SIPSession {
 				Children[i] = null;
 				this.s.RemoveSessionByRef(sess);
 			}
+		}
+		if (encoder) {
+			g729_encoder_destroy(encoder);
+			encoder = null;
+		}
+		if (decoder) {
+			g729_decoder_destroy(decoder);
+			decoder = null;
 		}
 	}
 
@@ -1367,6 +1450,9 @@ class SIPSession {
 
 		rtp_object.NATMode = this.NATMode;
 
+		rtp_object.encoder = this.encoder;
+		rtp_object.decoder = this.decoder;
+
 		RTPWorker.post(delegatedWorker, rtp_object, RTP_WORKER_ADD);
 
 		// ensure no constructor cleaning
@@ -1388,6 +1474,9 @@ class SIPSession {
 			SetMember(this.rtc_channel, "handle", null);
 			delete this.rtc_channel;
 		}
+
+		delete this.encoder;
+		delete this.decoder;
 	}
 
 	parallelize() {
@@ -4521,7 +4610,6 @@ class SIPStack {
 		ops++;
 	}
 
-
 	loadBackgroundNoise(var data, codec = 8) {
 		if (codec == 8) {
 			backgroundNoise_alaw = data;
@@ -4530,6 +4618,15 @@ class SIPStack {
 		if (codec == 0) {
 			backgroundNoise_ulaw = data;
 			backgroundNoise_alaw = ulaw2alaw(data);
+		} else
+		if (codec == 18) {
+			var decoder = g729_decoder_create();
+			if (decoder) {
+				var pcm_data = g729_decode(data);
+				backgroundNoise_alaw = pcm2alaw(pcm_data);
+				backgroundNoise_ulaw = pcm2ulaw(pcm_data);
+				g729_decoder_destroy(decoder);
+			}
 		}
 	}
 
