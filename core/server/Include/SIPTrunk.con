@@ -76,6 +76,8 @@ class RTPSession {
 	var encoder;
 	var decoder;
 
+	var skipped_frames = 0;
+
 	SimpleRTP(var res, var payload, profile = 48) {
 		timestamp += length payload;
 
@@ -87,8 +89,14 @@ class RTPSession {
 				payload = alaw2ulaw(payload);
 			if (profile == 18) {
 				if (!encoder)
-					encoder = g729_encoder_create();
+					encoder = g729_encoder_create(true);
 				payload = g729_encode(encoder, alaw2pcm(payload));
+				if (!payload) {
+					skipped_frames ++;
+					if (skipped_frames < 100)
+						return "";
+				}
+				skipped_frames = 0;
 			}
 		}
 		
@@ -179,9 +187,11 @@ class RTPSession {
 
 	write(var d_buf) {
 		SimpleRTP(var rtp_payload, d_buf);
-		rtp.Write(rtp_payload, remote_host, remote_port);
-		if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
-			rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
+		if (rtp_payload) {
+			rtp.Write(rtp_payload, remote_host, remote_port);
+			if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
+				rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
+		}
 	}
 
 	iterate(rtp_sessions, call_id_to_socket) {
@@ -485,6 +495,8 @@ class SIPSession {
 
 	var encoder;
 	var decoder;
+
+	var skipped_frames = 0;
 
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
@@ -880,6 +892,8 @@ class SIPSession {
 			var no_audio_limit = 8000000;
 			if ((Parent) || (Children))
 				no_audio_limit = 16000000;
+			if (remote_type == 18)
+				no_audio_limit = 30000000;
 			if ((last_timestamp) && (microseconds() > (last_timestamp + no_audio_limit))) {
 				if (this.s.OnAudioTimeout) {
 					if (this.s.OnAudioTimeout(this))
@@ -973,8 +987,14 @@ class SIPSession {
 				payload = alaw2ulaw(payload);
 			if (profile == 18) {
 				if (!encoder)
-					encoder = g729_encoder_create();
+					encoder = g729_encoder_create(true);
 				payload = g729_encode(encoder, alaw2pcm(payload));
+				if (!payload) {
+					skipped_frames ++;
+					if (skipped_frames < 100)
+						return "";
+				}
+				skipped_frames = 0;
 			}
 		}
 		
@@ -1166,13 +1186,13 @@ class SIPSession {
 			} else
 			if ((codec == 18) || (remote_type == 18)) {
 				codecs_str += "a=rtpmap:18 G729/8000\r\n";
-				codecs_str += "a=fmtp:18 annexb=no\r\n";
+				// codecs_str += "a=fmtp:18 annexb=no\r\n";
 				codec = "18";
 			} else {
 				codecs_str += "a=rtpmap:8 PCMA/8000\r\n";
 				codecs_str += "a=rtpmap:0 PCMU/8000\r\n";
 				codecs_str += "a=rtpmap:18 G729/8000\r\n";
-				codecs_str += "a=fmtp:18 annexb=no\r\n";
+				// codecs_str += "a=fmtp:18 annexb=no\r\n";
 				codec = "8 0 18";
 			}
 			if (this.s.OnDTMFRelay) {
@@ -1316,12 +1336,14 @@ class SIPSession {
 			if (this.s.OnAudioOut)
 				this.s.OnAudioOut(s, payload);
 			SimpleRTP(var rtp_payload, payload);
-			try {
-				rtp.Write(rtp_payload, remote_host, remote_port);
-				if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
-					rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
-			} catch (var exc) {
-				return -1;
+			if (rtp_payload) {
+				try {
+					rtp.Write(rtp_payload, remote_host, remote_port);
+					if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
+						rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
+				} catch (var exc) {
+					return -1;
+				}
 			}
 			return length payload;
 		}
@@ -1578,9 +1600,11 @@ class SIPSession {
 				// buf = SubStr(this.s.emptyData, 0, chunk_size / 1000 * 8);
 				StrSlice(buf, this.s.emptyData, 0, chunk_size / 1000 * 8, true);
 				this.SimpleRTP(var rtp_payload, buf);
-				rtp.Write(rtp_payload, remote_host, remote_port);
-				if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
-					rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
+				if (rtp_payload) {
+					rtp.Write(rtp_payload, remote_host, remote_port);
+					if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
+						rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
+				}
 			}
 			packet_time = microseconds() + chunk_size;
 			ops++;
@@ -1592,9 +1616,11 @@ class SIPSession {
 		if (this.s.OnAudioOut)
 			this.s.OnAudioOut(s, d_buf);
 		SimpleRTP(var rtp_payload, d_buf);
-		rtp.Write(rtp_payload, remote_host, remote_port);
-		if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
-			rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
+		if (rtp_payload) {
+			rtp.Write(rtp_payload, remote_host, remote_port);
+			if ((this.nat_remote_host) && (this.NATMode) && (this.nat_remote_host == this.remote_host) && (this.nat_remote_port != this.remote_port))
+				rtp.Write(rtp_payload, this.nat_remote_host, this.nat_remote_port);
+		}
 	}
 
 	_iterateRead(var ops) {
