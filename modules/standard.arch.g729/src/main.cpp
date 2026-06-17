@@ -74,10 +74,13 @@ CONCEPT_FUNCTION_IMPL(g729_encode, 2)
         inputBuffer += 80;
         inputBufferSize -= 80;
 
-        if (bitStreamLength == 10) {
+        if (bitStreamLength >= 2) {
             bitstream_length += bitStreamLength;
             out_buffer[bitstream_length] = 0;
             bitStream += bitStreamLength;
+            // any silence frame must be last
+            if (bitStreamLength == 2)
+                break;
         }
     }
     if (!bitstream_length) {
@@ -114,7 +117,7 @@ CONCEPT_FUNCTION_IMPL(g729_decode, 2)
     T_STRING(g729_decode, 1);
 
     bcg729DecoderChannelContextStruct *decoder = (bcg729DecoderChannelContextStruct *)GET_POINTER(g729_decoder, (SYS_INT)PARAM(0), NULL);
-    if ((!decoder) || (PARAM_LEN(1) < 10)) {
+    if ((!decoder) || (PARAM_LEN(1) < 2)) {
         RETURN_STRING("");
         return 0;
     }
@@ -123,7 +126,7 @@ CONCEPT_FUNCTION_IMPL(g729_decode, 2)
     uint8_t *bitStream = (uint8_t *)PARAM(1);
     int inputBufferSize = PARAM_LEN(1);
 
-    int outputBufferSize = inputBufferSize * 16 + 1;
+    int outputBufferSize = inputBufferSize * 16 + 160 + 1;
 
     char *out_buffer = NULL;
 
@@ -139,15 +142,15 @@ CONCEPT_FUNCTION_IMPL(g729_decode, 2)
 
     int out_buffer_decoded_len = 0;
 
-    while (inputBufferSize >= 10) {
+    while (inputBufferSize >= 2) {
+        int frame_size = inputBufferSize >= 10 ? 10 : 2;
 
-        bcg729Decoder(decoder, bitStream, 10, 0, 0, 0, outputBuffer);
+        bcg729Decoder(decoder, bitStream, frame_size, 0, frame_size == 2, 0, outputBuffer);
 
-        bitStream += 10;
-        inputBufferSize -= 10;
+        bitStream += frame_size;
+        inputBufferSize -= frame_size;
 
         outputBuffer += 80;
-
         out_buffer_decoded_len += 160;
         out_buffer[out_buffer_decoded_len] = 0;
     }
