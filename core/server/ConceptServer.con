@@ -32,8 +32,10 @@ define IDLE_SLEEP_THRESHOLD	200
 define IDLE_SLEEP_MS2		50
 
 define FIREWALL_USE_FIREWALL	true
-define FIREWALL_LIGHT_THRESHOLD	50
-define FIREWALL_HEAVY_THRESHOLD	150
+// requests per minute per ip
+define FIREWALL_RPM		200
+define FIREWALL_LIGHT_THRESHOLD	30
+define FIREWALL_HEAVY_THRESHOLD	100
 define FIREWALL_LIGHT_TIMEOUT	100
 define FIREWALL_HEAVY_TIMEOUT	4000
 
@@ -3108,6 +3110,7 @@ class Main {
 	Main() {
 		console.level(LOG_LEVEL);
 
+		firewall_set_requests_per_minute_threshold(FIREWALL_RPM);
 		firewall_set_light_threshold(FIREWALL_LIGHT_THRESHOLD);
 		firewall_set_heavy_threshold(FIREWALL_HEAVY_THRESHOLD);
 		firewall_set_light_timeout(FIREWALL_LIGHT_TIMEOUT);

@@ -15,7 +15,7 @@
 struct firewall_container *firewall = NULL;
 QUEUE_SEMAPHORE semaphore = ATOMIC_FLAG_INIT;
 
-#define ENSURE_FIREWALL if (!firewall) firewall = firewall_init(4 * 60, 3600 * 4, 2, 10);
+#define ENSURE_FIREWALL if (!firewall) firewall = firewall_init(4 * 60, 3600 * 4, 2, 10, 200);
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     QUEUE_CREATE(semaphore);
@@ -54,9 +54,9 @@ CONCEPT_FUNCTION_IMPL(firewall_light_block, 1)
 
     ENSURE_FIREWALL;
 
-    // QUEUE_LOCK(semaphore);
+    QUEUE_LOCK(semaphore);
     int e = firewall_light_block(firewall, PARAM(0));
-    // QUEUE_UNLOCK(semaphore);
+    QUEUE_UNLOCK(semaphore);
 
     RETURN_NUMBER(e);
 END_IMPL
@@ -90,6 +90,23 @@ CONCEPT_FUNCTION_IMPL(firewall_always_block, 1)
 
     QUEUE_LOCK(semaphore);
     int e = firewall_always_block(firewall, PARAM(0));
+    QUEUE_UNLOCK(semaphore);
+
+    RETURN_NUMBER(e);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(firewall_inc_request_count, 1)
+    T_STRING(firewall_inc_request_count, 0)
+
+    ENSURE_FIREWALL;
+
+    if (!firewall) {
+        RETURN_NUMBER(-1);
+        return 0;
+    }
+
+    QUEUE_LOCK(semaphore);
+    int e = firewall_inc_request_count(firewall, PARAM(0));
     QUEUE_UNLOCK(semaphore);
 
     RETURN_NUMBER(e);
@@ -134,11 +151,10 @@ CONCEPT_FUNCTION_IMPL(firewall_set_light_timeout, 1)
 
     if (firewall) {
         firewall->rotation_light_timeout = PARAM_INT(0);
-        if (firewall->rotation_light_timeout <= 0) {
+        if (firewall->rotation_light_timeout <= 0)
             firewall->rotation_light_timeout = 4 * 60;
-            firewall->rotation_light_timestamp = time(NULL) + firewall->rotation_light_timeout;
-            firewall->rotation_heavy_timestamp = time(NULL) + firewall->rotation_light_timeout;
-        }
+
+        firewall->rotation_light_timestamp = time(NULL) + firewall->rotation_light_timeout;
     }
 
     RETURN_NUMBER(0);
@@ -150,12 +166,27 @@ CONCEPT_FUNCTION_IMPL(firewall_set_heavy_timeout, 1)
     ENSURE_FIREWALL;
 
     if (firewall) {
-        if (firewall->rotation_heavy_timeout <= 0) {
-            firewall->rotation_heavy_timeout = 3600 * 4;
-            firewall->rotation_heavy_timeout = time(NULL) + firewall->rotation_heavy_timeout;
-            firewall->rotation_heavy_timeout = time(NULL) + firewall->rotation_heavy_timeout;
-        }
         firewall->rotation_heavy_timeout = PARAM_INT(0);
+        if (firewall->rotation_heavy_timeout <= 0)
+            firewall->rotation_heavy_timeout = 3600 * 4;
+
+        firewall->rotation_heavy_timeout = time(NULL) + firewall->rotation_heavy_timeout;
+    }
+
+    RETURN_NUMBER(0);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(firewall_set_requests_per_minute_threshold, 1)
+    T_NUMBER(firewall_set_requests_per_minute_threshold, 0)
+
+    ENSURE_FIREWALL;
+
+    if (firewall) {
+        firewall->requests_per_minute_threshold = PARAM_INT(0);
+        if (firewall->requests_per_minute_threshold <= 0)
+            firewall->requests_per_minute_threshold = 200;
+
+        firewall->requests_per_minute_threshold = time(NULL) + 60;
     }
 
     RETURN_NUMBER(0);

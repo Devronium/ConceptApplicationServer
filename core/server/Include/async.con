@@ -4,6 +4,7 @@ import standard.C.time
 import standard.C.io
 import standard.lib.cripto
 import standard.lib.mustache
+import standard.net.firewall
 include async.tin.con
 include Loop.con
 include Worker.con
@@ -728,6 +729,21 @@ class web {
 					}
 				}
 				this.requestdata = new_requests;
+			}
+		}
+	}
+
+	block(light_block = true) {
+		if (this.env) {
+			var ip = this.env["REMOTE_ADDR"];
+			if (ip) {
+				if (light_block) {
+					firewall_light_block(ip);
+					console.warn(LOG_THIS, "light blocking $ip");
+				} else {
+					firewall_heavy_block(ip);
+					console.warn(LOG_THIS, "heavy blocking $ip");
+				}
 			}
 		}
 	}

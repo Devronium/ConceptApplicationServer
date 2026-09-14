@@ -8,6 +8,7 @@ include HTTP2.con
 import standard.C.io
 import standard.lib.str
 import standard.lang.serialize
+import standard.net.firewall
 
 define READ_BUFFER_SIZE		16384
 define FAST_READ_FILE		8192
@@ -58,6 +59,7 @@ class H2Server {
 	public var CommonPrefix = "@/";
 
 	public var LogHTTPErrors = false;
+	public var UseFirewall = true;
 
 	public getLoop() {
 		return loop;
@@ -206,10 +208,24 @@ class H2Server {
 		if (!page)
 			page = text;
 		this.__socket_fast_write(socket, "HTTP/1.1 $code $text\r\nContent-Length: ${length page}\r\n\r\n$page");
-		if (this.LogHTTPErrors) {
-			var info = socket.Socket.Info;
-			console.warn(info[0], info[1], "$method $filename: $code $text");
+
+		var info = socket.Socket.Info;
+		if (this.UseFirewall) {
+			firewall_light_block(info[0]);
+			firewall_heavy_block(info[0]);
+			if (firewall_is_blocked(info[0])) {
+				if (this.LogHTTPErrors)
+					console.warn(info[0], info[1], "$method $filename: firewall blocked");
+				try {
+					socket.Socket.Close(true);
+				} catch (var exc) {
+					// nothing
+				}
+			}
 		}
+
+		if (this.LogHTTPErrors)
+			console.warn(info[0], info[1], "$method $filename: $code $text");
 	}
 
 	protected __error_h2(h2, stream, code, text, method = "", filename = "") {
@@ -222,10 +238,24 @@ class H2Server {
 			"content-type" => "text/html"
 		]);
 		stream.Write(h2, page, true);
-		if (this.LogHTTPErrors) {
-			var info = h2.Socket.Info;
-			console.warn(info[0], info[1], "$method $filename: $code $text");
+
+		var info = h2.Socket.Info;
+		if (this.UseFirewall) {
+			firewall_light_block(info[0]);
+			firewall_heavy_block(info[0]);
+			if (firewall_is_blocked(info[0])) {
+				try {
+					if (this.LogHTTPErrors)
+						console.warn(info[0], info[1], "$method $filename: firewall blocked");
+					h2.Socket.Close(true);
+				} catch (var exc) {
+					// nothing
+				}
+			}
 		}
+
+		if (this.LogHTTPErrors)
+			console.warn(info[0], info[1], "$method $filename: $code $text");
 	}
 
 	protected __options_h2(h2, stream, code, text, method = "", filename = "") {
@@ -411,6 +441,13 @@ class H2Server {
 			return;
 		}
 
+		if (this.UseFirewall) {
+			if (firewall_inc_request_count(h2.Socket.Info[0])) {
+				__error_h2(h2, stream, 429, "Too Many Requests", method, path);
+				return;
+			}
+		}
+
 		var data;
 		if (this.OnRequest) {
 			switch (this.OnRequest(loop, 2, true, method, filename, header, h2, stream, data, "")) {
@@ -592,6 +629,13 @@ class H2Server {
 			if (stat_arr["st_mode"] & S_IFDIR)
 				return __redirect(socket, header);
 
+			if (this.UseFirewall) {
+				if (firewall_inc_request_count(socket.Socket.Info[0])) {
+					__error(socket, 429, "Too Many Requests", method, header[":path"]);
+					return;
+				}
+			}
+
 			var data;
 			if (this.OnRequest) {
 				var remaining_buffer = "";
@@ -727,6 +771,10 @@ class H2Server {
 				var socket = tcp.Accept();
 				if (socket) {
 					SocketSetBlocking(socket.Socket, false);
+					if ((this.UseFirewall) && (firewall_is_blocked(socket.Info[0]))) {
+						socket.Close(true);
+						return;
+					}
 					socket.SetOption(SOL_SOCKET, SO_KEEPALIVE, true);
 					loop.addSocket(new SocketContainer(socket), this.__consume, this.timeout_ms, null, POLL_READ | POLL_WRITE);
 				}
@@ -742,6 +790,10 @@ class H2Server {
 					var socket = tcp.AcceptTCP();
 					if (socket) {
 						SocketSetBlocking(socket.Socket, false);
+						if ((this.UseFirewall) && (firewall_is_blocked(socket.Info[0]))) {
+							socket.Close(true);
+							return;
+						}
 						socket.SetOption(SOL_SOCKET, SO_KEEPALIVE, true);
 						socket.PrepareAcceptTLS();
 						if (this.OnRequest)
