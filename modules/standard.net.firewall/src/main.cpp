@@ -127,8 +127,11 @@ CONCEPT_FUNCTION_IMPL(firewall_set_light_threshold, 1)
 
     ENSURE_FIREWALL;
 
-    if (firewall)
+    if (firewall) {
         firewall->rotation_light_threshold = PARAM_INT(0);
+        if (firewall->rotation_light_threshold <= 0)
+            firewall->rotation_light_threshold = 10;
+    }
 
     RETURN_NUMBER(0);
 END_IMPL
@@ -138,8 +141,11 @@ CONCEPT_FUNCTION_IMPL(firewall_set_heavy_threshold, 1)
 
     ENSURE_FIREWALL;
 
-    if (firewall)
+    if (firewall) {
         firewall->rotation_heavy_threshold = PARAM_INT(0);
+        if (firewall->rotation_heavy_threshold <= 0)
+            firewall->rotation_heavy_threshold = 200;
+    }
 
     RETURN_NUMBER(0);
 END_IMPL
@@ -185,8 +191,6 @@ CONCEPT_FUNCTION_IMPL(firewall_set_requests_per_minute_threshold, 1)
         firewall->requests_per_minute_threshold = PARAM_INT(0);
         if (firewall->requests_per_minute_threshold <= 0)
             firewall->requests_per_minute_threshold = 200;
-
-        firewall->requests_per_minute_threshold = time(NULL) + 60;
     }
 
     RETURN_NUMBER(0);
