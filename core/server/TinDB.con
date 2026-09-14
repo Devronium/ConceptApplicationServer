@@ -91,7 +91,7 @@ define LOG_CLEAN_TIMEOUT	10
 // sync every 100ms
 define LOG_SYNC_US		100000
 
-define REDUCE_TIMEOUT_S		5
+define REDUCE_TIMEOUT_S		1200
 define JS_TIMEOUT_S		0
 define TRIGGER_TIMEOUT_S	60
 

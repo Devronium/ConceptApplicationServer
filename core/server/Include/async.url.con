@@ -197,8 +197,18 @@ class asyncRequest {
 			}
 		}
 
-		if (!headers["Host"])		
-			headers["Host"] = url_data["host"];
+		if (!headers["Host"]) {
+			var port_data = "";
+			var port = url_data["port"];
+			if (classof socket != "TCPSocket") {
+				if (port != 443)
+					port_data = ":" + port;
+			} else {
+				if (port != 80)
+					port_data = ":" + port;
+			}
+			headers["Host"] = url_data["host"] + port_data;
+		}
 
 		if (!headers["User-Agent"])
 			headers["User-Agent"] = "asyncURL";
