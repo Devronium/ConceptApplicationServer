@@ -7,6 +7,7 @@ include DUKJS.con
 include JSFramework.con
 
 import standard.lang.cli
+import standard.net.firewall
 
 define LOG_LEVEL		LOG_INFO
 define WS_SESSION_RESTORE	true
@@ -14,7 +15,7 @@ define CONCEPT_STRICT_EXECUTE	false
 define SERVER_NAME		"cas"
 define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/cgi1.1/http2/ess/async)"
 define USE_DB_SERVICE		true
-define CONCEPT_LEGACY_PROTOCOL	false
+define CONCEPT_LEGACY_PROTOCOL	true
 define CONCEPT_ENABLE_REWRITE	true
 define CONCEPT_APP_SANDBOX	false
 define CONCEPT_CAS_SANDBOX	CONCEPT_APP_SANDBOX
@@ -29,6 +30,12 @@ define MAX_RECV_BUFFER		0xFFFF
 define IDLE_SLEEP_MS		10
 define IDLE_SLEEP_THRESHOLD	200
 define IDLE_SLEEP_MS2		50
+
+define FIREWALL_USE_FIREWALL	true
+define FIREWALL_LIGHT_THRESHOLD	50
+define FIREWALL_HEAVY_THRESHOLD	150
+define FIREWALL_LIGHT_TIMEOUT	100
+define FIREWALL_HEAVY_TIMEOUT	4000
 
 // 128k pipe read buffer
 define PIPE_MAX_STDOUT_BUFFER	0x20000
@@ -2907,6 +2914,7 @@ class ConceptServer extends IniCache {
 		httpserver = new H2Server(this.IniGetPath("Paths", "ServerRoot", ""), get_root_by_host, this.IniKey("Server", "WebSocketCertificate", ""), this.IniKey("Server", "WebSocketPrivateKey", ""), port, tlsport, value this.IniKey("Server", "MaxAge", "604800"), value this.IniKey("Server", "MaxInitialIDLE", "10"), max_connections, this.IniKey("Server", "Interface", ""), value this.IniKey("Server", "IPv6", "0"), value this.IniKey("Server", "HTTP2", "1"));
 		httpserver.TLSOnly = value this.IniKey("Server", "WebTLSOnly", "0");
 		httpserver.CommonRoot = this.IniGetPath("Paths", "ConceptClient", "./ConceptClient.js");
+		httpserver.UseFirewall = FIREWALL_USE_FIREWALL;
 
 		// need to set user after bind (ports 80 and 443 are privileged)
 		var user = this.IniKey("Server", "User", "concept");
@@ -3099,6 +3107,11 @@ class ConceptPingWorker {
 class Main {
 	Main() {
 		console.level(LOG_LEVEL);
+
+		firewall_set_light_threshold(FIREWALL_LIGHT_THRESHOLD);
+		firewall_set_heavy_threshold(FIREWALL_HEAVY_THRESHOLD);
+		firewall_set_light_timeout(FIREWALL_LIGHT_TIMEOUT);
+		firewall_set_heavy_timeout(FIREWALL_HEAVY_TIMEOUT);
 
 		var ini_file = "/usr/local/etc/concept.ini";
 		if (!FileExists(ini_file))
