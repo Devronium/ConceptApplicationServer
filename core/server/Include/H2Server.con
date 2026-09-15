@@ -771,7 +771,8 @@ class H2Server {
 				var socket = tcp.Accept();
 				if (socket) {
 					SocketSetBlocking(socket.Socket, false);
-					if ((this.UseFirewall) && (firewall_is_blocked(socket.Info[0]))) {
+					var info = socket.Info;
+					if ((this.UseFirewall) && (info) && (info[0]) && (firewall_is_blocked(info[0]))) {
 						socket.Close(true);
 						return;
 					}
@@ -790,7 +791,8 @@ class H2Server {
 					var socket = tcp.AcceptTCP();
 					if (socket) {
 						SocketSetBlocking(socket.Socket, false);
-						if ((this.UseFirewall) && (firewall_is_blocked(socket.Info[0]))) {
+						var info = socket.Info;
+						if ((this.UseFirewall) && (info) && (info[0]) && (firewall_is_blocked(info[0]))) {
 							socket.Close(true);
 							return;
 						}

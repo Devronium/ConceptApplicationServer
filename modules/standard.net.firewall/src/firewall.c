@@ -185,9 +185,12 @@ int firewall_is_blocked(struct firewall_container *container, const char *tag) {
 	return _firewall_check(container->always_block, ip_hash);
 }
 
-int firewall_light_block(struct firewall_container *container, const char *tag) {
+int firewall_light_block(struct firewall_container *container, const char *tag, int counter) {
 	if (!container)
 		return  -1;
+	
+	if (counter <= 0)
+		counter = 1;
 
 	firewall_check_threshold(container);
 
@@ -200,7 +203,7 @@ int firewall_light_block(struct firewall_container *container, const char *tag) 
 	if (count >= container->rotation_light_threshold)
 		return count;
 
-	count ++;
+	count += counter;
 
 	int absent;
 	khint_t k = kh_put(ip_list, epoch, ip_hash, &absent);
@@ -210,9 +213,12 @@ int firewall_light_block(struct firewall_container *container, const char *tag) 
 	return count;
 }
 
-int firewall_heavy_block(struct firewall_container *container, const char *tag) {
+int firewall_heavy_block(struct firewall_container *container, const char *tag, int counter) {
 	if (!container)
 		return -1;
+
+	if (counter <= 0)
+		counter = 1;
 
 	firewall_check_threshold(container);
 
@@ -225,7 +231,7 @@ int firewall_heavy_block(struct firewall_container *container, const char *tag) 
 	if (count >= container->rotation_heavy_threshold)
 		return count;
 
-	count ++;
+	count += counter;
 
 	int absent;
 	khint_t k = kh_put(ip_list, epoch, ip_hash, &absent);
