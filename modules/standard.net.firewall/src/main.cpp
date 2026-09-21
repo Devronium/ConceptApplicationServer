@@ -74,7 +74,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(firewall_heavy_block, 1, 2)
 
     int counter = 1;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(firewall_light_block, 1)
+        T_NUMBER(firewall_heavy_block, 1)
         counter = PARAM_INT(1);
         if (counter <= 0)
             counter = 1;
@@ -123,6 +123,46 @@ CONCEPT_FUNCTION_IMPL(firewall_inc_request_count, 1)
 
     QUEUE_LOCK(semaphore);
     int e = firewall_inc_request_count(firewall, PARAM(0));
+    QUEUE_UNLOCK(semaphore);
+
+    RETURN_NUMBER(e);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(firewall_flag, 1, 2);
+    T_STRING(firewall_flag, 0)
+
+    int counter = 1;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(firewall_flag, 1)
+        counter = PARAM_INT(1);
+    }
+
+    ENSURE_FIREWALL;
+
+    if (!firewall) {
+        RETURN_NUMBER(-1);
+        return 0;
+    }
+
+    QUEUE_LOCK(semaphore);
+    int e = firewall_flag(firewall, PARAM(0), counter);
+    QUEUE_UNLOCK(semaphore);
+
+    RETURN_NUMBER(e);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(firewall_is_flagged, 1)
+    T_STRING(firewall_is_flagged, 0)
+
+    ENSURE_FIREWALL;
+
+    if (!firewall) {
+        RETURN_NUMBER(-1);
+        return 0;
+    }
+
+    QUEUE_LOCK(semaphore);
+    int e = firewall_is_flagged(firewall, PARAM(0));
     QUEUE_UNLOCK(semaphore);
 
     RETURN_NUMBER(e);

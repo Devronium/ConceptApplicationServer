@@ -6,7 +6,7 @@
  License Choice 1 - The 2-Clause BSD License
  ===============================================================================
 
- Copyright (c) 2016-2025, Eduard Suica
+ Copyright (c) 2016-2026, Eduard Suica
  All rights reserved.
  
  Redistribution and use in source and binary forms, with or without modification,
@@ -224,8 +224,8 @@
 #define TLS_V13_MAX_IV_SIZE       12
 
 #define VERSION_SUPPORTED(version, err)  if ((version != TLS_V13) && (version != TLS_V12) && (version != TLS_V11) && (version != TLS_V10) && (version != DTLS_V13) && (version != DTLS_V12) && (version != DTLS_V10)) { if ((version == SSL_V30) && (context->connection_status == 0)) { version = TLS_V12; } else { DEBUG_PRINT("UNSUPPORTED TLS VERSION %x\n", (int)version); return err;} }
-#define CHECK_SIZE(size, buf_size, err)  if (((int)(size) > (int)(buf_size)) || ((int)(buf_size) < 0)) { DEBUG_PRINT("[EXPECTED AT LEAST %i IN BUFFER OF SIZE %i]\n", (int)(size), (int)(buf_size)); return err; }
-#define TLS_IMPORT_CHECK_SIZE(buf_pos, size, buf_size) if (((int)size > (int)buf_size - buf_pos) || ((int)buf_pos > (int)buf_size)) { DEBUG_PRINT("IMPORT ELEMENT SIZE ERROR\n"); tls_destroy_context(context); return NULL; }
+#define CHECK_SIZE(size, buf_size, err)  if ((size) > (buf_size)) { DEBUG_PRINT("[EXPECTED AT LEAST %i IN BUFFER OF SIZE %i]\n", (int)(size), (int)(buf_size)); return err; }
+#define TLS_IMPORT_CHECK_SIZE(buf_pos, size, buf_size) if (((size) > (buf_size - buf_pos)) || ((buf_pos) > (buf_size))) { DEBUG_PRINT("IMPORT ELEMENT SIZE ERROR\n"); tls_destroy_context(context); return NULL; }
 #define CHECK_HANDSHAKE_STATE(context, n, limit)  { if (context->hs_messages[n] >= limit) { if (context->dtls) { DEBUG_PRINT("* REPEATED MESSAGE, RE-HASHING\n"); _private_dtls_rehash(context, type); context->hs_messages[n]++;} else { DEBUG_PRINT("* UNEXPECTED MESSAGE (%i)\n", (int)n); payload_res = TLS_UNEXPECTED_MESSAGE; break; } } context->hs_messages[n]++; }
 #define TLS_24_BIT(buf, index, val) { unsigned int u_val = (unsigned int)val; buf[index] =  u_val / 0x10000; u_val %= 0x10000; buf[index + 1] =  u_val / 0x100; u_val %= 0x100; buf[index + 2] = u_val; }
 
@@ -1530,27 +1530,25 @@ int _private_b64_decode(const char *in_buffer, int in_buffer_size, unsigned char
     int           i, len;
     
     const char *ptr     = in_buffer;
-    char *out_ptr = (char *)out_buffer;
-    
-    while (ptr <= in_buffer + in_buffer_size) {
-        for (len = 0, i = 0; i < 4 && (ptr <= in_buffer + in_buffer_size); i++) {
+    unsigned char *out_ptr = out_buffer;
+    while (ptr < in_buffer + in_buffer_size) {
+        for (len = 0, i = 0; i < 4 && (ptr < in_buffer + in_buffer_size); i++) {
             v = 0;
-            while ((ptr <= in_buffer + in_buffer_size) && v == 0) {
+            while ((ptr < in_buffer + in_buffer_size) && v == 0) {
                 v = (unsigned char)ptr[0];
                 ptr++;
                 v = (unsigned char)((v < 43 || v > 122) ? 0 : cd64[v - 43]);
-                if (v)
+                if(v)
                     v = (unsigned char)((v == '$') ? 0 : v - 61);
             }
-            if (ptr <= in_buffer + in_buffer_size) {
+            if(v) {
                 len++;
-                if (v)
-                    in[i] = (unsigned char)(v - 1);
+                in[i] = (unsigned char)(v - 1);
             } else {
                 in[i] = 0;
             }
         }
-        if (len) {
+        if(len) {
             _private_b64_decodeblock(in, out);
             for (i = 0; i < len - 1; i++) {
                 out_ptr[0] = out[i];
@@ -1558,7 +1556,7 @@ int _private_b64_decode(const char *in_buffer, int in_buffer_size, unsigned char
             }
         }
     }
-    return (int)((intptr_t)out_ptr - (intptr_t)out_buffer);
+    return (int)(out_ptr - out_buffer);
 }
 
 void dtls_reset_cookie_secret() {
@@ -3432,7 +3430,7 @@ unsigned char *tls_pem_decode(const unsigned char *data_in, unsigned int input_l
 
 int _is_oid(const unsigned char *oid, const unsigned char *compare_to, int compare_to_len) {
     int i = 0;
-    while ((oid[i]) && (i < compare_to_len)) {
+    while (i < compare_to_len) {
         if (oid[i] != compare_to[i])
             return 0;
         
@@ -4400,8 +4398,8 @@ void _private_tls_create_hash(struct TLSContext *context) {
         int hash_size = _private_tls_mac_length(context);
         if (hash->created) {
             unsigned char temp[TLS_MAX_SHA_SIZE];
-            sha384_done(&hash->hash32, temp);
-            sha256_done(&hash->hash48, temp);
+            sha256_done(&hash->hash32, temp);
+            sha384_done(&hash->hash48, temp);
         }
         sha384_init(&hash->hash48);
         sha256_init(&hash->hash32);
@@ -7057,6 +7055,11 @@ int tls_parse_hello(struct TLSContext *context, const unsigned char *buf, int bu
         // SNI extension
         CHECK_SIZE(extension_len, buf_len - res, TLS_NEED_MORE_DATA)
         if (extension_type == 0x00) {
+            if (extension_len < 5) {
+                // #139 fix
+                DEBUG_PRINT("SNI EXTENSION INVALID SIZE: %i bytes\n", (int)extension_len);
+                return TLS_BROKEN_PACKET;
+            }
             // unsigned short sni_len = ntohs(*(unsigned short *)&buf[res]);
             // unsigned char sni_type = buf[res + 2];
             unsigned short sni_host_len = ntohs(*(const unsigned short *)&buf[res + 3]);
@@ -7928,7 +7931,7 @@ int tls_parse_finished(struct TLSContext *context, const unsigned char *buf, int
                 }
             } else {
                 // concatenate client verify and server verify
-                context->verify_data = (unsigned char *)TLS_REALLOC(context->verify_data, size);
+                context->verify_data = (unsigned char *)TLS_REALLOC(context->verify_data, context->verify_len + size);
                 if (context->verify_data) {
                     memcpy(context->verify_data + context->verify_len, out, size);
                     context->verify_len += size;
@@ -8685,6 +8688,12 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
         DEBUG_PRINT("HANDSHAKE RETRANSMISSION DETECTED\n");
     }
     if ((context->cipher_spec_set) && (type != TLS_CHANGE_CIPHER)) {
+        /* AEAD records must carry at least the 8-byte explicit nonce #141 */
+        if ((context->crypto.created == 2) && (length < 8)) {
+            DEBUG_PRINT("Invalid packet AEAD records must carry at least the 8-byte explicit nonce (%i bytes received)\n", (int)length);
+            _private_random_sleep(context, TLS_MAX_ERROR_SLEEP_uS);
+            return TLS_BROKEN_PACKET;
+        }
         DEBUG_DUMP_HEX_LABEL("encrypted", &buf[header_size], length);
         if (!context->crypto.created) {
             DEBUG_PRINT("Encryption context not created\n");
@@ -8964,6 +8973,10 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
         if (/*(context->connection_status == 2) && */(type == TLS_APPLICATION_DATA) && (context->crypto.created)) {
             do {
                 length--;
+                if (length == 0) {
+                    /* error: no content type */
+                    break;
+                }
                 type = ptr[length];
             } while (!type);
         }
@@ -9068,6 +9081,11 @@ unsigned int asn1_get_len(const unsigned char *buffer, int buf_len, unsigned int
             coef *= 0x100;
         }
         ++*octets;
+
+        // reject lengths > a reasonable maximum (#136)
+        if (long_size > 0x00FFFFFF)
+            return 0;
+
         return long_size;
     }
     ++*octets;
@@ -9429,6 +9447,8 @@ int _private_is_oid(struct _private_OID_chain *ref_chain, const unsigned char *l
 }
 
 int _private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert, const unsigned char *buffer, unsigned int size, int level, unsigned int *fields, unsigned char *has_key, int client_cert, unsigned char *top_oid, struct _private_OID_chain *chain) {
+    if (level > TLS_ASN1_MAXLEVEL)   /* hard depth cap: prevent stack exhaustion on deeply nested ASN.1 (fix for #142)*/
+        return 0;
     struct _private_OID_chain local_chain;
     local_chain.top = chain;
     unsigned int pos = 0;
@@ -9590,14 +9610,14 @@ int _private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert,
                     if ((cert->ec_algorithm) && (_is_field(fields, pk_id))) {
                         tls_certificate_set_key(cert, &buffer[pos], length);
                     } else {
-                        if ((buffer[pos] == 0x00) && (length > 256))
+                        if ((length > 256) && (buffer[pos] == 0x00))
                             _private_asn1_parse(context, cert, &buffer[pos]+1, length - 1, level + 1, fields, &local_has_key, client_cert, top_oid, &local_chain);
                         else
                             _private_asn1_parse(context, cert, &buffer[pos], length, level + 1, fields, &local_has_key, client_cert, top_oid, &local_chain);
 #ifdef TLS_FORWARD_SECRECY
     #ifdef TLS_ECDSA_SUPPORTED
                         if (top_oid) {
-                            if (_is_oid2(top_oid, TLS_EC_prime256v1_OID, sizeof(oid), sizeof(TLS_EC_prime256v1) - 1)) {
+                            if (_is_oid2(top_oid, TLS_EC_prime256v1_OID, sizeof(oid), sizeof(TLS_EC_prime256v1_OID) - 1)) {
                                 cert->ec_algorithm = secp256r1.iana;
                             } else
                             if (_is_oid2(top_oid, TLS_EC_secp224r1_OID, sizeof(oid), sizeof(TLS_EC_secp224r1_OID) - 1)) {
@@ -10328,8 +10348,14 @@ int tls_consume_stream(struct TLSContext *context, const unsigned char *buf, int
                 unsigned int fragment_offset = buffer[6] * 0x10000 + buffer[7] * 0x100 + buffer[8];
                 unsigned int fragment_length = buffer[9] * 0x10000 + buffer[10] * 0x100 + buffer[11];
 
+		// #137
+		if (fragment_length + 12 > length - tls_header_size) {
+                    DEBUG_PRINT("INVALID FRAGMENT SIZE: %i\n", fragment_length);
+                    return TLS_BROKEN_PACKET;
+		}
+
                 if ((data_length > DTLS_MAX_FRAGMENT_SIZE) || (fragment_offset + fragment_length > data_length)) {
-                    DEBUG_PRINT("INVALID PACKET SIZE: %i, FRAGMENT OFFSET: %i, FRAGMENT LENGTH: %i\n");
+                    DEBUG_PRINT("INVALID PACKET SIZE: %i, FRAGMENT OFFSET: %i, FRAGMENT LENGTH: %i\n", data_length, fragment_offset, fragment_length);
                     return TLS_BROKEN_PACKET;
                 }
 

@@ -11,6 +11,8 @@ extern "C" {
     CONCEPT_FUNCTION(firewall_light_block);
     CONCEPT_FUNCTION(firewall_heavy_block);
     CONCEPT_FUNCTION(firewall_always_block);
+    CONCEPT_FUNCTION(firewall_flag);
+    CONCEPT_FUNCTION(firewall_is_flagged);
     CONCEPT_FUNCTION(firewall_inc_request_count);
     CONCEPT_FUNCTION(firewall_reset);
 

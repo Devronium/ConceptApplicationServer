@@ -21,6 +21,8 @@ struct firewall_container {
 	khash_t(ip_list) *requests_per_minute_count;
 	time_t requests_per_minute_timestamp;
 
+	khash_t(ip_list) *flagged;
+
 	uint32_t rotation_light_timeout;
 	uint32_t rotation_heavy_timeout;
 	uint32_t rotation_light_threshold;
@@ -47,6 +49,7 @@ struct firewall_container *firewall_init(uint32_t rotation_light_timeout, uint32
 	container->rotation_2_heavy = kh_init(ip_list);
 	container->always_block = kh_init(ip_list);
 	container->requests_per_minute_count = kh_init(ip_list);
+	container->flagged = kh_init(ip_list);
 
 	container->rotation_light_timeout = rotation_light_timeout;
 	container->rotation_heavy_timeout = rotation_heavy_timeout;
@@ -86,6 +89,9 @@ void firewall_free(struct firewall_container *container) {
 
 	if (container->requests_per_minute_count)
 		kh_destroy(ip_list, container->requests_per_minute_count);
+
+	if (container->flagged)
+		kh_destroy(ip_list, container->flagged);
 
 	free(container);
 }
@@ -141,6 +147,8 @@ void firewall_check_threshold(struct firewall_container *container) {
 	if (now >= container->rotation_light_timestamp) {
 		khash_t(ip_list) *old_epoch = _firewall_get_light_rotation(container, 0);
 		kh_clear(ip_list, old_epoch);
+
+		kh_clear(ip_list, container->flagged);
 
 		container->rotation_light_timestamp = time(NULL) + container->rotation_light_timeout;
 		container->rotation_light_epoch ++;
@@ -282,4 +290,51 @@ int firewall_inc_request_count(struct firewall_container *container, const char 
 	kh_value(container->requests_per_minute_count, k) = count;
 
 	return (count > container->requests_per_minute_threshold);
+}
+
+int firewall_flag(struct firewall_container *container, const char *tag, int counter) {
+	if (!container)
+		return 0;
+
+	firewall_check_threshold(container);
+
+	uint64_t ip_hash = _firewall_hash(container, tag);
+
+	khint64_t k = kh_get(ip_list, container->flagged, ip_hash);
+
+	uint64_t count = 0;
+	int absent;
+	if (k == kh_end(container->flagged)) {
+		if (counter > 0) {
+			k = kh_put(ip_list, container->flagged, ip_hash, &absent);
+			kh_value(container->flagged, k) = counter;
+
+			return counter;
+		}
+		return 0;
+	} else {
+		count = (uint64_t)kh_value(container->flagged, k);
+	}
+
+	if (counter > 0)
+		count += counter;
+	else
+		count = 0;
+
+	if (count) {
+		kh_value(container->flagged, k) = count;
+	} else {
+		kh_del(ip_list, container->flagged, ip_hash);
+	}
+
+	return count;
+}
+
+int firewall_is_flagged(struct firewall_container *container, const char *tag) {
+	if (!container)
+		return -1;
+
+	firewall_check_threshold(container);
+
+	return _firewall_check(container->flagged, _firewall_hash(container, tag));
 }
