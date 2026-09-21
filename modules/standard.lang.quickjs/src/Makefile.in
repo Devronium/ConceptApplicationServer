@@ -100,7 +100,7 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(libexecdir)"
 PROGRAMS = $(libexec_PROGRAMS)
 am_standard_lang_quickjs_so_OBJECTS = stdlibrary.$(OBJEXT) \
-	main.$(OBJEXT) cutils.$(OBJEXT) libbf.$(OBJEXT) \
+	main.$(OBJEXT) cutils.$(OBJEXT) dtoa.$(OBJEXT) \
 	libregexp.$(OBJEXT) libunicode.$(OBJEXT) quickjs.$(OBJEXT)
 standard_lang_quickjs_so_OBJECTS =  \
 	$(am_standard_lang_quickjs_so_OBJECTS)
@@ -120,7 +120,7 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/cutils.Po ./$(DEPDIR)/libbf.Po \
+am__depfiles_remade = ./$(DEPDIR)/cutils.Po ./$(DEPDIR)/dtoa.Po \
 	./$(DEPDIR)/libregexp.Po ./$(DEPDIR)/libunicode.Po \
 	./$(DEPDIR)/main.Po ./$(DEPDIR)/quickjs.Po \
 	./$(DEPDIR)/stdlibrary.Po
@@ -279,10 +279,10 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # what flags you want to pass to the C compiler & linker
-AM_CFLAGS = -O2 -fPIC -w "-DCONFIG_VERSION=\"2024-01-13\""
-AM_CXXFLAGS = -O2 -fPIC -w "-DCONFIG_VERSION=\"2024-01-13\""
+AM_CFLAGS = -O2 -fPIC -w "-DCONFIG_VERSION=\"2026-06-04\""
+AM_CXXFLAGS = -O2 -fPIC -w "-DCONFIG_VERSION=\"2026-06-04\""
 AM_LDFLAGS = -shared
-standard_lang_quickjs_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h ./quickjs/cutils.c ./quickjs/cutils.h ./quickjs/libbf.c ./quickjs/libbf.h ./quickjs/libregexp-opcode.h ./quickjs/libregexp.c ./quickjs/libregexp.h ./quickjs/libunicode-table.h ./quickjs/libunicode.c ./quickjs/libunicode.h ./quickjs/list.h ./quickjs/quickjs-atom.h ./quickjs/quickjs-opcode.h ./quickjs/quickjs.c ./quickjs/quickjs.h ./quickjs/unicode_gen_def.h
+standard_lang_quickjs_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h ./quickjs/cutils.c ./quickjs/cutils.h ./quickjs/dtoa.c ./quickjs/dtoa.h ./quickjs/libregexp-opcode.h ./quickjs/libregexp.c ./quickjs/libregexp.h ./quickjs/libunicode-table.h ./quickjs/libunicode.c ./quickjs/libunicode.h ./quickjs/list.h ./quickjs/quickjs-atom.h ./quickjs/quickjs-opcode.h ./quickjs/quickjs.c ./quickjs/quickjs.h ./quickjs/unicode_gen_def.h
 all: all-am
 
 .SUFFIXES:
@@ -370,7 +370,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cutils.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbf.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dtoa.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libregexp.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libunicode.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@ # am--include-marker
@@ -411,19 +411,19 @@ cutils.obj: ./quickjs/cutils.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o cutils.obj `if test -f './quickjs/cutils.c'; then $(CYGPATH_W) './quickjs/cutils.c'; else $(CYGPATH_W) '$(srcdir)/./quickjs/cutils.c'; fi`
 
-libbf.o: ./quickjs/libbf.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libbf.o -MD -MP -MF $(DEPDIR)/libbf.Tpo -c -o libbf.o `test -f './quickjs/libbf.c' || echo '$(srcdir)/'`./quickjs/libbf.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbf.Tpo $(DEPDIR)/libbf.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='./quickjs/libbf.c' object='libbf.o' libtool=no @AMDEPBACKSLASH@
+dtoa.o: ./quickjs/dtoa.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT dtoa.o -MD -MP -MF $(DEPDIR)/dtoa.Tpo -c -o dtoa.o `test -f './quickjs/dtoa.c' || echo '$(srcdir)/'`./quickjs/dtoa.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/dtoa.Tpo $(DEPDIR)/dtoa.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='./quickjs/dtoa.c' object='dtoa.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libbf.o `test -f './quickjs/libbf.c' || echo '$(srcdir)/'`./quickjs/libbf.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o dtoa.o `test -f './quickjs/dtoa.c' || echo '$(srcdir)/'`./quickjs/dtoa.c
 
-libbf.obj: ./quickjs/libbf.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libbf.obj -MD -MP -MF $(DEPDIR)/libbf.Tpo -c -o libbf.obj `if test -f './quickjs/libbf.c'; then $(CYGPATH_W) './quickjs/libbf.c'; else $(CYGPATH_W) '$(srcdir)/./quickjs/libbf.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbf.Tpo $(DEPDIR)/libbf.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='./quickjs/libbf.c' object='libbf.obj' libtool=no @AMDEPBACKSLASH@
+dtoa.obj: ./quickjs/dtoa.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT dtoa.obj -MD -MP -MF $(DEPDIR)/dtoa.Tpo -c -o dtoa.obj `if test -f './quickjs/dtoa.c'; then $(CYGPATH_W) './quickjs/dtoa.c'; else $(CYGPATH_W) '$(srcdir)/./quickjs/dtoa.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/dtoa.Tpo $(DEPDIR)/dtoa.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='./quickjs/dtoa.c' object='dtoa.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libbf.obj `if test -f './quickjs/libbf.c'; then $(CYGPATH_W) './quickjs/libbf.c'; else $(CYGPATH_W) '$(srcdir)/./quickjs/libbf.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o dtoa.obj `if test -f './quickjs/dtoa.c'; then $(CYGPATH_W) './quickjs/dtoa.c'; else $(CYGPATH_W) '$(srcdir)/./quickjs/dtoa.c'; fi`
 
 libregexp.o: ./quickjs/libregexp.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libregexp.o -MD -MP -MF $(DEPDIR)/libregexp.Tpo -c -o libregexp.o `test -f './quickjs/libregexp.c' || echo '$(srcdir)/'`./quickjs/libregexp.c
@@ -609,7 +609,7 @@ clean-am: clean-generic clean-libexecPROGRAMS mostlyclean-am
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/cutils.Po
-	-rm -f ./$(DEPDIR)/libbf.Po
+	-rm -f ./$(DEPDIR)/dtoa.Po
 	-rm -f ./$(DEPDIR)/libregexp.Po
 	-rm -f ./$(DEPDIR)/libunicode.Po
 	-rm -f ./$(DEPDIR)/main.Po
@@ -661,7 +661,7 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/cutils.Po
-	-rm -f ./$(DEPDIR)/libbf.Po
+	-rm -f ./$(DEPDIR)/dtoa.Po
 	-rm -f ./$(DEPDIR)/libregexp.Po
 	-rm -f ./$(DEPDIR)/libunicode.Po
 	-rm -f ./$(DEPDIR)/main.Po

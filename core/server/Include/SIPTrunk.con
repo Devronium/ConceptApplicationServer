@@ -7,6 +7,7 @@ import standard.C.casts
 import standard.C.time
 import standard.coding.base64
 import standard.arch.g729
+import standard.net.firewall
 
 include DTMFDetector.con
 include Serializable.con
@@ -3184,8 +3185,13 @@ class SIPStack {
 
 	DoRead(socket, var ip, var port) {
 		var type = classof socket;
-		if (type[0] == "U")
-			return socket.Read(ip, port);
+		if (type[0] == "U") {
+			var udp_buffer = socket.Read(ip, port);
+			if ((ip) && (firewall_is_blocked(ip)))
+				return "";
+
+			return udp_buffer;
+		}
 		ip = "";
 		port = 0;
 
@@ -3260,6 +3266,11 @@ class SIPStack {
 			if (tcpsocket.HasData) {
 				var socket = tcpsocket.Accept();
 				if (socket) {
+					var remote_ip = socket.Info[0];
+					if ((remote_ip) && (firewall_is_blocked(remote_ip))) {
+						socket.Close(true);
+						return null;
+					}
 					socket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
 					socket.SetOption(IPPROTO_IP, IP_TOS, 0x10);
 					socket.SetOption(SOL_SOCKET, SO_KEEPALIVE, 1);
