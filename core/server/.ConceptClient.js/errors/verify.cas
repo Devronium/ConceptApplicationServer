@@ -1,0 +1,43 @@
+include async.con
+
+class app {
+	requestId(req) {
+		return "" + req.env["REMOTE_ADDR"] + "@" + req.env["REQUEST_URI"];
+	}
+
+	app(req) {
+		req.header("Content-Type", "text/html; charset=utf-8");
+		var cookie = req.cookie["x-cas-verify"];
+		var complexity = 20;
+		var key = WorkerSharedGet("RequestVerify", "key");
+		if ((cookie) && (key)) {
+			req.header("Set-Cookie", "x-cas-verify=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
+			cookie = JSONDeserialize(URIDecode(cookie));
+			if (cookie) {
+				var json = JWT::validate(cookie["challenge"], key);
+				if ((json) && (json["uri"] == this.requestId(req))) {
+					var prefix = "";
+					for (var i = 0; i < complexity; i += 4)
+						prefix += "0";
+
+					var hash = sha256(cookie["challenge"] + cookie["nonce"]);
+					if (SubStr(hash, 0, length prefix) == prefix) {
+						// remove firewall flag
+						firewall_flag(req.env["REMOTE_HOST"] ?? "", 0);
+						req << "<html><head><meta http-equiv=\"refresh\" content=\"0\"></head><body></body>\n";
+						req.done();
+						return;
+					}
+				}
+			}
+		}
+		if (!key) {
+			key = JWT::makekey();
+			WorkerSharedSet("RequestVerify", "key", key);
+		}
+		var challenge = JWT::build(["random" => sha256(CryptoRandom(256)), "uri" => this.requestId(req), "exp" => time() + 100], key);
+		req.template = "verify.tpl";
+		req.put(["challenge" => challenge, "complexity" => complexity]);
+		req.done();
+	}
+}
