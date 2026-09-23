@@ -446,6 +446,8 @@ class H2Server {
 				__error_h2(h2, stream, 429, "Too Many Requests", method, path);
 				return;
 			}
+			if (firewall_is_flagged(h2.Socket.Info[0]))
+				filename = this.CommonRoot + "/errors/verify.cas";
 		}
 
 		var data;
@@ -634,6 +636,8 @@ class H2Server {
 					__error(socket, 429, "Too Many Requests", method, header[":path"]);
 					return;
 				}
+				if (firewall_is_flagged(socket.Socket.Info[0]))
+					filename = this.CommonRoot + "/errors/verify.cas";
 			}
 
 			var data;

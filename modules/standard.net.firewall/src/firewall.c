@@ -324,7 +324,7 @@ int firewall_flag(struct firewall_container *container, const char *tag, int cou
 	if (count) {
 		kh_value(container->flagged, k) = count;
 	} else {
-		kh_del(ip_list, container->flagged, ip_hash);
+		kh_del(ip_list, container->flagged, k);
 	}
 
 	return count;

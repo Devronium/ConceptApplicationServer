@@ -1,4 +1,4 @@
-#!/usr/local/bin/conceptcli -chdir
+#!/usr/local/bin/concept -chdir
 
 include H2Server.con
 include WebSocket.con
@@ -33,7 +33,7 @@ define IDLE_SLEEP_MS2		50
 
 define FIREWALL_USE_FIREWALL	true
 // requests per minute per ip
-define FIREWALL_RPM		200
+define FIREWALL_RPM		300
 define FIREWALL_LIGHT_THRESHOLD	30
 define FIREWALL_HEAVY_THRESHOLD	100
 define FIREWALL_LIGHT_TIMEOUT	100
@@ -1602,6 +1602,7 @@ pragma used
 	// protected var Placeholders;
 	protected var Framework = "";
 	protected var ExcludeSandbox;
+	protected var SharedContext;
 
 	CreateEnv(Socket, job, scriptname = "javascript") {
 		var info = Socket.Info;
@@ -1659,7 +1660,7 @@ pragma used
 
 	CreateCAS(Socket, job) {
 		var env = this.CreateEnv(Socket, job, "conceptasync");
-		var cgi = new ConceptCASChild(null, CGIAsyncWorker::Create(this.cgiworkers, job.app, null, var err), err, job.method, Socket, env, job.snippet, null, null, null, job.headers);
+		var cgi = new ConceptCASChild(null, CGIAsyncWorker::Create(this.cgiworkers, job.app, this.SharedContext, var err), err, job.method, Socket, env, job.snippet, null, null, null, job.headers);
 		if (cgi.reqid)
 			this.childcache[cgi.reqid] = cgi;
 		return cgi;
@@ -1864,6 +1865,7 @@ pragma used
 			ExcludeSandbox = trim(IniGet(n[1], "Run", "ExcludeFromSandbox", ""));
 		var empty_iterations;
 		var sleep_value;
+		SharedContext = n[2];
 		while (true)
 			Loop(empty_iterations, sleep_value);
 	}
@@ -2637,6 +2639,7 @@ pragma used
 	// protected var CGIPlaceholders;
 	protected var Framework;
 	protected var ExcludeSandbox;
+	protected var SharedContext;
 
 	GetHeader(key, headers) {
 		if ((!headers) || (!IsSet(headers, key)))
@@ -2709,7 +2712,7 @@ pragma used
 
 	CreateCAS(Socket, h2, stream, method, root, path, app, query, hostname, local_port, default_header) {
 		var env = CreateEnv(Socket, stream, method, root, path, app, query, hostname, local_port, default_header, "conceptasync");
-		var cgi = new ConceptCASChild(this, CGIAsyncWorker::Create(this.cgiworkers, app, null, var err), err, method, Socket, env, "", h2, stream, default_header);
+		var cgi = new ConceptCASChild(this, CGIAsyncWorker::Create(this.cgiworkers, app, this.SharedContext, var err), err, method, Socket, env, "", h2, stream, default_header);
 		if (cgi.reqid)
 			this.childcache[cgi.reqid] = cgi;
 		return cgi;
@@ -2798,9 +2801,10 @@ pragma used
 		return cgi;
 	}
 
-	ConceptH2Worker(owner) {
+	ConceptH2Worker(owner, sharedcontext) {
 		Framework = owner.IniGetPath("Paths", "Include") + JS_FRAMEWORK;
 		ExcludeSandbox = owner.IniKey("Run", "ExcludeFromSandbox", "");
+		SharedContext = sharedcontext;
 	}
 }
 
@@ -2901,7 +2905,8 @@ class ConceptServer extends IniCache {
 			}
 		}
 
-		h2worker = new ConceptH2Worker(this);
+		var shared_context = Worker::SharedContext();
+		h2worker = new ConceptH2Worker(this, shared_context);
 
 		appworker = new Worker("ConceptAppWorker", ini_file);
 
@@ -2909,7 +2914,7 @@ class ConceptServer extends IniCache {
 		console.info(LOG_THIS, "Initializing $workers_count CGI workers");
 
 		for (i = 0; i < workers_count; i++)
-			Workers[i] = new Worker("ConceptWorker", BinarizeObject(["Worker${i+1}", ini_file]));
+			Workers[i] = new Worker("ConceptWorker", BinarizeObject(["Worker${i+1}", ini_file, shared_context]));
 
 		port = value this.IniKey("Server", "WebPort", "2680");
 		tlsport = value this.IniKey("Server", "SecureWebPort", "2681");
