@@ -1396,20 +1396,27 @@ CONCEPT_DLL_API CONCEPT__GetKeys CONCEPT_API_PARAMETERS {
 
     GET_CHECK_ARRAY(0, arr, "_GetKeys: paramter should be an array");
 
-    char *key;
+    char **keys = 0;
     int  count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(0));
 
     Invoke(INVOKE_CREATE_ARRAY, RESULT, 0);
 
-    for (int i = 0; i < count; i++) {
-        key = 0;
-        Invoke(INVOKE_GET_ARRAY_KEY, PARAMETER(0), i, &key);
-        if (key) {
-            Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)i, VARIABLE_STRING, key, (NUMBER)0);
-        } else {
-            Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)i, VARIABLE_NUMBER, key, (NUMBER)0);
+    if (count > 0)
+        keys = (char **)malloc(sizeof(char *) * count);
+
+    if ((keys) && (count > 0)) {
+        LocalInvoker(INVOKE_ARRAY_KEYS, PARAMETER(0), keys, (INTEGER)count);
+        for (int i = 0; i < count; i++) {
+            char *key = keys[i];
+            if (key) {
+                Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)i, VARIABLE_STRING, key, (NUMBER)0);
+            } else {
+                Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)i, VARIABLE_NUMBER, key, (NUMBER)0);
+            }
         }
     }
+    if (keys)
+        free(keys);
     return 0;
 }
 //---------------------------------------------------------------------------
@@ -1873,8 +1880,11 @@ int bin_write(RefContainer *rc, char *data, int d_size, int write_increment) {
             rc->increment = 0;
         }
         rc->size = ((rc->offset + d_size) / write_increment + blocks) * write_increment;
+        char *old_buf = rc->buf;
         rc->buf  = (char *)realloc(rc->buf, rc->size);
         if (!rc->buf) {
+            if (old_buf)
+                free(old_buf);
             rc->size = 0;
             rc->offset = 0;
         }
@@ -2027,7 +2037,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BinarizeObject, 1, 3)
         no_defaults = PARAM_INT(1);
     }
     int size_hint_buffer = 0;
-    if (PARAMETERS_COUNT > 1) {
+    if (PARAMETERS_COUNT > 2) {
         T_NUMBER(BinarizeObject, 2)
         size_hint_buffer = PARAM_INT(2);
     }
@@ -2346,7 +2356,7 @@ char **GetCharList2(void *arr, int *outcount, INVOKE_CALL _Invoke) {
 }
 
 //-----------------------------------------------------//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UnBinarizeObject, 1, 3)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UnBinarizeObject, 1, 4)
     T_STRING(UnBinarizeObject, 0)
 
     RETURN_NUMBER(0);
@@ -2373,6 +2383,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UnBinarizeObject, 1, 3)
     rc->filters_count  = 0;
     rc->filters_used   = 0;
     rc->no_defaults    = 0;
+    rc->err_ser        = 0;
     if (PARAMETERS_COUNT > 2) {
         T_ARRAY(UnBinarizeObject, 2)
         rc->filters = GetCharList2(PARAMETER(2), &rc->filters_count, Invoke);

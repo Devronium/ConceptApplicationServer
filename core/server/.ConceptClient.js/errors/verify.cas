@@ -35,7 +35,15 @@ class app {
 			key = JWT::makekey();
 			WorkerSharedSet("RequestVerify", "key", key);
 		}
-		var challenge = JWT::build(["random" => sha256(CryptoRandom(256)), "uri" => this.requestId(req), "exp" => time() + 100], key);
+
+		var flag = firewall_is_flagged(req.env["REMOTE_ADDR"] ?? "");
+		if (flag > 1) {
+			complexity += 4;
+			if (flag > 2)
+				complexity += 4;
+		}
+
+		var challenge = JWT::build(["random" => sha256(CryptoRandom(256)), "uri" => this.requestId(req), "complexity" => complexity, "exp" => time() + 100], key);
 		req.template = "verify.tpl";
 		req.put(["challenge" => challenge, "complexity" => complexity]);
 		req.done();
