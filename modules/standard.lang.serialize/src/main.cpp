@@ -1405,7 +1405,8 @@ CONCEPT_DLL_API CONCEPT__GetKeys CONCEPT_API_PARAMETERS {
         keys = (char **)malloc(sizeof(char *) * count);
 
     if ((keys) && (count > 0)) {
-        LocalInvoker(INVOKE_ARRAY_KEYS, PARAMETER(0), keys, (INTEGER)count);
+
+        Invoke(INVOKE_ARRAY_KEYS, PARAMETER(0), keys, (INTEGER)count);
         for (int i = 0; i < count; i++) {
             char *key = keys[i];
             if (key) {

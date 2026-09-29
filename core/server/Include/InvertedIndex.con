@@ -1,6 +1,7 @@
 import standard.lib.str
 import standard.lib.stemmer
 import standard.lang.serialize
+import standard.lib.sort
 
 include DirectoryList.con
 
@@ -10,7 +11,6 @@ define INVERTED_INDEX_RO_STOP_WORDS	["impotriva":true,"intrucat":true,"intrucit"
 
 class InvertedIndex {
 	var[] documents;
-	var[] documents_length;
 	var[] indexes;
 	var[] extra_data;
 	var[] words_frequency;
@@ -172,7 +172,8 @@ class InvertedIndex {
 			}
 		}
 		documents[key] = words;
-		documents_length[key] = document_length;
+		// documents_length[key] = document_length;
+		words[length words] = document_length;
 		if (doc_info)
 			extra_data[key] = doc_info;
 		else
@@ -266,6 +267,7 @@ class InvertedIndex {
 
 		if (!useBM25)
 			query_arr = KeySorted(query_arr);
+
 		var[] q_documents;
 		var[] q_documents_count;
 		var max_coef = 0;
@@ -277,6 +279,9 @@ class InvertedIndex {
 			var word_documents = indexes[word];
 
 			var doc_keys = GetKeys(word_documents);
+
+			var idf = log((length documents - (length word_documents) + 0.5) / (length word_documents + 0.5) + 1);
+
 			for (var j = 0; j < length word_documents; j ++) {
 				var doc = doc_keys[j];
 				if (doc) {
@@ -287,70 +292,33 @@ class InvertedIndex {
 
 					if (useBM25) {
 						var document = documents[doc];
-						var document_length = documents_length[doc];
+						var document_length = document[length document - 1];// documents_length[doc];
 
 						var f_qi_D = 0;
 
 						if (IsSet(document, word))
 							f_qi_D = document[word];
 
-						var idf = log((length documents - (length word_documents) + 0.5) / (length word_documents + 0.5) + 1);
-
 						var qi = idf * (f_qi_D * (k1 + 1)) / (f_qi_D + k1 * (1 - b + b * (document_length) / avgdl));
-						q_documents[doc] += qi;
-
-						qi = q_documents[doc];
+						qi = (q_documents[doc] += qi);
 
 						if (qi > max_coef)
 							max_coef = qi;
 						if (qi < min_coef)
 							min_coef = qi;
-					} else
+					} else {
 						q_documents[doc] += word_documents[j];
-					q_documents_count[doc] ++;
+						q_documents_count[doc] ++;
+					}
 				}
-
-				// if ((max_documents > 0) && (length q_documents >= max_documents))
-				// 	break;
 			}
-
-			// if ((max_documents > 0) && (length q_documents >= max_documents))
-			// 	break;
 		}
-	
 
-		var[] data;
 		doc_keys = GetKeys(q_documents);
 		if (min_coef < 0)
 			max_coef -= min_coef;
 
-		for (i = 0; i < length q_documents; i ++) {
-			word = doc_keys[i];
-
-			if (useBM25)
-				coef = "" + Math.floor((max_coef - q_documents[i]) * 10000000000);
-			else
-				coef = "" + (Math.floor((3 - q_documents_count[i] / length query_arr) * 100000000000) - Math.floor(q_documents[i] * 10000000000));
-
-			while (length coef < 10)
-				coef = "0" + coef;
-			suffix = "" + i;
-			while (length suffix < 4)
-				suffix = "0" + suffix;
-			coef += "." + suffix;
-
-			data[coef] = doc_keys[i];
-		}
-		var arr = KeySorted(data);
-
-		if ((max_documents > 0) && (length arr > max_documents)) {
-			var new_arr = new [];
-			for (i = 0; i < max_documents; i ++)
-				new_arr[i] = arr[i];
-			return new_arr;
-		}
-
-		return arr;
+		return radix_sort_key_value(q_documents, true, max_documents);
 	}
 
 	loadDirectory(path, lang = "en", max_documents = 0, add_filename = false) {
@@ -450,16 +418,15 @@ class InvertedIndex {
 			return false;
 
 		var words = documents[key];
-		var document_length = documents_length[key];
+		var document_length = words[length words - 1];
 
 		deleteArrayElement(documents, key);
-		deleteArrayElement(documents_length, key);
 		deleteArrayElement(extra_data, key);
 
 		var keys = GetKeys(words);
 		for (var i = 0; i < length words; i ++) {
 			var word = keys[i];
-			if (IsSet(indexes, word)) {
+			if ((word) && (IsSet(indexes, word))) {
 				var arr = indexes[word];
 				if (arr) {
 					if (length arr == 1)
