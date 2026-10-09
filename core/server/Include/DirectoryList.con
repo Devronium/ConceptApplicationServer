@@ -1,6 +1,6 @@
 import standard.lib.str
 import standard.C.io
-import standard.lang.serialize
+import standard.lib.sort
 
 //pragma warnings off
 
@@ -15,12 +15,12 @@ class DirectoryList {
 			var filename=dirname(dp);
 			if (filetype(directory+filename)==type) {
 				//PutInOrder(arr,filename);
-				arr[filename]=filename;
+				arr[length arr]=filename;
 			}
 		}
 		closedir(dirp);
 		//return arr;
-		return KeySorted(arr);
+		return string_sort(arr);
 	}
 
 	static function ListByExt(directory, ext_arr, nodir=true) {
@@ -40,14 +40,14 @@ class DirectoryList {
 			for (var i=0;i<cnt;i++) {
 				if ((ext_arr[i]==extension) || (ext_arr[i]=="*")) {
 					//PutInOrder(arr,filename);
-					arr[filename]=filename;
+					arr[length arr]=filename;
 					break;
 				}
 			}
 		}
 		closedir(dirp);
 		//return arr;
-		return KeySorted(arr);
+		return string_sort(arr);
 	}
 
 	static Delete(directory) {

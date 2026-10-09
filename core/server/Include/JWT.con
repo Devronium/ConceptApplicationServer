@@ -76,7 +76,7 @@ class JWT {
 		return str;
 	}
 
-	static validate(token, key = "") {
+	static validate(token, key = "", verify_expiration = true) {
 		var arr = StrSplit(token, ".");
 		if (length arr < 2)
 			return null;
@@ -108,14 +108,16 @@ class JWT {
 
 		var sig = JWT::signature(header, key, arr[0] + "." + arr[1]);
 		if (JWT::frombase64(arr[2]) == sig) {
-			if (IsSet(payload, "exp")) {
-				var exp = payload["exp"];
-				if ((exp) && (exp < time()))
-					return null;
-			}
-			if (IsSet(payload, "nbf")) {
-				if (payload["nbf"] > time())
-					return null;
+			if (verify_expiration) {
+				if (IsSet(payload, "exp")) {
+					var exp = payload["exp"];
+					if ((exp) && (exp < time()))
+						return null;
+				}
+				if (IsSet(payload, "nbf")) {
+					if (payload["nbf"] > time())
+						return null;
+				}
 			}
 			return payload;
 		}

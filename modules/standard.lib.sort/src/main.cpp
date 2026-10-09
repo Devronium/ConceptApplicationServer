@@ -3,6 +3,8 @@
 //------------ end of standard header ----------------------------//
 #include "library.h"
 #include "radixsort.h"
+#include <vector>
+#include <algorithm>
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     return 0;
@@ -57,6 +59,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(radix_sort, 1, 3)
             keys[i] = (uint32_t)i;
             if (type == VARIABLE_NUMBER)
                 numbers[i] = number;
+            else
+            if ((type == VARIABLE_STRING) && (str) && (str[0]))
+                numbers[i] = atof(str);
             else
                 numbers[i] = 0;
         }
@@ -136,6 +141,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(radix_sort_key_value, 1, 3)
             if (type == VARIABLE_NUMBER)
                 numbers[i] = number;
             else
+            if ((type == VARIABLE_STRING) && (str) && (str[0]))
+                numbers[i] = atof(str);
+            else
                 numbers[i] = 0;
         }
 
@@ -174,5 +182,69 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(radix_sort_key_value, 1, 3)
         free(numbers);
     if (numbers_out)
         free(numbers_out);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(string_sort, 1, 3)
+    T_ARRAY(string_sort, 0);
+
+    INTEGER reversed = 0;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(string_sort, 1)
+
+        reversed = PARAM_INT(1);
+    }
+
+    INTEGER max_elements = -1;
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(string_sort, 2)
+
+        max_elements = PARAM_INT(2);
+    }
+
+    INTEGER count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(0));
+
+    CREATE_ARRAY(RESULT);
+
+    if (count <= 0)
+        return 0;
+
+    std::vector<const char *> strings(count);
+
+    const char *empty_string = "";
+    for (INTEGER i = 0; i < count; i++) {
+        char *str = 0;
+        NUMBER number;
+        INTEGER type = -1;
+
+        Invoke(INVOKE_GET_ARRAY_ELEMENT, PARAMETER(0), i, &type, &str, &number);
+
+        if ((type == VARIABLE_STRING) && (str) && (str[0]))
+            strings[i] = str;
+        else
+            strings[i] = empty_string;
+    }
+
+    if (reversed) {
+        struct {
+            bool operator()(const char *a, const char *b) const { return (strcmp(a,b) > 0); }
+        } compareStrings;
+
+        std::sort(strings.begin(), strings.end(), compareStrings);
+    } else {
+        struct {
+            bool operator()(const char *a, const char *b) const { return (strcmp(a,b) < 0); }
+        } compareStrings;
+
+        std::sort(strings.begin(), strings.end(), compareStrings);
+    }
+
+    for (INTEGER i = 0; i < count; i ++) {
+
+        if ((max_elements > 0) && (i >= max_elements))
+            break;
+
+        Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, i, VARIABLE_STRING, strings[i], (NUMBER)strlen(strings[i]));
+    }
+
 END_IMPL
 //---------------------------------------------------------------------------

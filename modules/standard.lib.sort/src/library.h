@@ -9,5 +9,7 @@ extern "C" {
 
     CONCEPT_FUNCTION(radix_sort_key_value);
     CONCEPT_FUNCTION(radix_sort);
+
+    CONCEPT_FUNCTION(string_sort);
 }
 #endif // __LIBRARY_H

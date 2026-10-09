@@ -313,11 +313,6 @@ class InvertedIndex {
 				}
 			}
 		}
-
-		doc_keys = GetKeys(q_documents);
-		if (min_coef < 0)
-			max_coef -= min_coef;
-
 		return radix_sort_key_value(q_documents, true, max_documents);
 	}
 
