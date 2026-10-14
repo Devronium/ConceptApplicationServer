@@ -223,7 +223,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SupertonicTTS, 2, 6)
 	CREATE_ARRAY(RESULT);
 
 	void *data_var = NULL;
-        Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, "data", &data_var);
+	Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, "data", &data_var);
 	SetVariable(data_var, -1, output, wav.wav.size() * 2);
 
 	Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "sample_rate", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)sample_rate);

@@ -3,6 +3,7 @@
 //------------ end of standard header ----------------------------//
 #include "library.h"
 #include "radixsort.h"
+#include <string.h>
 #include <vector>
 #include <algorithm>
 //---------------------------------------------------------------------------
