@@ -49,9 +49,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(OmnivoiceInit, 1, 4)
     omnivoice::OmniVoiceRuntime *tts = NULL; 
     try {
         tts = new omnivoice::OmniVoiceRuntime(PARAM(0), options);
-    } catch (...) {
+    } catch (const std::exception & e) {
         RETURN_NUMBER(0);
-        return 0;
+        return (void *)e.what();
     }
 
     RETURN_NUMBER(MAP_POINTER(omnivoice_list, tts, PARAMETERS->HANDLER));
@@ -101,7 +101,8 @@ CONCEPT_FUNCTION_IMPL(OmnivoiceTTS, 2)
         omnivoice::Audio audio = tts->generate(params);
 
         if (audio.samples.size() <= 0) {
-            RETURN_STRING("");
+            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "data", (INTEGER)VARIABLE_STRING, (char *)"", (NUMBER)0);
+            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "sample_rate", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)audio.sample_rate);
             return 0;
         }
 
@@ -121,8 +122,8 @@ CONCEPT_FUNCTION_IMPL(OmnivoiceTTS, 2)
         SetVariable(data_var, -1, (char *)pcm_data, len * 2);
 
         Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "sample_rate", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)audio.sample_rate);
-    } catch (...) {
-        RETURN_STRING("");
+    } catch (const std::exception & e) {
+        return (void *)e.what();
     }
 END_IMPL
 //=====================================================================================//
