@@ -3457,7 +3457,7 @@ nothrow:
                                 } else
                                 if (OE_Operator_ID == KEY_MUL) {
                                     EVAL_NUMBER_EXPRESSION(THIS_REF, *)
-                                    PROPERTY_CODE_LEFT(THIS_REF, TARGET_THREAD->PROPERTIES)
+                                    // PROPERTY_CODE_LEFT(THIS_REF, TARGET_THREAD->PROPERTIES)
                                     continue;
                                 }
                                 if (!IS_SIMPLE(OE_Operator_ID))
@@ -4391,7 +4391,7 @@ int ConceptInterpreter_EvalDelegateExpression(struct ConceptInterpreter *self, P
             if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_DELEGATE) {
                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
             } else {
-                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((delegate_Class(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) == delegate_Class(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)) && (delegate_Member(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) == delegate_Member(LOCAL_CONTEXT [OE->OperandRight_ID - 1])));
+                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((delegate_Class(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) == delegate_Class(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)) && (delegate_Member(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) == delegate_Member(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)));
             }
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
             return 1;
@@ -4400,7 +4400,7 @@ int ConceptInterpreter_EvalDelegateExpression(struct ConceptInterpreter *self, P
             //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
             if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_DELEGATE) {
-                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
             } else {
                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((delegate_Class(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) != delegate_Class(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)) || (delegate_Member(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)!= delegate_Member(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)));
             }
