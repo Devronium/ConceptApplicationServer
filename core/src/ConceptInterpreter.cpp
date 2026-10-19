@@ -16,6 +16,61 @@
 POOLED_IMPLEMENTATION(tsSCStack)
 POOLED_IMPLEMENTATION(ConceptInterpreter)
 
+//=========================== speed helpers ===============================
+#ifndef LIKELY
+ #if defined(__GNUC__) || defined(__clang__)
+  #define LIKELY(x)      __builtin_expect(!!(x), 1)
+  #define UNLIKELY(x)    __builtin_expect(!!(x), 0)
+ #else
+  #define LIKELY(x)      (x)
+  #define UNLIKELY(x)    (x)
+ #endif
+#endif
+
+// Threaded dispatch: every handler ends with its own indirect jump
+// (much better branch prediction than one shared jump at the loop head).
+#if defined(COMPUTED_GOTO) && !defined(PROFILE_HIT_COUNT) && (!defined(USE_JIT_TRACE) || defined(JIT_INLINE))
+ #define THREADED_DISPATCH
+#endif
+
+#ifdef THREADED_DISPATCH
+ #ifdef USE_JIT_TRACE
+  #define NEXT_OP {                                                                  \
+        WRITE_UNLOCK                                                                 \
+        if (UNLIKELY(INSTRUCTION_POINTER >= INSTRUCTION_COUNT)) goto null_return;    \
+        if ((jittrace) && (jittrace[INSTRUCTION_POINTER])) continue;                 \
+        OE = &CODE [INSTRUCTION_POINTER++];                                          \
+        OE_Operator_ID = OE->Operator_ID;                                            \
+        goto *dispatch[OE_Operator_ID];                                              \
+  }
+ #else
+  #define NEXT_OP {                                                                  \
+        WRITE_UNLOCK                                                                 \
+        if (UNLIKELY(INSTRUCTION_POINTER >= INSTRUCTION_COUNT)) goto null_return;    \
+        OE = &CODE [INSTRUCTION_POINTER++];                                          \
+        OE_Operator_ID = OE->Operator_ID;                                            \
+        goto *dispatch[OE_Operator_ID];                                              \
+  }
+ #endif
+#else
+ #define NEXT_OP { continue; }
+#endif
+
+// compare + (optional) fused "if" that tests the comparison result.
+// The result variable is still written, so semantics are unchanged.
+#define FAST_CMP_JUMP(EXPR) {                                                                     \
+        int cmp_res = (EXPR);                                                                     \
+        fo->NUMBER_DATA = cmp_res;                                                                \
+        if ((INSTRUCTION_POINTER < INSTRUCTION_COUNT) &&                                          \
+            (CODE [INSTRUCTION_POINTER].Operator_ID == KEY_OPTIMIZED_IF) &&                       \
+            (CODE [INSTRUCTION_POINTER].OperandRight_ID == OE->Result_ID)) {                      \
+            INSTRUCTION_POINTER = cmp_res ? (INSTRUCTION_POINTER + 1)                             \
+                                          : CODE [INSTRUCTION_POINTER].OperandReserved_ID;        \
+        }                                                                                         \
+        NEXT_OP                                                                                   \
+    }
+//=========================================================================
+
 #define IS_SIMPLE(id)   ((id == KEY_TYPE_OF) || (id == KEY_CLASS_NAME) || (id == KEY_BY_REF) || (id == KEY_DELETE))
 
 #define PROPERTY_CODE(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                      \
@@ -3295,7 +3350,7 @@ nothrow:
                             WRITE_LOCK
                             CCTEMP->LINKS --;
                             if (THROW_DATA) {
-                                FREE_VARIABLE(lOwner, STACK_TRACE);
+                                
                                 if (ConceptInterpreter_Catch(THIS_REF, THROW_DATA, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
                                     WRITE_UNLOCK
                                     FREE_VARIABLE(THROW_DATA, STACK_TRACE);
@@ -3307,7 +3362,7 @@ nothrow:
                                 WRITE_UNLOCK
                                 continue;
                             }
-                            FREE_VARIABLE(lOwner, STACK_TRACE);
+                            
 
                             if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
                                 CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
@@ -4874,7 +4929,7 @@ int ConceptInterpreter_EvalNumberExpression(struct ConceptInterpreter *self, PIF
                     break;
 
                 default:
-                    PIF->RunTimeError(1024, ERR1204, OE, self->OWNER, STACK_TRACE);
+                    PIF->RunTimeError(1204, ERR1204, OE, self->OWNER, STACK_TRACE);
             }
             return 1;
 
@@ -4895,7 +4950,7 @@ int ConceptInterpreter_EvalNumberExpression(struct ConceptInterpreter *self, PIF
                     break;
 
                 default:
-                    PIF->RunTimeError(1024, ERR1204, OE, self->OWNER, STACK_TRACE);
+                    PIF->RunTimeError(1204, ERR1204, OE, self->OWNER, STACK_TRACE);
             }
             return 1;
 
@@ -5390,7 +5445,7 @@ tail_call:
                 break;
         }
 #else
-        if ((jittrace) && (jittrace[INSTRUCTION_POINTER]) && (JIT(INSTRUCTION_POINTER, INSTRUCTION_COUNT, jittrace, LOCAL_CONTEXT)))
+        if ((jittrace) && (jittrace[INSTRUCTION_POINTER]) && (ConceptInterpreter_JIT(INSTRUCTION_POINTER, INSTRUCTION_COUNT, jittrace, LOCAL_CONTEXT)))
             break;
 #endif
 #endif
@@ -5414,6 +5469,14 @@ tail_call:
         switch (OE_Operator_ID) {
             case KEY_OPTIMIZED_IF:
 if_label:
+                {
+                    VariableDATA *if_var = LOCAL_CONTEXT [OE->OperandRight_ID - 1];
+                    if (LIKELY(if_var->TYPE == VARIABLE_NUMBER)) {
+                        if (!if_var->NUMBER_DATA)
+                            INSTRUCTION_POINTER = OE->OperandReserved_ID;
+                        NEXT_OP
+                    }
+                }
 
                 switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                     case VARIABLE_NUMBER:
@@ -5438,6 +5501,8 @@ if_label:
 
             case KEY_OPTIMIZED_GOTO:
 goto_label:
+                INSTRUCTION_POINTER = OE->OperandReserved_ID;
+                NEXT_OP
                 INSTRUCTION_POINTER = OE->OperandReserved_ID;
                 continue;
 
@@ -5550,7 +5615,7 @@ sel_label:
                                 FAST_FREE(PIF, PROPERTIES);
                                 PROPERTIES = 0;
                                 WRITE_UNLOCK
-                                if (CODE[INSTRUCTION_POINTER].Operator_ID != KEY_OPTIMIZED_RETURN)
+                                if ((INSTRUCTION_POINTER >= INSTRUCTION_COUNT) || (CODE[INSTRUCTION_POINTER].Operator_ID != KEY_OPTIMIZED_RETURN))
                                     skip_return = 1;
                                 goto tail_call;
                             } else {
@@ -5572,7 +5637,7 @@ sel_label:
                                     FAST_FREE(PIF, PROPERTIES);
                                     PROPERTIES = 0;
                                     WRITE_UNLOCK
-                                    if (CODE[INSTRUCTION_POINTER].Operator_ID != KEY_OPTIMIZED_RETURN)
+                                    if ((INSTRUCTION_POINTER >= INSTRUCTION_COUNT) || (CODE[INSTRUCTION_POINTER].Operator_ID != KEY_OPTIMIZED_RETURN))
                                         skip_return = 1;
                                     goto tc_start;
                                 } else {
@@ -5794,7 +5859,8 @@ call_label:
                         if (STATIC_ERROR) {
                             if (PIF->USE_EXC) {
                                 THROW_DATA = (VariableDATA *)VAR_ALLOC(PIF);
-                                THROW_DATA->NUMBER_DATA        = 0;
+                                THROW_DATA->NUMBER_DATA = 0;
+                                THROW_DATA->TYPE = VARIABLE_STRING;
                                 THROW_DATA->CLASS_DATA         = 0;
                                 THROW_DATA->LINKS              = 1;
                                 THROW_DATA->IS_PROPERTY_RESULT = 0;
@@ -5863,6 +5929,109 @@ call_label:
                     continue;
                 default:
 op:
+#ifndef SIMPLE_MULTI_THREADING
+                if (LIKELY(OE->OperandLeft_ID)) {
+                    VariableDATA *fl = LOCAL_CONTEXT [OE->OperandLeft_ID - 1];
+                    if (LIKELY(fl->TYPE == VARIABLE_NUMBER)) {
+                        VariableDATA *fo = LOCAL_CONTEXT [OE->Result_ID - 1];
+#ifndef _WIN32
+                        if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
+                            switch (OE_Operator_ID) {
+                                case KEY_INC_LEFT:
+                                case KEY_INC:
+                                    fl->NUMBER_DATA++;
+                                    PROPERTY_CODE_LEFT(self, PROPERTIES)
+                                    NEXT_OP
+
+                                case KEY_DEC_LEFT:
+                                case KEY_DEC:
+                                    fl->NUMBER_DATA--;
+                                    PROPERTY_CODE_LEFT(self, PROPERTIES)
+                                    NEXT_OP
+
+                                case KEY_ASU:
+                                    if ((OE->OperandRight_ID) && (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE == VARIABLE_NUMBER)) {
+                                        fl->NUMBER_DATA += LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
+                                        PROPERTY_CODE_LEFT(self, PROPERTIES)
+                                        NEXT_OP
+                                    }
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                        }
+#endif
+                        if (LIKELY((fo->TYPE == VARIABLE_NUMBER) && (fo->LINKS <= 1))) {
+                            switch (OE_Operator_ID) {
+                                case KEY_NOT:
+                                    fo->NUMBER_DATA = !fl->NUMBER_DATA;
+                                    NEXT_OP
+
+                                case KEY_INC_LEFT:
+                                    {
+                                        NUMBER old_value = fl->NUMBER_DATA;
+                                        fl->NUMBER_DATA = old_value + 1;
+                                        fo->NUMBER_DATA = old_value;
+                                    }
+                                    PROPERTY_CODE_LEFT(self, PROPERTIES)
+                                    NEXT_OP
+
+                                case KEY_DEC:
+                                    fl->NUMBER_DATA -= 1;
+                                    fo->NUMBER_DATA = fl->NUMBER_DATA;
+                                    PROPERTY_CODE_LEFT(self, PROPERTIES)
+                                    NEXT_OP
+
+                                default:
+                                    break;
+                            }
+                            if (OE->OperandRight_ID) {
+                                VariableDATA *fr = LOCAL_CONTEXT [OE->OperandRight_ID - 1];
+                                if (LIKELY(fr->TYPE == VARIABLE_NUMBER)) {
+                                    switch (OE_Operator_ID) {
+                                        case KEY_LES: FAST_CMP_JUMP(fl->NUMBER_DATA <  fr->NUMBER_DATA)
+                                        case KEY_LEQ: FAST_CMP_JUMP(fl->NUMBER_DATA <= fr->NUMBER_DATA)
+                                        case KEY_GRE: FAST_CMP_JUMP(fl->NUMBER_DATA >  fr->NUMBER_DATA)
+                                        case KEY_GEQ: FAST_CMP_JUMP(fl->NUMBER_DATA >= fr->NUMBER_DATA)
+                                        case KEY_EQU: FAST_CMP_JUMP(fl->NUMBER_DATA == fr->NUMBER_DATA)
+                                        case KEY_NEQ: FAST_CMP_JUMP(fl->NUMBER_DATA != fr->NUMBER_DATA)
+
+                                        case KEY_SUM:
+                                            fo->NUMBER_DATA = fl->NUMBER_DATA + fr->NUMBER_DATA;
+                                            NEXT_OP
+
+                                        case KEY_DIF:
+                                            fo->NUMBER_DATA = fl->NUMBER_DATA - fr->NUMBER_DATA;
+                                            NEXT_OP
+
+                                        case KEY_MUL:
+                                            fo->NUMBER_DATA = fl->NUMBER_DATA * fr->NUMBER_DATA;
+                                            NEXT_OP
+
+                                        case KEY_DIV:
+                                            // division by zero goes the slow way (runtime error)
+                                            if (LIKELY(fr->NUMBER_DATA != 0)) {
+                                                fo->NUMBER_DATA = fl->NUMBER_DATA / fr->NUMBER_DATA;
+                                                NEXT_OP
+                                            }
+                                            break;
+
+                                        case KEY_ASU:
+                                            fl->NUMBER_DATA += fr->NUMBER_DATA;
+                                            fo->NUMBER_DATA  = fl->NUMBER_DATA;
+                                            PROPERTY_CODE(self, PROPERTIES)
+                                            NEXT_OP
+
+                                        default:
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+#endif
                     SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
                     SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                     if (OE->OperandLeft_ID) {
@@ -5930,7 +6099,6 @@ op:
                             } else
                             if (OE_Operator_ID == KEY_MUL) {
                                 EVAL_NUMBER_EXPRESSION(self, *)
-                                PROPERTY_CODE_LEFT(self, PROPERTIES)
                                 continue;
                             }
                             if (!IS_SIMPLE(OE_Operator_ID))
@@ -6731,3 +6899,4 @@ void delete_ConceptInterpreter(struct ConceptInterpreter *self) {
 #endif
     free(self);
 }
+

@@ -326,8 +326,10 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                         result = GetVariable(VarDATA, TYPE, STRING_VALUE, NUMBER_VALUE);
                         FREE_VARIABLE(VarDATA, STACK_TRACE);
                     }
-                    if (THROW_DATA)
+                    if (THROW_DATA) {
+                        FREE_VARIABLE(THROW_DATA, STACK_TRACE);
                         return -1;
+                    }
                     return result;
                 }
                 index = CCode->RELOCATIONS2 [index] - 1;
@@ -2542,8 +2544,10 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
         case INVOKE_MALLOC:
             {
                 PIFAlizator *pif = va_arg(ap, PIFAlizator *);
-                if (!pif)
+                if (!pif) {
+                    va_end(ap);
                     return INVALID_INVOKE_PARAMETER;
+                }
                 INTEGER size = va_arg(ap, INTEGER);
                 void **str = va_arg(ap, void **);
                 *str = 0;
@@ -2560,26 +2564,35 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
         case INVOKE_REALLOC:
             {
                 PIFAlizator *pif = va_arg(ap, PIFAlizator *);
-                if (!pif)
+                if (!pif) {
+                    va_end(ap);
                     return INVALID_INVOKE_PARAMETER;
+                }
                 INTEGER size = va_arg(ap, INTEGER);
                 void **str = va_arg(ap, void **);
                 MemoryTable_erase(&pif->LibraryAllocations, *str);
                 if (size > 0) {
+                    void *ref_str = *str;
                     *str = FAST_REALLOC(pif, *str, size);
                     if (*str)
                         MemoryTable_add(&pif->LibraryAllocations, *str, size);
+                    else
+                        FAST_FREE(pif, ref_str);
                 } else
-                if (*str)
+                if (*str) {
                     FAST_FREE(pif, *str);
+                    *str = NULL;
+                }
             }
             break;
 
         case INVOKE_FREE:
             {
                 PIFAlizator *pif = va_arg(ap, PIFAlizator *);
-                if (!pif)
+                if (!pif) {
+                    va_end(ap);
                     return INVALID_INVOKE_PARAMETER;
+                }
                 void *str = va_arg(ap, void *);
                 if (str) {
                     MemoryTable_erase(&pif->LibraryAllocations, str);
@@ -2591,8 +2604,10 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
         case INVOKE_FILENAME:
             {
                 PIFAlizator *pif = va_arg(ap, PIFAlizator *);
-                if (!pif)
+                if (!pif) {
+                    va_end(ap);
                     return INVALID_INVOKE_PARAMETER;
+                }
                 char **str = va_arg(ap, char **);
                 if (str)
                     *str = pif->FileName.c_str();
@@ -2602,8 +2617,10 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
         case INVOKE_IS_SANDBOX:
             {
                 PIFAlizator *pif = va_arg(ap, PIFAlizator *);
-                if (!pif)
+                if (!pif) {
+                    va_end(ap);
                     return INVALID_INVOKE_PARAMETER;
+                }
                 result = pif->sandbox;
             }
             break;
@@ -2611,8 +2628,10 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
         case INVOKE_SET_SANDBOX:
             {
                 PIFAlizator *pif = va_arg(ap, PIFAlizator *);
-                if (!pif)
+                if (!pif) {
+                    va_end(ap);
                     return INVALID_INVOKE_PARAMETER;
+                }
                 // sandbox can only be set
                 pif->sandbox = 1;
             }

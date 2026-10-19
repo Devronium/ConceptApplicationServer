@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <string>
 #include <stdlib.h>
+#include <string.h>
+#include <errno.h>
 
 #ifdef TIMMING
  #include <time.h>
@@ -1253,7 +1255,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
         while (STACK_TRACE) {
             if (STACK_TRACE->len == -1) {
                 // concurrent write, abort
-                //ALLOC_UNLOCK
+                ALLOC_UNLOCK
                 ((PIFAlizator *)PIF)->in_gc = 0;
                 return 0;
             }
@@ -1415,7 +1417,7 @@ int cached_fseek(CachedFILE *in, intptr_t offset, int origin) {
         case SEEK_CUR:
             {
                 int delta = in->buf_fill - in->buf_pos;
-                if (offset < delta) {
+                if ((offset >= 0) && (offset < delta)) {
                     in->buf_pos += offset;
                 } else {
                     offset -= delta;
@@ -1443,6 +1445,9 @@ int cached_fseek(CachedFILE *in, intptr_t offset, int origin) {
 int cached_fread(void *buf, size_t size, size_t len, CachedFILE *in) {
     int total_size = size * len;
     int total      = 0;
+
+    if ((!size) || (!len))
+        return 0;
 
     if ((!in->buf_fill) || (in->buf_pos >= in->buf_fill)) {
         in->buf_fill = fread(in->sbuf, 1, sizeof(in->sbuf), in->in);
@@ -1550,8 +1555,27 @@ int concept_fread_int(void *buf, size_t size, size_t len, CachedFILE *in) {
 }
 #endif
 
+static int write_all(int fd, const void *data, int len) {
+    const char *p = (const char *)data;
+    while (len > 0) {
+        int w = (int)write(fd, p, len);
+        if (w > 0) {
+            p   += w;
+            len -= w;
+        } else
+        if ((w < 0) && (errno == EINTR))
+            continue;
+        else
+            return 0;
+    }
+    return 1;
+}
+
 int NotifyParent(int pipe_out, int apid, int msg_id, const char *ptr, int len = -1) {
-    if ((ptr) && (len < 0))
+    if (!ptr)
+        len = 0;
+    else
+    if (len < 0)
         len = strlen(ptr);
     if (RemoteNotifyParent) {
         return RemoteNotifyParent(pipe_out, apid, msg_id, len, ptr);
@@ -1566,18 +1590,10 @@ int NotifyParent(int pipe_out, int apid, int msg_id, const char *ptr, int len = 
     params[1] = msg_id;
     params[2] = len;
 
-    write(pipe_out, params, sizeof(int) * 3);
-    if (len) {
-        while (len > 0) {
-            int written = write(pipe_out, ptr, len);
-            if (written > 0) {
-                len -= written;
-                ptr += written;
-            } else
-                break;
-        }
-    }
-    //}
+    if (!write_all(pipe_out, params, sizeof(int) * 3))
+        return 0;
+    if ((len > 0) && (!write_all(pipe_out, ptr, len)))
+        return 0;
     return 1;
 }
 
@@ -1670,14 +1686,14 @@ CONCEPT_DLL_API Concept_CachedInit(char *filename) {
     if (!in)
         return -2;
     fclose(in);
-#ifdef _WIN32
+
     if (!stat(accel_filename.c_str(), &buf)) {
         key += ":";
         key += AnsiString((intptr_t)buf.st_size);
         key += ":";
         key += AnsiString((intptr_t)buf.st_mtime);
     }
-#endif
+
     cache_buffer = SHPoolOpen(key.c_str(), 0);
     SHLockWait(key.c_str());
     if (cache_buffer) {
@@ -2031,6 +2047,7 @@ CONCEPT_DLL_API_HANDLER Concept_Execute3_Init(char *filename, char *inc_dir, cha
     if (S.LoadFile(filename)) {
         NotifyParent(pipe_out, parent, -6, "File not found");
         SS->Print(AnsiString("File '") + AnsiString(filename) + "' is not available\n", -1, -2);
+        delete SS;
         return 0;
     }
 
@@ -2287,10 +2304,11 @@ void Print(char *str, int length) {
         length = strlen(str);
 
     do {
-        int res = fwrite(str, 1, length, stdout);
-        if (res < 0)
+        size_t res = fwrite(str, 1, length, stdout);
+        if (res == 0)
             break;
-        length -= res;
+        str    += res;
+        length -= (int)res;
     } while (length > 0);
 } 
 
@@ -2559,8 +2577,11 @@ intptr_t ConceptGetPrivateProfileString(
     } else
         error = 1;
 
-    if ((error) || (!found))
+    if ((error) || (!found)) {
         strncpy(lpReturnedString, lpDefault, nSize);
+        if (nSize > 0)
+            lpReturnedString[nSize - 1] = 0;
+    }
     if (filebuffer) {
         delete[] filebuffer;
         filebuffer = 0;
@@ -2674,7 +2695,7 @@ char *hex_to_string(char *str, char *ref, int max_len = 0x1FFF) {
 int need_compilation(char *filename) {
     AnsiString accel_filename = filename;
 
-    accel_filename += ".accel";
+    accel_filename += (char *)DEFAULT_BIN_EXTENSION;
     struct stat buf1, buf2;
     // if some error, report no need for compilation
     if (stat(filename, &buf1))

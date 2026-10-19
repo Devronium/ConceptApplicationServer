@@ -303,7 +303,7 @@ public:
     }
 
     int reused(int var_id) {
-        if ((!used_count) || (var_id < 0) || (var_id > used_count_len))
+        if ((!used_count) || (var_id <= 0) || (var_id > used_count_len))
             return 0;
 
         return (int)used_count[var_id - 1];
@@ -357,8 +357,12 @@ public:
     }
 
     int is_reserved(int var_id) {
-        if ((var_id <= 0) || (var_id > temp_var_len))
+        if (var_id <= 0)
             return -1;
+
+        // not a temporary variable
+        if (var_id > temp_var_len)
+            return 0;
 
         return temp_vars[var_id - 1];
     }
@@ -455,6 +459,15 @@ public:
     void reset_level() {
         if (this->level_manager)
             this->level_manager->reset();
+    }
+
+    // forget everything cached in all the enclosing levels
+    void reset_all_levels() {
+        TempVariableLevelManager *level = this->level_manager;
+        while (level) {
+            level->reset();
+            level = level->parent;
+        }
     }
 
     void reset_variable(int left_id) {
@@ -575,6 +588,8 @@ struct OptimizerHelper *Optimizer_GetHelper(PIFAlizator *P) {
 
 struct Optimizer *new_Optimizer(PIFAlizator *P, DoubleList *_PIFList, DoubleList *_VDList, const char *Filename, ClassCode *cls, const ClassMember *owner, bool is_unserialized) {
     struct Optimizer *self = (struct Optimizer *)malloc(sizeof(struct Optimizer));
+    if (!self)
+        return NULL;
     struct OptimizerHelper *helper = Optimizer_GetHelper(P);
     helper->PIFOwner = P;
     helper->PIFList  = _PIFList;
@@ -687,12 +702,13 @@ void Optimizer_BuildParameterList(struct Optimizer *self, struct OptimizerHelper
     int delta = helper->PIF_POSITION - START_POS;
 
     // not really necessary, but just to be sure ...
-    if (METHOD->_HASH_DATA) {
+    if ((METHOD) && (METHOD->_HASH_DATA)) {
         delta = 0;
     }
     // end here
 
     int index = 0;
+    INTEGER param_line = 0;
     if ((METHOD) && (delta)) {
         METHOD->_INFO_OPTIMIZED = -12;
         METHOD->_HASH_DATA      = new void * [delta + 1];
@@ -702,6 +718,7 @@ void Optimizer_BuildParameterList(struct Optimizer *self, struct OptimizerHelper
 
     for (INTEGER i = START_POS; i < helper->PIF_POSITION; i++) {
         AE = (AnalizerElement *)helper->PIFList->Item(i);
+        param_line = AE->_DEBUG_INFO_LINE;
         bool no_delete = true;
         if ((AE->TYPE == TYPE_OPERATOR) && (AE->ID == KEY_COMMA) && (!prec_is_comma) && (at_least_one) && (i != last)) {
             prec_is_comma      = true;
@@ -727,6 +744,7 @@ void Optimizer_BuildParameterList(struct Optimizer *self, struct OptimizerHelper
             TVM->reset_variable(AE->ID);
         } else {
             helper->PIFOwner->Errors.Add(new AnsiException(ERR200, AE->_DEBUG_INFO_LINE, 200, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER->NAME), DATA_EXCEPTION);
+            no_delete = false;
         }
 
         if (index) {
@@ -766,7 +784,7 @@ void Optimizer_BuildParameterList(struct Optimizer *self, struct OptimizerHelper
                 AnalizerElement *newAE = new AnalizerElement;
                 newAE->ID               = i + 1;
                 newAE->TYPE             = TYPE_PARAM_LIST;
-                newAE->_DEBUG_INFO_LINE = AE ? AE->_DEBUG_INFO_LINE             : 0;
+                newAE->_DEBUG_INFO_LINE = param_line;
                 newAE->_INFO_OPTIMIZED  = 1;
                 newAE->_HASH_DATA       = 0;
                 helper->PIFList->Insert(newAE, helper->PIF_POSITION++, DATA_ANALIZER_ELEMENT);
@@ -782,7 +800,7 @@ void Optimizer_BuildParameterList(struct Optimizer *self, struct OptimizerHelper
     AnalizerElement *newAE = new AnalizerElement;
     newAE->ID               = helper->ParameterList->Count();
     newAE->TYPE             = TYPE_PARAM_LIST;
-    newAE->_DEBUG_INFO_LINE = AE ? AE->_DEBUG_INFO_LINE             : 0;
+    newAE->_DEBUG_INFO_LINE = param_line;
     newAE->_INFO_OPTIMIZED  = 1;
     newAE->_HASH_DATA       = 0;
     helper->PIFList->Insert(newAE, helper->PIF_POSITION++, DATA_ANALIZER_ELEMENT);
@@ -860,7 +878,7 @@ INTEGER Optimizer_Check(OptimizerHelper *helper, AnalizerElement *Target, Analiz
 INTEGER Optimizer_GetFirstOperator(DoubleList *LST, INTEGER start, INTEGER end) {
     INTEGER FIRST_OPERATOR = 0xFFFF;
     INTEGER FIRST_POSITION = -1;
-    INTEGER PREV_OP;
+    INTEGER PREV_OP = -1;
     // --------------------------------------------------
     // --------------------------------------------------
 
@@ -1400,7 +1418,7 @@ INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHel
             }
 
 #ifndef SKIP_BUILTIN_OPTIMIZATIONS
-            if ((AE_ID == KEY_DLL_CALL) && (Left->TYPE == TYPE_CLASS) && (Left->ID > 0)) {
+            if ((AE_ID == KEY_DLL_CALL) && (Left) && (Right) && (Left->TYPE == TYPE_CLASS) && (Left->ID > 0)) {
                 // check if inline
                 ClassCode *CC = (ClassCode *)helper->PIFOwner->ClassList->Item(Left->ID - 1);
                 if (CC) {
@@ -1833,7 +1851,7 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
     OptimizedElement   *OEgoto            = 0;
     INTEGER            NOT_TRUE_POSITION  = 0;
     INTEGER            TEMP_STATAMENT_POS = 0;
-    char               temp_result;
+    INTEGER            temp_result;
     AnsiList           *PUSHED_BREAK_Elements    = helper->BREAK_Elements;
     AnsiList           *PUSHED_CONTINUE_Elements = helper->CONTINUE_Elements;
     AnsiList           *PUSHED_OptimizedPIF      = 0;
@@ -1899,17 +1917,17 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
             tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
 #ifdef OPTIONAL_SEPARATOR
             if (helper->PIFOwner->STRICT_MODE) {
-                if ((tempAE->TYPE != TYPE_SEPARATOR) || (tempAE->ID != KEY_SEP)) {
+                if ((!tempAE) || (tempAE->TYPE != TYPE_SEPARATOR) || (tempAE->ID != KEY_SEP)) {
                     helper->PIFOwner->Errors.Add(new AnsiException(ERR580, AE->_DEBUG_INFO_LINE, 580, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER->NAME), DATA_EXCEPTION);
                     return 0;
                 }
                 helper->PIF_POSITION++;
             } else
-            if ((tempAE->TYPE == TYPE_SEPARATOR) && (tempAE->ID == KEY_SEP))
+            if ((tempAE) && (tempAE->TYPE == TYPE_SEPARATOR) && (tempAE->ID == KEY_SEP))
                 helper->PIF_POSITION++;
 #else
-            if ((tempAE->TYPE != TYPE_SEPARATOR) || (tempAE->ID != KEY_SEP)) {
-                helper->PIFOwner->Errors.Add(new AnsiException(ERR580, AE->_DEBUG_INFO_LINE, 580, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER->NAME), DATA_EXCEPTION);
+            if ((!tempAE) || (tempAE->TYPE != TYPE_SEPARATOR) || (tempAE->ID != KEY_SEP)) {
+                    helper->PIFOwner->Errors.Add(new AnsiException(ERR580, AE->_DEBUG_INFO_LINE, 580, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER->NAME), DATA_EXCEPTION);
                 return 0;
             }
             helper->PIF_POSITION++;
@@ -1976,7 +1994,7 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
                 
                 AE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
                 if ((!AE) || ((AE->TYPE == TYPE_KEYWORD) && (AE->ID == KEY_END)))
-                    helper->PIFOwner->Errors.Add(new AnsiException(ERR531, AE->_DEBUG_INFO_LINE, 531, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER->NAME), DATA_EXCEPTION);
+                    helper->PIFOwner->Errors.Add(new AnsiException(ERR531, AE ? AE->_DEBUG_INFO_LINE : Line, 531, AE ? AE->_PARSE_DATA.c_str() : "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER->NAME), DATA_EXCEPTION);
 
                 TempVariableLevelManager level;
                 TVM->push_level(&level);
@@ -2077,12 +2095,17 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
 
             helper->CATCH_ELEMENT = helper->OptimizedPIF->Count();
 
-            // try statement always gets executed, no need to push/pop
-            Optimizer_OptimizeAny(self, helper, TVM);
+            // the try body may be left at any point by an exception: use its own level
+            {
+                TempVariableLevelManager level;
+                TVM->push_level(&level);
+                Optimizer_OptimizeAny(self, helper, TVM);
+                TVM->pop_level();
+            }
 
             tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
-            if ((tempAE->TYPE != TYPE_KEYWORD) || (tempAE->ID != KEY_CATCH)) {
-                helper->PIFOwner->Errors.Add(new AnsiException(ERR540, AE->_DEBUG_INFO_LINE, 540, ((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION))->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER->NAME), DATA_EXCEPTION);
+            if ((!tempAE) || (tempAE->TYPE != TYPE_KEYWORD) || (tempAE->ID != KEY_CATCH)) {
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR540, AE->_DEBUG_INFO_LINE, 540, tempAE ? tempAE->_PARSE_DATA.c_str() : "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER->NAME), DATA_EXCEPTION);
                 return 0;
             }
             helper->PIF_POSITION++;
@@ -2092,7 +2115,7 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
             tempAE        = ((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1));
             OE->Result_ID = ((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1))->ID;
             VDTemp        = (VariableDESCRIPTOR *)helper->VDList->Item(OE->Result_ID - 1);
-            if (VDTemp->BY_REF == 2)
+            if ((VDTemp) && (VDTemp->BY_REF == 2))
                 helper->PIFOwner->Errors.Add(new AnsiException(ERR541, AE->_DEBUG_INFO_LINE, 541, tempAE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER->NAME), DATA_EXCEPTION);
 
             STATAMENT_POS = helper->OptimizedPIF->Count() + 1;
@@ -2155,6 +2178,7 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
         case KEY_DO:
             STATAMENT_POS     = helper->OptimizedPIF->Count();
             helper->has_loops = 1;
+            TVM->reset_all_levels();
             helper->CONTINUE_Elements = new AnsiList(0);
             helper->BREAK_Elements    = new AnsiList(0);
             // no need to push/pop level, do statements are executed at least once
@@ -2175,6 +2199,10 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
                 (tempAE->ID != KEY_WHILE)) {
                 helper->PIFOwner->Errors.Add(new AnsiException(ERR550, AE->_DEBUG_INFO_LINE, 550, tempAE ? tempAE->_PARSE_DATA : AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME), DATA_EXCEPTION);
                 delete OE;
+                delete helper->CONTINUE_Elements;
+                helper->CONTINUE_Elements = PUSHED_CONTINUE_Elements;
+                delete helper->BREAK_Elements;
+                helper->BREAK_Elements = PUSHED_BREAK_Elements;
                 return 0;
             }
             helper->PIF_POSITION++;
@@ -2216,19 +2244,20 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
 #ifdef OPTIONAL_SEPARATOR
             if (helper->PIFOwner->STRICT_MODE) {
                 if ((!tempAE) || (tempAE->TYPE != TYPE_SEPARATOR) || (tempAE->ID != KEY_SEP))
-                    helper->PIFOwner->Errors.Add(new AnsiException(ERR340, tempAE->_DEBUG_INFO_LINE, 340, tempAE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER->NAME), DATA_EXCEPTION);
+                    helper->PIFOwner->Errors.Add(new AnsiException(ERR340, tempAE ? tempAE->_DEBUG_INFO_LINE : Line, 340, tempAE ? tempAE->_PARSE_DATA.c_str() : "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER->NAME), DATA_EXCEPTION);
             } else
-            if ((tempAE->TYPE != TYPE_SEPARATOR) || (tempAE->ID != KEY_SEP))
+            if ((tempAE) && ((tempAE->TYPE != TYPE_SEPARATOR) || (tempAE->ID != KEY_SEP)))
                 helper->PIF_POSITION--;
 #else
             if ((!tempAE) || (tempAE->TYPE != TYPE_SEPARATOR) || (tempAE->ID != KEY_SEP)) {
-                helper->PIFOwner->Errors.Add(new AnsiException(ERR340, tempAE->_DEBUG_INFO_LINE, 340, tempAE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER->NAME), DATA_EXCEPTION);
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR340, tempAE ? tempAE->_DEBUG_INFO_LINE : Line, 340, tempAE ? tempAE->_PARSE_DATA.c_str() : "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER->NAME), DATA_EXCEPTION);
             }
 #endif
             break;
 
         case KEY_WHILE:
             helper->has_loops = 1;
+            TVM->reset_all_levels();
             tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
 
             if ((!tempAE) || (tempAE->TYPE != TYPE_OPERATOR) || (tempAE->ID != KEY_P_OPEN)) {
@@ -2284,6 +2313,7 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
 
         case KEY_FOR:
             helper->has_loops = 1;
+            TVM->reset_all_levels();
             tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
 
             if ((!tempAE) || (tempAE->TYPE != TYPE_OPERATOR) || (tempAE->ID != KEY_P_OPEN)) {
@@ -2320,8 +2350,13 @@ INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper
             TEMP_STATAMENT_POS = helper->OptimizedPIF->Count() + 1;
             // ============ v2 ================== //
             PUSHED_OptimizedPIF = helper->OptimizedPIF;
-            helper->OptimizedPIF        = new AnsiList(0);
-            Optimizer_OptimizeForExpression(self, helper, TVM, true);
+            {
+                TempVariableLevelManager inc_level;
+                TVM->push_level(&inc_level);
+                helper->OptimizedPIF = new AnsiList(0);
+                Optimizer_OptimizeForExpression(self, helper, TVM, true);
+                TVM->pop_level();
+            }
             TEMP_OptimizedPIF   = helper->OptimizedPIF;
             helper->OptimizedPIF        = PUSHED_OptimizedPIF;
             PUSHED_OptimizedPIF = 0;
@@ -2759,8 +2794,127 @@ void delete_Optimizer(struct Optimizer *self) {
     free(self);
 }
 
+#ifndef DISABLE_CODE_COMPACTION
+// Works on the optimized elements, before the runtime code is generated.
+// Removes
+//   - GOTO instructions that jump to the very next instruction
+//   - unreachable instructions (after GOTO / RETURN / THROW up to the next jump target)
+// and relocates all the jump targets (IF / GOTO / TRY_CATCH).
+// Skipped when debugging / profiling (line stepping needs every instruction).
+static void Optimizer_CompactCode(struct OptimizerHelper *helper) {
+    if ((!helper->OptimizedPIF) || (helper->PIFOwner->DebugOn) || (helper->PIFOwner->PROFILE_DRIVEN))
+        return;
+
+    int count = helper->OptimizedPIF->Count();
+    if (count < 2)
+        return;
+
+    char *is_target = (char *)calloc(count + 1, 1);
+    char *dead      = (char *)calloc(count + 1, 1);
+    int  *newpos    = (int *)malloc(sizeof(int) * (count + 1));
+    bool ok         = (is_target) && (dead) && (newpos);
+    int  removed    = 0;
+    int  i;
+
+    // 1. collect jump targets
+    for (i = 0; (ok) && (i < count); i++) {
+        OptimizedElement *OE = (OptimizedElement *)helper->OptimizedPIF->Item(i);
+        if (!OE) {
+            ok = false;
+            break;
+        }
+        if (OE->Operator.TYPE != TYPE_OPTIMIZED_KEYWORD)
+            continue;
+        int id = OE->Operator.ID;
+        if ((id == KEY_OPTIMIZED_GOTO) || (id == KEY_OPTIMIZED_IF) || (id == KEY_OPTIMIZED_TRY_CATCH)) {
+            int t = OE->OperandReserved.ID;
+            if ((t < 0) || (t > count)) {
+                ok = false;
+                break;
+            }
+            is_target[t] = 1;
+            if (id == KEY_OPTIMIZED_TRY_CATCH) {
+                // enclosing catch element (code index)
+                int p = OE->OperandLeft.ID;
+                if ((p < 0) || (p > count)) {
+                    ok = false;
+                    break;
+                }
+                is_target[p] = 1;
+            }
+        }
+    }
+
+    // 2. mark removable instructions
+    if (ok) {
+        bool reachable = true;
+        for (i = 0; i < count; i++) {
+            if (is_target[i])
+                reachable = true;
+            if (!reachable) {
+                dead[i] = 1;
+                removed++;
+                continue;
+            }
+            OptimizedElement *OE = (OptimizedElement *)helper->OptimizedPIF->Item(i);
+            if (OE->Operator.TYPE != TYPE_OPTIMIZED_KEYWORD)
+                continue;
+            switch (OE->Operator.ID) {
+                case KEY_OPTIMIZED_GOTO:
+                    if (OE->OperandReserved.ID == i + 1) {
+                        dead[i] = 1;
+                        removed++;
+                    } else
+                        reachable = false;
+                    break;
+
+                case KEY_OPTIMIZED_RETURN:
+                case KEY_OPTIMIZED_THROW:
+                    reachable = false;
+                    break;
+            }
+        }
+    }
+
+    // 3. relocate targets, then delete
+    if ((ok) && (removed)) {
+        int k = 0;
+        for (i = 0; i < count; i++) {
+            newpos[i] = k;
+            if (!dead[i])
+                k++;
+        }
+        newpos[count] = k;
+
+        for (i = 0; i < count; i++) {
+            if (dead[i])
+                continue;
+            OptimizedElement *OE = (OptimizedElement *)helper->OptimizedPIF->Item(i);
+            if (OE->Operator.TYPE != TYPE_OPTIMIZED_KEYWORD)
+                continue;
+            int id = OE->Operator.ID;
+            if ((id == KEY_OPTIMIZED_GOTO) || (id == KEY_OPTIMIZED_IF) || (id == KEY_OPTIMIZED_TRY_CATCH)) {
+                OE->OperandReserved.ID = newpos[OE->OperandReserved.ID];
+                if (id == KEY_OPTIMIZED_TRY_CATCH)
+                    OE->OperandLeft.ID = newpos[OE->OperandLeft.ID];
+            }
+        }
+        for (i = count - 1; i >= 0; i--) {
+            if (dead[i])
+                helper->OptimizedPIF->Delete(i);
+        }
+    }
+    free(is_target);
+    free(dead);
+    free(newpos);
+}
+#endif
+
 void Optimizer_GenerateIntermediateCode(struct Optimizer *self, PIFAlizator *P, TempVariableManager *TVM) {
     OptimizerHelper *helper = Optimizer_GetHelper(P);
+#ifndef DISABLE_CODE_COMPACTION
+    Optimizer_CompactCode(helper);
+#endif
     self->codeCount  = helper->OptimizedPIF->Count();
     self->dataCount  = helper->VDList->Count();
     self->paramCount = helper->ParameterList->Count();
@@ -3306,7 +3460,7 @@ int Optimizer_Unserialize(struct Optimizer *self, PIFAlizator *PIFOwner, concept
                 if (OE->Operator_ID == KEY_SEL) {
                     OE->OperandRight_ID = Relocation [OE->OperandRight_ID - 1] + 1;
                 } else
-                if ((OE->Operator_ID == KEY_NEW) && (OE->OperandLeft_ID >= 0)) {
+                if ((OE->Operator_ID == KEY_NEW) && (OE->OperandLeft_ID > 0)) {
                     int newID = ClassNames [OE->OperandLeft_ID - 1] + 1;
                     if (!newID) {
                         int delta = 1;
