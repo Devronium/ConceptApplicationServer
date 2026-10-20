@@ -1875,7 +1875,7 @@ pragma used
 }
 
 class ConceptChild {
-	protected var Socket;
+	public var Socket;
 	protected var Owner;
 	private var Key = "";
 	public var PID;
