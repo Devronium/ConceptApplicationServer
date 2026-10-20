@@ -31,6 +31,7 @@ class SocketContainer {
 	var Socket;
 	var file;
 	var tls;
+	var pending;
 
 	SocketContainer(Socket) {
 		this.Socket = Socket;
@@ -171,16 +172,30 @@ class H2Server {
 	protected __writeconsume(socket, loop) {
 		if ((socket.tls) && (socket.Socket.WriteIterate()))
 			return;
+		if (socket.pending) {
+			var sent = this.__socket_try_write(socket, socket.pending);
+			if (sent < 0)
+				return true;
+			if (sent < length socket.pending) {
+				socket.pending = SubStr(socket.pending, sent);
+				if (sent > 0)
+					loop.updateTimeout(this.timeout_ms);
+				return;
+			}
+			socket.pending = null;
+		}
 
 		if (socket.file) {
 			if (socket.file.Read(var buf, READ_BUFFER_SIZE) > 0) {
 				try {
-					var written;
+					var written = -1;
 					if (socket.tls) {
 						written = socket.Socket.TLSWrite(buf);
 						socket.Socket.WriteIterate();
 					} else
 						written = socket.Socket.Write(buf);
+					if (written < 0)
+						written = 0;
 					if (written != length buf) {
 						if (!socket.file.Seek(written - length buf, SEEK_CUR)) {
 							console.warn(LOG_THIS, "${socket.file.Name}: Error in file seek");
@@ -193,6 +208,9 @@ class H2Server {
 						// socket disconnected
 						return true;
 					}
+					// EAGAIN: nimic nu s-a scris, redam blocul la urmatorul ciclu
+					if (written < 0)
+						socket.file.Seek(0 - length buf, SEEK_CUR);
 				}
 				loop.updateTimeout(this.timeout_ms);
 				return;
@@ -299,29 +317,53 @@ class H2Server {
 	}
 
 	protected __check_range_h2(stream, headers, response_headers, var file) {
-		// range support
 		response_headers["accept-ranges"] = "bytes";
 		var range = headers["range"];
-		if (range) {
-			range = __parse_range(range);
-			var range_start = range[0];
-			var range_end = range[1];
-			if (!range_end)
-				range_end = file.Size - 1;
-			if ((range_start > file.Size) || (range_end > file.Size) || (range_start < 0) || (range_end < 0) || (range_start > range_end) || (!file.Seek(range_start))) {
-				response_headers[":status"] = 416;
-				file.Close();
-				file = null;
-				response_headers["content-length"] = 0;
+		if (!range)
+			return false;
+
+		var size = file.Size;
+		var start = -1;
+		var end = -1;
+		var spec = StrSplit(range, "=")[1];
+		if (spec)
+			spec = StrSplit(spec, ",")[0];
+		if (spec) {
+			if (spec[0] == '-') {
+				// suffix range: bytes=-N (ultimii N octeti)
+				var suffix = StrNumberSplit(SubStr(spec, 1), "-")[0];
+				if (suffix > 0) {
+					start = size - suffix;
+					if (start < 0)
+						start = 0;
+					end = size - 1;
+				}
 			} else {
-				response_headers[":status"] = 206;
-				response_headers["content-length"] = range_end - range_start + 1;
-				response_headers["content-range"] = "bytes $range_start-$range_end/${file.Size}";
-				stream.ResponseFileLimit = range_end + 1;
+				var parts = StrNumberSplit(spec, "-");
+				start = parts[0];
+				// "bytes=N-" => pana la sfarsit; "bytes=0-0" ramane 0-0
+				if (spec[length spec - 1] == '-')
+					end = size - 1;
+				else
+					end = parts[1];
 			}
+		}
+		if (end >= size)
+			end = size - 1;
+
+		if ((start < 0) || (end < start) || (start >= size) || (!file.Seek(start))) {
+			response_headers[":status"] = "416";
+			response_headers["content-range"] = "bytes */$size";
+			response_headers["content-length"] = 0;
+			file.Close();
+			file = null;
 			return true;
 		}
-		return false;
+		response_headers[":status"] = "206";
+		response_headers["content-length"] = end - start + 1;
+		response_headers["content-range"] = "bytes $start-$end/$size";
+		stream.ResponseFileLimit = end + 1;
+		return true;
 	}
 
 	protected __create_headers(filename, header) {
@@ -426,6 +468,7 @@ class H2Server {
 				break;
 			case "OPTIONS":
 				__options_h2(h2, stream, 204, "No Content", method, path);
+				return;
 				break;
 			default:
 				__error_h2(h2, stream, 405, "Method Not Allowed", method, path);
@@ -488,7 +531,13 @@ class H2Server {
 		if (file.Open()) {
 			var socket = loop.object();
 
-			if (!this.__check_range_h2(stream, header, response_headers, file)) {
+			var ranged = this.__check_range_h2(stream, header, response_headers, file);
+			if (!file) {
+				// 416: raspuns fara body
+				stream.Response(h2, response_headers, true);
+				return;
+			}
+			if (!ranged) {
 				if ((content_type == "application/javascript") || (SubStr(content_type, 0, 5) == "text/"))
 					checkGzipFile(file, stream, response_headers, size);
 			}
@@ -499,7 +548,8 @@ class H2Server {
 				socket.file = [ stream ];
 				loop.onWrite(this.__h2_write_consume);
 			}
-			response_headers["content-length"] = size;
+			if (!ranged)
+				response_headers["content-length"] = size;
 			stream.Response(h2, response_headers, false);
 			stream.ResponseFile = file;
 
@@ -565,24 +615,47 @@ class H2Server {
 		}
 	}
 
-	protected __socket_fast_write(socket, data) {
+	// Scrie cat se poate; intoarce nr. de octeti scrisi, sau -1 la eroare fatala.
+	// EAGAIN nu este eroare: restul se pastreaza in socket.pending.
+	protected __socket_try_write(socket, data) {
 		var offset = 0;
-		if (socket.tls) {
-			do {
-				var written = socket.Socket.TLSWrite(data, offset);
-				socket.Socket.WriteIterate();
-				if (written <= 0)
-					break;
-				offset += written;
-			} while (offset < length data);
-		} else {
-			do {
-				written = socket.Socket.Write(data);
-				if ((written <= 0) || (written == length data))
-					break;
-				data = SubStr(data, written);
-			} while (data);
+		try {
+			while (offset < length data) {
+				var written;
+				if (socket.tls) {
+					written = socket.Socket.TLSWrite(data, offset);
+					if (written > 0)
+						offset += written;
+					socket.Socket.WriteIterate();
+					if (written <= 0)
+						break;
+				} else {
+					written = socket.Socket.Write(SubStr(data, offset));
+					if (written <= 0)
+						break;
+					offset += written;
+				}
+			}
+		} catch (var exc) {
+			var err = SocketErrno();
+			if ((err != 11) && (err != 35) && (err != 10035))
+				return -1;
 		}
+		return offset;
+	}
+
+	protected __socket_fast_write(socket, data) {
+		// pastram ordinea: ce e deja in coada merge inaintea datelor noi
+		if (socket.pending)
+			data = socket.pending + data;
+		var offset = this.__socket_try_write(socket, data);
+		if (offset < 0)
+			return;
+		if (offset < length data) {
+			socket.pending = SubStr(data, offset);
+			loop.onWrite(this.__writeconsume);
+		} else
+			socket.pending = null;
 	}
 
 	protected __redirect(socket, header, add_dir = true) {
@@ -622,7 +695,7 @@ class H2Server {
 					break;
 				default:
 					__error(socket, 405, "Method Not Allowed", method, header[":path"]);
-					break;
+					return true;
 			}
 			if (_stat(filename, var stat_arr)) {
 				__error(socket, 404, "Not Found", method, header[":path"]);
