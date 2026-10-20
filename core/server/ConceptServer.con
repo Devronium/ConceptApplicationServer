@@ -1526,6 +1526,7 @@ class ConceptBaseWorker {
 								// workers[i] = null;
 								// removed_workers ++;
 								deleteArrayElement(workers, i);
+								i --;
 								continue;
 							}
 						}
@@ -1538,6 +1539,7 @@ class ConceptBaseWorker {
 					// workers[i] = null;
 					// removed_workers ++;
 					deleteArrayElement(workers, i);
+					i --;
 					continue;
 				}
 				worker.SendCached();
@@ -1777,6 +1779,7 @@ pragma used
 					child.Close();
 					// children[i] = null;
 					deleteArrayElement(children, i);
+					i --;
 					this.ClearCache(child);
 					// Placeholders ++;
 				}
@@ -2527,6 +2530,7 @@ class ConceptAppWorker extends IniCache {
 					child.Done();
 					// this.Connections[i] = null;
 					deleteArrayElement(this.Connections, i);
+					i --;
 				}
 			}
 		}
@@ -2549,7 +2553,7 @@ class ConceptAppWorker extends IniCache {
 
 	Restore(child, tls, socket) {
 		if ((child) && (child.DirectPipe > 0)) {
-			var size = DescriptorWrite(child.DirectPipe, this.Socket.Socket, child.UsingPID);
+			var size = DescriptorWrite(child.DirectPipe, socket, child.UsingPID);
 			if (size > 0) {
 				var buf = "";
 				var tls_buf = "";
@@ -2623,7 +2627,6 @@ class ConceptAppWorker extends IniCache {
 								console.error(LOG_THIS, "unknown job type: " + job["job"]);
 						}
 					}
-					i ++;
 				}
 			}
 			if (this.Iterate())
