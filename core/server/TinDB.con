@@ -583,7 +583,7 @@ class Journal {
 				}
 			}
 		}
-		return true;
+		return db_is_ok;
 	}
 
 	SafeWrite(f2, var buf) {
@@ -683,7 +683,7 @@ class Journal {
 						if (f3.Read(log_collection, collection_size) != collection_size)
 							break;
 
-						if ((log_collection != collection) && ((offset != id) || (id != -1))) {
+						if ((log_collection != collection) && ((offset != id) && (id != -1))) {
 							SafeWrite(f2, buf);
 							if (!f3.Seek(saved_offset, SEEK_SET))
 								break;
@@ -889,7 +889,7 @@ pragma used
 
 	static CacheHit(obj, sock, current_worker) {
 		var data;
-		if ((obj.o == "Q") && ((!obj.x) || (!obj.x["map"]) || (!obj.x["explain"])) && (obj.c) && (obj.d)) {
+		if ((obj.o == "Q") && ((!obj.x) || ((!(obj.x["map"])) && (!(obj.x["explain"])))) && (obj.c) && (obj.d)) {
 			var key = "/" + obj.d + "/" + obj.c;
 			var r;
 			var data_obj;
@@ -1530,7 +1530,7 @@ pragma used
 	RandomString(len) {
 		var res = "";
 		while (length res < len) {
-			var c = RandomInteger(33, 126);
+			var c = 33 + (unpack("u32", CryptoRandom(4))[0] % 94);
 			if ((c != '\r') && (c != '\n') && (c != ';'))
 				res += chr(c);
 		}
@@ -1557,7 +1557,7 @@ pragma used
 							if (typeof user_db == "array") {
 								for (var db_i = 0; db_i < length user_db; db_i++) {
 									var u_db = user_db[db_i];
-									if ((u_db) && (typeof u_db == "string") && (u_db == user_db)) {
+									if ((u_db) && (typeof u_db == "string") && (u_db == db)) {
 										db_valid = true;
 										break;
 									}
@@ -1716,6 +1716,12 @@ pragma used
 					while (buf) {
 						var to_read = FromSize(buf, var bytes);
 						if (to_read <= MAX_OP_SIZE) {
+							if ((to_read == 0) && (bytes > 0) && (length buf >= bytes)) {
+								// empty frame: discard it, otherwise it blocks the connection forever
+								buf = SubStr(buf, bytes);
+								ctx.buffer = buf;
+								continue;
+							}
 							if ((!ctx.auth) && (to_read > MAX_NO_AUTH_SIZE)) {
 								// drop socket ... packet to large for unauthorized user
 								RemoveSocket(sock);
@@ -2394,6 +2400,12 @@ pragma used
 	}
 
 	StoreFile(db, collection, name, offset, var buffer) {
+		if (typeof offset != "numeric") {
+			if (offset)
+				return -1;
+			offset = 0;
+		}
+
 		_mkdir("$db/fs");
 		_mkdir("$db/fs/$collection");
 		var filename = "$db/fs/$collection/$name.bin";
@@ -2770,8 +2782,8 @@ pragma used
 												if (trigger.OnJSInsert) {
 													trigger_error = JSTrigger(db, o, trigger.OnJSInsert);
 													if (trigger_error) {
-														r.e = "OnInsert(JS): " + ERR_TRIGGER;
-														r.et = trigger_error;
+														r.e = ERR_TRIGGER;
+														r.et = "OnInsert(JS): " + trigger_error;
 														break;
 													}
 												}
@@ -2841,8 +2853,8 @@ pragma used
 											if (trigger.OnJSUpdate) {
 												trigger_error = JSTrigger(db, o, trigger.OnJSUpdate);
 												if (trigger_error) {
-													r.e = "OnJSUpdate(JS): " + ERR_TRIGGER;
-													r.et = trigger_error;
+													r.e = ERR_TRIGGER;
+													r.et = "OnJSUpdate(JS): " + trigger_error;
 													break;
 												}
 											}
@@ -2884,8 +2896,8 @@ pragma used
 												obj.p['$'] = id;
 												trigger_error = JSTrigger(db, o, trigger.OnJSInsert);
 												if (trigger_error) {
-													r.e = "OnInsert(JS): " + ERR_TRIGGER;
-													r.et = trigger_error;
+													r.e = ERR_TRIGGER;
+													r.et = "OnInsert(JS): " + trigger_error;
 													break;
 												}
 											}
@@ -3014,7 +3026,7 @@ pragma used
 														val = ForceNumber(o_k) - ForceNumber(val["-"]);
 													else
 													if (IsSet(val, "*"))
-														val = ForceNumber(o_k) * ForceNumber(val["-"]);
+														val = ForceNumber(o_k) * ForceNumber(val["*"]);
 													else
 													if (IsSet(val, "/"))
 														val = ForceNumber(o_k) / ForceNumber(val["/"], true);
@@ -3930,7 +3942,7 @@ class QueryAggregator {
 								for (i = 0; i < length keys; i++) {
 									var k = keys[i];
 									if (k) {
-										var equivalent_k = translate[equivalent_k];
+										var equivalent_k = translate[k];
 										if (equivalent_k) {
 											var v = PopulateValues(ref_data, k);
 											if (v) {
@@ -3962,7 +3974,7 @@ class QueryAggregator {
 			if (data_ready) {
 				if (!obj.r) {
 					obj.r = new R();
-					obj.q = obj.q;
+					obj.r.q = obj.q;
 				}
 				if (obj.data)
 					obj.r.p = obj.data[0];
@@ -4161,6 +4173,7 @@ class QuerySyncWorker {
 							new_notsync[length new_notsync] = data;
 							// conection broken, remove neighbour
 							this.RemoveSocket(socket);
+							socket = 0;
 						}
 					}
 				}
@@ -4443,6 +4456,12 @@ class QuerySyncWorker {
 			while (buf) {
 				var to_read = FromSize(buf, var bytes);
 				if (to_read <= MAX_OP_SIZE) {
+					if ((to_read == 0) && (bytes > 0) && (length buf >= bytes)) {
+						// empty frame: discard it, otherwise it blocks the connection forever
+						buf = SubStr(buf, bytes);
+						ctx.buffer = buf;
+						continue;
+					}
 					if ((to_read > 0) && (to_read <= length buf - bytes)) {
 						var buf2 = SubStr(buf, bytes, to_read);
 						buf = SubStr(buf, to_read + bytes);
