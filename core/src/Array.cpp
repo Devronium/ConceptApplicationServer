@@ -1113,8 +1113,10 @@ ARRAY_COUNT_TYPE Array_Delete(struct Array *self, ARRAY_COUNT_TYPE i, const char
 
             self->KeysCount --;
 
-            for (ARRAY_COUNT_TYPE key_index = key_offset; key_index < self->KeysCount; key_index ++) {
-                self->Keys[key_index] = self->Keys[key_index + 1];
+            if (key_offset >= 0) {
+                for (ARRAY_COUNT_TYPE key_index = key_offset; key_index < self->KeysCount; key_index ++) {
+                    self->Keys[key_index] = self->Keys[key_index + 1];
+                }
             }
 
             if (self->KeysCount) {
@@ -1196,6 +1198,10 @@ ARRAY_COUNT_TYPE Array_Delete(struct Array *self, ARRAY_COUNT_TYPE i, const char
 #endif
         self->COUNT --;
 
+#ifdef OPTIMIZE_FAST_ARRAYS
+        self->LastNodeIndex = -1;
+        self->LastNode      = 0;
+#endif
         return 1;
     }
     return 0;
