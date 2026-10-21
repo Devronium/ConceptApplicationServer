@@ -79,6 +79,42 @@ int is_writeable(int fd) {
 }
 #endif
 
+#ifdef _WIN32
+ #define RECREATE_SLEEP_MS(ms) Sleep(ms)
+#else
+ #define RECREATE_SLEEP_MS(ms) usleep((ms) * 1000)
+#endif
+
+// grace period: event_timeout seconds if set, else a default
+#define SOCKET_RECREATE_WAIT(default_ms)                                                       \
+    {                                                                                          \
+        int grace_ms  = (mc->event_timeout > 0) ? mc->event_timeout * 1000 : (default_ms);    \
+        int waited    = 0;                                                                     \
+        int new_socket = CLIENT_SOCKET;                                                        \
+        do {                                                                                   \
+            new_socket = Invoke(INVOKE_GET_PROTO_SOCKET, PARAMETERS->HANDLER);                 \
+            if (new_socket != CLIENT_SOCKET)                                                   \
+                break;                                                                         \
+            RECREATE_SLEEP_MS(20);                                                             \
+            waited += 20;                                                                      \
+        } while (waited < grace_ms);                                                           \
+        if (new_socket != CLIENT_SOCKET) {                                                     \
+            mc->ResetSocket(CLIENT_SOCKET);                                                    \
+            mc->send_failed      = 0;                                                          \
+            mc->echo_sent        = 0;                                                          \
+            mc->force_exit       = 0;                                                          \
+            mc->last_msg_seconds = time(NULL);                                                 \
+            SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0);\
+            SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);\
+            SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);\
+            SetVariable(RESULT, VARIABLE_NUMBER, "", 1);                                       \
+            ResetConceptPeer(mc, new_socket);                                                  \
+            UpdateTLSSocket(mc, new_socket);                                                   \
+            mc->ConnectionChanged(Invoke, new_socket);                                         \
+            return 0;                                                                          \
+        }                                                                                      \
+    }
+
 #define SOCKET_RECREATE_CHECK(forced)                                                           \
     if (mc->event_timeout > 0) {                                                                \
         int new_socket = Invoke(INVOKE_GET_PROTO_SOCKET, PARAMETERS->HANDLER);                  \
@@ -3020,9 +3056,22 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
     Invoke(INVOKE_GET_APPLICATION_INFO, PARAMETERS->HANDLER, &pipe_in, &pipe_out, &apid, &parent_apid);
 
     if (mc->force_exit) {
-        SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
-        SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
-        return 0;
+        int new_socket = Invoke(INVOKE_GET_PROTO_SOCKET, PARAMETERS->HANDLER);
+        if (new_socket != CLIENT_SOCKET) {
+            mc->ResetSocket(CLIENT_SOCKET);
+            CLIENT_SOCKET        = new_socket;
+            mc->force_exit       = 0;
+            mc->send_failed      = 0;
+            mc->echo_sent        = 0;
+            mc->last_msg_seconds = time(NULL);
+            ResetConceptPeer(mc, new_socket);
+            UpdateTLSSocket(mc, new_socket);
+            mc->ConnectionChanged(Invoke, new_socket);
+        } else {
+            SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
+            SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
+            return 0;
+        }
     }
 
     if (mc->send_failed) {
@@ -3342,13 +3391,15 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
                     free(buffer);
                     return 0;
                 } else {
-                    // connection closed
+                    // connection closed / dropped: give the client time to reconnect
+                    free(buffer);
+                    buffer = 0;
+                    SOCKET_RECREATE_WAIT(10000)
                     SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
                     SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
                     SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
                     SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
                     mc->force_exit = 1;
-                    free(buffer);
                     return 0;
                 }
             }

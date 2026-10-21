@@ -623,7 +623,7 @@ class H2Server {
 					break;
 				default:
 					__error(socket, 405, "Method Not Allowed", method, header[":path"]);
-					break;
+					return;
 			}
 			if (_stat(filename, var stat_arr)) {
 				__error(socket, 404, "Not Found", method, header[":path"]);
