@@ -514,7 +514,9 @@ class SIPSession {
 		this.port = port;
 		Expire = time() + expire + 1;
 		CallID = msg.Headers["call-id"];
-		ssrc_id = ClsPtr(this) % 0x10000000;
+		ssrc_id = unpack("u32", CryptoRandom(4))[0] % 0x10000000; // ClsPtr(this) % 0x10000000;
+		if (!ssrc_id)
+			ssrc_id = unpack("u32", CryptoRandom(4))[0];
 		sequence_number = RandomInteger(0, 0xFFF);
 
 		NATMode = s.NATFriendly;
@@ -1304,7 +1306,7 @@ class SIPSession {
 				if (child == session)
 					child.Parent = null;
 				else
-					new_children[length new_children] = session;
+					new_children[length new_children] = child;
 			}
 		}
 		this.Children = new_children;
@@ -3107,12 +3109,12 @@ class SIPStack {
 				contact = SubStr(contact, pos - 1);
 
 			var session = this.GetSession(msg);
-			var extra_headers = ["Refer-To" => address, "Tartget-Dialog" => target_dialog + ";tag=" + this.RandomString(20)];
+			var extra_headers = ["Refer-To" => address, "Target-Dialog" => target_dialog + ";tag=" + this.RandomString(20)];
 			msg2 = this.PerformUDP("REFER", msg.Headers["to"], contact, "", "", 70, msg, extra_headers, "", 0, session, function(msg, new_msg) {
 				if ((msg.ServerCode >= 200) && (msg.ServerCode < 300))
 					return true;
 				else
-				if ((msg.ServerCode < 100) && (msg.ServerCode >= 300)) {
+				if ((msg.ServerCode < 100) || (msg.ServerCode >= 300)) {
 					var session = this.GetSession(msg);
 					if (session)
 						session.ClearStack();
@@ -3140,7 +3142,7 @@ class SIPStack {
 				if ((msg.ServerCode >= 200) && (msg.ServerCode < 300))
 					return true;
 				else
-				if ((msg.ServerCode < 100) && (msg.ServerCode >= 300)) {
+				if ((msg.ServerCode < 100) || (msg.ServerCode >= 300)) {
 					var session = this.GetSession(msg);
 					if (session)
 						session.ClearStack();
@@ -3224,7 +3226,7 @@ class SIPStack {
 	Peek(msg, ip, port, max_forwards = 70) {
 		if (this.OnRecv)
 			this.OnRecv(msg, ip, port);
-		if (((msg.ServerCode >= 200) || (!msg.ServerCode)) && (msg.Method == "") && (!Pos(""+msg.Headers["cseq"], " ACK"))) {
+		if (((msg.ServerCode >= 200) || (!msg.ServerCode)) && (msg.Method == "") && (Pos(""+msg.Headers["cseq"], " INVITE") > 0)) {
 			if (this.ValidOrigin(ip))
 				this.Ack(msg, ip, port, max_forwards);
 			// if (this.ContactNonRoutable(msg.Headers))
@@ -3620,16 +3622,16 @@ class SIPStack {
 				server_port = port;
 
 			var msg2 = PerformUDP("NOTIFY", msg.Headers["to"], contact, "SIP/2.0 200 OK\r\n", "message/sipfrag", 70, msg, ["Event" => "refer", "Subscription-State" => "terminated;reason=noresource"]);
-			try {
-				sess.Branch = msg2.Branch;
+			sess.Branch = msg2.Branch;
+
+			/* try {
 				if (this.OnSend)
 					this.OnSend(msg2, server, server_port);
 
-				// udpclientsocket.Write(msg2.ToString(), server, server_port);
 				this.DoWrite(use_socket ?? udpclientsocket, msg2.ToString(this), server, server_port);
 			} catch (var exc) {
 				// nothing
-			}
+			} */
 		}
 
 	}
@@ -4477,13 +4479,13 @@ class SIPStack {
 				case "UPDATE":
 					if (this.UpdateSession(msg, ip, port)) {
 						if (non_routable)
-							this.ResponseUDP(200, msg, msg.Headers["from"], "", "", 70, null, "", sess.ip, sess.port);
+							this.ResponseUDP(200, msg, msg.Headers["from"], "", "", 70, null, "", ip, port);
 						else
 							this.ResponseUDP(200, msg, msg.Headers["from"]);
 					} else {
 						echo "UPDATE on invalid session\n";
 						if (non_routable)
-							this.ResponseUDP(481, msg, msg.Headers["from"], "", "", 70, null, "", sess.ip, sess.port);
+							this.ResponseUDP(481, msg, msg.Headers["from"], "", "", 70, null, "", ip, port);
 						else
 							this.ResponseUDP(481, msg, msg.Headers["from"]);
 					}
@@ -4659,7 +4661,7 @@ class SIPStack {
 		if (codec == 18) {
 			var decoder = g729_decoder_create();
 			if (decoder) {
-				var pcm_data = g729_decode(data);
+				var pcm_data = g729_decode(decoder, data);
 				backgroundNoise_alaw = pcm2alaw(pcm_data);
 				backgroundNoise_ulaw = pcm2ulaw(pcm_data);
 				g729_decoder_destroy(decoder);

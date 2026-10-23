@@ -437,7 +437,7 @@ class BinIndex {
 		var code;
 
 		if (typeof cached_val == "array") {
-			if (!recursive_index >= 4)
+			if (recursive_index >= 4)
 				return false;
 			for (var i = 0; i < length cached_val; i ++) {
 				code = this.Put(objid, db, cached_val[i], flush, recursive_index + 1);
@@ -579,7 +579,8 @@ class BinIndex {
 		var btree = GetIndex(this.Database);
 		if (!btree)
 			throw "Cannot open index (${@class}.${@member})";
-		btree.DeleteByKey(key);
+
+		btree.Delete/*ByKey*/(key);
 		if (flush)
 			btree.File.Flush();
 	}
@@ -1635,7 +1636,7 @@ class BinFile extends File {
 
 	CompareObjectsReversed(a_val, a, b_val, b, btree, bottom_layer) {
 		if ((typeof a_val == "array") || (typeof b_val == "array"))
-			this.CompareObjectsNoCache(a, b, btree, bottom_layer, b_val);
+			return this.CompareObjectsNoCache(a, b, btree, bottom_layer, b_val);
 
 		var b_val_orig = b_val;
 		var type_b = typeof b_val;

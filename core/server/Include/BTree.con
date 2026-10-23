@@ -183,7 +183,7 @@ class BTreeFile {
 		if (!f.Seek(offset))
 			throw "B-Tree seek error in " + @class + "." + @member;
 		var page = ReadPage(var elements);
-		var limit = elements * PAYLOAD_ELEMENTS  + 1;
+		var limit = elements * NODE_LOGICAL_ELEMENTS  + 1;
 		var[] values;
 		var idx = 0;
 		for (var i = 1; i < limit; i += NODE_LOGICAL_ELEMENTS) {
