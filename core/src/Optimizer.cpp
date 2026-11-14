@@ -3283,7 +3283,7 @@ int Optimizer_Unserialize(struct Optimizer *self, PIFAlizator *PIFOwner, concept
     if (!concept_fread_int(&self->dataCount, sizeof(self->dataCount), 1, in)) {
         return -1;
     }
-    if (self->dataCount) {
+    if (self->dataCount > 0) {
         if (is_pooled) {
             self->DATA = (RuntimeVariableDESCRIPTOR *)SHAlloc(sizeof(RuntimeVariableDESCRIPTOR) * self->dataCount);
         } else {

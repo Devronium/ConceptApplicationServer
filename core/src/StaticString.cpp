@@ -176,7 +176,7 @@ void StaticString::LoadBuffer(const char *buffer, int size) {
         free(Data);
         DataOffset = 0;
     }
-    if (size) {
+    if (size > 0) {
         Data = (char *)malloc(sizeof(LENGTH_DATA_TYPE) + size + 1);
         *(LENGTH_DATA_TYPE *)Data = size;
         Data += sizeof(LENGTH_DATA_TYPE);

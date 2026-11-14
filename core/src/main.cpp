@@ -1590,7 +1590,7 @@ int cached_fread(void *buf, size_t size, size_t len, CachedFILE *in) {
             in->buf_pos += total_size;
             total        = total_size;
         } else {
-            if (remaining) {
+            if (remaining > 0) {
                 memcpy(buf, in->sbuf + in->buf_pos, remaining);
                 total      += remaining;
                 total_size -= remaining;
