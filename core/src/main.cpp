@@ -183,169 +183,270 @@ void FreeVAR(void *refVAR) {
     //}
 }
 
+#if defined(__GNUC__) || defined(__clang__)
+ #define POOL_LIKELY(x)   __builtin_expect(!!(x), 1)
+ #define POOL_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#else
+ #define POOL_LIKELY(x)   (x)
+ #define POOL_UNLIKELY(x) (x)
+#endif
+
+// ---------------------------------------------------------------------------------------------
+// Variable pool allocators - optimized (AllocVAR / AllocMultipleVars)
+//  * "bump" state: every slot below FIRST_VAR is allocated and POOL_VARS counts the free ones, so
+//    POOL_VARS == POOL_BLOCK_SIZE - FIRST_VAR means ALL slots from FIRST_VAR to the end are free.
+//    That is the normal state with LIFO call frames (FreeMultipleVars lowers FIRST_VAR back), and
+//    AllocMultipleVars then hands out a run of slots with no per-slot "is it free?" test.
+//  * AllocMultipleVars serves the whole request from the cached pool when it fits (one inline
+//    pass, counters updated once); fragmented pools use the scanning loop as before.
+//  * AllocVAR hot path is inline and tiny; first pool / pool walk / new block are out of line.
+//  * the slot after the one handed out is prefetched for writing.
+// ---------------------------------------------------------------------------------------------
+#ifndef POOL_NOINLINE
+ #if defined(__GNUC__) || defined(__clang__)
+  #define POOL_NOINLINE __attribute__((noinline))
+  #define POOL_COLD     __attribute__((noinline, cold))
+  #define POOL_PREFETCH_W(p) __builtin_prefetch((p), 1, 3)
+ #elif defined(_MSC_VER)
+  #define POOL_NOINLINE __declspec(noinline)
+  #define POOL_COLD     __declspec(noinline)
+  #define POOL_PREFETCH_W(p)
+ #else
+  #define POOL_NOINLINE
+  #define POOL_COLD
+  #define POOL_PREFETCH_W(p)
+ #endif
+#endif
+
+// Takes one free slot from 'pool' (everything below FIRST_VAR is allocated). NULL if none found.
+// Caller has checked POOL_VARS != 0 and updates free_vars / the cache.
+static inline VariableDATA *varpool_take1(VARPool *pool) {
+    int           i = pool->FIRST_VAR;
+    VariableDATA *v = pool->POOL + i;
+    for (; i < POOL_BLOCK_SIZE; i++, v++) {
+        if (v->flags == -1) {
+            v->flags = i;
+            int left        = --pool->POOL_VARS;
+            pool->FIRST_VAR = left ? i + 1 : POOL_BLOCK_SIZE;
+            return v;
+        }
+    }
+    return NULL;
+}
+
+// Takes up to 'want' free slots from 'pool' in one pass; counters of the pool are updated once.
+// The caller updates free_vars. Returns how many were taken.
+static inline int varpool_grab(VARPool *pool, void **context, int &offset, int want) {
+    int avail = pool->POOL_VARS;
+    int n     = avail < want ? avail : want;
+    if (n <= 0)
+        return 0;
+    int           i   = pool->FIRST_VAR;
+    VariableDATA  *v  = pool->POOL + i;
+    void          **out = context + offset;
+    if (avail == POOL_BLOCK_SIZE - i) {
+        // bump: everything from FIRST_VAR on is free, no need to look at the slots
+        for (int k = 0; k < n; k++) {
+            v[k].flags = i + k;
+            out[k]     = &v[k];
+        }
+        i += n;
+    } else {
+        int taken = 0;
+        for (; (taken < n) && (i < POOL_BLOCK_SIZE); i++, v++) {
+            if (v->flags == -1) {
+                v->flags     = i;
+                out[taken++] = v;
+            }
+        }
+        n = taken;
+        if (!n)
+            return 0;
+    }
+    offset          += n;
+    pool->POOL_VARS  = avail - n;
+    pool->FIRST_VAR  = pool->POOL_VARS ? i : POOL_BLOCK_SIZE;
+    return n;
+}
+
+// Fills context[offset...] with 'count' variables taken from the existing pools, starting at 'start'.
+// If the walk runs off the end of the list it retries once from the head (up to 'start'), so free slots
+// in front of the cache are reused instead of allocating a new block.
+// Returns how many variables are still missing (0 = done). The cache is left on a pool that has room.
+static POOL_NOINLINE int varpool_fill(PIFAlizator *P, VARPool *head, VARPool *start, void **context, int &offset, int count, int max_iter, int iter_free_limit) {
+    if (!P->free_vars)
+        return count;
+    VARPool *stop       = NULL;
+    VARPool *p          = start;
+    int     iterations  = 0;
+    for (int pass = 0; pass < 2; pass++) {
+        while (p != stop) {
+            int got = varpool_grab(p, context, offset, count);
+            if (got) {
+                P->free_vars -= got;
+                count        -= got;
+                iterations    = 0;
+                if (!count) {
+                    P->CACHEDPOOL = p->POOL_VARS ? p : (VARPool *)p->NEXT;
+                    return 0;
+                }
+            }
+            iterations++;
+            if (P->free_vars < POOL_BLOCK_SIZE)
+                return count;
+            // memory is too fragmented ...
+            if ((iterations > max_iter) && (P->free_vars < iter_free_limit))
+                return count;
+            p = (VARPool *)p->NEXT;
+        }
+        if (start == head)
+            break;
+        p    = head;
+        stop = start;
+    }
+    return count;
+}
+
+// Creates the very first pool block.
+static POOL_NOINLINE VARPool *varpool_first(PIFAlizator *P) {
+    void    *PIF  = P;
+    VARPool *POOL = (VARPool *)FAST_MALLOC(PIF, sizeof(VARPool));
+    POOL->POOL_VARS = POOL_BLOCK_SIZE;
+    POOL->FIRST_VAR = 0;
+    POOL->NEXT      = NULL;
+    POOL->PREV      = NULL;
+    POOL->PIF       = PIF;
+    for (int i = 0; i < POOL_BLOCK_SIZE; i++)
+        POOL->POOL[i].flags = -1;
+    P->POOL       = POOL;
+    P->free_vars += POOL_BLOCK_SIZE;
+    return POOL;
+}
+
+// Slow path of AllocMultipleVars: first block, walk of the existing pools, brand new blocks.
+static POOL_NOINLINE void varpool_alloc_slow(PIFAlizator *P, void **context, int count, int offset) {
+    void    *PIF  = P;
+    VARPool *POOL = (VARPool *)P->POOL;
+    if (!POOL)
+        POOL = varpool_first(P);
+
+    // existing pools first (cached pool if it has room, else the head of the list)
+    VARPool *CACHED = (VARPool *)P->CACHEDPOOL;
+    VARPool *start  = (CACHED && CACHED->POOL_VARS) ? CACHED : POOL;
+    count = varpool_fill(P, POOL, start, context, offset, count, 1000, 10000);
+    if (!count)
+        return;
+
+    // whatever is left goes into brand new blocks
+    while (count) {
+        VARPool *NEXT_POOL = (VARPool *)FAST_MALLOC(PIF, sizeof(VARPool));
+        if (!NEXT_POOL) {
+            P->out->ClientError(ERR1400 "\n");
+            exit(-100);
+        }
+        int take = count < POOL_BLOCK_SIZE ? count : POOL_BLOCK_SIZE;
+        NEXT_POOL->FIRST_VAR = take;
+        NEXT_POOL->POOL_VARS = POOL_BLOCK_SIZE - take;
+        P->free_vars        += NEXT_POOL->POOL_VARS;
+        NEXT_POOL->PIF       = PIF;
+        VariableDATA *v = NEXT_POOL->POOL;
+        int i;
+        for (i = 0; i < take; i++) {
+            v[i].flags        = i;
+            context[offset++] = &v[i];
+        }
+        for (; i < POOL_BLOCK_SIZE; i++)
+            v[i].flags = -1;
+        count -= take;
+
+        NEXT_POOL->PREV = POOL->PREV;
+        NEXT_POOL->NEXT = POOL;
+        POOL->PREV      = NEXT_POOL;
+        P->POOL         = NEXT_POOL;
+        POOL            = NEXT_POOL;
+        if (NEXT_POOL->POOL_VARS)
+            P->CACHEDPOOL = NEXT_POOL;
+    }
+}
+
 void AllocMultipleVars(void **context, void *PIF, int count, int offset) {
     // at least one variable (this_ref)
     if (!count)
         count = 1;
 
-    VARPool *POOL = ((PIFAlizator *)PIF)->POOL;
-    VARPool *NEXT_POOL;
-    int     i;
-    if (!POOL) {
-        POOL            = (VARPool *)FAST_MALLOC(PIF, sizeof(VARPool));
-        POOL->POOL_VARS = POOL_BLOCK_SIZE;
-        POOL->FIRST_VAR = 0;
-        POOL->NEXT      = NULL;
-        POOL->PREV      = NULL;
-        POOL->PIF       = PIF;
-        for (i = 0; i < POOL_BLOCK_SIZE; i++)
-            POOL->POOL[i].flags = -1;
-        ((PIFAlizator *)PIF)->POOL       = POOL;
-        ((PIFAlizator *)PIF)->free_vars += POOL_BLOCK_SIZE;
-        NEXT_POOL = POOL;
-    } else
-    if ((((PIFAlizator *)PIF)->CACHEDPOOL) && ((((PIFAlizator *)PIF)->CACHEDPOOL)->POOL_VARS <= count))
-        NEXT_POOL = ((PIFAlizator *)PIF)->CACHEDPOOL;
-    else
-        NEXT_POOL = POOL;
-    if (((PIFAlizator *)PIF)->free_vars) {
-        int iterations = 0;
-        while ((NEXT_POOL) && (((PIFAlizator *)PIF)->free_vars)) {
-            //while (NEXT_POOL->POOL_VARS) {
-            for (i = NEXT_POOL->FIRST_VAR; (NEXT_POOL->POOL_VARS) && (i < POOL_BLOCK_SIZE); i++) {
-                if (NEXT_POOL->POOL[i].flags == -1) {
-                    NEXT_POOL->POOL_VARS--;
-                    NEXT_POOL->POOL[i].flags = i;
-                    ((PIFAlizator *)PIF)->free_vars--;
-                    context[offset++] = &NEXT_POOL->POOL[i];
-                    count--;
-                    NEXT_POOL->FIRST_VAR = i + 1;
-                    if (!count) {
-                        if (NEXT_POOL->POOL_VARS)
-                            ((PIFAlizator *)PIF)->CACHEDPOOL = NEXT_POOL;
-                        return;
-                    }
-                    iterations = 0;
-                }
-            }
-            //}
-            iterations++;
-            if (((PIFAlizator *)PIF)->free_vars < POOL_BLOCK_SIZE)
-                break;
-            // memory is too fragmented ...
-            if ((iterations > 1000) && (((PIFAlizator *)PIF)->free_vars < 10000))
-                break;
-            NEXT_POOL = (VARPool *)NEXT_POOL->NEXT;
-        }
+    PIFAlizator *P = (PIFAlizator *)PIF;
+
+    // fast path: the cached pool can take the whole request
+    VARPool *C = (VARPool *)P->CACHEDPOOL;
+    if (POOL_LIKELY(C != NULL) && POOL_LIKELY(C->POOL_VARS >= count)) {
+        int got = varpool_grab(C, context, offset, count);
+        P->free_vars -= got;
+        if (POOL_UNLIKELY(!C->POOL_VARS))
+            P->CACHEDPOOL = (VARPool *)C->NEXT; // keep the cache on a pool with room
+        if (POOL_LIKELY(got == count))
+            return;
+        count -= got;
     }
+    varpool_alloc_slow(P, context, count, offset);
+}
 
-    while (count) {
-        NEXT_POOL = (VARPool *)FAST_MALLOC(PIF, sizeof(VARPool));
-        if (!NEXT_POOL) {
-            ((PIFAlizator *)PIF)->out->ClientError(ERR1400 "\n");
-            exit(-100);
-        }
-        if (count < POOL_BLOCK_SIZE) {
-            NEXT_POOL->FIRST_VAR             = count;
-            NEXT_POOL->POOL_VARS             = POOL_BLOCK_SIZE - count;
-            ((PIFAlizator *)PIF)->free_vars += NEXT_POOL->POOL_VARS;
-        } else {
-            NEXT_POOL->FIRST_VAR = POOL_BLOCK_SIZE;
-            NEXT_POOL->POOL_VARS = 0;
-        }
+// Slow path of AllocVAR: first block, walk of the existing pools, or a brand new block.
+static POOL_NOINLINE void *varpool_alloc1_slow(PIFAlizator *P) {
+    void    *PIF  = P;
+    VARPool *POOL = (VARPool *)P->POOL;
+    if (!POOL)
+        POOL = varpool_first(P);
 
-        NEXT_POOL->PIF = PIF;
-        for (i = 0; i < POOL_BLOCK_SIZE; i++) {
-            if (count) {
-                count--;
-                NEXT_POOL->POOL[i].flags = i;
-                context[offset++]        = &NEXT_POOL->POOL[i];
-            } else
-                NEXT_POOL->POOL[i].flags = -1;
-        }
+    VARPool *CACHED = (VARPool *)P->CACHEDPOOL;
+    VARPool *start  = (CACHED && CACHED->POOL_VARS) ? CACHED : POOL;
+    void    *got[1];
+    int     off = 0;
+    if (!varpool_fill(P, POOL, start, got, off, 1, 200, 1000))
+        return got[0];
 
-        NEXT_POOL->PREV            = POOL->PREV;
-        NEXT_POOL->NEXT            = POOL;
-        POOL->PREV                 = NEXT_POOL;
-        ((PIFAlizator *)PIF)->POOL = NEXT_POOL;
-        POOL = NEXT_POOL;
-        if (NEXT_POOL->POOL_VARS)
-            ((PIFAlizator *)PIF)->CACHEDPOOL = NEXT_POOL;
+    VARPool *NEXT_POOL = (VARPool *)FAST_MALLOC(PIF, sizeof(VARPool));
+    if (!NEXT_POOL) {
+        P->out->ClientError(ERR1400 "\n");
+        exit(-100);
     }
+    NEXT_POOL->FIRST_VAR = 1;
+    NEXT_POOL->PIF       = PIF;
+    NEXT_POOL->POOL_VARS = POOL_BLOCK_SIZE - 1;
+    P->free_vars        += NEXT_POOL->POOL_VARS;
+    for (int i = 1; i < POOL_BLOCK_SIZE; i++)
+        NEXT_POOL->POOL[i].flags = -1;
+    NEXT_POOL->PREV = POOL->PREV;
+    NEXT_POOL->NEXT = POOL;
+    POOL->PREV      = NEXT_POOL;
+    P->CACHEDPOOL   = NEXT_POOL;
+    P->POOL         = NEXT_POOL;
+    NEXT_POOL->POOL[0].flags = 0;
+    return &NEXT_POOL->POOL[0];
 }
 
 void *AllocVAR(void *PIF) {
-    if (!PIF) {
+    if (POOL_UNLIKELY(!PIF)) {
         // pool variable
         VariableDATA *notPOOLED = (VariableDATA *)FAST_MALLOC(NULL, sizeof(VariableDATA));
         if (notPOOLED)
             notPOOLED->flags = -2;
         return notPOOLED;
     }
-    VARPool *POOL = ((PIFAlizator *)PIF)->POOL;
-    VARPool *NEXT_POOL;
-    int     i;
-    if (!POOL) {
-        POOL            = (VARPool *)FAST_MALLOC(PIF, sizeof(VARPool));
-        POOL->FIRST_VAR = 0;
-        POOL->POOL_VARS = POOL_BLOCK_SIZE;
-        POOL->NEXT      = NULL;
-        POOL->PREV      = NULL;
-        POOL->PIF       = PIF;
-        for (i = 0; i < POOL_BLOCK_SIZE; i++)
-            POOL->POOL[i].flags = -1;
-        ((PIFAlizator *)PIF)->POOL       = POOL;
-        ((PIFAlizator *)PIF)->free_vars += POOL_BLOCK_SIZE;
-    }
-    NEXT_POOL = ((PIFAlizator *)PIF)->CACHEDPOOL ? ((PIFAlizator *)PIF)->CACHEDPOOL : POOL;
-    if (((PIFAlizator *)PIF)->free_vars) {
-        int iterations = 0;
-        while ((NEXT_POOL) && (((PIFAlizator *)PIF)->free_vars)) {
-            if (NEXT_POOL->POOL_VARS) {
-                for (i = NEXT_POOL->FIRST_VAR; i < POOL_BLOCK_SIZE; i++) {
-                    if (NEXT_POOL->POOL[i].flags == -1) {
-                        ((PIFAlizator *)PIF)->CACHEDPOOL = NEXT_POOL;
-                        NEXT_POOL->POOL_VARS--;
-                        NEXT_POOL->POOL[i].flags = i;
-                        if (NEXT_POOL->POOL_VARS)
-                            NEXT_POOL->FIRST_VAR = i + 1;
-                        else
-                            NEXT_POOL->FIRST_VAR = POOL_BLOCK_SIZE;
-                        ((PIFAlizator *)PIF)->free_vars--;
-                        if (((PIFAlizator *)PIF)->free_vars)
-                            ((PIFAlizator *)PIF)->CACHEDPOOL = NEXT_POOL;
-                        return &NEXT_POOL->POOL[i];
-                    }
-                }
-            }
-            iterations++;
-            if (((PIFAlizator *)PIF)->free_vars < POOL_BLOCK_SIZE)
-                break;
-            // memory is too fragmented ...
-            if ((iterations > 200) && (((PIFAlizator *)PIF)->free_vars < 1000))
-                break;
-            NEXT_POOL = (VARPool *)NEXT_POOL->NEXT;
+    PIFAlizator *P = (PIFAlizator *)PIF;
+
+    // fast path: the cached pool still has a free slot
+    VARPool *C = (VARPool *)P->CACHEDPOOL;
+    if (POOL_LIKELY(C != NULL) && POOL_LIKELY(C->POOL_VARS)) {
+        VariableDATA *v = varpool_take1(C);
+        if (POOL_LIKELY(v != NULL)) {
+            P->free_vars--;
+            if (POOL_UNLIKELY(!C->POOL_VARS))
+                P->CACHEDPOOL = (VARPool *)C->NEXT;
+            POOL_PREFETCH_W(v + 1);
+            return v;
         }
     }
-    ((PIFAlizator *)PIF)->CACHEDPOOL = NULL;
-    NEXT_POOL = (VARPool *)FAST_MALLOC(PIF, sizeof(VARPool));
-    if (!NEXT_POOL) {
-        ((PIFAlizator *)PIF)->out->ClientError(ERR1400 "\n");
-        exit(-100);
-    }
-    NEXT_POOL->FIRST_VAR             = 1;
-    NEXT_POOL->PIF                   = PIF;
-    NEXT_POOL->POOL_VARS             = POOL_BLOCK_SIZE - 1;
-    ((PIFAlizator *)PIF)->free_vars += NEXT_POOL->POOL_VARS;
-    for (i = 1; i < POOL_BLOCK_SIZE; i++)
-        NEXT_POOL->POOL[i].flags = -1;
-    NEXT_POOL->PREV = POOL->PREV;
-    NEXT_POOL->NEXT = POOL;
-    POOL->PREV      = NEXT_POOL;
-    ((PIFAlizator *)PIF)->CACHEDPOOL = NEXT_POOL;
-    ((PIFAlizator *)PIF)->POOL       = NEXT_POOL;
-    NEXT_POOL->POOL[0].flags         = 0;
-    return &NEXT_POOL->POOL[0];
+    return varpool_alloc1_slow(P);
 }
 
 int ModuleCheckReachability(void *PIF) {
@@ -364,28 +465,89 @@ int ModuleCheckReachability(void *PIF) {
 #endif
 }
 
+
+// Takes the first free slot of 'pool' at or after FIRST_VAR (everything below FIRST_VAR is allocated).
+// Keeps the cached pool pointing at a pool that still has room: when this one fills up,
+// the cache moves on to the next pool in the list instead of staying on a full pool.
+template <class POOLT, class OBJT, class CNT, class CACHEDT>
+static inline OBJT *pool_take(POOLT *pool, CNT &free_count, CACHEDT &cached, int block) {
+    OBJT *o = pool->POOL + pool->FIRST_VAR;
+    for (int i = pool->FIRST_VAR; i < block; i++, o++) {
+        if (o->flags == -1) {
+            o->flags     = i;
+            o->reachable = 0;
+            int left        = --pool->POOL_VARS;
+            pool->FIRST_VAR = left ? i + 1 : block;
+            if (--free_count)
+                cached = left ? pool : (POOLT *)pool->NEXT;
+            return o;
+        }
+    }
+    return NULL;
+}
+
+// Looks for a free slot starting at the cached pool. If the walk falls off the end of the list,
+// it retries once from the head up to the pool it started at, so free slots in front of the
+// cache are reused instead of allocating a new block. Same "less than one block free" cut-off as before.
+template <class POOLT, class OBJT, class CNT, class CACHEDT>
+static OBJT *pool_find(POOLT *head, CNT &free_count, CACHEDT &cached, int block) {
+    if (!free_count)
+        return NULL;
+    POOLT *start = cached ? (POOLT *)cached : head;
+    POOLT *stop  = NULL;
+    POOLT *p     = start;
+    for (int pass = 0; pass < 2; pass++) {
+        while (p != stop) {
+            if (p->POOL_VARS) {
+                OBJT *o = pool_take<POOLT, OBJT>(p, free_count, cached, block);
+                if (o)
+                    return o;
+            }
+            if (free_count < block)
+                return NULL;
+            p = (POOLT *)p->NEXT;
+        }
+        if (start == head)
+            break;
+        p    = head;
+        stop = start;
+    }
+    return NULL;
+}
+
 void *AllocClassObject(void *PIF) {
+    PIFAlizator *P = (PIFAlizator *)PIF;
     ALLOC_LOCK
 #ifndef SIMPLE_MULTI_THREADING
     if (PIF) {
-        int delta = ((PIFAlizator *)PIF)->object_count - ((PIFAlizator *)PIF)->last_gc_run;
-        if (delta >= ((PIFAlizator *)PIF)->dirty_limit) {
+        int delta = P->object_count - P->last_gc_run;
+        if (POOL_UNLIKELY(delta >= P->dirty_limit)) {
             if (!CheckReachability(PIF)) {
                 // good boy, good programmer
-                if (((PIFAlizator *)PIF)->dirty_limit < DIRTY_LIMIT) {
-                    ((PIFAlizator *)PIF)->dirty_limit *= 3;
-                    if (((PIFAlizator *)PIF)->dirty_limit > DIRTY_LIMIT)
-                        ((PIFAlizator *)PIF)->dirty_limit = DIRTY_LIMIT;
+                if (P->dirty_limit < DIRTY_LIMIT) {
+                    P->dirty_limit *= 3;
+                    if (P->dirty_limit > DIRTY_LIMIT)
+                        P->dirty_limit = DIRTY_LIMIT;
                 } else
-                    ((PIFAlizator *)PIF)->dirty_limit = ((PIFAlizator *)PIF)->object_count * 2;
+                    P->dirty_limit = P->object_count * 2;
             }
         }
     }
 #endif
-    ClassPool *POOL = (ClassPool *)((PIFAlizator *)PIF)->CLASSPOOL;
-    ClassPool *NEXT_POOL;
+    P->object_count++;
+
+    // fast path: the cached pool still has a free slot
+    ClassPool *CACHED = (ClassPool *)P->CACHEDCLASSPOOL;
+    if (POOL_LIKELY(CACHED != NULL) && POOL_LIKELY(CACHED->POOL_VARS)) {
+        CompiledClass *o = pool_take<ClassPool, CompiledClass>(CACHED, P->free_class_objects, P->CACHEDCLASSPOOL, OBJECT_POOL_BLOCK_SIZE);
+        if (POOL_LIKELY(o != NULL)) {
+            ALLOC_UNLOCK
+            return o;
+        }
+    }
+
+    ClassPool *POOL = (ClassPool *)P->CLASSPOOL;
     int       i;
-    ((PIFAlizator *)PIF)->object_count++;
     if (!POOL) {
         POOL            = (ClassPool *)OBJECT_MALLOC(PIF, sizeof(ClassPool));
         POOL->FIRST_VAR = 0;
@@ -395,52 +557,32 @@ void *AllocClassObject(void *PIF) {
         POOL->PIF       = PIF;
         for (i = 0; i < OBJECT_POOL_BLOCK_SIZE; i++)
             POOL->POOL[i].flags = -1;
-        ((PIFAlizator *)PIF)->CLASSPOOL           = POOL;
-        ((PIFAlizator *)PIF)->free_class_objects += OBJECT_POOL_BLOCK_SIZE;
+        P->CLASSPOOL           = POOL;
+        P->free_class_objects += OBJECT_POOL_BLOCK_SIZE;
     }
-    NEXT_POOL = ((PIFAlizator *)PIF)->CACHEDCLASSPOOL ? (ClassPool *)((PIFAlizator *)PIF)->CACHEDCLASSPOOL : POOL;
-    if (((PIFAlizator *)PIF)->free_class_objects) {
-        while ((NEXT_POOL) && (((PIFAlizator *)PIF)->free_class_objects)) {
-            if (NEXT_POOL->POOL_VARS) {
-                for (i = NEXT_POOL->FIRST_VAR; i < OBJECT_POOL_BLOCK_SIZE; i++) {
-                    if (NEXT_POOL->POOL[i].flags == -1) {
-                        NEXT_POOL->POOL_VARS--;
-                        NEXT_POOL->POOL[i].flags     = i;
-                        NEXT_POOL->POOL[i].reachable = 0;
-                        if (NEXT_POOL->POOL_VARS)
-                            NEXT_POOL->FIRST_VAR = i + 1;
-                        else
-                            NEXT_POOL->FIRST_VAR = OBJECT_POOL_BLOCK_SIZE;
-                        ((PIFAlizator *)PIF)->free_class_objects--;
-                        if (((PIFAlizator *)PIF)->free_class_objects)
-                            ((PIFAlizator *)PIF)->CACHEDCLASSPOOL = NEXT_POOL;
-                        ALLOC_UNLOCK
-                        return &NEXT_POOL->POOL[i];
-                    }
-                }
-            }
-            if (((PIFAlizator *)PIF)->free_class_objects < OBJECT_POOL_BLOCK_SIZE)
-                break;
-            NEXT_POOL = (ClassPool *)NEXT_POOL->NEXT;
-        }
+
+    CompiledClass *found = pool_find<ClassPool, CompiledClass>(POOL, P->free_class_objects, P->CACHEDCLASSPOOL, OBJECT_POOL_BLOCK_SIZE);
+    if (found) {
+        ALLOC_UNLOCK
+        return found;
     }
-    ((PIFAlizator *)PIF)->CACHEDCLASSPOOL = NULL;
-    NEXT_POOL = (ClassPool *)OBJECT_MALLOC(PIF, sizeof(ClassPool));
+
+    ClassPool *NEXT_POOL = (ClassPool *)OBJECT_MALLOC(PIF, sizeof(ClassPool));
     if (!NEXT_POOL) {
-        ((PIFAlizator *)PIF)->out->ClientError(ERR1400 "\n");
+        P->out->ClientError(ERR1400 "\n");
         exit(-100);
     }
     NEXT_POOL->FIRST_VAR = 1;
     NEXT_POOL->PIF       = PIF;
     NEXT_POOL->POOL_VARS = OBJECT_POOL_BLOCK_SIZE - 1;
-    ((PIFAlizator *)PIF)->free_class_objects += NEXT_POOL->POOL_VARS;
+    P->free_class_objects += NEXT_POOL->POOL_VARS;
     for (i = 1; i < OBJECT_POOL_BLOCK_SIZE; i++)
         NEXT_POOL->POOL[i].flags = -1;
     NEXT_POOL->PREV = POOL->PREV;
     NEXT_POOL->NEXT = POOL;
     POOL->PREV      = NEXT_POOL;
-    ((PIFAlizator *)PIF)->CACHEDCLASSPOOL = NEXT_POOL;
-    ((PIFAlizator *)PIF)->CLASSPOOL       = NEXT_POOL;
+    P->CACHEDCLASSPOOL = NEXT_POOL;
+    P->CLASSPOOL       = NEXT_POOL;
     NEXT_POOL->POOL[0].flags     = 0;
     NEXT_POOL->POOL[0].reachable = 0;
     ALLOC_UNLOCK
@@ -530,23 +672,34 @@ void *AllocArray(void *PIF, bool skip_top) {
         return notPOOLED;
     }
 
+    PIFAlizator *P = (PIFAlizator *)PIF;
     ALLOC_LOCK
 #ifndef SIMPLE_MULTI_THREADING
-    int delta = ((PIFAlizator *)PIF)->object_count - ((PIFAlizator *)PIF)->last_gc_run;
-    if ((delta >= ((PIFAlizator *)PIF)->dirty_limit) && (!skip_top)) {
+    int delta = P->object_count - P->last_gc_run;
+    if (POOL_UNLIKELY(delta >= P->dirty_limit) && (!skip_top)) {
         if (!CheckReachability(PIF, skip_top)) {
             // good boy, good programmer
-            if (((PIFAlizator *)PIF)->dirty_limit < DIRTY_LIMIT) {
-                ((PIFAlizator *)PIF)->dirty_limit *= 2;
-                if (((PIFAlizator *)PIF)->dirty_limit > DIRTY_LIMIT)
-                    ((PIFAlizator *)PIF)->dirty_limit = DIRTY_LIMIT;
+            if (P->dirty_limit < DIRTY_LIMIT) {
+                P->dirty_limit *= 2;
+                if (P->dirty_limit > DIRTY_LIMIT)
+                    P->dirty_limit = DIRTY_LIMIT;
             }
         }
     }
 #endif
-    ((PIFAlizator *)PIF)->object_count++;
-    ArrayPool *POOL = (ArrayPool *)((PIFAlizator *)PIF)->ARRAYPOOL;
-    ArrayPool *NEXT_POOL;
+    P->object_count++;
+
+    // fast path: the cached pool still has a free slot
+    ArrayPool *CACHED = (ArrayPool *)P->CACHEDARRAYPOOL;
+    if (POOL_LIKELY(CACHED != NULL) && POOL_LIKELY(CACHED->POOL_VARS)) {
+        Array *o = pool_take<ArrayPool, Array>(CACHED, P->free_arrays, P->CACHEDARRAYPOOL, ARRAY_POOL_BLOCK_SIZE);
+        if (POOL_LIKELY(o != NULL)) {
+            ALLOC_UNLOCK
+            return o;
+        }
+    }
+
+    ArrayPool *POOL = (ArrayPool *)P->ARRAYPOOL;
     int       i;
     if (!POOL) {
         POOL            = (ArrayPool *)OBJECT_MALLOC(PIF, sizeof(ArrayPool));
@@ -557,55 +710,32 @@ void *AllocArray(void *PIF, bool skip_top) {
         POOL->PIF       = PIF;
         for (i = 0; i < ARRAY_POOL_BLOCK_SIZE; i++)
             POOL->POOL[i].flags = -1;
-        ((PIFAlizator *)PIF)->ARRAYPOOL    = POOL;
-        ((PIFAlizator *)PIF)->free_arrays += ARRAY_POOL_BLOCK_SIZE;
+        P->ARRAYPOOL    = POOL;
+        P->free_arrays += ARRAY_POOL_BLOCK_SIZE;
     }
-    NEXT_POOL = ((PIFAlizator *)PIF)->CACHEDARRAYPOOL ? (ArrayPool *)((PIFAlizator *)PIF)->CACHEDARRAYPOOL : POOL;
-    if (((PIFAlizator *)PIF)->free_arrays) {
-        int iterations = 0;
-        while ((NEXT_POOL) && (((PIFAlizator *)PIF)->free_arrays)) {
-            if (NEXT_POOL->POOL_VARS) {
-                for (i = NEXT_POOL->FIRST_VAR; i < ARRAY_POOL_BLOCK_SIZE; i++) {
-                    if (NEXT_POOL->POOL[i].flags == -1) {
-                        NEXT_POOL->POOL_VARS--;
-                        NEXT_POOL->POOL[i].flags     = i;
-                        NEXT_POOL->POOL[i].reachable = 0;
-                        if (NEXT_POOL->POOL_VARS)
-                            NEXT_POOL->FIRST_VAR = i + 1;
-                        else
-                            NEXT_POOL->FIRST_VAR = ARRAY_POOL_BLOCK_SIZE;
-                        ((PIFAlizator *)PIF)->free_arrays--;
-                        if (((PIFAlizator *)PIF)->free_arrays)
-                            ((PIFAlizator *)PIF)->CACHEDARRAYPOOL = NEXT_POOL;
-                        ALLOC_UNLOCK
-                        return &NEXT_POOL->POOL[i];
-                    }
-                }
-            }
-            iterations++;
-            if (((PIFAlizator *)PIF)->free_arrays < ARRAY_POOL_BLOCK_SIZE)
-                break;
-            // memory is too fragmented ...
-            NEXT_POOL = (ArrayPool *)NEXT_POOL->NEXT;
-        }
+
+    Array *found = pool_find<ArrayPool, Array>(POOL, P->free_arrays, P->CACHEDARRAYPOOL, ARRAY_POOL_BLOCK_SIZE);
+    if (found) {
+        ALLOC_UNLOCK
+        return found;
     }
-    ((PIFAlizator *)PIF)->CACHEDARRAYPOOL = NULL;
-    NEXT_POOL = (ArrayPool *)OBJECT_MALLOC(PIF, sizeof(ArrayPool));
+
+    ArrayPool *NEXT_POOL = (ArrayPool *)OBJECT_MALLOC(PIF, sizeof(ArrayPool));
     if (!NEXT_POOL) {
-        ((PIFAlizator *)PIF)->out->ClientError(ERR1400 "\n");
+        P->out->ClientError(ERR1400 "\n");
         exit(-100);
     }
     NEXT_POOL->FIRST_VAR = 1;
     NEXT_POOL->PIF       = PIF;
     NEXT_POOL->POOL_VARS = ARRAY_POOL_BLOCK_SIZE - 1;
-    ((PIFAlizator *)PIF)->free_arrays += NEXT_POOL->POOL_VARS;
+    P->free_arrays += NEXT_POOL->POOL_VARS;
     for (i = 1; i < ARRAY_POOL_BLOCK_SIZE; i++)
         NEXT_POOL->POOL[i].flags = -1;
     NEXT_POOL->PREV = POOL->PREV;
     NEXT_POOL->NEXT = POOL;
     POOL->PREV      = NEXT_POOL;
-    ((PIFAlizator *)PIF)->CACHEDARRAYPOOL = NEXT_POOL;
-    ((PIFAlizator *)PIF)->ARRAYPOOL       = NEXT_POOL;
+    P->CACHEDARRAYPOOL = NEXT_POOL;
+    P->ARRAYPOOL       = NEXT_POOL;
     NEXT_POOL->POOL[0].flags     = 0;
     NEXT_POOL->POOL[0].reachable = 0;
     ALLOC_UNLOCK

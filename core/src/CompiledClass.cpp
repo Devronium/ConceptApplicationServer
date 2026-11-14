@@ -122,11 +122,14 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
     FAST_FREE(r_CONTEXT);
     self->LINKS = -1;
 #else
-    int           inspectSize = INITIAL_INSPECT_SIZE;
-    struct CompiledClass **toInspect = (struct CompiledClass **)realloc(NULL, sizeof(struct CompiledClass *) * inspectSize);
+    // Work list lives on the stack; only spills to the heap for big object graphs.
+    struct CompiledClass *stackInspect[0x100];
+    struct CompiledClass **toInspect = stackInspect;
+    int inspectSize = 0x100;
+    int inspectPos  = 1;
     toInspect[0] = self;
-    // self->LINKS = 1;
-    int inspectPos = 1;
+
+    const bool all = (check_objects == -1);
 
     for (int j = 0; j < inspectPos; j++) {
         struct CompiledClass *CC = toInspect[j];
@@ -141,73 +144,87 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
 
         // CC->LINKS = -1;
 
-        if (CC->_CONTEXT) {
-            const ClassCode *base = CC->_Class;
-            for (int i = 0; i < base->DataMembersCount; i++) {
-                VariableDATA *Var = CC->_CONTEXT[i];
-                if (Var) {
-                    if (check_objects == -1) {
-                        Var->LINKS++;
-                        __gc_vars->Reference(Var);
-                    } else {
-                        if (Var->LINKS <= 1)
-                            __gc_vars->Reference(Var);
-                        else
-                            Var->LINKS--;
-                    }
-                    if (Var->CLASS_DATA) {
-                        if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                            void *CLASS_DATA = Var->CLASS_DATA;
-                            if (Var->TYPE == VARIABLE_DELEGATE) {
-                                CLASS_DATA = delegate_Class(CLASS_DATA);
-                                free_Delegate(Var->CLASS_DATA);
-                                Var->CLASS_DATA = NULL;
-                            }
-                            CompiledClass *CC2 = (struct CompiledClass *)CLASS_DATA;
-                            if (CC2->LINKS >= 0) {
-                                if ((check_objects == -1) || ((CC2->reachable & check_objects) != check_objects)) {
-                                    if (check_objects != -1)
-                                        CC2->reachable = check_objects;
-                                    if (!__gc_obj->IsReferenced(CC2)) {
-                                        __gc_obj->Reference(CC2);
-                                        if (CC2->_CONTEXT) {
-                                            if (inspectPos < inspectSize)
-                                                toInspect[inspectPos++] = CC2;
-                                            else {
-                                                inspectSize            += INSPECT_INCREMENT;
-                                                toInspect               = (struct CompiledClass **)realloc(toInspect, sizeof(struct CompiledClass *) * inspectSize);
-                                                toInspect[inspectPos++] = CC2;
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    RESET_VARIABLE(Var, NULL);
+        VariableDATA **ctx = CC->_CONTEXT;
+        if (!ctx)
+            continue;
+
+        const int count = CC->_Class->DataMembersCount;
+        for (int i = 0; i < count; i++) {
+            VariableDATA *Var = ctx[i];
+            if (!Var)
+                continue;
+
+            if (all) {
+                Var->LINKS++;
+                __gc_vars->Reference(Var);
+            } else {
+                if (Var->LINKS <= 1)
+                    __gc_vars->Reference(Var);
+                else
+                    Var->LINKS--;
+            }
+
+            void *VD_DATA = Var->CLASS_DATA;
+            if (!VD_DATA)
+                continue;
+
+            const int vtype = Var->TYPE;
+            if ((vtype == VARIABLE_CLASS) || (vtype == VARIABLE_DELEGATE)) {
+                void *CLASS_DATA = VD_DATA;
+                if (vtype == VARIABLE_DELEGATE) {
+                    CLASS_DATA = delegate_Class(VD_DATA);
+                    free_Delegate(VD_DATA);
+                    Var->CLASS_DATA = NULL;
+                }
+                CompiledClass *CC2 = (struct CompiledClass *)CLASS_DATA;
+                if (CC2->LINKS >= 0) {
+                    if (all || ((CC2->reachable & check_objects) != check_objects)) {
+                        if (!all)
+                            CC2->reachable = check_objects;
+                        if (!__gc_obj->IsReferenced(CC2)) {
+                            __gc_obj->Reference(CC2);
+                            if (CC2->_CONTEXT) {
+                                if (inspectPos >= inspectSize) {
+                                    if (inspectSize > 1024 * 1024)
+                                        inspectSize += 1024 * 1024;
+                                    else
+                                        inspectSize *= 2;
+                                    if (toInspect == stackInspect) {
+                                        toInspect = (struct CompiledClass **)malloc(sizeof(struct CompiledClass *) * inspectSize);
+                                        memcpy(toInspect, stackInspect, sizeof(stackInspect));
+                                    } else
+                                        toInspect = (struct CompiledClass **)realloc(toInspect, sizeof(struct CompiledClass *) * inspectSize);
                                 }
-                            }
-                            Var->NUMBER_DATA = 0;
-                            Var->TYPE = VARIABLE_NUMBER;
-                        } else
-                        if (Var->TYPE == VARIABLE_ARRAY) {
-                            if ((check_objects == -1) || ((((struct Array *)Var->CLASS_DATA)->reachable & check_objects) != check_objects)) {
-                                if (check_objects != -1)
-                                    ((struct Array *)Var->CLASS_DATA)->reachable = check_objects;
-                                if (!__gc_array->IsReferenced(Var->CLASS_DATA)) {
-                                    __gc_array->Reference(Var->CLASS_DATA);
-                                    Array_GO_GARBAGE((struct Array *)Var->CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
-                                    // ensure never visited again
-                                    Var->NUMBER_DATA = 0;
-                                    Var->TYPE = VARIABLE_NUMBER; 
-                                }
-                            } else {
-                                RESET_VARIABLE(Var, NULL);
+                                toInspect[inspectPos++] = CC2;
                             }
                         }
+                    } else {
+                        RESET_VARIABLE(Var, NULL);
                     }
+                }
+                Var->NUMBER_DATA = 0;
+                Var->TYPE = VARIABLE_NUMBER;
+            } else
+            if (vtype == VARIABLE_ARRAY) {
+                struct Array *arr = (struct Array *)VD_DATA;
+                if (all || ((arr->reachable & check_objects) != check_objects)) {
+                    if (!all)
+                        arr->reachable = check_objects;
+                    if (!__gc_array->IsReferenced(VD_DATA)) {
+                        __gc_array->Reference(VD_DATA);
+                        Array_GO_GARBAGE(arr, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
+                        // ensure never visited again
+                        Var->NUMBER_DATA = 0;
+                        Var->TYPE = VARIABLE_NUMBER;
+                    }
+                } else {
+                    RESET_VARIABLE(Var, NULL);
                 }
             }
         }
     }
-    free(toInspect);
+    if (toInspect != stackInspect)
+        free(toInspect);
 #endif
 }
 

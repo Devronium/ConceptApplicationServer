@@ -3292,26 +3292,26 @@ nothrow:
                             RESULT = LOCAL_CONTEXT [OE->OperandRight_ID - 1];
                         } else
                             RESULT = LOCAL_CONTEXT [OE->Result_ID - 1];
-                        CLASS_CHECK(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
+                        CLASS_CHECK(RESULT, STACK_TRACE);
                         if (OE->OperandLeft_ID == STATIC_CLASS_ARRAY) {
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_NUMBER;
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = new_Array(PIF);
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
+                            RESULT->TYPE       = VARIABLE_NUMBER;
+                            RESULT->CLASS_DATA = new_Array(PIF);
+                            RESULT->TYPE       = VARIABLE_ARRAY;
                         } else {
                             CC = PIF->StaticClassList[OE->OperandLeft_ID - 1];
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_CLASS;
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = NULL;
+                            RESULT->TYPE = VARIABLE_CLASS;
+                            RESULT->CLASS_DATA = NULL;
                             FORMAL_PARAMETERS = 0;
                             if (OE->OperandReserved_ID) {
                                 FORMAL_PARAMETERS = &OPT->PARAMS [OE->OperandReserved_ID - 1];
                             }
                             WRITE_UNLOCK;
-                            instancePTR = CC->CreateInstance(PIF, LOCAL_CONTEXT [OE->Result_ID - 1], OE,FORMAL_PARAMETERS, LOCAL_CONTEXT, STACK_TRACE);
+                            instancePTR = CC->CreateInstance(PIF, RESULT, OE,FORMAL_PARAMETERS, LOCAL_CONTEXT, STACK_TRACE);
 
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = instancePTR;
+                            RESULT->CLASS_DATA = instancePTR;
 
                             if (!instancePTR) {
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+                                RESULT->TYPE = VARIABLE_NUMBER;
                             }
                         }
                         PROPERTY_CODE_VAR(THIS_REF, TARGET_THREAD->PROPERTIES, OE->Result_ID);
